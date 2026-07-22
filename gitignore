@@ -1,0 +1,26 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*~
+
+# Dependências e builds
+node_modules/
+dist/
+build/
+
+# Registos e temporários
+*.log
+npm-debug.log*
+.tmp/
+
+# Dados exportados pela aplicação (não devem ir para o repositório)
+auditorias5s_*.json
+perguntas5s_*.json
+*.xlsx
+*.xls
