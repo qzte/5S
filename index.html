@@ -1,9 +1,27 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 1.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 1.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Changelog:
+    1.5.0 — Paridade com a folha de cálculo original (Auditoria_Cir_B__11B_.xlsx):
+            [Novo] Motor de pontuação ponderada 0 / 2 / 5,25 pontos (Mau /
+              Com oportunidade / Excelente), idêntico às fórmulas F23:H23 do Excel.
+              A nota global passa a ser SUM(pontos)/(nº itens × 5,25), o que reproduz
+              exactamente o E23 da folha. A escala antiga 0/1/2 mantém-se como
+              representação interna da resposta; só a ponderação mudou.
+            [Novo] Denominadores dinâmicos por pilar e por responsável: cada eixo é
+              normalizado pelo seu próprio nº de itens (ex.: Normalização = 3 itens),
+              replicando O4:O8 e Y4:Y7 da folha.
+            [Novo] Dois gráficos radar em SVG nativo (sem dependências): por pilar 5S
+              e por responsável, equivalentes aos dois RadarChart do Excel.
+            [Novo] Campo "Picking" no cabeçalho da auditoria, a par de Repositor e
+              Verificador (D25:D27 da folha).
+            [Novo] Campo "Nota/target" por item, opcional, guardado com a auditoria.
+            [Novo] Relatório com grelha completa dos 19 itens (não só as não
+              conformidades), pontos obtidos por item e totais por coluna.
+            [Compat] Auditorias gravadas em versões anteriores continuam a abrir: a
+              ponderação é recalculada a partir de scores 0/1/2 já existentes.
     1.4.0 — Correcções de segurança (auditoria OWASP Top 10):
             [Crítico] XSS armazenado corrigido — escape de HTML (esc()) em todas as
               interpolações de dados do utilizador: perguntas, temas, serviços,
@@ -142,10 +160,17 @@ canvas{width:100%!important}
 .svc-chip button{border:0;background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-weight:900}
 @media print{
   nav,header,.no-print{display:none!important}
-  body{background:#fff;padding:0}
+  body{background:#fff;padding:0;background-image:none}
   .card{box-shadow:none;break-inside:avoid}
   #view-report{display:block!important}
   main{max-width:100%}
+  /* O radar em ecrã ocupa a largura toda; em papel 300px chegam e evitam
+     que a grelha de 19 itens seja empurrada para páginas adicionais. */
+  #view-report svg{max-width:300px!important}
+  #view-report table{font-size:.72rem}
+  #view-report td,#view-report th{padding:4px 6px}
+  /* A grelha completa é longa: permitir quebra, mas nunca a meio de uma linha. */
+  #view-report table tr{break-inside:avoid}
 }
 </style>
 </head>
@@ -166,8 +191,12 @@ canvas{width:100%!important}
       <div><label>Nota (auto)</label><input id="f-live" disabled value="—"></div>
     </div>
     <div class="row">
+      <div><label>Picking</label><input id="f-pick" placeholder="Nome" list="dl-people"></div>
       <div><label>Repositor</label><input id="f-repo" placeholder="Nome" list="dl-people"></div>
+    </div>
+    <div class="row">
       <div><label>Verificador</label><input id="f-verif" placeholder="Nome" list="dl-people"></div>
+      <div><label>Nota / observação</label><input id="f-note" placeholder="Opcional" maxlength="200"></div>
       <datalist id="dl-people"></datalist>
     </div>
   </div>
@@ -184,8 +213,10 @@ canvas{width:100%!important}
 <section id="view-stats" class="hidden">
   <div class="card"><h3>Evolução da nota</h3><canvas id="ch-evo" height="180"></canvas></div>
   <div class="card"><h3>Comparação entre serviços</h3><div id="cmp-svc"></div></div>
-  <div class="card"><h3>Pontos fracos por pilar 5S</h3><div id="cmp-pilar"></div></div>
-  <div class="card"><h3>Desempenho por responsável</h3><div id="cmp-resp"></div></div>
+  <div class="card"><h3>Pontos fracos por pilar 5S</h3>
+    <div id="rad-pilar"></div><div id="cmp-pilar"></div></div>
+  <div class="card"><h3>Desempenho por responsável</h3>
+    <div id="rad-resp"></div><div id="cmp-resp"></div></div>
 </section>
 
 <!-- ============ RELATÓRIO ============ -->
@@ -311,6 +342,27 @@ function classify(it,n){
   if(it.tp==="elem")return n>=it.max?2:n>=1?1:0;
   return n>=it.mau?0:n>0?1:2;
 }
+
+/* ---------- Ponderação (v1.5.0) ----------
+   Reproduz as fórmulas da folha Auditoria_Cir_B__11B_.xlsx:
+     F23 = SUM(F4:F22)*0        → Mau               = 0 pontos
+     G23 = COUNTA(G4:G22)*2     → Com oportunidade  = 2 pontos
+     H23 = COUNTA(H4:H22)*5.25  → Excelente         = 5,25 pontos
+     E23 = SUM(F23:H23)/100     → nota global em percentagem
+   19 itens × 5,25 = 99,75 ≈ 100, daí a divisão por 100 no Excel. Aqui usamos
+   o denominador exacto (nº itens × 5,25) para que a escala continue correcta
+   quando o editor de perguntas altera o número de itens. Para os 19 itens
+   originais a diferença é de 0,25 pontos percentuais no máximo teórico. */
+const WEIGHTS=[0,2,5.25];      /* índice = score 0/1/2 */
+const W_MAX=WEIGHTS[2];        /* pontuação de um item Excelente */
+const wOf=s=>WEIGHTS[s]||0;
+/* Percentagem de um subconjunto de itens: soma dos pontos a dividir pelo
+   máximo possível desse mesmo subconjunto (denominador dinâmico). */
+function pctOf(scores){
+  if(!scores.length)return 0;
+  const got=scores.reduce((a,s)=>a+wOf(s),0);
+  return Math.round(got/(scores.length*W_MAX)*100);
+}
 let ITEMS=[];let MAX=0;
 const LBL=["Mau","Oportunidade","Excelente"];
 
@@ -328,7 +380,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="1.4.0";
+const APP_VERSION="1.5.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -376,14 +428,19 @@ function pick(i,el){
   else{const n=parseInt(el.value,10)||0;
     rawVals[i]=n;answers[i]=classify(ITEMS[i],n);
     document.getElementById("it"+i).classList.add("done");}
-  const pts=Object.values(answers).reduce((a,b)=>a+b,0);
-  document.getElementById("f-live").value=Object.keys(answers).length?Math.round(pts/MAX*100)+" / 100":"—";
+  /* Nota em directo: ponderada (0/2/5,25) sobre os itens JÁ respondidos, para
+     que a percentagem seja legível a meio do preenchimento. */
+  const resp=Object.values(answers);
+  document.getElementById("f-live").value=resp.length?
+    pctOf(resp)+" / 100  ("+resp.length+"/"+ITEMS.length+" itens)":"—";
 }
 document.getElementById("btn-save").onclick=()=>{
   if(Object.keys(answers).length<ITEMS.length){alert("Faltam "+(ITEMS.length-Object.keys(answers).length)+" itens por avaliar.");return;}
   const a={id:Date.now(),service:document.getElementById("f-service").value,
     date:document.getElementById("f-date").value,
+    pick:document.getElementById("f-pick").value,
     repo:document.getElementById("f-repo").value,verif:document.getElementById("f-verif").value,
+    note:document.getElementById("f-note").value,
     scores:ITEMS.map((_,i)=>answers[i]),raw:ITEMS.map((_,i)=>rawVals[i]),items:ITEMS.map(x=>Object.assign({},x))};
   audits.push(a);save("audits",audits);
   answers={};rawVals={};renderForm();document.getElementById("f-live").value="—";
@@ -392,15 +449,72 @@ document.getElementById("btn-save").onclick=()=>{
 
 /* ---------- Cálculos ---------- */
 const itemsOf=a=>a.items&&a.items.length?a.items:ITEMS;
-const total=a=>Math.round(a.scores.reduce((x,y)=>x+y,0)/(itemsOf(a).length*2)*100);
+/* Nota global ponderada — equivalente ao E23 da folha de cálculo. */
+const total=a=>pctOf(a.scores);
+/* Pontos brutos por coluna, como no rodapé F23:H23 do Excel. */
+function colTotals(a){
+  const c=[0,0,0];
+  a.scores.forEach(s=>{c[s]=(c[s]||0)+1;});
+  return{mau:c[0],opor:c[1],exc:c[2],
+    ptsMau:c[0]*WEIGHTS[0],ptsOpor:c[1]*WEIGHTS[1],ptsExc:c[2]*WEIGHTS[2],
+    pts:c[0]*WEIGHTS[0]+c[1]*WEIGHTS[1]+c[2]*WEIGHTS[2],
+    max:a.scores.length*W_MAX};
+}
+/* Cada eixo é normalizado pelo seu próprio nº de itens: Normalização tem 3
+   itens e os restantes 4, tal como O4:O8 da folha. */
 function byPillar(a){const IT=itemsOf(a);return PILLARS.map((p,pi)=>{
-  const idx=IT.map((it,i)=>it.p===pi?i:-1).filter(i=>i>=0);
-  return{name:p,pct:idx.length?Math.round(idx.reduce((s,i)=>s+a.scores[i],0)/(idx.length*2)*100):0};});}
+  const sc=IT.map((it,i)=>it.p===pi?a.scores[i]:null).filter(s=>s!=null);
+  return{name:p,pct:pctOf(sc),n:sc.length};});}
 function byResp(a){const IT=itemsOf(a);return Object.keys(RESP).map(r=>{
-  const idx=IT.map((it,i)=>it.r===r?i:-1).filter(i=>i>=0);
-  return{name:RESP[r],pct:idx.length?Math.round(idx.reduce((s,i)=>s+a.scores[i],0)/(idx.length*2)*100):0};});}
+  const sc=IT.map((it,i)=>it.r===r?a.scores[i]:null).filter(s=>s!=null);
+  return{name:RESP[r],pct:pctOf(sc),n:sc.length};});}
 const badge=p=>p>=80?["b-ok","Excelente"]:p>=50?["b-mid","Com oportunidade"]:["b-bad","Crítico"];
 const barCls=p=>p>=80?"":p>=50?"mid":"bad";
+
+/* ---------- Radar SVG (v1.5.0) ----------
+   Equivalente aos dois RadarChart da folha de cálculo. SVG gerado à mão para
+   manter a app sem dependências e a funcionar offline e na impressão.
+   `dados` = [{name, pct}]; a malha tem anéis a 25/50/75/100%. */
+function radarSVG(dados,cor){
+  const N=dados.length;
+  if(N<3)return`<p class="empty">Radar indisponível: são necessários pelo menos 3 eixos.</p>`;
+  /* viewBox mais largo que alto: os rótulos laterais são o que ocupa mais
+     espaço, e um quadrado obrigaria a encolher demasiado o desenho. */
+  const W=440,H=330,CX=W/2,CY=H/2+6,R=118;
+  /* Ângulo do eixo i: começa no topo (-90°) e roda no sentido horário. */
+  const ang=i=>(-90+i*360/N)*Math.PI/180;
+  const pt=(i,r)=>[CX+Math.cos(ang(i))*r,CY+Math.sin(ang(i))*r];
+  const poly=r=>dados.map((_,i)=>pt(i,r).map(v=>v.toFixed(1)).join(",")).join(" ");
+  const malha=[.25,.5,.75,1].map(f=>
+    `<polygon points="${poly(R*f)}" fill="none" stroke="#d9d3c5" stroke-width="1"/>`).join("");
+  const raios=dados.map((_,i)=>{const[x,y]=pt(i,R);
+    return`<line x1="${CX}" y1="${CY}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#d9d3c5" stroke-width="1"/>`;}).join("");
+  const serie=dados.map((d,i)=>pt(i,R*Math.max(0,Math.min(100,d.pct))/100)
+    .map(v=>v.toFixed(1)).join(",")).join(" ");
+  const pontos=dados.map((d,i)=>{const[x,y]=pt(i,R*Math.max(0,Math.min(100,d.pct))/100);
+    return`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${cor}"/>`;}).join("");
+  const rotulos=dados.map((d,i)=>{
+    const[x,y]=pt(i,R+18);
+    /* Alinhamento do texto conforme o quadrante, para não sobrepor o desenho. */
+    const cx=Math.cos(ang(i));
+    const anchor=Math.abs(cx)<0.25?"middle":(cx>0?"start":"end");
+    return`<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="${anchor}"
+      font-size="11" font-weight="700" fill="#1d2a24"
+      font-family="Archivo,Helvetica,Arial,sans-serif">${esc(d.name)}</text>
+      <text x="${x.toFixed(1)}" y="${(y+16).toFixed(1)}" text-anchor="${anchor}"
+      font-size="10" fill="#6d7a72"
+      font-family="Archivo,Helvetica,Arial,sans-serif">${d.pct}%</text>`;}).join("");
+  return`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img"
+    aria-label="Gráfico radar: ${esc(dados.map(d=>d.name+" "+d.pct+"%").join(", "))}"
+    style="max-width:440px;display:block;margin:0 auto">
+    ${malha}${raios}
+    <polygon points="${serie}" fill="${cor}" fill-opacity=".22" stroke="${cor}" stroke-width="2.5"/>
+    ${pontos}
+    <text x="${CX}" y="${(CY-R-6).toFixed(1)}" text-anchor="middle" font-size="9" fill="#6d7a72"
+      font-family="Archivo,Helvetica,Arial,sans-serif">100%</text>
+    ${rotulos}
+  </svg>`;
+}
 
 /* ---------- Relatório / PDF ---------- */
 function openReport(a){
@@ -410,14 +524,39 @@ function openReport(a){
   <div class="card score-hero"><div class="lbl">Auditoria 5S · ${esc(a.service)} · ${esc(a.date)}</div>
     <div class="big">${total(a)}<span style="font-size:1.2rem">/100</span></div>
     <span class="badge ${bc}">${bt}</span>
-    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">Repositor: ${esc(a.repo||"—")} · Verificador: ${esc(a.verif||"—")}</div>
+    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">Picking: ${esc(a.pick||"—")} · Repositor: ${esc(a.repo||"—")} · Verificador: ${esc(a.verif||"—")}</div>
+    ${a.note?`<div style="font-size:.78rem;margin-top:6px;color:#9db8a9">Nota: ${esc(a.note)}</div>`:""}
   </div>
   <div class="card"><h3 style="margin-bottom:10px">Por pilar 5S</h3>
-    ${byPillar(a).map(p=>`<div class="stat-row"><span>${esc(p.name)}</span><span>${p.pct}%</span></div>
-    <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div>
+    ${radarSVG(byPillar(a),"#1f6f50")}
+    <div style="margin-top:14px">
+    ${byPillar(a).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${p.n} itens)</small></span><span>${p.pct}%</span></div>
+    <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div></div>
   <div class="card"><h3 style="margin-bottom:10px">Por responsável</h3>
-    ${byResp(a).map(p=>`<div class="stat-row"><span>${esc(p.name)}</span><span>${p.pct}%</span></div>
-    <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div>
+    ${radarSVG(byResp(a).filter(r=>r.n>0),"#e8500a")}
+    <div style="margin-top:14px">
+    ${byResp(a).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${p.n} itens)</small></span><span>${p.pct}%</span></div>
+    <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div></div>
+  <div class="card"><h3 style="margin-bottom:4px">Pontuação</h3>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px">
+      Mau = 0 pontos · Com oportunidade = 2 pontos · Excelente = ${W_MAX} pontos.</p>
+    ${(()=>{const t=colTotals(a);return`<table>
+      <tr><th>Avaliação</th><th>Itens</th><th>Pontos</th></tr>
+      <tr><td><span class="pill" style="background:var(--red)">Mau</span></td><td>${t.mau}</td><td>${t.ptsMau}</td></tr>
+      <tr><td><span class="pill" style="background:var(--amber)">Com oportunidade</span></td><td>${t.opor}</td><td>${t.ptsOpor}</td></tr>
+      <tr><td><span class="pill" style="background:var(--green)">Excelente</span></td><td>${t.exc}</td><td>${t.ptsExc}</td></tr>
+      <tr><td><b>Total</b></td><td><b>${a.scores.length}</b></td><td><b>${t.pts} / ${t.max}</b></td></tr>
+    </table>`;})()}</div>
+  <div class="card"><h3 style="margin-bottom:10px">Grelha de verificação</h3>
+    <table><tr><th>Nº</th><th>Item</th><th>Resp.</th><th>Obs.</th><th>Aval.</th></tr>
+    ${itemsOf(a).map((it,i)=>{const s=a.scores[i];
+      const cor=s===2?"var(--green)":s===1?"var(--amber)":"var(--red)";
+      return`<tr><td>${esc(it.n)}</td>
+      <td>${esc(it.t)}<br><small style="color:var(--muted)">${esc(it.c)}</small></td>
+      <td><small>${esc(it.r)}</small></td>
+      <td>${esc(a.raw&&a.raw[i]!=null?a.raw[i]:"—")}</td>
+      <td><span class="pill" style="background:${cor}">${esc(LBL[s])}</span></td></tr>`;}).join("")}
+    </table></div>
   <div class="card"><h3 style="margin-bottom:10px">Itens a melhorar (${worst.length})</h3>
     ${worst.length?`<table><tr><th>Nº</th><th>Item</th><th>Obs.</th><th>Avaliação</th></tr>${worst.map(x=>
       `<tr><td>${esc(x.it.n)}</td><td>${esc(x.it.t)}<br><small style="color:var(--muted)">${esc(x.it.c)}</small></td>
@@ -476,10 +615,13 @@ function renderStats(){
   document.getElementById("cmp-svc").innerHTML=bars(
     services.filter(s=>audits.some(a=>a.service===s))
     .map(s=>[s,avg(audits.filter(a=>a.service===s).map(total))]));
-  document.getElementById("cmp-pilar").innerHTML=bars(
-    PILLARS.map((p,i)=>[p,avg(audits.map(a=>byPillar(a)[i].pct))]));
-  document.getElementById("cmp-resp").innerHTML=bars(
-    Object.values(RESP).map((r,i)=>[r,avg(audits.map(a=>byResp(a)[i].pct))]));
+  /* Médias de todas as auditorias, nos mesmos eixos do relatório individual. */
+  const medPilar=PILLARS.map((p,i)=>({name:p,pct:avg(audits.map(a=>byPillar(a)[i].pct))}));
+  const medResp=Object.values(RESP).map((r,i)=>({name:r,pct:avg(audits.map(a=>byResp(a)[i].pct))}));
+  document.getElementById("rad-pilar").innerHTML=audits.length?radarSVG(medPilar,"#1f6f50"):"";
+  document.getElementById("rad-resp").innerHTML=audits.length?radarSVG(medResp,"#e8500a"):"";
+  document.getElementById("cmp-pilar").innerHTML=bars(medPilar.map(d=>[d.name,d.pct]));
+  document.getElementById("cmp-resp").innerHTML=bars(medResp.map(d=>[d.name,d.pct]));
 }
 
 /* ---------- Config ---------- */
@@ -611,7 +753,9 @@ function sanitizeAudit(x){
   return{
     id:Number(x.id)||Date.now()+Math.floor(Math.random()*1e6),
     service,date,
+    pick:clean(x.pick,120),
     repo:clean(x.repo,120),verif:clean(x.verif,120),
+    note:clean(x.note,200),
     scores,raw,
     items:items||undefined
   };
