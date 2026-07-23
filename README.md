@@ -1,6 +1,6 @@
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 1.4.0** · [Semantic Versioning](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH)
+**Versão 1.5.0** · [Semantic Versioning](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH)
 
 Aplicação web (PWA) de auditoria 5S para supermercados. Funciona 100% offline, num único ficheiro `index.html`, sem servidor e sem base de dados — todos os dados ficam guardados localmente no dispositivo (`localStorage`).
 
@@ -8,10 +8,10 @@ Repositório: <https://github.com/qzte/5S>
 
 ## Funcionalidades
 
-- **Nova auditoria** — 19 perguntas por omissão, organizadas pelos 5 pilares, com nota automática em tempo real.
+- **Nova auditoria** — 19 perguntas por omissão, organizadas pelos 5 pilares, com nota automática em tempo real e campos Picking, Repositor e Verificador.
 - **Histórico** — lista de auditorias guardadas por serviço e data.
-- **Análise** — evolução da nota, comparação entre serviços e pontos críticos.
-- **Relatório** — vista para impressão / exportação em PDF através do browser.
+- **Análise** — evolução da nota, comparação entre serviços e radares médios por pilar e por responsável.
+- **Relatório** — dois gráficos radar, tabela de pontuação, grelha completa dos 19 itens e vista para impressão / exportação em PDF através do browser.
 - **Importação de Excel** — `.xlsx`, `.xls` e `.csv` com serviços e repositores (SheetJS embutido, sem CDN).
 - **Cópia de segurança** — exportação e importação do histórico em JSON, com modos *Fundir* e *Substituir*.
 - **Editor de perguntas** — protegido por PIN de administrador; permite criar, editar, remover, exportar e repor perguntas.
@@ -26,7 +26,7 @@ Repositório: <https://github.com/qzte/5S>
    cd 5S
    # copiar aqui os ficheiros gerados
    git add .
-   git commit -m "fix(security): escape XSS, remove handlers inline, CSP e cache allowlist (v1.4.0)"
+   git commit -m "feat(scoring): pontuacao ponderada 0/2/5.25 e radares por pilar e responsavel (v1.5.0)"
    git push origin main
    ```
 
@@ -68,7 +68,39 @@ O projeto segue Semantic Versioning:
 - **MINOR** — novas funcionalidades compatíveis com as versões anteriores.
 - **PATCH** — correções de erros sem alteração de comportamento.
 
+As auditorias gravadas em versões anteriores continuam a abrir: a nota é recalculada a partir
+dos níveis 0/1/2 já guardados, aplicando a nova ponderação. Os relatórios antigos passam
+portanto a apresentar percentagens ligeiramente diferentes das que mostravam na v1.4.0, por
+efeito da ponderação — os dados em si não são alterados.
+
 A versão está declarada em quatro sítios, que devem ser atualizados em conjunto: comentário no topo de `index.html`, constante `APP_VERSION` no `index.html`, campos `version`/`description` do `manifest.json` e constante `APP_VERSION` do `sw.js`. Alterar a versão no `sw.js` é obrigatório, porque é o que invalida a cache dos utilizadores.
+
+## Modelo de pontuação
+
+A aplicação reproduz o cálculo da folha de cálculo original (`Auditoria_Cir_B__11B_.xlsx`).
+Cada item é classificado em três níveis, com pesos diferentes:
+
+| Avaliação | Pontos | Coluna no Excel |
+|---|---|---|
+| Mau | 0 | `F` |
+| Com oportunidade | 2 | `G` |
+| Excelente | 5,25 | `H` |
+
+A nota de um conjunto de itens é `soma dos pontos ÷ (nº de itens × 5,25)`. O denominador é
+**dinâmico**: cada pilar e cada responsável normaliza pelo seu próprio número de itens, tal
+como as fórmulas `O4:O8` e `Y4:Y7` da folha. Por exemplo, Normalização tem 3 itens e os
+restantes pilares têm 4.
+
+**Diferença conhecida face ao Excel.** A folha calcula a nota global com `E23 = SUM(F23:H23)/100`,
+ou seja, divide por 100 fixo. Como o máximo real são 19 × 5,25 = 99,75 pontos, a folha
+subavalia ligeiramente: os dados da Cirurgia B (11B) dão 81,5 % no Excel e 82 % na aplicação.
+A aplicação usa o denominador exacto para que a escala continue correcta quando o editor de
+perguntas altera o número de itens. Para replicar o comportamento literal da folha, substituir
+o denominador de `pctOf()` por `100`.
+
+Os dois gráficos radar correspondem aos dois `RadarChart` da folha: um por pilar 5S
+(`K4:K8` / `O4:O8`) e outro por responsável (`S4:V7` / `Y4:Y7`). São gerados em SVG nativo,
+sem bibliotecas, pelo que funcionam offline e na impressão.
 
 ## Dados e privacidade
 
