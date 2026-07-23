@@ -1,9 +1,44 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 1.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 1.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Changelog:
+    1.7.0 — Recomendações por responsável e histórico do serviço:
+            [Novo] Nova folha 3 do PDF com um bloco por área de responsabilidade
+              (Utilizadores, Manutenção, Reposição, Utilizador e Repositor), cada
+              um com nota de texto e fotografia, dois blocos por linha.
+              O TEXTO é guardado com a auditoria (campo opcional `recs`) e viaja
+              na exportação JSON. A FOTOGRAFIA é efémera: vive apenas em memória
+              (REC_FOTOS) enquanto a vista Relatório está aberta e nunca é escrita
+              em localStorage, pelo que não consome quota.
+              As imagens são reduzidas a 640px e recodificadas em JPEG 0,75 via
+              <canvas>; o data URI é sempre produzido localmente.
+              A folha 3 só é gerada se houver texto ou foto.
+            [Novo] Histórico do serviço na folha 1: barras verticais com as
+              últimas 6 auditorias ao mesmo serviço (data dd/mm + percentagem),
+              em SVG nativo para imprimir nítido. Não é desenhado sem histórico.
+            [Correcção] sanitizeAudit() descartava o campo `recs` na importação
+              de JSON. Passa a preservá-lo, normalizado às 4 chaves conhecidas e
+              limpo com clean(); chaves arbitrárias são ignoradas.
+            [Correcção] A description do manifest.json indicava 1.5.0 na v1.6.0.
+            [Alterado] Radares da folha 1 de 320px para 290px, para acomodar o
+              histórico. Medição em impressão: 856px (cabeçalho da nota + folha)
+              de 1047px úteis (A4 retrato, margens de 10mm).
+            Sem alterações ao modelo de pontuação; auditorias antigas abrem na
+            mesma e o campo `recs` é opcional.
+    1.6.0 — Relatório em PDF com paginação fixa de duas folhas:
+            [Novo] O relatório passa a ser dividido em dois contentores .page.
+              A página 1 agrupa o cabeçalho da nota e os dois gráficos radar,
+              agora lado a lado e reduzidos a 210px, com as barras por pilar e
+              por responsável ao lado de cada radar.
+              A página 2 agrupa a tabela de pontuação, a grelha completa dos
+              19 itens e a lista de itens a melhorar, em tipografia compacta.
+            [Novo] Regra @page A4 retrato com margens de 10mm.
+            [Alterado] As quebras de página deixam de ser automáticas: cada
+              .page força break-after, excepto a última, para não gerar uma
+              terceira folha em branco.
+            Sem alterações ao modelo de dados nem ao motor de pontuação.
     1.5.0 — Paridade com a folha de cálculo original (Auditoria_Cir_B__11B_.xlsx):
             [Novo] Motor de pontuação ponderada 0 / 2 / 5,25 pontos (Mau /
               Com oportunidade / Excelente), idêntico às fórmulas F23:H23 do Excel.
@@ -158,18 +193,75 @@ canvas{width:100%!important}
 .svc-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);
   border-radius:99px;padding:6px 6px 6px 14px;margin:0 6px 8px 0;font-family:var(--f-sans);font-size:.8rem;font-weight:700}
 .svc-chip button{border:0;background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-weight:900}
+/* ---------- Impressão (v1.6.0) ----------
+   Layout de duas folhas exactas por relatório:
+     Página 1 — cabeçalho da nota + os dois radares e respectivas barras.
+     Página 2 — tabela de pontuação e grelha completa dos 19 itens.
+   Os radares são reduzidos e colocados lado a lado para que a página 1 nunca
+   transborde; a página 2 usa tipografia compacta pela mesma razão.
+   O bloco "Itens a melhorar" fica fora da impressão (.no-print): a grelha da
+   página 2 já assinala todas as não conformidades na coluna Aval., pelo que
+   repeti-las obrigaria a uma terceira folha sem acrescentar informação. */
+@page{size:A4 portrait;margin:10mm}
+/* ---------- Recomendações por responsável (v1.7.0) ---------- */
+.rec-block .rec-body{display:flex;gap:12px;align-items:flex-start;margin-top:6px}
+.rec-block .rec-foto{flex:0 0 40%;min-height:110px;border:1px dashed #cfc8b8;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;background:#faf8f3}
+.rec-block .rec-foto img{width:100%;height:100%;object-fit:cover;display:block}
+.rec-block .rec-vazio{font-size:.75rem;color:var(--muted)}
+.rec-block .rec-txt{flex:1 1 auto;min-width:0}
+.rec-block textarea{width:100%;font:inherit;font-size:.85rem;padding:8px;border-radius:8px;
+  border:1px solid #d9d3c5;background:#fff;resize:vertical}
+.rec-block .rec-acts{display:flex;gap:8px;margin-top:8px}
+/* No ecrã mostra-se o textarea; na impressão mostra-se o texto simples. */
+.rec-print{display:none;white-space:pre-wrap}
+@media print{.rec-print{display:block}}
+
 @media print{
   nav,header,.no-print{display:none!important}
   body{background:#fff;padding:0;background-image:none}
-  .card{box-shadow:none;break-inside:avoid}
+  .card{box-shadow:none;break-inside:avoid;margin-bottom:8px}
   #view-report{display:block!important}
-  main{max-width:100%}
-  /* O radar em ecrã ocupa a largura toda; em papel 300px chegam e evitam
-     que a grelha de 19 itens seja empurrada para páginas adicionais. */
-  #view-report svg{max-width:300px!important}
-  #view-report table{font-size:.72rem}
-  #view-report td,#view-report th{padding:4px 6px}
-  /* A grelha completa é longa: permitir quebra, mas nunca a meio de uma linha. */
+  main{max-width:100%;padding:0}
+
+  /* Cada .page é uma folha. A última não força quebra, para não gerar
+     uma terceira página em branco. */
+  #view-report .page{break-after:page;page-break-after:always}
+  #view-report .page:last-of-type{break-after:auto;page-break-after:auto}
+
+  /* Página 1: os dois blocos de radar lado a lado. */
+  #view-report .page-1{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+  #view-report .page-1>.card{flex:1 1 48%;min-width:0}
+  /* v1.7.0: radares a 290px. A medição em impressão (folha 1 = 671px de 1047px
+     úteis) mostra que há folga de sobra mesmo com o bloco de histórico. */
+  #view-report .page-1 svg{max-width:290px!important;width:100%;height:auto;display:block;margin:0 auto}
+  #view-report .page-1 .stat-row{font-size:.72rem}
+  #view-report .page-1 .bar{height:7px}
+  #view-report .page-1 h3{font-size:.9rem}
+  /* O histórico ocupa a largura toda, por baixo dos dois radares. */
+  #view-report .page-1>.hist-block{flex:1 1 100%}
+  #view-report .page-1>.hist-block svg{max-width:440px!important}
+
+  /* Página 3: recomendações por responsável, dois blocos por linha. */
+  #view-report .page-3{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}
+  #view-report .page-3 h3{font-size:.85rem;margin-bottom:6px}
+  #view-report .page-3 .rec-body{display:flex;gap:8px;align-items:flex-start}
+  #view-report .page-3 .rec-foto{flex:0 0 42%;height:150px}
+  /* Sem foto não se imprime moldura nenhuma: o bloco fica só com o texto,
+     em vez de uma caixa tracejada vazia no PDF. */
+  #view-report .page-3 .rec-foto:not(:has(img)){display:none}
+  #view-report .page-3 .rec-foto{border:none;background:none}
+  #view-report .page-3 .rec-foto img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+  #view-report .page-3 .rec-txt{flex:1 1 auto;font-size:.68rem;line-height:1.35}
+
+  /* Página 2: resultados. Compactar para caber os 19 itens numa folha. */
+  #view-report .page-2{font-size:.66rem}
+  #view-report .page-2 table{font-size:.62rem;width:100%}
+  #view-report .page-2 td,#view-report .page-2 th{padding:2px 4px;line-height:1.2}
+  #view-report .page-2 h3{font-size:.8rem;margin-bottom:6px}
+  #view-report .page-2 .pill{font-size:.55rem;padding:1px 5px}
+  #view-report .page-2 small{font-size:.55rem}
+  /* Nunca partir uma linha da tabela a meio. */
   #view-report table tr{break-inside:avoid}
 }
 </style>
@@ -380,7 +472,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="1.5.0";
+const APP_VERSION="1.7.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -471,6 +563,59 @@ function byResp(a){const IT=itemsOf(a);return Object.keys(RESP).map(r=>{
 const badge=p=>p>=80?["b-ok","Excelente"]:p>=50?["b-mid","Com oportunidade"]:["b-bad","Crítico"];
 const barCls=p=>p>=80?"":p>=50?"mid":"bad";
 
+/* ---------- Recomendações por responsável (v1.7.0) ----------
+   Quatro blocos fixos, com as mesmas chaves de RESP. O TEXTO é guardado com a
+   auditoria (campo opcional `recs`); a FOTO é efémera e vive apenas em memória
+   enquanto a vista Relatório está aberta (ver REC_FOTOS), nunca em localStorage
+   nem na exportação JSON. */
+const REC_KEYS=["U","M","R","U+R"];
+/* Normaliza o campo recs: devolve sempre as 4 chaves, descartando quaisquer
+   outras (defesa contra JSON importado com chaves arbitrárias). */
+function recsOf(a){
+  const src=(a&&a.recs)||{};const out={};
+  REC_KEYS.forEach(k=>{out[k]=clean(src[k],600);});
+  return out;
+}
+function hasRecs(a){const r=recsOf(a);return REC_KEYS.some(k=>r[k]!=="");}
+
+/* ---------- Histórico do serviço (v1.7.0) ----------
+   Últimas 6 auditorias ao mesmo serviço, por ordem cronológica crescente,
+   incluindo a própria. Menos de 6 desenha as que existirem; zero não desenha. */
+function svcHistory(a,todas){
+  return (todas||[]).filter(x=>x.service===a.service)
+    .sort((x,y)=>String(x.date).localeCompare(String(y.date)))
+    .slice(-6)
+    .map(x=>({date:x.date,pct:total(x),id:x.id}));
+}
+/* Barras verticais em SVG (não canvas: imprime nítido e não depende da largura
+   do ecrã no momento do render). */
+function barsSVG(dados){
+  if(!dados||!dados.length)return"";
+  const W=440,H=150,BASE=H-24,TOP=22,ALT=BASE-TOP;
+  const passo=W/dados.length,larg=Math.min(46,passo*.56);
+  const grelha=[0,50,100].map(v=>{const y=BASE-v/100*ALT;
+    return`<line x1="0" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}" stroke="#d9d3c5" stroke-width="1"/>`;}).join("");
+  const barras=dados.map((d,i)=>{
+    const p=Math.max(0,Math.min(100,d.pct));
+    const h=p/100*ALT,x=i*passo+(passo-larg)/2,y=BASE-h;
+    const cor=p>=80?"#1f6f50":p>=50?"#c8862a":"#b3261e";
+    const dm=String(d.date||"").slice(8,10)+"/"+String(d.date||"").slice(5,7);
+    return`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${larg.toFixed(1)}"
+      height="${Math.max(1,h).toFixed(1)}" fill="${cor}" rx="2"/>
+      <text x="${(x+larg/2).toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle"
+        font-size="11" font-weight="700" fill="#1d2a24"
+        font-family="Archivo,Helvetica,Arial,sans-serif">${p}%</text>
+      <text x="${(x+larg/2).toFixed(1)}" y="${(BASE+14).toFixed(1)}" text-anchor="middle"
+        font-size="10" fill="#6d7a72"
+        font-family="Archivo,Helvetica,Arial,sans-serif">${esc(dm)}</text>`;}).join("");
+  return`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img"
+    aria-label="Histórico das últimas auditorias: ${esc(dados.map(d=>d.date+" "+d.pct+"%").join(", "))}"
+    style="max-width:440px;display:block;margin:0 auto">
+    ${grelha}${barras}
+    <line x1="0" y1="${BASE}" x2="${W}" y2="${BASE}" stroke="#b9b2a2" stroke-width="1.5"/>
+  </svg>`;
+}
+
 /* ---------- Radar SVG (v1.5.0) ----------
    Equivalente aos dois RadarChart da folha de cálculo. SVG gerado à mão para
    manter a app sem dependências e a funcionar offline e na impressão.
@@ -516,6 +661,103 @@ function radarSVG(dados,cor){
   </svg>`;
 }
 
+/* ---------- Recomendações: fotos efémeras (v1.7.0) ----------
+   As fotos NUNCA são gravadas. Vivem neste Map enquanto a vista Relatório
+   estiver aberta e são descartadas ao sair. O data URI é produzido localmente
+   pelo <canvas>, a partir do ficheiro escolhido — nunca de texto externo. */
+const REC_FOTOS=new Map();
+function clearFotos(){REC_FOTOS.clear();}
+/* Reduz a imagem para no máximo 640px de largura e re-codifica em JPEG 0.75,
+   para que a renderização de impressão não engasgue com originais de 12 MP. */
+function shrinkImage(file,cb){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAXW=640;
+      const r=Math.min(1,MAXW/img.width);
+      const cv=document.createElement("canvas");
+      cv.width=Math.round(img.width*r);cv.height=Math.round(img.height*r);
+      cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+      try{cb(cv.toDataURL("image/jpeg",.75));}catch(e){cb(null);}
+    };
+    img.onerror=()=>cb(null);
+    img.src=rd.result;
+  };
+  rd.onerror=()=>cb(null);
+  rd.readAsDataURL(file);
+}
+/* Página 3: um bloco por responsabilidade, dois por linha. */
+function recsHTML(a){
+  const r=recsOf(a);
+  return`<div class="page page-3">
+    <div class="card no-print" style="grid-column:1/-1">
+      <h3 style="margin-bottom:4px">Recomendações por responsável</h3>
+      <p style="font-size:.75rem;color:var(--muted)">O texto é guardado com a auditoria.
+        As fotos servem apenas para este PDF e não são guardadas.</p>
+    </div>
+    ${REC_KEYS.map(k=>{
+      const foto=REC_FOTOS.get(k);
+      return`<div class="card rec-block">
+        <h3>${esc(RESP[k])}</h3>
+        <div class="rec-body">
+          <div class="rec-foto" data-foto="${esc(k)}">
+            ${foto?`<img src="${foto}" alt="Foto: ${esc(RESP[k])}">`
+                  :`<span class="rec-vazio no-print">Sem foto</span>`}
+          </div>
+          <div class="rec-txt">
+            <div class="rec-print">${esc(r[k])||'<span style="color:var(--muted)">—</span>'}</div>
+            <textarea class="no-print" rows="4" maxlength="600" data-rec="${esc(k)}"
+              placeholder="Recomendação para ${esc(RESP[k])}…">${esc(r[k])}</textarea>
+          </div>
+        </div>
+        <div class="rec-acts no-print">
+          <input type="file" accept="image/*" capture="environment" data-file="${esc(k)}" hidden>
+          <button class="btn small ghost" data-add="${esc(k)}">${foto?"Trocar foto":"Adicionar foto"}</button>
+          ${foto?`<button class="btn small ghost" style="border-color:var(--red);color:var(--red)" data-rmf="${esc(k)}">Remover</button>`:""}
+        </div>
+      </div>`;}).join("")}
+  </div>`;
+}
+/* Liga os controlos da página 3. O texto é gravado em localStorage; a foto não. */
+function wireRecs(a){
+  const box=document.getElementById("view-report");
+  box.querySelectorAll("[data-rec]").forEach(t=>{
+    t.oninput=()=>{
+      const k=t.dataset.rec;
+      const alvo=audits.find(x=>x.id===a.id);
+      if(!alvo)return;
+      alvo.recs=Object.assign({},recsOf(alvo));
+      alvo.recs[k]=clean(t.value,600);
+      a.recs=alvo.recs;
+      save("audits",audits);
+      const pv=t.closest(".rec-body").querySelector(".rec-print");
+      if(pv)pv.textContent=alvo.recs[k]||"—";
+    };
+  });
+  box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>
+    box.querySelector('[data-file="'+CSS.escape(b.dataset.add)+'"]').click());
+  box.querySelectorAll("[data-file]").forEach(inp=>inp.onchange=()=>{
+    const k=inp.dataset.file,f=inp.files[0];inp.value="";
+    if(!f)return;
+    shrinkImage(f,url=>{
+      if(!url){alert("Não foi possível ler a imagem.");return;}
+      REC_FOTOS.set(k,url);redrawRecs(a);
+    });
+  });
+  box.querySelectorAll("[data-rmf]").forEach(b=>b.onclick=()=>{
+    REC_FOTOS.delete(b.dataset.rmf);redrawRecs(a);});
+}
+/* Redesenha só a página 3, para não perder o scroll nem recalcular os gráficos. */
+function redrawRecs(a){
+  const old=document.querySelector("#view-report .page-3");
+  if(!old)return;
+  const tmp=document.createElement("div");
+  tmp.innerHTML=recsHTML(a);
+  old.replaceWith(tmp.firstElementChild);
+  wireRecs(a);
+}
+
 /* ---------- Relatório / PDF ---------- */
 function openReport(a){
   const [bc,bt]=badge(total(a));
@@ -527,6 +769,7 @@ function openReport(a){
     <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">Picking: ${esc(a.pick||"—")} · Repositor: ${esc(a.repo||"—")} · Verificador: ${esc(a.verif||"—")}</div>
     ${a.note?`<div style="font-size:.78rem;margin-top:6px;color:#9db8a9">Nota: ${esc(a.note)}</div>`:""}
   </div>
+  <div class="page page-1">
   <div class="card"><h3 style="margin-bottom:10px">Por pilar 5S</h3>
     ${radarSVG(byPillar(a),"#1f6f50")}
     <div style="margin-top:14px">
@@ -537,6 +780,13 @@ function openReport(a){
     <div style="margin-top:14px">
     ${byResp(a).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${p.n} itens)</small></span><span>${p.pct}%</span></div>
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div></div>
+  ${(()=>{const h=svcHistory(a,audits);
+    if(!h.length)return"";
+    return`<div class="card hist-block"><h3 style="margin-bottom:10px">Histórico · ${esc(a.service)}
+      <small style="color:var(--muted);font-weight:400">(últimas ${h.length})</small></h3>
+      ${barsSVG(h)}</div>`;})()}
+  </div>
+  <div class="page page-2">
   <div class="card"><h3 style="margin-bottom:4px">Pontuação</h3>
     <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px">
       Mau = 0 pontos · Com oportunidade = 2 pontos · Excelente = ${W_MAX} pontos.</p>
@@ -557,16 +807,19 @@ function openReport(a){
       <td>${esc(a.raw&&a.raw[i]!=null?a.raw[i]:"—")}</td>
       <td><span class="pill" style="background:${cor}">${esc(LBL[s])}</span></td></tr>`;}).join("")}
     </table></div>
-  <div class="card"><h3 style="margin-bottom:10px">Itens a melhorar (${worst.length})</h3>
+  <div class="card no-print"><h3 style="margin-bottom:10px">Itens a melhorar (${worst.length})</h3>
     ${worst.length?`<table><tr><th>Nº</th><th>Item</th><th>Obs.</th><th>Avaliação</th></tr>${worst.map(x=>
       `<tr><td>${esc(x.it.n)}</td><td>${esc(x.it.t)}<br><small style="color:var(--muted)">${esc(x.it.c)}</small></td>
       <td>${esc(x.raw??"—")}</td>
       <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber)'}">${esc(LBL[x.s])}</span></td></tr>`).join("")}</table>`
       :`<p>Sem não-conformidades. 🎉</p>`}</div>
+  </div>
+  ${recsHTML(a)}
   <button class="btn no-print" id="btn-print">Gerar PDF</button>
   <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
+  wireRecs(a);
   document.getElementById("btn-print").onclick=()=>window.print();
-  document.getElementById("btn-back").onclick=()=>document.querySelector('[data-v=history]').click();
+  document.getElementById("btn-back").onclick=()=>{clearFotos();document.querySelector('[data-v=history]').click();};
   ["audit","history","stats","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
   document.getElementById("view-report").classList.remove("hidden");
   window.scrollTo(0,0);
@@ -757,6 +1010,9 @@ function sanitizeAudit(x){
     repo:clean(x.repo,120),verif:clean(x.verif,120),
     note:clean(x.note,200),
     scores,raw,
+    /* v1.7.0: recsOf() normaliza para as 4 chaves conhecidas e aplica clean(),
+       descartando qualquer chave arbitrária vinda do ficheiro importado. */
+    recs:recsOf(x),
     items:items||undefined
   };
 }

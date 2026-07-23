@@ -1,8 +1,8 @@
 {
   "name": "Auditoria 5S · Supermercados Kaizen",
   "short_name": "Auditoria 5S",
-  "description": "Lista de verificação 5S para supermercados: auditoria, histórico, análise e relatório. Versão 1.5.0",
-  "version": "1.5.0",
+  "description": "Lista de verificação 5S para supermercados: auditoria, histórico, análise e relatório. Versão 1.7.0",
+  "version": "1.7.0",
   "lang": "pt-PT",
   "start_url": "./index.html",
   "scope": "./",
