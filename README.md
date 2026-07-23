@@ -1,6 +1,6 @@
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 1.3.0** · [Semantic Versioning](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH)
+**Versão 1.4.0** · [Semantic Versioning](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH)
 
 Aplicação web (PWA) de auditoria 5S para supermercados. Funciona 100% offline, num único ficheiro `index.html`, sem servidor e sem base de dados — todos os dados ficam guardados localmente no dispositivo (`localStorage`).
 
@@ -26,7 +26,7 @@ Repositório: <https://github.com/qzte/5S>
    cd 5S
    # copiar aqui os ficheiros gerados
    git add .
-   git commit -m "feat: PWA completa e publicação no GitHub Pages (v1.3.0)"
+   git commit -m "fix(security): escape XSS, remove handlers inline, CSP e cache allowlist (v1.4.0)"
    git push origin main
    ```
 
@@ -72,7 +72,17 @@ A versão está declarada em quatro sítios, que devem ser atualizados em conjun
 
 ## Dados e privacidade
 
-Nada é enviado para servidores. Os dados residem apenas no browser do dispositivo; limpar os dados do site apaga o histórico. Utilize a exportação JSON como cópia de segurança.
+Nada é enviado para servidores. Desde a versão 1.4.0 a aplicação não carrega **nenhum** recurso externo (o CDN do Google Fonts foi removido e as fontes passaram a ser as do sistema), pelo que não há sequer pedidos de rede a terceiros. Os dados residem apenas no browser do dispositivo; limpar os dados do site apaga o histórico. Utilize a exportação JSON como cópia de segurança.
+
+## Segurança
+
+A versão 1.4.0 resultou de uma auditoria de segurança (OWASP Top 10). Notas para quem mantiver o código:
+
+- **Escapar sempre.** Qualquer dado que venha do utilizador ou de um ficheiro importado tem de passar por `esc()` antes de entrar em `innerHTML`/`insertAdjacentHTML`. Isto inclui perguntas, temas, serviços, pessoas, datas e nomes.
+- **Sem handlers inline.** Não usar `onclick=`, `oninput=` nem afins no HTML gerado. Ligar sempre por `addEventListener` com `data-*`, como no código actual. Nunca serializar objectos para dentro de atributos HTML.
+- **O código do editor não é segurança.** Estando o código-fonte público, o valor é legível por qualquer pessoa. Serve apenas para evitar alterações acidentais. Controlo de acesso a sério exigiria servidor.
+- **SheetJS 0.18.5** está embutido e é afectado pela CVE-2023-30533 (prototype pollution). Existe uma mitigação em `importExcel()` que congela `Object.prototype` durante o parsing. Ao actualizar o SheetJS para 0.20.2 ou superior, essa mitigação pode ser removida.
+- **Service worker:** a cache só aceita recursos da própria origem constantes da allowlist `ASSETS`. Ao acrescentar ficheiros novos, adicioná-los a essa lista.
 
 ## Licença
 

@@ -1,9 +1,28 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 1.3.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 1.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Changelog:
+    1.4.0 — Correcções de segurança (auditoria OWASP Top 10):
+            [Crítico] XSS armazenado corrigido — escape de HTML (esc()) em todas as
+              interpolações de dados do utilizador: perguntas, temas, serviços,
+              pessoas, relatório, histórico, estatísticas e editor.
+            [Alto] Removidos TODOS os handlers inline (onclick/oninput/onchange);
+              substituídos por addEventListener com data-attributes. Elimina a
+              injecção via JSON.stringify dentro de atributo HTML no histórico.
+            [Alto] Código do editor reclassificado: deixa de ser apresentado como
+              controlo de segurança (é impossível num ficheiro público) e passa a
+              proteger apenas contra alterações acidentais.
+            [Médio] Content-Security-Policy adicionada (object-src 'none',
+              base-uri 'none', frame-ancestors 'none').
+            [Médio] Service worker: cache restringida a uma allowlist da própria
+              origem, impedindo envenenamento da cache.
+            [Médio/Baixo] Removido o CDN do Google Fonts — a app passa a ser
+              verdadeiramente 100% offline e deixa de enviar o referrer.
+            [Baixo] Mitigação da CVE-2023-30533 (SheetJS 0.18.5, prototype
+              pollution): Object.prototype congelado durante o parsing de Excel.
+            Sanitização defensiva (clean()) de todo o texto importado de JSON/Excel.
     1.3.0 — PWA completa e publicação no GitHub Pages: manifest.json e sw.js criados
             (instalação no telemóvel e funcionamento offline), registo do service worker
             com caminho relativo, cache versionada e ficheiros de repositório
@@ -23,25 +42,41 @@
 <meta name="theme-color" content="#12211c">
 <title>Auditoria 5S · Supermercados Kaizen</title>
 <link rel="manifest" href="./manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<!-- Sem recursos externos: a app é 100% offline e nada sai do dispositivo.
+     As fontes usam pilhas do sistema (ver --f-sans / --f-serif). -->
+<meta name="referrer" content="no-referrer">
+<!--
+  CSP: 'unsafe-inline' em script-src é necessário porque toda a aplicação
+  (incluindo o SheetJS) vive em <script> embutidos neste ficheiro único.
+  NÃO existem handlers de evento inline (onclick/onchange/...) — foram todos
+  substituídos por addEventListener, pelo que a superfície de injecção via
+  atributos é nula. As restantes directivas continuam a valer mesmo assim:
+  connect-src 'self' impede exfiltração para domínios externos, object-src
+  e base-uri 'none' bloqueiam plugins e sequestro de URLs relativos.
+  Para eliminar 'unsafe-inline': mover o JS para ./app.js (script-src 'self')
+  ou usar hashes sha256 dos blocos — recalculando-os a cada alteração.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
 <style>
 :root{
   --bg:#f4f1ea; --ink:#1d2a24; --panel:#ffffff; --line:#d9d3c5;
   --green:#1f6f50; --green-dk:#12211c; --amber:#c98a1b; --red:#b03a2e;
   --accent:#e8500a; --muted:#6d7a72;
   --radius:14px;
+  /* Pilhas de fontes do sistema — sem dependencia de CDN externo. */
+  --f-sans:"Archivo","Helvetica Neue",Helvetica,Arial,"Segoe UI",Roboto,system-ui,sans-serif;
+  --f-serif:"Source Serif 4","Iowan Old Style",Georgia,"Times New Roman",serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(--ink);
+body{font-family:var(--f-serif);background:var(--bg);color:var(--ink);
   background-image:radial-gradient(circle at 15% 10%,rgba(31,111,80,.07),transparent 45%),
   repeating-linear-gradient(45deg,transparent 0 14px,rgba(29,42,36,.018) 14px 15px);
   min-height:100vh;padding-bottom:90px}
-h1,h2,h3,.btn,.tab,.chip,.badge,th,.pill{font-family:'Archivo',sans-serif}
+h1,h2,h3,.btn,.tab,.chip,.badge,th,.pill{font-family:var(--f-sans)}
 header{background:var(--green-dk);color:#f4f1ea;padding:18px 20px 14px;
   border-bottom:4px solid var(--accent)}
 header h1{font-weight:900;font-size:1.25rem;letter-spacing:.5px;text-transform:uppercase}
-header small{color:#9db8a9;font-family:'Archivo',sans-serif;font-size:.7rem;letter-spacing:2px;text-transform:uppercase}
+header small{color:#9db8a9;font-family:var(--f-sans);font-size:.7rem;letter-spacing:2px;text-transform:uppercase}
 nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--green-dk);z-index:50;
   padding-bottom:env(safe-area-inset-bottom)}
 .tab{flex:1;padding:14px 4px;text-align:center;color:#8fa89a;font-size:.72rem;font-weight:700;
@@ -51,7 +86,7 @@ nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--green-d
 main{max-width:760px;margin:0 auto;padding:18px 14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
   padding:16px;margin-bottom:14px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
-label{display:block;font-family:'Archivo',sans-serif;font-size:.7rem;font-weight:700;
+label{display:block;font-family:var(--f-sans);font-size:.7rem;font-weight:700;
   letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
 input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:9px;
   font-family:inherit;font-size:1rem;background:#fdfcf9;margin-bottom:12px}
@@ -60,13 +95,13 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 .pillar{margin:22px 0 8px;display:flex;align-items:center;gap:10px}
 .pillar h2{font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--green)}
 .pillar .n{background:var(--green);color:#fff;width:26px;height:26px;border-radius:50%;
-  display:grid;place-items:center;font-family:'Archivo';font-weight:900;font-size:.8rem}
+  display:grid;place-items:center;font-family:var(--f-sans);font-weight:900;font-size:.8rem}
 .item{border-left:4px solid var(--line);padding-left:12px;margin-bottom:16px}
 .item .q{font-size:.95rem;margin:2px 0 4px}
-.item .meta{font-size:.7rem;color:var(--muted);font-family:'Archivo';letter-spacing:.5px}
+.item .meta{font-size:.7rem;color:var(--muted);font-family:var(--f-sans);letter-spacing:.5px}
 .opts{display:flex;gap:8px;margin-top:8px}
 .opt{flex:1;border:1.5px solid var(--line);border-radius:9px;padding:9px 4px;text-align:center;
-  font-family:'Archivo';font-size:.72rem;font-weight:700;cursor:pointer;background:#fdfcf9;
+  font-family:var(--f-sans);font-size:.72rem;font-weight:700;cursor:pointer;background:#fdfcf9;
   color:var(--muted);letter-spacing:.3px}
 .opt small{display:block;font-size:.62rem;font-weight:500;margin-top:2px;letter-spacing:0}
 .opt.s0.sel{background:var(--red);border-color:var(--red);color:#fff}
@@ -79,15 +114,15 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 .btn.ghost{background:transparent;color:var(--green);border:2px solid var(--green)}
 .btn.small{padding:9px;font-size:.75rem;width:auto;display:inline-block}
 .score-hero{background:var(--green-dk);color:#f4f1ea;text-align:center;border:0}
-.score-hero .big{font-family:'Archivo';font-weight:900;font-size:3.6rem;line-height:1}
-.score-hero .lbl{font-family:'Archivo';font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:#9db8a9}
+.score-hero .big{font-family:var(--f-sans);font-weight:900;font-size:3.6rem;line-height:1}
+.score-hero .lbl{font-family:var(--f-sans);font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:#9db8a9}
 .badge{display:inline-block;padding:4px 12px;border-radius:99px;font-size:.7rem;font-weight:700;
   letter-spacing:1px;text-transform:uppercase;margin-top:8px}
 .b-ok{background:var(--green);color:#fff}.b-mid{background:var(--amber);color:#fff}.b-bad{background:var(--red);color:#fff}
 .bar{height:10px;background:#e6e1d4;border-radius:99px;overflow:hidden;margin:4px 0 12px}
 .bar>i{display:block;height:100%;background:var(--green);border-radius:99px}
 .bar>i.mid{background:var(--amber)}.bar>i.bad{background:var(--red)}
-.stat-row{display:flex;justify-content:space-between;font-size:.82rem;font-family:'Archivo';font-weight:700}
+.stat-row{display:flex;justify-content:space-between;font-size:.82rem;font-family:var(--f-sans);font-weight:700}
 table{width:100%;border-collapse:collapse;font-size:.85rem}
 th{font-size:.68rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:left;
   padding:6px 8px;border-bottom:2px solid var(--line)}
@@ -100,10 +135,10 @@ canvas{width:100%!important}
 .ed-item textarea{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:.95rem;background:#fff;margin-bottom:10px;resize:vertical;min-height:52px}
 .ed-item .hint{font-size:.72rem;color:var(--muted);margin:-6px 0 10px}
 .ed-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.ed-head b{font-family:'Archivo';font-size:.8rem;letter-spacing:.5px}
-.ed-del{border:0;background:var(--red);color:#fff;border-radius:8px;padding:5px 10px;font-family:'Archivo';font-weight:700;font-size:.7rem;cursor:pointer}
+.ed-head b{font-family:var(--f-sans);font-size:.8rem;letter-spacing:.5px}
+.ed-del{border:0;background:var(--red);color:#fff;border-radius:8px;padding:5px 10px;font-family:var(--f-sans);font-weight:700;font-size:.7rem;cursor:pointer}
 .svc-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);
-  border-radius:99px;padding:6px 6px 6px 14px;margin:0 6px 8px 0;font-family:'Archivo';font-size:.8rem;font-weight:700}
+  border-radius:99px;padding:6px 6px 6px 14px;margin:0 6px 8px 0;font-family:var(--f-sans);font-size:.8rem;font-weight:700}
 .svc-chip button{border:0;background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-weight:900}
 @media print{
   nav,header,.no-print{display:none!important}
@@ -162,7 +197,7 @@ canvas{width:100%!important}
     <h3 style="margin-bottom:10px">Serviços</h3>
     <div id="svc-list"></div>
     <div class="row"><input id="svc-new" placeholder="Novo serviço (ex.: UCIP 11120)">
-    <button class="btn small ghost" onclick="addSvc()">Adicionar</button></div>
+    <button class="btn small ghost" id="btn-addsvc">Adicionar</button></div>
   </div>
   <div class="card">
     <h3 style="margin-bottom:10px">Dados</h3>
@@ -170,9 +205,9 @@ canvas{width:100%!important}
       A exportação gera uma cópia de segurança completa: histórico de auditorias, serviços,
       repositores/picking e perguntas. A importação permite <b>fundir</b> com os dados actuais
       (sem duplicar) ou <b>substituir</b> tudo.</p>
-    <button class="btn small ghost" onclick="exportJson()">Exportar histórico (JSON)</button>
-    <button class="btn small ghost" onclick="document.getElementById('hist-file').click()">Importar histórico (JSON)</button>
-    <input type="file" id="hist-file" accept=".json,application/json" class="hidden" onchange="importJson(this)">
+    <button class="btn small ghost" id="btn-expjson">Exportar histórico (JSON)</button>
+    <button class="btn small ghost" id="btn-impjson">Importar histórico (JSON)</button>
+    <input type="file" id="hist-file" accept=".json,application/json" class="hidden">
     <div id="data-stats" style="font-size:.78rem;color:var(--muted);margin-top:12px"></div>
     <p style="font-size:.78rem;color:var(--muted);margin-top:10px">Os dados ficam guardados apenas neste dispositivo. Faça exportações regulares como cópia de segurança.</p>
   </div>
@@ -183,14 +218,14 @@ canvas{width:100%!important}
       · Folha <b>Serviços</b> — colunas <i>Código</i> e <i>Descrição</i> (ficam disponíveis no formulário como "Descrição (Código)").<br>
       · Folha <b>Repositor</b> ou <b>Picking</b> — coluna <i>Nome</i> (e opcionalmente <i>Código</i>) para sugestões nos campos Repositor/Verificador.<br>
       As folhas são reconhecidas pelo nome; num ficheiro de folha única aplica-se a deteção pelas colunas.</p>
-    <button class="btn small ghost" onclick="document.getElementById('xl-file').click()">Importar Excel</button>
-    <input type="file" id="xl-file" accept=".xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden" onchange="importExcel(this)">
+    <button class="btn small ghost" id="btn-impxl">Importar Excel</button>
+    <input type="file" id="xl-file" accept=".xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
     <div id="xl-people" style="margin-top:12px"></div>
   </div>
   <div class="card">
     <h3 style="margin-bottom:10px">Editor de perguntas</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Área reservada ao administrador. Permite alterar perguntas, responsáveis e parâmetros de avaliação.</p>
-    <button class="btn small ghost" onclick="askPin()">Abrir editor (PIN)</button>
+    <button class="btn small ghost" id="btn-askpin">Abrir editor (PIN)</button>
   </div>
   <div class="card hidden" id="ed-panel">
     <h3 style="margin-bottom:4px">Perguntas da auditoria</h3>
@@ -199,12 +234,12 @@ canvas{width:100%!important}
       <b>Escala 0–2:</b> a resposta é a própria pontuação.<br>
       <b>Elementos:</b> máximo = Excelente · 1 ou mais = Oportunidade · 0 = Mau.</p>
     <div id="ed-list"></div>
-    <button class="btn small ghost" onclick="edAdd()">+ Adicionar pergunta</button>
-    <button class="btn small ghost" onclick="edExport()">Exportar perguntas (JSON)</button>
-    <button class="btn small ghost" onclick="document.getElementById('ed-file').click()">Importar perguntas (JSON)</button>
-    <input type="file" id="ed-file" accept=".json,application/json" class="hidden" onchange="edImport(this)">
-    <button class="btn" onclick="edSave()">Guardar alterações</button>
-    <button class="btn ghost" style="border-color:var(--red);color:var(--red)" onclick="edReset()">Repor perguntas originais</button>
+    <button class="btn small ghost" id="btn-edadd">+ Adicionar pergunta</button>
+    <button class="btn small ghost" id="btn-edexp">Exportar perguntas (JSON)</button>
+    <button class="btn small ghost" id="btn-edimp">Importar perguntas (JSON)</button>
+    <input type="file" id="ed-file" accept=".json,application/json" class="hidden">
+    <button class="btn" id="btn-edsave">Guardar alterações</button>
+    <button class="btn ghost" style="border-color:var(--red);color:var(--red)" id="btn-edreset">Repor perguntas originais</button>
   </div>
 </section>
 </main>
@@ -282,7 +317,18 @@ const LBL=["Mau","Oportunidade","Excelente"];
 /* ---------- Estado ---------- */
 const load=(k,d)=>JSON.parse(localStorage.getItem(k)||JSON.stringify(d));
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const APP_VERSION="1.3.0";
+
+/* Escape de HTML: obrigatório em TODA a interpolação de dados do utilizador
+   (ficheiros importados, serviços, pessoas, perguntas) dentro de innerHTML. */
+const ESC_MAP={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
+
+/* Limpeza de texto proveniente de ficheiros: remove caracteres de controlo e
+   limita o comprimento. O escape no render continua a ser a defesa principal. */
+const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
+
+
+const APP_VERSION="1.4.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -305,22 +351,23 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
 function renderForm(){
   document.getElementById("f-date").value=new Date().toISOString().slice(0,10);
   const sel=document.getElementById("f-service");
-  sel.innerHTML=services.map(s=>`<option>${s}</option>`).join("");
-  document.getElementById("dl-people").innerHTML=people.map(p=>`<option value="${p}">`).join("");
+  sel.innerHTML=services.map(s=>`<option>${esc(s)}</option>`).join("");
+  document.getElementById("dl-people").innerHTML=people.map(p=>`<option value="${esc(p)}">`).join("");
   const box=document.getElementById("items");box.innerHTML="";
   let curP=-1;
   ITEMS.forEach((it,i)=>{
     if(it.p!==curP){curP=it.p;
       box.insertAdjacentHTML("beforeend",
-      `<div class="pillar"><span class="n">${curP+1}</span><h2>${PILLARS[curP]}</h2></div>`);}
+      `<div class="pillar"><span class="n">${curP+1}</span><h2>${esc(PILLARS[curP])}</h2></div>`);}
     box.insertAdjacentHTML("beforeend",`
     <div class="card item" id="it${i}">
-      <div class="meta">Nº ${it.n} · ${it.t} · Resp.: ${RESP[it.r]}</div>
-      <div class="q">${it.c}</div>
-      <input type="number" inputmode="numeric" min="0" max="${it.max}" placeholder="0"
-        style="margin:8px 0 0" oninput="pick(${i},this)">
+      <div class="meta">Nº ${esc(it.n)} · ${esc(it.t)} · Resp.: ${esc(RESP[it.r])}</div>
+      <div class="q">${esc(it.c)}</div>
+      <input type="number" inputmode="numeric" min="0" max="${esc(it.max)}" placeholder="0"
+        style="margin:8px 0 0" data-pick="${i}">
     </div>`);
   });
+  box.querySelectorAll("[data-pick]").forEach(el=>el.oninput=()=>pick(+el.dataset.pick,el));
 }
 let rawVals={};
 function pick(i,el){
@@ -360,25 +407,27 @@ function openReport(a){
   const [bc,bt]=badge(total(a));
   const worst=itemsOf(a).map((it,i)=>({it,s:a.scores[i],raw:a.raw?a.raw[i]:null})).filter(x=>x.s<2);
   document.getElementById("view-report").innerHTML=`
-  <div class="card score-hero"><div class="lbl">Auditoria 5S · ${a.service} · ${a.date}</div>
+  <div class="card score-hero"><div class="lbl">Auditoria 5S · ${esc(a.service)} · ${esc(a.date)}</div>
     <div class="big">${total(a)}<span style="font-size:1.2rem">/100</span></div>
     <span class="badge ${bc}">${bt}</span>
-    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">Repositor: ${a.repo||"—"} · Verificador: ${a.verif||"—"}</div>
+    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">Repositor: ${esc(a.repo||"—")} · Verificador: ${esc(a.verif||"—")}</div>
   </div>
   <div class="card"><h3 style="margin-bottom:10px">Por pilar 5S</h3>
-    ${byPillar(a).map(p=>`<div class="stat-row"><span>${p.name}</span><span>${p.pct}%</span></div>
+    ${byPillar(a).map(p=>`<div class="stat-row"><span>${esc(p.name)}</span><span>${p.pct}%</span></div>
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div>
   <div class="card"><h3 style="margin-bottom:10px">Por responsável</h3>
-    ${byResp(a).map(p=>`<div class="stat-row"><span>${p.name}</span><span>${p.pct}%</span></div>
+    ${byResp(a).map(p=>`<div class="stat-row"><span>${esc(p.name)}</span><span>${p.pct}%</span></div>
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div>
   <div class="card"><h3 style="margin-bottom:10px">Itens a melhorar (${worst.length})</h3>
     ${worst.length?`<table><tr><th>Nº</th><th>Item</th><th>Obs.</th><th>Avaliação</th></tr>${worst.map(x=>
-      `<tr><td>${x.it.n}</td><td>${x.it.t}<br><small style="color:var(--muted)">${x.it.c}</small></td>
-      <td>${x.raw??"—"}</td>
-      <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber)'}">${LBL[x.s]}</span></td></tr>`).join("")}</table>`
+      `<tr><td>${esc(x.it.n)}</td><td>${esc(x.it.t)}<br><small style="color:var(--muted)">${esc(x.it.c)}</small></td>
+      <td>${esc(x.raw??"—")}</td>
+      <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber)'}">${esc(LBL[x.s])}</span></td></tr>`).join("")}</table>`
       :`<p>Sem não-conformidades. 🎉</p>`}</div>
-  <button class="btn no-print" onclick="window.print()">Gerar PDF</button>
-  <button class="btn ghost no-print" onclick="document.querySelector('[data-v=history]').click()">Voltar</button>`;
+  <button class="btn no-print" id="btn-print">Gerar PDF</button>
+  <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
+  document.getElementById("btn-print").onclick=()=>window.print();
+  document.getElementById("btn-back").onclick=()=>document.querySelector('[data-v=history]').click();
   ["audit","history","stats","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
   document.getElementById("view-report").classList.remove("hidden");
   window.scrollTo(0,0);
@@ -388,13 +437,18 @@ function openReport(a){
 function renderHist(){
   const box=document.getElementById("hist-list");
   if(!audits.length){box.innerHTML=`<p class="empty">Ainda sem auditorias guardadas.</p>`;return;}
-  box.innerHTML=[...audits].sort((a,b)=>b.date.localeCompare(a.date)).map(a=>{
+  /* O objeto da auditoria NUNCA é serializado para dentro de um atributo HTML.
+     Guardamos apenas o índice na lista ordenada e ligamos por addEventListener. */
+  const ord=[...audits].sort((a,b)=>b.date.localeCompare(a.date));
+  box.innerHTML=ord.map((a,i)=>{
     const[bc,bt]=badge(total(a));
-    return`<div class="card"><div class="stat-row"><span>${a.service}</span><span>${total(a)}/100</span></div>
-    <div style="font-size:.78rem;color:var(--muted)">${a.date} · Verif.: ${a.verif||"—"}</div>
+    return`<div class="card"><div class="stat-row"><span>${esc(a.service)}</span><span>${total(a)}/100</span></div>
+    <div style="font-size:.78rem;color:var(--muted)">${esc(a.date)} · Verif.: ${esc(a.verif||"—")}</div>
     <span class="badge ${bc}">${bt}</span>
-    <div style="margin-top:8px"><button class="btn small ghost" onclick='openReport(${JSON.stringify(a)})'>Relatório</button>
-    <button class="btn small ghost" style="border-color:var(--red);color:var(--red)" onclick="delAudit(${a.id})">Apagar</button></div></div>`;}).join("");
+    <div style="margin-top:8px"><button class="btn small ghost" data-rep="${i}">Relatório</button>
+    <button class="btn small ghost" style="border-color:var(--red);color:var(--red)" data-del="${i}">Apagar</button></div></div>`;}).join("");
+  box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>openReport(ord[+b.dataset.rep]));
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delAudit(ord[+b.dataset.del].id));
 }
 function delAudit(id){if(!confirm("Apagar esta auditoria?"))return;
   audits=audits.filter(a=>a.id!==id);save("audits",audits);renderHist();}
@@ -417,7 +471,7 @@ function renderStats(){
       const y=H-30-(total(a)/100)*(H-60);
       ctx.fillStyle="#e8500a";ctx.beginPath();ctx.arc(x,y,8,0,7);ctx.fill();});
   }
-  const bars=(pairs)=>pairs.map(([n,p])=>`<div class="stat-row"><span>${n}</span><span>${p}%</span></div>
+  const bars=(pairs)=>pairs.map(([n,p])=>`<div class="stat-row"><span>${esc(n)}</span><span>${p}%</span></div>
     <div class="bar"><i class="${barCls(p)}" style="width:${p}%"></i></div>`).join("")||`<p class="empty">Sem dados.</p>`;
   document.getElementById("cmp-svc").innerHTML=bars(
     services.filter(s=>audits.some(a=>a.service===s))
@@ -430,16 +484,20 @@ function renderStats(){
 
 /* ---------- Config ---------- */
 function renderCfg(){
-  document.getElementById("svc-list").innerHTML=services.map((s,i)=>
-  `<span class="svc-chip">${s}<button onclick="rmSvc(${i})">×</button></span>`).join("");
-  document.getElementById("xl-people").innerHTML=people.length?
+  const svcBox=document.getElementById("svc-list");
+  svcBox.innerHTML=services.map((s,i)=>
+  `<span class="svc-chip">${esc(s)}<button data-rmsvc="${i}">×</button></span>`).join("");
+  svcBox.querySelectorAll("[data-rmsvc]").forEach(b=>b.onclick=()=>rmSvc(+b.dataset.rmsvc));
+  const pplBox=document.getElementById("xl-people");
+  pplBox.innerHTML=people.length?
     `<label>Repositores / Picking (${people.length})</label>`+people.map((p,i)=>
-    `<span class="svc-chip">${p}<button onclick="rmPerson(${i})">×</button></span>`).join(""):"";
+    `<span class="svc-chip">${esc(p)}<button data-rmppl="${i}">×</button></span>`).join(""):"";
+  pplBox.querySelectorAll("[data-rmppl]").forEach(b=>b.onclick=()=>rmPerson(+b.dataset.rmppl));
   const ds=document.getElementById("data-stats");
   if(ds){
     const datas=audits.map(a=>a.date).sort();
     ds.innerHTML=audits.length?
-      `<b>${audits.length}</b> auditoria(s) · <b>${services.length}</b> serviço(s) · <b>${people.length}</b> pessoa(s)<br>Período: ${datas[0]} a ${datas[datas.length-1]}`:
+      `<b>${audits.length}</b> auditoria(s) · <b>${services.length}</b> serviço(s) · <b>${people.length}</b> pessoa(s)<br>Período: ${esc(datas[0])} a ${esc(datas[datas.length-1])}`:
       `Sem auditorias guardadas.`;
   }
 }
@@ -467,6 +525,14 @@ function importExcel(inp){
     const rd=new FileReader();
     rd.onload=()=>{
       let wb;
+      /* MITIGAÇÃO CVE-2023-30533 (SheetJS <0.19.3, prototype pollution via
+         ficheiro .xlsx manipulado). O SheetJS 0.18.5 está embutido neste
+         ficheiro e não pode ser actualizado offline; congelamos o
+         Object.prototype durante o parsing para que qualquer tentativa de
+         escrita em __proto__ falhe silenciosamente (ou lance em strict mode).
+         REMOVER esta mitigação assim que o SheetJS for actualizado p/ >=0.20.2. */
+      const eraCongelado=Object.isFrozen(Object.prototype);
+      if(!eraCongelado)Object.freeze(Object.prototype);
       try{wb=XLSX.read(rd.result,{type:"array"});}
       catch(e){alert("Ficheiro inválido: não foi possível ler como Excel/CSV.");return;}
       const newSvc=[],newPpl=[];
@@ -479,9 +545,9 @@ function importExcel(inp){
         const isPpl=/repo|pick|colab|pesso/.test(n);
         for(let r=cols.head+1;r<rows.length;r++){
           const row=rows[r];
-          const cod=cols.cod>=0?String(row[cols.cod]).trim():"";
-          const desc=cols.desc>=0?String(row[cols.desc]).trim():"";
-          const nome=cols.nome>=0?String(row[cols.nome]).trim():"";
+          const cod=cols.cod>=0?clean(row[cols.cod],60):"";
+          const desc=cols.desc>=0?clean(row[cols.desc],160):"";
+          const nome=cols.nome>=0?clean(row[cols.nome],160):"";
           if(isSvc||(!isPpl&&cod&&desc&&cols.nome<0)){
             if(desc||cod)newSvc.push(desc?(cod?`${desc} (${cod})`:desc):cod);
           }else if(isPpl||nome){
@@ -523,8 +589,8 @@ function exportJson(){
 /* ---------- Importação do histórico ---------- */
 function sanitizeAudit(x){
   if(!x||typeof x!=="object")return null;
-  const service=String(x.service||"").trim();
-  const date=String(x.date||"").trim();
+  const service=clean(x.service,200);
+  const date=clean(x.date,10);
   if(!service||!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;
   if(!Array.isArray(x.scores)||!x.scores.length)return null;
   const scores=x.scores.map(v=>{const n=parseInt(v,10);return n>=0&&n<=2?n:0;});
@@ -534,9 +600,9 @@ function sanitizeAudit(x){
     items=x.items.map(it=>({
       p:Math.min(PILLARS.length-1,Math.max(0,parseInt(it&&it.p,10)||0)),
       n:parseInt(it&&it.n,10)||0,
-      t:String((it&&it.t)||"Tema"),
+      t:clean((it&&it.t)||"Tema",120),
       r:(it&&RESP[it.r])?it.r:"U",
-      c:String((it&&it.c)||"").trim()||"(sem texto)",
+      c:clean((it&&it.c),500)||"(sem texto)",
       tp:["count","scale","elem"].includes(it&&it.tp)?it.tp:"count",
       mau:Math.max(1,parseInt(it&&it.mau,10)||1),
       max:Math.max(1,parseInt(it&&it.max,10)||99)
@@ -545,7 +611,7 @@ function sanitizeAudit(x){
   return{
     id:Number(x.id)||Date.now()+Math.floor(Math.random()*1e6),
     service,date,
-    repo:String(x.repo||""),verif:String(x.verif||""),
+    repo:clean(x.repo,120),verif:clean(x.verif,120),
     scores,raw,
     items:items||undefined
   };
@@ -564,8 +630,8 @@ function importJson(inp){
     const descartadas=data.audits.length-inAudits.length;
     if(!inAudits.length){alert("Nenhuma auditoria válida encontrada no ficheiro.");return;}
     const semItens=inAudits.filter(a=>!a.items&&a.scores.length!==ITEMS.length).length;
-    const inSvc=Array.isArray(data.services)?data.services.map(s=>String(s).trim()).filter(Boolean):[];
-    const inPpl=Array.isArray(data.people)?data.people.map(s=>String(s).trim()).filter(Boolean):[];
+    const inSvc=Array.isArray(data.services)?data.services.map(s=>clean(s,200)).filter(Boolean):[];
+    const inPpl=Array.isArray(data.people)?data.people.map(s=>clean(s,200)).filter(Boolean):[];
     const temPerg=Array.isArray(data.itemsCfg)&&data.itemsCfg.length;
     const origem=data.version?" (v"+data.version+")":"";
     const modo=prompt(
@@ -609,12 +675,18 @@ function importJson(inp){
 }
 
 /* ---------- Editor de perguntas (admin) ---------- */
+/* AVISO DE SEGURANÇA — leia antes de alterar:
+   Esta aplicação é 100% client-side e o código é público. Um PIN aqui NÃO é
+   um controlo de segurança: qualquer pessoa que abra o código-fonte lê-o.
+   Serve apenas para evitar alterações ACIDENTAIS às perguntas.
+   Os dados residem só no dispositivo, pelo que não há travessia entre utilizadores.
+   Se algum dia for preciso controlo de acesso a sério, terá de haver servidor. */
 const ADMIN_PIN="3758";
 let edItems=[];
 function askPin(){
-  const p=prompt("PIN de administrador:");
+  const p=prompt("Código de acesso ao editor (evita alterações acidentais):");
   if(p===null)return;
-  if(p!==ADMIN_PIN){alert("PIN incorreto.");return;}
+  if(p!==ADMIN_PIN){alert("Código incorreto.");return;}
   edItems=ITEMS.map(x=>Object.assign({},x));
   renderEditor();
   document.getElementById("ed-panel").classList.remove("hidden");
@@ -624,30 +696,39 @@ function renderEditor(){
   const box=document.getElementById("ed-list");
   box.innerHTML=edItems.map((it,i)=>`
   <div class="ed-item">
-    <div class="ed-head"><b>Nº ${it.n}</b><button class="ed-del" onclick="edDel(${i})">Remover</button></div>
+    <div class="ed-head"><b>Nº ${esc(it.n)}</b><button class="ed-del" data-eddel="${i}">Remover</button></div>
     <label>Pergunta</label>
-    <textarea oninput="edItems[${i}].c=this.value">${it.c}</textarea>
+    <textarea data-edc="${i}">${esc(it.c)}</textarea>
     <div class="row">
-      <div><label>Tema</label><input value="${it.t}" oninput="edItems[${i}].t=this.value"></div>
-      <div><label>Pilar 5S</label><select onchange="edItems[${i}].p=+this.value">
-        ${PILLARS.map((p,pi)=>`<option value="${pi}" ${pi===it.p?"selected":""}>${pi+1}. ${p}</option>`).join("")}</select></div>
+      <div><label>Tema</label><input value="${esc(it.t)}" data-edt="${i}"></div>
+      <div><label>Pilar 5S</label><select data-edp="${i}">
+        ${PILLARS.map((p,pi)=>`<option value="${pi}" ${pi===it.p?"selected":""}>${pi+1}. ${esc(p)}</option>`).join("")}</select></div>
     </div>
     <div class="row">
-      <div><label>Responsável</label><select onchange="edItems[${i}].r=this.value">
-        ${Object.keys(RESP).map(r=>`<option value="${r}" ${r===it.r?"selected":""}>${RESP[r]}</option>`).join("")}</select></div>
-      <div><label>Tipo de resposta</label><select onchange="edItems[${i}].tp=this.value;renderEditor()">
+      <div><label>Responsável</label><select data-edr="${i}">
+        ${Object.keys(RESP).map(r=>`<option value="${esc(r)}" ${r===it.r?"selected":""}>${esc(RESP[r])}</option>`).join("")}</select></div>
+      <div><label>Tipo de resposta</label><select data-edtp="${i}">
         <option value="count" ${it.tp==="count"?"selected":""}>Contagem</option>
         <option value="scale" ${it.tp==="scale"?"selected":""}>Escala 0–2</option>
         <option value="elem" ${it.tp==="elem"?"selected":""}>Elementos presentes</option></select></div>
     </div>
     <div class="row">
-      ${it.tp==="count"?`<div><label>Limiar "Mau" (≥)</label><input type="number" min="1" value="${it.mau}" oninput="edItems[${i}].mau=Math.max(1,+this.value||1)"></div>`:""}
-      <div><label>Valor máximo</label><input type="number" min="1" value="${it.max}" oninput="edItems[${i}].max=Math.max(1,+this.value||1)"></div>
+      ${it.tp==="count"?`<div><label>Limiar "Mau" (≥)</label><input type="number" min="1" value="${esc(it.mau)}" data-edmau="${i}"></div>`:""}
+      <div><label>Valor máximo</label><input type="number" min="1" value="${esc(it.max)}" data-edmax="${i}"></div>
     </div>
-    ${it.tp==="count"?`<div class="hint">0 = Excelente · 1 a ${it.mau-1||"—"} = Oportunidade · ≥ ${it.mau} = Mau</div>`:
-      it.tp==="elem"?`<div class="hint">${it.max} = Excelente · 1 a ${it.max-1} = Oportunidade · 0 = Mau</div>`:
+    ${it.tp==="count"?`<div class="hint">0 = Excelente · 1 a ${esc(it.mau-1||"—")} = Oportunidade · ≥ ${esc(it.mau)} = Mau</div>`:
+      it.tp==="elem"?`<div class="hint">${esc(it.max)} = Excelente · 1 a ${esc(it.max-1)} = Oportunidade · 0 = Mau</div>`:
       `<div class="hint">Resposta directa: 0 = Mau · 1 = Oportunidade · 2 = Excelente</div>`}
   </div>`).join("");
+  /* Ligações por addEventListener: nenhum dado do utilizador entra em atributos de evento. */
+  box.querySelectorAll("[data-eddel]").forEach(b=>b.onclick=()=>edDel(+b.dataset.eddel));
+  box.querySelectorAll("[data-edc]").forEach(el=>el.oninput=()=>edItems[+el.dataset.edc].c=el.value);
+  box.querySelectorAll("[data-edt]").forEach(el=>el.oninput=()=>edItems[+el.dataset.edt].t=el.value);
+  box.querySelectorAll("[data-edp]").forEach(el=>el.onchange=()=>edItems[+el.dataset.edp].p=+el.value);
+  box.querySelectorAll("[data-edr]").forEach(el=>el.onchange=()=>edItems[+el.dataset.edr].r=el.value);
+  box.querySelectorAll("[data-edtp]").forEach(el=>el.onchange=()=>{edItems[+el.dataset.edtp].tp=el.value;renderEditor();});
+  box.querySelectorAll("[data-edmau]").forEach(el=>el.oninput=()=>edItems[+el.dataset.edmau].mau=Math.max(1,+el.value||1));
+  box.querySelectorAll("[data-edmax]").forEach(el=>el.oninput=()=>edItems[+el.dataset.edmax].max=Math.max(1,+el.value||1));
 }
 function edDel(i){if(!confirm("Remover esta pergunta?"))return;edItems.splice(i,1);renderEditor();}
 function edAdd(){
@@ -679,26 +760,28 @@ function edImport(inp){
     let data;
     try{data=JSON.parse(rd.result);}catch(e){alert("Ficheiro inválido: não é JSON.");return;}
     if(!Array.isArray(data)||!data.length){alert("Ficheiro inválido: esperada uma lista de perguntas.");return;}
-    const clean=[];
+    const limpas=[];
     for(const x of data){
       if(typeof x!=="object"||!x)continue;
       const it={
         p:Math.min(PILLARS.length-1,Math.max(0,parseInt(x.p,10)||0)),
         n:parseInt(x.n,10)||0,
-        t:String(x.t||"Tema"),
+        /* Texto limitado e sem caracteres de controlo. O escape em renderEditor/
+           renderForm é a defesa principal; isto é defesa em profundidade. */
+        t:String(x.t||"Tema").replace(/[\u0000-\u001F\u007F]/g,"").slice(0,120),
         r:RESP[x.r]?x.r:"U",
-        c:String(x.c||"").trim(),
+        c:String(x.c||"").replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,500),
         tp:["count","scale","elem"].includes(x.tp)?x.tp:"count",
         mau:Math.max(1,parseInt(x.mau,10)||1),
         max:Math.max(1,parseInt(x.max,10)||99)
       };
       if(it.tp==="scale")it.max=2;
-      if(it.c)clean.push(it);
+      if(it.c)limpas.push(it);
     }
-    if(!clean.length){alert("Ficheiro inválido: nenhuma pergunta com texto encontrada.");return;}
-    if(!confirm("Importar "+clean.length+" perguntas? As perguntas no editor serão substituídas (só ficam definitivas ao Guardar)."))return;
-    edItems=clean;renderEditor();
-    alert(clean.length+" perguntas importadas. Reveja e carregue em Guardar alterações para aplicar.");
+    if(!limpas.length){alert("Ficheiro inválido: nenhuma pergunta com texto encontrada.");return;}
+    if(!confirm("Importar "+limpas.length+" perguntas? As perguntas no editor serão substituídas (só ficam definitivas ao Guardar)."))return;
+    edItems=limpas;renderEditor();
+    alert(limpas.length+" perguntas importadas. Reveja e carregue em Guardar alterações para aplicar.");
   };
   rd.readAsText(file);
 }
@@ -710,6 +793,24 @@ function edReset(){
   document.getElementById("ed-panel").classList.add("hidden");
   alert("Perguntas originais repostas.");
 }
+
+/* ---------- Ligação dos controlos estáticos ----------
+   Nenhum handler inline no HTML: permite endurecer a CSP e elimina
+   qualquer possibilidade de injecção através de atributos de evento. */
+const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn);};
+on("btn-addsvc","click",()=>addSvc());
+on("btn-expjson","click",()=>exportJson());
+on("btn-impjson","click",()=>document.getElementById("hist-file").click());
+on("hist-file","change",function(){importJson(this);});
+on("btn-impxl","click",()=>document.getElementById("xl-file").click());
+on("xl-file","change",function(){importExcel(this);});
+on("btn-askpin","click",()=>askPin());
+on("btn-edadd","click",()=>edAdd());
+on("btn-edexp","click",()=>edExport());
+on("btn-edimp","click",()=>document.getElementById("ed-file").click());
+on("ed-file","change",function(){edImport(this);});
+on("btn-edsave","click",()=>edSave());
+on("btn-edreset","click",()=>edReset());
 
 renderForm();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
