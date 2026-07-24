@@ -22,6 +22,20 @@ function extractFn(src, name) {
 /* Extrai uma declaração de uma linha do tipo `const nome=...;` */
 function extractConst(src, name) {
   const esc = name.replace(/[+]/g, "\\$&");
+  /* Declarações multilinha (arrays/objectos literais, como DEFAULT_ITEMS): o
+     fim da linha não serve de delimitador, é preciso equilibrar os parênteses. */
+  const multi = new RegExp("^(?:const|let)\\s+" + esc + "\\s*=\\s*[\\[{]", "m");
+  const mm = src.match(multi);
+  if (mm) {
+    const ini = src.indexOf(mm[0]);
+    const abre = mm[0].slice(-1), fecha = abre === "[" ? "]" : "}";
+    let d = 0, i = ini + mm[0].length - 1;
+    for (; i < src.length; i++) {
+      if (src[i] === abre) d++;
+      else if (src[i] === fecha) { d--; if (d === 0) break; }
+    }
+    return src.slice(ini, i + 1) + ";";
+  }
   /* Até ao fim da linha: um `;` pode aparecer dentro de um literal de string
      (ex.: ESC_MAP contém "&amp;"), pelo que não serve de delimitador. */
   const re = new RegExp("^(?:const|let)\\s+" + esc + "\\s*=.*$", "m");

@@ -1,9 +1,30 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 1.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Changelog:
+    3.0.0 — Três limiares nomeados por classificação (ALTERAÇÃO DISRUPTIVA):
+            T1 = a partir daqui é Mau, T2 = Com oportunidade, T3 = Excelente.
+            Substituem os cortes anónimos t1/t2 de 2.0.0. Migração automática.
+    2.0.0 — Limiares de classificação livres por pergunta (ALTERAÇÃO DISRUPTIVA):
+            o campo `mau` foi substituído por dois cortes `t1`/`t2` aplicáveis
+            aos três tipos de resposta. Migração automática no arranque.
+    1.8.0 — Tooltip com os parâmetros nas perguntas de resposta não-contagem:
+            [Novo] Cada pergunta cujo tipo de resposta seja diferente de
+              "contagem" (ou seja, `scale` e `elem`) passa a exibir um ícone "i"
+              a seguir ao enunciado. Ao tocar/clicar, abre um painel com o tipo
+              de resposta, o intervalo aceite (0..max) e o mapeamento
+              resposta → classificação (Mau / Com oportunidade / Excelente).
+              Nas perguntas de contagem a regra já é evidente pelo enunciado
+              ("Nº de ..."), pelo que não é gerado ícone.
+              Implementado com <details>/<summary> nativos: funciona por toque,
+              é acessível por teclado e não precisa de JavaScript de eventos.
+              O texto da regra é derivado do mesmo contrato de classify(), para
+              não existirem duas fontes de verdade sobre a pontuação.
+              A tooltip é ocultada na impressão (@media print).
+            Sem alterações ao modelo de pontuação, ao formato guardado nem à
+            exportação JSON; é uma alteração exclusivamente de interface.
     1.7.0 — Recomendações por responsável e histórico do serviço:
             [Novo] Nova folha 3 do PDF com um bloco por área de responsabilidade
               (Utilizadores, Manutenção, Reposição, Utilizador e Repositor), cada
@@ -152,6 +173,22 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 .item{border-left:4px solid var(--line);padding-left:12px;margin-bottom:16px}
 .item .q{font-size:.95rem;margin:2px 0 4px}
 .item .meta{font-size:.7rem;color:var(--muted);font-family:var(--f-sans);letter-spacing:.5px}
+/* Tooltip de parâmetros (v1.8.0) — só nas perguntas de tipo != contagem.
+   Detalhes: o <details> nativo garante que funciona sem JS e por toque. */
+.tip{display:inline-block;margin-left:6px;vertical-align:middle}
+.tip>summary{list-style:none;cursor:pointer;display:inline-grid;place-items:center;
+  width:16px;height:16px;border-radius:50%;background:var(--muted);color:#fff;
+  font-family:var(--f-sans);font-weight:900;font-size:.62rem;line-height:1;user-select:none}
+.tip>summary::-webkit-details-marker{display:none}
+.tip[open]>summary{background:var(--green)}
+.tip .tip-body{position:absolute;z-index:20;margin-top:6px;max-width:min(320px,calc(100vw - 48px));
+  background:var(--green-dk);color:#e8eae6;border-radius:9px;padding:10px 12px;
+  font-family:var(--f-sans);font-size:.7rem;line-height:1.45;letter-spacing:.2px;
+  box-shadow:0 6px 20px rgba(0,0,0,.28);text-transform:none;white-space:normal}
+.tip .tip-body b{color:#fff;font-weight:900}
+.tip .tip-body ul{margin:6px 0 0;padding-left:16px}
+.tip .tip-body li{margin:2px 0}
+@media print{.tip{display:none}}
 .opts{display:flex;gap:8px;margin-top:8px}
 .opt{flex:1;border:1.5px solid var(--line);border-radius:9px;padding:9px 4px;text-align:center;
   font-family:var(--f-sans);font-size:.72rem;font-weight:700;cursor:pointer;background:#fdfcf9;
@@ -404,35 +441,140 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 const PILLARS=["Triagem","Arrumação","Limpeza","Normalização","Disciplina"];
 const RESP={U:"Utilizadores",M:"Manutenção",R:"Reposição","U+R":"Utilizador e Repositor"};
 const DEFAULT_ITEMS=[
- {p:0,n:1,t:"Materiais",r:"U",c:"Nº de artigos extra acordo no supermercado",tp:"count",mau:4,max:99},
- {p:0,n:2,t:"Artigos",r:"M",c:"Nº de artigos inactivos em supermercado",tp:"count",mau:3,max:99},
- {p:0,n:3,t:"Quantidades",r:"U+R",c:"Nº de kanbans com quantidades excessivas",tp:"count",mau:4,max:99},
- {p:0,n:4,t:"Piso, corredores",r:"U",c:"Nº de estantes com dificuldade de reabastecimento",tp:"count",mau:2,max:99},
- {p:1,n:5,t:"Localizações",r:"M",c:"Nº de artigos sem etiqueta de posição",tp:"count",mau:5,max:99},
- {p:1,n:6,t:"Estantes / Prateleiras",r:"M",c:"Nº de estantes/prateleiras sem identificação visual",tp:"count",mau:3,max:99},
- {p:1,n:7,t:"Caixas",r:"R",c:"Nº de KB's vazios mal arrumados na zona de reposição",tp:"count",mau:4,max:99},
- {p:1,n:8,t:"Material em Rutura",r:"R",c:"Nº de artigos em rutura mal identificados",tp:"count",mau:1,max:99},
- {p:2,n:9,t:"Estantes",r:"U",c:"Nº de prateleiras danificadas por mau uso",tp:"count",mau:3,max:99},
- {p:2,n:10,t:"Caixas e Kanbans",r:"U+R",c:"Nº de kanbans/caixas em mau estado",tp:"count",mau:8,max:99},
- {p:2,n:11,t:"Limpeza",r:"U",c:"Nº de caixas sujas",tp:"count",mau:3,max:99},
- {p:2,n:12,t:"Temperatura",r:"U",c:"Verificação de temperatura e dispositivos (0 a 2)",tp:"scale",mau:0,max:2},
- {p:3,n:13,t:"Espaços",r:"U",c:"Espaço arrumado e limpo (0 a 2)",tp:"scale",mau:0,max:2},
- {p:3,n:14,t:"Caixas",r:"M",c:"Nº de caixas não adaptadas ao tamanho do artigo",tp:"count",mau:5,max:99},
- {p:3,n:15,t:"Normas de Picking",r:"M",c:"Nº de elementos presentes: norma de picking, ficha, indicadores, index (0 a 4)",tp:"elem",mau:0,max:4},
- {p:4,n:16,t:"Localizações",r:"U+R",c:"Nº de artigos fora da localização do Index",tp:"count",mau:5,max:99},
- {p:4,n:17,t:"Picking",r:"U",c:"Nº de artigos onde a norma de picking não é respeitada",tp:"count",mau:5,max:99},
- {p:4,n:18,t:"Reposição",r:"R",c:"Nº de kanbans onde a norma de reposição não é respeitada",tp:"count",mau:5,max:99},
- {p:4,n:19,t:"Validades",r:"U",c:"Nº de kanbans fora de validade",tp:"count",mau:2,max:99},
+ {p:0,n:1,t:"Materiais",r:"U",c:"Nº de artigos extra acordo no supermercado",tp:"count",t1:4,t2:1,t3:0,max:99},
+ {p:0,n:2,t:"Artigos",r:"M",c:"Nº de artigos inactivos em supermercado",tp:"count",t1:3,t2:1,t3:0,max:99},
+ {p:0,n:3,t:"Quantidades",r:"U+R",c:"Nº de kanbans com quantidades excessivas",tp:"count",t1:4,t2:1,t3:0,max:99},
+ {p:0,n:4,t:"Piso, corredores",r:"U",c:"Nº de estantes com dificuldade de reabastecimento",tp:"count",t1:2,t2:1,t3:0,max:99},
+ {p:1,n:5,t:"Localizações",r:"M",c:"Nº de artigos sem etiqueta de posição",tp:"count",t1:5,t2:1,t3:0,max:99},
+ {p:1,n:6,t:"Estantes / Prateleiras",r:"M",c:"Nº de estantes/prateleiras sem identificação visual",tp:"count",t1:3,t2:1,t3:0,max:99},
+ {p:1,n:7,t:"Caixas",r:"R",c:"Nº de KB's vazios mal arrumados na zona de reposição",tp:"count",t1:4,t2:1,t3:0,max:99},
+ {p:1,n:8,t:"Material em Rutura",r:"R",c:"Nº de artigos em rutura mal identificados",tp:"count",t1:1,t2:1,t3:0,max:99},
+ {p:2,n:9,t:"Estantes",r:"U",c:"Nº de prateleiras danificadas por mau uso",tp:"count",t1:3,t2:1,t3:0,max:99},
+ {p:2,n:10,t:"Caixas e Kanbans",r:"U+R",c:"Nº de kanbans/caixas em mau estado",tp:"count",t1:8,t2:1,t3:0,max:99},
+ {p:2,n:11,t:"Limpeza",r:"U",c:"Nº de caixas sujas",tp:"count",t1:3,t2:1,t3:0,max:99},
+ {p:2,n:12,t:"Temperatura",r:"U",c:"Verificação de temperatura e dispositivos (0 a 2)",tp:"scale",t1:0,t2:1,t3:2,max:2},
+ {p:3,n:13,t:"Espaços",r:"U",c:"Espaço arrumado e limpo (0 a 2)",tp:"scale",t1:0,t2:1,t3:2,max:2},
+ {p:3,n:14,t:"Caixas",r:"M",c:"Nº de caixas não adaptadas ao tamanho do artigo",tp:"count",t1:5,t2:1,t3:0,max:99},
+ {p:3,n:15,t:"Normas de Picking",r:"M",c:"Nº de elementos presentes: norma de picking, ficha, indicadores, index (0 a 4)",tp:"elem",t1:0,t2:1,t3:4,max:4},
+ {p:4,n:16,t:"Localizações",r:"U+R",c:"Nº de artigos fora da localização do Index",tp:"count",t1:5,t2:1,t3:0,max:99},
+ {p:4,n:17,t:"Picking",r:"U",c:"Nº de artigos onde a norma de picking não é respeitada",tp:"count",t1:5,t2:1,t3:0,max:99},
+ {p:4,n:18,t:"Reposição",r:"R",c:"Nº de kanbans onde a norma de reposição não é respeitada",tp:"count",t1:5,t2:1,t3:0,max:99},
+ {p:4,n:19,t:"Validades",r:"U",c:"Nº de kanbans fora de validade",tp:"count",t1:2,t2:1,t3:0,max:99},
 ];
 /* Classificador declarativo:
    count → 0 = Excelente · 1..(mau-1) = Oportunidade · ≥mau = Mau
    scale → resposta directa 0..max
    elem  → max = Excelente · 1..(max-1) = Oportunidade · 0 = Mau */
+/* ---------- Limiares de classificação (v3.0.0) ----------
+   Cada pergunta declara TRÊS limiares, um por classificação, cada um a marcar
+   o valor A PARTIR DO QUAL essa classificação se aplica:
+
+     T1 = a partir daqui a resposta é Mau
+     T2 = a partir daqui a resposta é Com oportunidade
+     T3 = a partir daqui a resposta é Excelente
+
+   "A partir de" segue o SENTIDO da escala, dado por DIR:
+
+     DIR = -1 (count) — menos é melhor. As classes estendem-se para BAIXO a
+       partir do respectivo limiar, e a ordem natural é T3 <= T2 <= T1:
+         n >= T1        -> Mau
+         T2 <= n < T1   -> Com oportunidade
+         n <  T2        -> Excelente        (T3 é sempre 0)
+
+     DIR = +1 (elem, scale) — mais é melhor. As classes estendem-se para CIMA,
+       e a ordem natural é T1 <= T2 <= T3:
+         n >= T3        -> Excelente
+         T2 <= n < T3   -> Com oportunidade
+         n <  T2        -> Mau              (T1 é sempre 0)
+
+   NOTA SOBRE O TERCEIRO LIMIAR — leia antes de "corrigir":
+   três classes contíguas têm apenas DUAS fronteiras, pelo que um dos três
+   limiares não tem grau de liberdade: é sempre 0, o extremo inferior da escala.
+   Qual deles depende do sentido (ver fixedKey). Mantém-se no modelo e visível
+   no editor por ser o vocabulário pedido pelo utilizador, mas é calculado e não
+   editável — deixá-lo editável daria a ilusão de um controlo sem efeito. */
+const DIR={count:-1,elem:1,scale:1};
+const TKEYS=["t1","t2","t3"];
+
+/* Qual dos três limiares é fixo (sempre 0) para um dado tipo de resposta.
+   É a classe que ocupa o fundo da escala: Excelente nas contagens, Mau nos
+   tipos em que mais é melhor. */
+function fixedKey(it){return DIR[it&&it.tp]===-1?"t3":"t1";}
+
+/* Normaliza uma pergunta para o modelo de v3.0.0.
+   Porta de entrada ÚNICA: aplicada em loadItems() (localStorage), edImport()
+   (JSON do editor) e sanitizeAudit() (auditorias importadas), de modo que
+   nenhum formato antigo chegue a classify(). Idempotente. */
+function normItem(x){
+  const it=Object.assign({},x);
+  it.tp=["count","scale","elem"].includes(it.tp)?it.tp:"count";
+  const inv=DIR[it.tp]===-1;
+  /* Que formato entrou? v3 traz os três limiares; v2 traz t1/t2 com semântica
+     de CORTES anónimos (t1 = corte inferior, t2 = corte superior), que não é a
+     de v3; v1 traz `mau`. A distinção entre v3 e v2 é a presença de t3. */
+  const v3=it.t1!=null&&it.t2!=null&&it.t3!=null;
+  const v2=!v3&&it.t1!=null&&it.t2!=null;
+  /* Uma `scale` sem limiares explícitos é a escala clássica 0/1/2. */
+  if(it.tp==="scale"&&!v3&&!v2)it.max=2;
+  it.max=Math.max(1,parseInt(it.max,10)||(it.tp==="scale"?2:99));
+  const num=v=>{const n=parseInt(v,10);return Number.isFinite(n)?n:0;};
+  if(v3){
+    it.t1=num(it.t1);it.t2=num(it.t2);it.t3=num(it.t3);
+  }else if(v2){
+    /* v2.0.0: t1 = entrada em "Com oportunidade", t2 = entrada na classe
+       extrema favorecida pelo sentido. Reetiquetar para o vocabulário de v3. */
+    const baixo=num(it.t1),alto=num(it.t2);
+    it.t2=baixo;
+    if(inv){it.t1=alto;it.t3=0;}else{it.t3=alto;it.t1=0;}
+  }else{
+    /* v1.x — os cortes reproduzem exactamente a regra antiga, valor a valor. */
+    if(it.tp==="count"){
+      /* Antes: n>=mau -> Mau; n>0 -> Oportunidade; n==0 -> Excelente. */
+      it.t1=Math.max(1,parseInt(it.mau,10)||1);it.t2=1;it.t3=0;
+    }else if(it.tp==="elem"){
+      /* Antes: n>=max -> Excelente; n>=1 -> Oportunidade; 0 -> Mau. */
+      it.t1=0;it.t2=1;it.t3=it.max;
+    }else{
+      /* Antes: a resposta era a própria pontuação (0/1/2). */
+      it.t1=0;it.t2=1;it.t3=2;
+    }
+  }
+  /* Saturação no intervalo válido. */
+  const lim=v=>Math.max(0,Math.min(it.max,v));
+  it.t1=lim(it.t1);it.t2=lim(it.t2);it.t3=lim(it.t3);
+  /* O limiar sem grau de liberdade é sempre o fundo da escala. */
+  it[fixedKey(it)]=0;
+  /* Ordenação: a classe do topo não pode começar abaixo da do meio, senão uma
+     delas ficaria inalcançável. Corrige-se aproximando a do topo. */
+  if(inv){if(it.t1<it.t2)it.t1=it.t2;}
+  else{if(it.t3<it.t2)it.t3=it.t2;}
+  delete it.mau;
+  return it;
+}
+
+/* Classificação de uma resposta: 0 = Mau, 1 = Com oportunidade, 2 = Excelente. */
 function classify(it,n){
-  n=Math.max(0,Math.min(it.max,n));
-  if(it.tp==="scale")return Math.min(2,n);
-  if(it.tp==="elem")return n>=it.max?2:n>=1?1:0;
-  return n>=it.mau?0:n>0?1:2;
+  n=Math.max(0,Math.min(it.max,parseInt(n,10)||0));
+  if(DIR[it.tp]===-1)return n>=it.t1?0:n>=it.t2?1:2;
+  return n>=it.t3?2:n>=it.t2?1:0;
+}
+
+/* Descrição textual do intervalo de cada classe, derivada dos mesmos limiares
+   que classify() usa: uma só fonte de verdade sobre a pontuação. Consumida pela
+   tooltip da auditoria e pelo editor. */
+function ruleOf(it){
+  const max=it.max;
+  const faixa=(a,b)=>a>b?"—":a===b?String(a):(b>=max?a+" ou mais":a+" a "+b);
+  if(DIR[it.tp]===-1)return{
+    mau:it.t1>max?"—":faixa(it.t1,max),
+    opor:faixa(it.t2,it.t1-1),
+    exc:it.t2<=0?"—":faixa(0,it.t2-1)
+  };
+  return{
+    mau:it.t2<=0?"—":faixa(0,it.t2-1),
+    opor:faixa(it.t2,it.t3-1),
+    exc:it.t3>max?"—":faixa(it.t3,max)
+  };
 }
 
 /* ---------- Ponderação (v1.5.0) ----------
@@ -472,13 +614,16 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="1.7.0";
+const APP_VERSION="3.0.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
 let people=load("people",[]); /* repositores / picking */
 let answers={};
-function loadItems(){ITEMS=load("itemsCfg",DEFAULT_ITEMS).map(x=>Object.assign({},x));MAX=ITEMS.length*2;}
+/* v2.0.0: itemsCfg gravado por versões 1.x traz `mau` e nenhum t1/t2. A
+   migração acontece aqui, no arranque, sem reescrever localStorage: só ao
+   Guardar no editor é que o formato novo é persistido. */
+function loadItems(){ITEMS=load("itemsCfg",DEFAULT_ITEMS).map(normItem);MAX=ITEMS.length*2;}
 loadItems();
 
 /* ---------- Navegação ---------- */
@@ -490,6 +635,25 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   if(t.dataset.v==="stats")renderStats();
   if(t.dataset.v==="cfg")renderCfg();
 });
+
+/* ---------- Tooltip de parâmetros (v2.0.0) ----------
+   Gerada para TODAS as perguntas: com limiares livres, a regra deixou de ser
+   dedutível a partir do enunciado, mesmo nas contagens. Os intervalos vêm de
+   ruleOf(), que partilha os cortes com classify(). */
+const TP_LABEL={count:"Contagem",scale:"Escala",elem:"Elementos"};
+function tipHTML(it){
+  const r=ruleOf(it);
+  const L=[
+    `<b>Tipo:</b> ${esc(TP_LABEL[it.tp]||it.tp)}`,
+    `<b>Intervalo aceite:</b> 0 a ${esc(it.max)}`
+  ];
+  const regra=`<ul>`+
+    `<li><b>Excelente</b> — ${esc(r.exc)}</li>`+
+    `<li><b>Com oportunidade</b> — ${esc(r.opor)}</li>`+
+    `<li><b>Mau</b> — ${esc(r.mau)}</li></ul>`;
+  return `<details class="tip"><summary title="Parâmetros da pergunta" aria-label="Parâmetros da pergunta">i</summary>`+
+         `<div class="tip-body">${L.join("<br>")}${regra}</div></details>`;
+}
 
 /* ---------- Formulário ---------- */
 function renderForm(){
@@ -506,7 +670,7 @@ function renderForm(){
     box.insertAdjacentHTML("beforeend",`
     <div class="card item" id="it${i}">
       <div class="meta">Nº ${esc(it.n)} · ${esc(it.t)} · Resp.: ${esc(RESP[it.r])}</div>
-      <div class="q">${esc(it.c)}</div>
+      <div class="q">${esc(it.c)}${tipHTML(it)}</div>
       <input type="number" inputmode="numeric" min="0" max="${esc(it.max)}" placeholder="0"
         style="margin:8px 0 0" data-pick="${i}">
     </div>`);
@@ -998,10 +1162,9 @@ function sanitizeAudit(x){
       t:clean((it&&it.t)||"Tema",120),
       r:(it&&RESP[it.r])?it.r:"U",
       c:clean((it&&it.c),500)||"(sem texto)",
-      tp:["count","scale","elem"].includes(it&&it.tp)?it.tp:"count",
-      mau:Math.max(1,parseInt(it&&it.mau,10)||1),
+      tp:it&&it.tp,t1:it&&it.t1,t2:it&&it.t2,mau:it&&it.mau,
       max:Math.max(1,parseInt(it&&it.max,10)||99)
-    }));
+    })).map(normItem);
   }
   return{
     id:Number(x.id)||Date.now()+Math.floor(Math.random()*1e6),
@@ -1087,7 +1250,7 @@ function askPin(){
   const p=prompt("Código de acesso ao editor (evita alterações acidentais):");
   if(p===null)return;
   if(p!==ADMIN_PIN){alert("Código incorreto.");return;}
-  edItems=ITEMS.map(x=>Object.assign({},x));
+  edItems=ITEMS.map(normItem);
   renderEditor();
   document.getElementById("ed-panel").classList.remove("hidden");
   document.getElementById("ed-panel").scrollIntoView({behavior:"smooth"});
@@ -1113,12 +1276,25 @@ function renderEditor(){
         <option value="elem" ${it.tp==="elem"?"selected":""}>Elementos presentes</option></select></div>
     </div>
     <div class="row">
-      ${it.tp==="count"?`<div><label>Limiar "Mau" (≥)</label><input type="number" min="1" value="${esc(it.mau)}" data-edmau="${i}"></div>`:""}
       <div><label>Valor máximo</label><input type="number" min="1" value="${esc(it.max)}" data-edmax="${i}"></div>
     </div>
-    ${it.tp==="count"?`<div class="hint">0 = Excelente · 1 a ${esc(it.mau-1||"—")} = Oportunidade · ≥ ${esc(it.mau)} = Mau</div>`:
-      it.tp==="elem"?`<div class="hint">${esc(it.max)} = Excelente · 1 a ${esc(it.max-1)} = Oportunidade · 0 = Mau</div>`:
-      `<div class="hint">Resposta directa: 0 = Mau · 1 = Oportunidade · 2 = Excelente</div>`}
+    <div class="row">${TKEYS.map((k,ti)=>{
+      const fixo=k===fixedKey(it);
+      const nome=["Mau","Com oportunidade","Excelente"][ti];
+      return `<div><label>T${ti+1} · ${esc(nome)}${fixo?" (fixo)":""}</label>
+        <input type="number" min="0" max="${esc(it.max)}" value="${esc(it[k])}"
+          data-edt${ti+1}="${i}"${fixo?" disabled title=\"É sempre 0: esta classificação ocupa o fundo da escala e não tem fronteira inferior.\"":""}></div>`;
+      }).join("")}</div>
+
+    ${(()=>{const r=ruleOf(it);const av=edValidate([it]);
+      /* Meio-termo vazio: nas contagens acontece quando T1 == T2; nos tipos em
+         que mais é melhor, quando T3 == T2. Comparar sempre t1 com t2 daria um
+         falso negativo em elem/scale. */
+      const bin=(DIR[it.tp]===-1?it.t1===it.t2:it.t3===it.t2)
+        ?`<div class="hint">Pergunta binária: só \u201cExcelente\u201d e \u201cMau\u201d; não existe meio-termo.</div>`:"";
+      const sent=DIR[it.tp]===-1?"menos é melhor":"mais é melhor";
+      return `<div class="hint"><b>Excelente:</b> ${esc(r.exc)} · <b>Oportunidade:</b> ${esc(r.opor)} · <b>Mau:</b> ${esc(r.mau)} <i>(${sent})</i></div>`+bin+
+        (av.length?`<div class="hint" style="color:#b3261e"><b>${esc(av[0].replace(/^Pergunta \d+: /,""))}</b></div>`:"");})()}
   </div>`).join("");
   /* Ligações por addEventListener: nenhum dado do utilizador entra em atributos de evento. */
   box.querySelectorAll("[data-eddel]").forEach(b=>b.onclick=()=>edDel(+b.dataset.eddel));
@@ -1126,19 +1302,65 @@ function renderEditor(){
   box.querySelectorAll("[data-edt]").forEach(el=>el.oninput=()=>edItems[+el.dataset.edt].t=el.value);
   box.querySelectorAll("[data-edp]").forEach(el=>el.onchange=()=>edItems[+el.dataset.edp].p=+el.value);
   box.querySelectorAll("[data-edr]").forEach(el=>el.onchange=()=>edItems[+el.dataset.edr].r=el.value);
-  box.querySelectorAll("[data-edtp]").forEach(el=>el.onchange=()=>{edItems[+el.dataset.edtp].tp=el.value;renderEditor();});
-  box.querySelectorAll("[data-edmau]").forEach(el=>el.oninput=()=>edItems[+el.dataset.edmau].mau=Math.max(1,+el.value||1));
-  box.querySelectorAll("[data-edmax]").forEach(el=>el.oninput=()=>edItems[+el.dataset.edmax].max=Math.max(1,+el.value||1));
+  /* Mudar de tipo troca o SENTIDO da escala, pelo que os cortes são recalculados
+     por normItem() a partir do estado limpo — manter os antigos daria uma regra
+     invertida e silenciosamente errada. */
+  box.querySelectorAll("[data-edtp]").forEach(el=>el.onchange=()=>{
+    const it=edItems[+el.dataset.edtp];it.tp=el.value;
+    delete it.t1;delete it.t2;delete it.t3;
+    edItems[+el.dataset.edtp]=normItem(it);renderEditor();});
+  box.querySelectorAll("[data-edmax]").forEach(el=>el.oninput=()=>{
+    edItems[+el.dataset.edmax].max=Math.max(1,+el.value||1);edReRender();});
+  TKEYS.forEach((k,ti)=>box.querySelectorAll("[data-edt"+(ti+1)+"]").forEach(el=>el.oninput=()=>{
+    edItems[+el.dataset["edt"+(ti+1)]][k]=Math.max(0,+el.value||0);edReRender();}));
 }
+/* Validação da lista do editor. Devolve um array de mensagens (vazio = válida).
+   É pura para poder ser testada sem DOM e é reutilizada em dois sítios: o aviso
+   por pergunta em renderEditor() e o bloqueio em edSave(). */
+function edValidate(lista){
+  const erros=[];
+  if(!Array.isArray(lista)||!lista.length){erros.push("A lista não pode ficar vazia.");return erros;}
+  lista.forEach((it,i)=>{
+    const id="Pergunta "+(i+1)+": ";
+    if(!String(it&&it.c||"").trim()){erros.push(id+"sem texto.");return;}
+    const max=parseInt(it.max,10);
+    if(!(max>=1)){erros.push(id+"valor máximo tem de ser 1 ou superior.");return;}
+    const v=TKEYS.map(k=>parseInt(it[k],10));
+    if(v.some(x=>!Number.isInteger(x))){erros.push(id+"limiares por definir.");return;}
+    if(v.some(x=>x<0)){erros.push(id+"os limiares não podem ser negativos.");return;}
+    if(v.some(x=>x>max)){erros.push(id+"limiar acima do valor máximo ("+max+"): a classificação ficaria inalcançável.");return;}
+    /* A classe do topo não pode começar abaixo da do meio: uma delas ficaria
+       sem qualquer valor que a active. Limiares IGUAIS são aceites — descrevem
+       uma pergunta binária, sem meio-termo, como a pergunta 8 do modelo base. */
+    if(DIR[it.tp]===-1){
+      if(v[0]<v[1])erros.push(id+"T1 (Mau, "+v[0]+") não pode ser menor que T2 (Com oportunidade, "+v[1]+"): nas contagens, menos é melhor.");
+    }else{
+      if(v[2]<v[1])erros.push(id+"T3 (Excelente, "+v[2]+") não pode ser menor que T2 (Com oportunidade, "+v[1]+").");
+    }
+  });
+  return erros;
+}
+/* Redesenha sem perder o foco do campo em edição: só os textos derivados
+   (regra e aviso) mudam a cada tecla, e reconstruir a lista inteira roubaria
+   o cursor ao utilizador a meio do número. */
+let edTimer=null;
+function edReRender(){clearTimeout(edTimer);edTimer=setTimeout(()=>{
+  const a=document.activeElement,k=a&&a.dataset?Object.keys(a.dataset)[0]:null,v=a&&a.dataset?a.dataset[k]:null;
+  renderEditor();
+  if(k){const el=document.querySelector("["+"data-"+k.replace(/[A-Z]/g,c=>"-"+c.toLowerCase())+"='"+v+"']");
+    if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length);}catch(e){}}}
+},400);}
 function edDel(i){if(!confirm("Remover esta pergunta?"))return;edItems.splice(i,1);renderEditor();}
 function edAdd(){
-  edItems.push({p:0,n:0,t:"Novo tema",r:"U",c:"Nova pergunta",tp:"count",mau:1,max:99});
+  edItems.push(normItem({p:0,n:0,t:"Novo tema",r:"U",c:"Nova pergunta",tp:"count",t1:1,t2:3,max:99}));
   renderEditor();
   document.getElementById("ed-list").lastElementChild.scrollIntoView({behavior:"smooth"});
 }
 function edSave(){
-  if(!edItems.length){alert("A lista não pode ficar vazia.");return;}
-  for(const it of edItems){if(!it.c.trim()){alert("Há perguntas sem texto.");return;}}
+  const erros=edValidate(edItems);
+  if(erros.length){alert("Não é possível guardar:\n\n"+erros.slice(0,8).join("\n")+
+    (erros.length>8?"\n… e mais "+(erros.length-8)+".":""));return;}
+  edItems=edItems.map(normItem);
   edItems.sort((a,b)=>a.p-b.p);
   edItems.forEach((it,i)=>it.n=i+1);
   save("itemsCfg",edItems);
@@ -1171,12 +1393,11 @@ function edImport(inp){
         t:String(x.t||"Tema").replace(/[\u0000-\u001F\u007F]/g,"").slice(0,120),
         r:RESP[x.r]?x.r:"U",
         c:String(x.c||"").replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,500),
-        tp:["count","scale","elem"].includes(x.tp)?x.tp:"count",
-        mau:Math.max(1,parseInt(x.mau,10)||1),
-        max:Math.max(1,parseInt(x.max,10)||99)
+        tp:x.tp,t1:x.t1,t2:x.t2,mau:x.mau,
+        max:parseInt(x.max,10)
       };
-      if(it.tp==="scale")it.max=2;
-      if(it.c)limpas.push(it);
+      /* normItem() migra `mau` legado, satura os cortes e fixa max. */
+      if(it.c)limpas.push(normItem(it));
     }
     if(!limpas.length){alert("Ficheiro inválido: nenhuma pergunta com texto encontrada.");return;}
     if(!confirm("Importar "+limpas.length+" perguntas? As perguntas no editor serão substituídas (só ficam definitivas ao Guardar)."))return;
@@ -1186,7 +1407,7 @@ function edImport(inp){
   rd.readAsText(file);
 }
 function edReset(){
-  if(!confirm("Repor as 19 perguntas originais? As alterações personalizadas serão perdidas."))return;
+  if(!confirm("Repor as "+DEFAULT_ITEMS.length+" perguntas originais? As alterações personalizadas serão perdidas."))return;
   localStorage.removeItem("itemsCfg");
   loadItems();answers={};rawVals={};renderForm();
   document.getElementById("f-live").value="—";
