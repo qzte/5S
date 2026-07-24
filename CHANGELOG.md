@@ -5,6 +5,28 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.0.1] — 2026-07-24
+
+Correcção da tooltip de parâmetros fora do ecrã em telemóvel.
+
+### Corrigido
+
+- **A tooltip de parâmetros saía do ecrã em ecrãs estreitos.** O painel
+  `.tip-body` era `position:absolute` sem qualquer ancestral posicionado, pelo
+  que se ancorava ao bloco inicial e herdava o offset horizontal do ícone `i`.
+  Como o ícone é colocado a seguir ao enunciado, esse offset fica junto à margem
+  direita nas perguntas de texto longo, e o painel transbordava.
+  O `max-width:min(320px,calc(100vw - 48px))` não corrigia o problema porque
+  limita a largura do painel, não a sua posição.
+- **A correcção dá um contexto de posicionamento ao contentor da pergunta.**
+  `.item` passa a `position:relative` e `.tip-body` a `left:0;right:0`, pelo que
+  o painel acompanha a largura da coluna em vez do offset do ícone. Mantém-se o
+  `<details>` nativo: continua a funcionar por toque, sem JavaScript de eventos.
+
+Verificado a 320, 360, 390, 414 e 768 px de largura: as 19 tooltips ficam dentro
+do ecrã em todas. Sem alterações ao modelo de pontuação, ao formato guardado nem
+à exportação JSON — é uma alteração exclusivamente de CSS.
+
 ## [3.0.0] — 2026-07-24
 
 Três limiares nomeados por classificação, editáveis por pergunta.

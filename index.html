@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.0.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Changelog:
+    3.0.1 — Correcção: a tooltip de parâmetros saía do ecrã em telemóvel.
+            O painel era `position:absolute` sem ancestral posicionado, pelo que
+            se ancorava ao bloco inicial e herdava o offset horizontal do ícone
+            "i" — que segue o fim do enunciado e cai junto à margem direita.
+            `max-width` limitava a largura, não a posição. `.item` passa a
+            `position:relative` e o painel a `left:0;right:0`, ficando sempre
+            dentro da coluna. Apenas CSS; sem alterações ao modelo nem aos dados.
     3.0.0 — Três limiares nomeados por classificação (ALTERAÇÃO DISRUPTIVA):
             T1 = a partir daqui é Mau, T2 = Com oportunidade, T3 = Excelente.
             Substituem os cortes anónimos t1/t2 de 2.0.0. Migração automática.
@@ -170,7 +177,9 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 .pillar h2{font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--green)}
 .pillar .n{background:var(--green);color:#fff;width:26px;height:26px;border-radius:50%;
   display:grid;place-items:center;font-family:var(--f-sans);font-weight:900;font-size:.8rem}
-.item{border-left:4px solid var(--line);padding-left:12px;margin-bottom:16px}
+/* `position:relative` (v3.0.1): serve de âncora ao painel `.tip-body`, que de
+   outro modo se posicionava relativamente ao bloco inicial e saía do ecrã. */
+.item{position:relative;border-left:4px solid var(--line);padding-left:12px;margin-bottom:16px}
 .item .q{font-size:.95rem;margin:2px 0 4px}
 .item .meta{font-size:.7rem;color:var(--muted);font-family:var(--f-sans);letter-spacing:.5px}
 /* Tooltip de parâmetros (v1.8.0) — só nas perguntas de tipo != contagem.
@@ -181,7 +190,13 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
   font-family:var(--f-sans);font-weight:900;font-size:.62rem;line-height:1;user-select:none}
 .tip>summary::-webkit-details-marker{display:none}
 .tip[open]>summary{background:var(--green)}
-.tip .tip-body{position:absolute;z-index:20;margin-top:6px;max-width:min(320px,calc(100vw - 48px));
+/* v3.0.1 — o painel era `position:absolute` sem qualquer ancestral posicionado,
+   pelo que se ancorava ao bloco inicial e herdava o offset horizontal do ícone
+   "i". Como o ícone segue o fim do enunciado, em ecrãs estreitos esse offset
+   ficava junto à margem direita e o painel transbordava: `max-width` limita a
+   largura, não a posição. Passa a ancorar-se a `.item` (`position:relative`,
+   abaixo) com `left`/`right` a zero, ficando sempre dentro da coluna. */
+.tip .tip-body{position:absolute;left:0;right:0;z-index:20;margin-top:6px;
   background:var(--green-dk);color:#e8eae6;border-radius:9px;padding:10px 12px;
   font-family:var(--f-sans);font-size:.7rem;line-height:1.45;letter-spacing:.2px;
   box-shadow:0 6px 20px rgba(0,0,0,.28);text-transform:none;white-space:normal}
