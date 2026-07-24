@@ -1,8 +1,8 @@
 {
   "name": "Auditoria 5S · Supermercados Kaizen",
   "short_name": "Auditoria 5S",
-  "description": "Lista de verificação 5S para supermercados: auditoria, histórico, análise e relatório. Versão 1.7.0",
-  "version": "1.7.0",
+  "description": "Lista de verificação 5S para supermercados: auditoria, histórico, análise e relatório. Versão 3.0.0",
+  "version": "3.0.0",
   "lang": "pt-PT",
   "start_url": "./index.html",
   "scope": "./",
@@ -11,8 +11,23 @@
   "background_color": "#f4f1ea",
   "theme_color": "#12211c",
   "icons": [
-    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
