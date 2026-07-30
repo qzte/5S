@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.1.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.0.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.1.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -71,6 +71,25 @@ A nota final é a percentagem entre os pontos obtidos e o máximo possível
 (todos os itens Excelente). Os pilares 5S e os responsáveis são normalizados
 cada um pelo seu próprio número de itens, pelo que um eixo com 3 itens não é
 penalizado face a um com 6.
+
+### Responsáveis
+
+Cada item tem um responsável. São cinco (v3.1.0):
+
+| Código | Responsável | Itens |
+| --- | --- | --- |
+| `U` | Utilizadores | 1, 4, 9, 11, 12, 13, 17, 19 |
+| `M` | Manutenção | 2, 5, 6, 14, 15 |
+| `R` | Reposição | 7, 18 |
+| `U+R` | Utilizador e Repositor | 3, 10, 16 |
+| `P` | Picking | 8 |
+
+O radar "Por responsável" tem, por isso, **cinco eixos**, e o relatório tem
+cinco blocos de recomendações. Auditorias gravadas antes de v3.1.0 guardam o
+seu próprio snapshot de perguntas (a 8 pertencia então a Reposição): o radar
+dessas auditorias mostra os quatro eixos que existiam na altura, e a média por
+responsável na vista Análise ignora-as no eixo Picking em vez de as contar como
+0 %.
 
 **As notas já gravadas nunca são recalculadas.** As classificações (`scores`)
 são guardadas com a auditoria, o que garante que uma alteração posterior aos
