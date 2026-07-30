@@ -5,27 +5,52 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [3.0.1] — 2026-07-24
+## [3.1.0] — 2026-07-30
 
-Correcção da tooltip de parâmetros fora do ecrã em telemóvel.
+Novo responsável **Picking**, com cinco eixos no radar por responsável.
 
-### Corrigido
+### Adicionado
 
-- **A tooltip de parâmetros saía do ecrã em ecrãs estreitos.** O painel
-  `.tip-body` era `position:absolute` sem qualquer ancestral posicionado, pelo
-  que se ancorava ao bloco inicial e herdava o offset horizontal do ícone `i`.
-  Como o ícone é colocado a seguir ao enunciado, esse offset fica junto à margem
-  direita nas perguntas de texto longo, e o painel transbordava.
-  O `max-width:min(320px,calc(100vw - 48px))` não corrigia o problema porque
-  limita a largura do painel, não a sua posição.
-- **A correcção dá um contexto de posicionamento ao contentor da pergunta.**
-  `.item` passa a `position:relative` e `.tip-body` a `left:0;right:0`, pelo que
-  o painel acompanha a largura da coluna em vez do offset do ícone. Mantém-se o
-  `<details>` nativo: continua a funcionar por toque, sem JavaScript de eventos.
+- **Responsável `P` — "Picking"**, a juntar aos quatro existentes. O desempenho
+  por responsável passa a cobrir: Utilizadores, Manutenção, Reposição,
+  Utilizador e Repositor, Picking.
+- `respAxes(auditoria)` — eixos do radar por responsável de uma auditoria (os
+  responsáveis com itens nessa auditoria), extraído do relatório para poder ser
+  testado sem DOM.
+- `medByResp(auditorias)` — média por responsável da vista Análise, extraída de
+  `renderAnalysis()` pela mesma razão.
+- `plItens(n)` — contagem de itens em texto corrido, para que o eixo Picking,
+  com exactamente 1 item, não apareça como "1 itens".
+- `extractBlock()` no harness de testes, para extrair literais multi-linha
+  (`DEFAULT_ITEMS`) do `index.html`; o `extractConst()` existente é orientado
+  a linhas e não os cobria.
+- Testes `tests/picking.test.js` (9 casos, escritos antes da implementação) e
+  `tests/print_check.py` (verificação de impressão com Playwright: eixos do
+  radar, blocos de recomendações e altura das três folhas).
 
-Verificado a 320, 360, 390, 414 e 768 px de largura: as 19 tooltips ficam dentro
-do ecrã em todas. Sem alterações ao modelo de pontuação, ao formato guardado nem
-à exportação JSON — é uma alteração exclusivamente de CSS.
+### Alterado
+
+- **A pergunta 8** ("Nº de artigos em rutura mal identificados") passa de
+  **Reposição** para **Picking**. Reposição fica com as perguntas 7 e 18.
+- **O radar "Por responsável" passa a ter 5 eixos** e o relatório passa a ter
+  **5 blocos de recomendações** (grelha de 2 colunas → 3 linhas na folha 3).
+  Medido em impressão no pior caso (5 fotos e texto no máximo): 655 px dos
+  1047 px úteis, pelo que o CSS de impressão não precisou de alterações.
+- **A média por responsável na vista Análise ignora as auditorias sem itens
+  desse responsável.** Sem isto, todo o histórico anterior a 3.1.0 entraria no
+  eixo Picking como 0 % e afundava a média de um responsável que ainda não
+  existia.
+- `tests/harness.js` movido para `tests/`, alinhando o ficheiro com o caminho
+  `../index.html` que já usava e com a estrutura documentada no README.
+
+### Notas de compatibilidade
+
+- **Não é disruptivo.** Cada auditoria guarda o seu próprio snapshot de
+  perguntas e as classificações (`scores`) nunca são recalculadas: as auditorias
+  antigas continuam a ler-se exactamente como foram gravadas, com a pergunta 8
+  em Reposição e quatro eixos no radar.
+- `sanitizeAudit()` e a importação de perguntas aceitam `r:"P"` sem alterações,
+  por validarem contra `RESP`.
 
 ## [3.0.0] — 2026-07-24
 

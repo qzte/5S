@@ -1,4 +1,5 @@
-/* Harness: extrai as funções puras do index.html (ficheiro único) para poderem
+/* Harness de testes — Auditoria 5S · Supermercados Kaizen (v3.1.0)
+   Extrai as funções puras do index.html (ficheiro único) para poderem
    ser testadas em Node, sem DOM. Cada função é localizada pelo seu cabeçalho e
    avaliada num contexto isolado, junto com as dependências de que precisa. */
 const fs = require("fs");
@@ -22,25 +23,30 @@ function extractFn(src, name) {
 /* Extrai uma declaração de uma linha do tipo `const nome=...;` */
 function extractConst(src, name) {
   const esc = name.replace(/[+]/g, "\\$&");
-  /* Declarações multilinha (arrays/objectos literais, como DEFAULT_ITEMS): o
-     fim da linha não serve de delimitador, é preciso equilibrar os parênteses. */
-  const multi = new RegExp("^(?:const|let)\\s+" + esc + "\\s*=\\s*[\\[{]", "m");
-  const mm = src.match(multi);
-  if (mm) {
-    const ini = src.indexOf(mm[0]);
-    const abre = mm[0].slice(-1), fecha = abre === "[" ? "]" : "}";
-    let d = 0, i = ini + mm[0].length - 1;
-    for (; i < src.length; i++) {
-      if (src[i] === abre) d++;
-      else if (src[i] === fecha) { d--; if (d === 0) break; }
-    }
-    return src.slice(ini, i + 1) + ";";
-  }
   /* Até ao fim da linha: um `;` pode aparecer dentro de um literal de string
      (ex.: ESC_MAP contém "&amp;"), pelo que não serve de delimitador. */
   const re = new RegExp("^(?:const|let)\\s+" + esc + "\\s*=.*$", "m");
   const m = src.match(re);
   return m ? m[0] : null;
+}
+
+/* Extrai uma declaração `const nome=[...]` ou `const nome={...}` que ocupe
+   várias linhas, equilibrando parênteses rectos/chavetas. */
+function extractBlock(src, name) {
+  const esc = name.replace(/[+]/g, "\\$&");
+  const m = src.match(new RegExp("^(?:const|let)\\s+" + esc + "\\s*=\\s*[\\[{]", "m"));
+  if (!m) return null;
+  const abre = src[m.index + m[0].length - 1];
+  const fecha = abre === "[" ? "]" : "}";
+  let depth = 0;
+  for (let j = m.index + m[0].length - 1; j < src.length; j++) {
+    if (src[j] === abre) depth++;
+    else if (src[j] === fecha) {
+      depth--;
+      if (depth === 0) return src.slice(m.index, j + 1) + ";";
+    }
+  }
+  return null;
 }
 
 /* Dependências comuns que quase todas as funções puras usam. São sempre
@@ -55,7 +61,9 @@ function buildContext(fnNames, constNames) {
   const consts = [...new Set([...BASE_CONSTS, ...(constNames || [])])];
   const fns = [...new Set([...BASE_FNS, ...(fnNames || [])])];
   consts.forEach(n => {
-    const c = extractConst(HTML, n);
+    /* Uma declaração de uma linha é o caso comum; se não existir, tenta-se o
+       extractor de blocos (arrays/objectos em várias linhas). */
+    const c = extractConst(HTML, n) || extractBlock(HTML, n);
     if (c) parts.push(c);
   });
   fns.forEach(n => {
@@ -75,4 +83,4 @@ function buildContext(fnNames, constNames) {
   return sandbox;
 }
 
-module.exports = { HTML, extractFn, extractConst, buildContext };
+module.exports = { HTML, extractFn, extractConst, extractBlock, buildContext };
