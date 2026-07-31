@@ -25,14 +25,22 @@ Continuação da auditoria: fecha o ponto 4 do [SECURITY.md](SECURITY.md).
   nesses recursos e a instalação ficava sem ícone. Gerados com as cores da
   própria aplicação; na variante *maskable* o conteúdo fica dentro dos 60%
   centrais, para sobreviver ao recorte circular.
+- **`<link rel="icon">`**, que faltava: sem ele o browser pedia
+  `/favicon.ico` por omissão e levava 404. Com os ícones e esta linha, o smoke
+  test deixou de registar qualquer erro de consola.
 
-### Por resolver
+### Corrigido
 
-- **CVE-2024-22363 (SheetJS 0.18.5, ReDoS).** Continua em aberto: a partir de
-  0.18.5 o SheetJS deixou de ser distribuído no npm (`xlsx@latest` está fixo
-  nessa versão) e passou a sair apenas de `cdn.sheetjs.com`. A actualização
-  para ≥ 0.20.2 exige obter o ficheiro dessa origem e substituir o bloco
-  embutido no `index.html`.
+- **CVE-2024-22363 (ReDoS) e CVE-2023-30533 (prototype pollution):** o SheetJS
+  embutido passou de **0.18.5 para 0.20.3**, que corrige ambas (a segunda em
+  0.19.3, a primeira em 0.20.2). Um `.xlsx` preparado para o efeito deixa de
+  poder bloquear o separador durante a leitura. A biblioteca foi obtida de
+  `cdn.sheetjs.com` — é hoje a única via de distribuição, já que o pacote
+  `xlsx` no npm ficou congelado em 0.18.5.
+- **Removida a mitigação que congelava o `Object.prototype`** durante o parsing
+  de Excel. Existia só para travar a CVE-2023-30533 numa versão que não podia
+  ser actualizada; era irreversível e global à página, e mantê-la por hábito
+  custaria essa restrição sem contrapartida.
 
 ## [3.1.1] — 2026-07-31
 
@@ -79,8 +87,8 @@ dados. Relatório completo em [SECURITY.md](SECURITY.md).
 - `tests/perguntas.test.js`: 11 testes sobre `sanitizeItems()` — saturação do
   pilar, rejeição de chaves do protótipo, limites de texto, tipo desconhecido,
   preservação dos limiares v3 e do alvo das amostras, idempotência.
-- `SECURITY.md` com a auditoria, incluindo o que **não** está mitigado: a
-  CVE-2024-22363 do SheetJS 0.18.5 (ReDoS, exige actualizar para ≥ 0.20.2), a
+- `SECURITY.md` com a auditoria, incluindo o que **não** estava mitigado à
+  data: a CVE-2024-22363 do SheetJS 0.18.5 (ReDoS, fechada na 3.1.2), a
   ausência real de protecção contra clickjacking (`frame-ancestors` é ignorado
   numa CSP em `<meta>`) e a partilha de `localStorage` entre todos os projectos
   publicados na mesma conta do GitHub Pages.
