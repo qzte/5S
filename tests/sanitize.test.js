@@ -7,7 +7,7 @@ const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
   ["sanitizeAudit", "normItem", "recsOf", "classify", "fixedKey"],
-  ["PILLARS", "RESP", "DIR", "TKEYS"]
+  ["PILLARS", "RESP", "DIR", "TKEYS", "isResp"]
 );
 const { sanitizeAudit } = ctx;
 
