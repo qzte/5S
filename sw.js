@@ -1,12 +1,14 @@
 /*
   Auditoria 5S · Supermercados Kaizen — Service Worker
-  Versão: 3.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.1.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Função: cache offline da aplicação. O nome da cache inclui a versão,
           por isso cada nova versão invalida automaticamente a anterior.
   Segurança (v1.4.0): a cache só aceita recursos da própria origem que
           constem da allowlist ASSETS, evitando envenenamento da cache.
+          Desde 3.1.1 a allowlist vale também para as navegações, que antes
+          escreviam em ./index.html sem a consultar.
 */
-const APP_VERSION = "3.1.0";
+const APP_VERSION = "3.1.1";
 const CACHE = "auditoria5s-v" + APP_VERSION;
 
 const ASSETS = [
@@ -55,10 +57,16 @@ self.addEventListener("fetch", e => {
   if (url.origin !== self.location.origin) return;
 
   if (req.mode === "navigate") {
+    /* A allowlist vale também aqui (v3.1.1): sem esta guarda, QUALQUER navegação
+       dentro do scope (ex.: ./?utm=x ou ./qualquer-coisa que o servidor resolva
+       com 200) era escrita por cima da entrada ./index.html, que é depois o que
+       é servido offline. A query string é ignorada na comparação porque não
+       muda o documento devolvido. */
+    const semQuery = url.origin + url.pathname;
     e.respondWith(
       fetch(req)
         .then(r => {
-          if (r && r.status === 200 && r.type === "basic") {
+          if (r && r.status === 200 && r.type === "basic" && ALLOWED.has(semQuery)) {
             const copy = r.clone();
             caches.open(CACHE).then(c => c.put("./index.html", copy));
           }

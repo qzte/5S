@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.1.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.0.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.1.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -150,7 +150,10 @@ index.html         Aplicação completa: HTML, CSS, JS e SheetJS embutido
 manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
+SECURITY.md        Relatório da auditoria de segurança (3.1.1)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
+tests/*.test.js    Testes unitários (node:test)
+tests/smoke.mjs    Smoke test de browser (Playwright)
 ```
 
 `index.html` é deliberadamente um ficheiro único: é o que permite instalar,
@@ -164,7 +167,7 @@ contexto `vm` isolado e expõe-na ao teste. Os testes exercitam assim o **códig
 real** em produção, sem cópia paralela e sem DOM.
 
 ```bash
-node --test tests/
+node --test tests/*.test.js
 ```
 
 O ponto crítico coberto é a migração de limiares: as classificações são
@@ -172,8 +175,8 @@ verificadas valor a valor sobre a totalidade das combinações pergunta × respo
 do modelo base, nos três formatos (1.x, 2.0.0, 3.0.0).
 
 > `harness.js` faz `require` de `../index.html`, pelo que tem de estar numa
-> subpasta (`tests/`). Confirme que é aí que está no repositório — na raiz não
-> encontra o ficheiro.
+> subpasta (`tests/`). Até 3.1.0 os ficheiros estavam na raiz e a suite não
+> corria de todo; foram movidos em 3.1.1.
 
 ## Segurança
 
@@ -189,6 +192,21 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
 - Sem CDN: `referrer` não é enviado e a aplicação é offline de facto.
 - Mitigação da CVE-2023-30533 (SheetJS 0.18.5): `Object.prototype` é congelado
   durante o parsing de Excel.
+- Porta de entrada única para dados de ficheiro: `sanitizeAudit()` para
+  auditorias e `sanitizeItems()` para perguntas — usada tanto pelo editor como
+  pela importação de histórico (3.1.1).
+
+Revisão completa em [SECURITY.md](SECURITY.md), incluindo o que **não** está
+mitigado. Dois pontos a reter:
+
+- `frame-ancestors` numa CSP em `<meta>` é **ignorado pelos browsers**: só
+  funciona em cabeçalho HTTP, que o GitHub Pages não permite definir. A
+  directiva fica na CSP para quando for servida por cabeçalho, mas hoje **não
+  há proteção contra clickjacking**.
+- O `localStorage` pertence à **origem**, não ao caminho: em
+  `qzte.github.io`, qualquer outra página publicada na mesma conta lê e escreve
+  os dados desta aplicação. Para isolamento real seria preciso um domínio
+  próprio.
 
 **O PIN do editor não é um controlo de segurança.** O código é público num
 ficheiro estático; qualquer pessoa o pode ler. Protege apenas contra alterações
