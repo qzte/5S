@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
+  Versão: 3.1.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Repositório: https://github.com/qzte/5S
+  Histórico de versões: ver CHANGELOG.md.
+-->
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
@@ -611,7 +615,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.1.3";
+const APP_VERSION="3.1.4";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -1129,15 +1133,63 @@ function loadXLSX(){ /* v1.1.1: SheetJS embutido — nada a descarregar */
   return window.XLSX?Promise.resolve():Promise.reject(new Error("Leitor de Excel indisponível."));
 }
 const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-function findCols(rows){ /* devolve {head, cod, desc, nome} a partir da linha de cabeçalho */
-  for(let r=0;r<Math.min(rows.length,10);r++){
-    const h=rows[r].map(norm);
-    const cod=h.findIndex(x=>/^cod|codigo|^ref/.test(x));
-    const desc=h.findIndex(x=>/desc|designa|servic/.test(x));
-    const nome=h.findIndex(x=>/nome|repositor|picking|colaborador|funcionario/.test(x));
-    if(cod>=0||desc>=0||nome>=0)return{head:r,cod,desc,nome};
-  }
-  return null;
+/* Devolve {head, cod, desc, nome} a partir da linha de cabeçalho.
+
+   Duas regras, ambas nascidas do mesmo erro: um ficheiro com a linha de título
+   "Relatório de serviços" antes do cabeçalho era importado ao contrário — a
+   palavra "serviços" casava com /servic/, a linha de título passava por
+   cabeçalho, e a coluna dos códigos entrava como se fossem nomes de serviço.
+
+   1. Ganha a linha que identifica MAIS colunas, não a primeira que identifica
+      alguma. Um título tem uma célula; um cabeçalho tem as que forem precisas.
+   2. Os padrões estão ancorados no início da célula: um cabeçalho é um RÓTULO
+      ("Serviço", "Descrição", "Nome do colaborador"), ao passo que um título é
+      uma frase que apenas contém a palavra algures.
+
+   Se nada casar ancorado, repete-se sem âncora: ficheiros que já importavam
+   antes desta versão continuam a importar, e mesmo aí a regra 1 protege-os. */
+function findCols(rows){
+  const PADROES=[
+    ["cod",/^(cod|codigo|ref|referencia)/],
+    ["desc",/^(desc|designa|servic)/],
+    ["nome",/^(nome|repositor|picking|colaborador|funcionario)/]
+  ];
+  const limite=Math.min((rows||[]).length,15);
+  const procurar=ancorado=>{
+    let melhor=null;
+    for(let r=0;r<limite;r++){
+      const h=(rows[r]||[]).map(c=>norm(c).trim());
+      const achado={head:r,cod:-1,desc:-1,nome:-1};
+      let pontos=0;
+      PADROES.forEach(par=>{
+        const re=ancorado?par[1]:new RegExp(par[1].source.replace(/^\^/,""));
+        const i=h.findIndex(x=>re.test(x));
+        achado[par[0]]=i;
+        if(i>=0)pontos++;
+      });
+      if(!pontos)continue;
+      /* Desempate pelo número de células preenchidas: entre duas linhas que
+         identifiquem o mesmo, a que tem mais colunas é o cabeçalho. */
+      const preenchidas=h.filter(Boolean).length;
+      if(!melhor||pontos>melhor.pontos||
+         (pontos===melhor.pontos&&preenchidas>melhor.preenchidas))
+        melhor=Object.assign(achado,{pontos:pontos,preenchidas:preenchidas});
+    }
+    return melhor;
+  };
+  const m=procurar(true)||procurar(false);
+  if(!m)return null;
+  /* Escolhida a linha, as colunas que ficaram por identificar levam ainda uma
+     tentativa sem âncora — DENTRO dessa linha, onde já não há título nenhum
+     para confundir. É o que salva rótulos invulgares como "Nº/Código" numa
+     folha cujo cabeçalho já foi reconhecido por outra coluna. */
+  const h=(rows[m.head]||[]).map(c=>norm(c).trim());
+  PADROES.forEach(par=>{
+    if(m[par[0]]>=0)return;
+    const re=new RegExp(par[1].source.replace(/^\^/,""));
+    m[par[0]]=h.findIndex(x=>re.test(x));
+  });
+  return{head:m.head,cod:m.cod,desc:m.desc,nome:m.nome};
 }
 function importExcel(inp){
   const file=inp.files[0];inp.value="";

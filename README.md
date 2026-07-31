@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.1.3 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.1.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.1.3** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.1.4** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -149,6 +149,10 @@ a vista Relatório está aberta e **nunca** são escritas em `localStorage` nem
 exportadas. Fecha-se a vista, perdem-se — por opção, para não esgotar a quota.
 
 ## Importação de Excel
+
+O cabeçalho é procurado nas primeiras 15 linhas e é a linha que identificar
+**mais** colunas — uma linha de título antes dos rótulos (`Relatório de
+serviços`) não a engana, ainda que contenha a palavra "serviços".
 
 Aceita `.xlsx`, `.xls` e `.csv`, processados localmente pelo SheetJS embutido no
 próprio ficheiro:
