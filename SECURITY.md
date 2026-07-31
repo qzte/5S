@@ -1,6 +1,7 @@
 # Auditoria de segurança · Auditoria 5S
 
-Revisão da versão **3.1.0**, correcções aplicadas em **3.1.1** (2026-07-31).
+Revisão da versão **3.1.0**, correcções aplicadas em **3.1.1** e **3.1.2**
+(2026-07-31).
 Âmbito: `index.html` (aplicação e SheetJS embutido), `sw.js`, `manifest.json`
 e a configuração do repositório.
 
@@ -26,7 +27,7 @@ O que resta são três superfícies reais:
 | 1 | Média | `itemsCfg` importado era gravado sem validação | **Corrigido em 3.1.1** |
 | 2 | Média | Guarda de responsável aceitava chaves do protótipo | **Corrigido em 3.1.1** |
 | 3 | Média | SheetJS 0.18.5 — CVE-2024-22363 (ReDoS) | Aceite, ver nota |
-| 4 | Baixa | `frame-ancestors` em `<meta>` não é aplicado | Aceite (limitação do GitHub Pages) |
+| 4 | Baixa | `frame-ancestors` em `<meta>` não é aplicado | **Mitigado em 3.1.2** |
 | 5 | Baixa | `gitignore` sem ponto — regras nunca aplicadas | **Corrigido em 3.1.1** |
 | 6 | Baixa | Suite de testes não corria (ficheiros na raiz) | **Corrigido em 3.1.1** |
 | 7 | Baixa | `localStorage` corrompido derrubava o arranque | **Corrigido em 3.1.1** |
@@ -112,7 +113,7 @@ irreversível e global à página. É aceitável nesta aplicação, que não est
 protótipo nem carrega código de terceiros, mas é uma restrição a lembrar antes
 de acrescentar qualquer biblioteca.
 
-## 4. `frame-ancestors` numa CSP em `<meta>` não é aplicado (Baixa, aceite)
+## 4. `frame-ancestors` numa CSP em `<meta>` não é aplicado (Baixa)
 
 Os browsers ignoram `frame-ancestors`, `report-uri` e `sandbox` quando a CSP
 vem por `<meta http-equiv>` — só valem em cabeçalho HTTP. O README listava-a
@@ -122,8 +123,17 @@ GitHub Pages não permite definir cabeçalhos, pelo que a directiva se mantém
 ela é. As restantes directivas (`object-src`, `base-uri`, `connect-src`,
 `form-action`) funcionam por `<meta>` e continuam a valer.
 
-Se o clickjacking vier a importar, as opções são servir a app noutro alojamento
-com cabeçalhos, ou juntar *frame-busting* em JS.
+**Mitigado em 3.1.2** com uma guarda em JS no `<head>`, que corre antes de o
+`<body>` existir: se `window.top !== window.self`, o documento é esvaziado e
+substituído por uma linha de texto e uma ligação para abrir a aplicação em
+janela própria. Não se tenta `top.location` — entre origens o browser bloqueia
+a escrita, e a tentativa falharia em silêncio, dando a ilusão de defesa.
+
+Não substitui o cabeçalho: quem controla a moldura pode servir a app a partir
+de uma cópia sua, sem a guarda. O que esta impede é o cenário real — enganar o
+utilizador a clicar em controlos da instalação legítima. Verificado no
+Chromium: sem moldura a app arranca com os 19 itens; dentro de um `iframe` não
+fica visível um único elemento da aplicação.
 
 ## 5. `gitignore` sem ponto (Baixa)
 

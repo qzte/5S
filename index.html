@@ -45,6 +45,42 @@
   ou usar hashes sha256 dos blocos — recalculando-os a cada alteração.
 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<script>
+/* ---------- Guarda contra clickjacking (v3.1.2) ----------
+   A directiva frame-ancestors da CSP acima é IGNORADA pelos browsers quando a
+   política vem por <meta>: só vale em cabeçalho HTTP, que o GitHub Pages não
+   permite definir. Esta guarda é o que resta.
+
+   Não se tenta sair da moldura com top.location: entre origens o browser
+   bloqueia a escrita, e a tentativa falharia em silêncio dando a ilusão de
+   defesa. Esconde-se o documento — que é o que impede o clique enganado — e
+   deixa-se uma ligação para abrir a aplicação na sua própria janela.
+
+   Corre antes do <body> existir, para que nada chegue a ser pintado dentro da
+   moldura. O acesso a window.top pode lançar entre origens em browsers antigos,
+   daí o try: em caso de dúvida, assume-se que está embebido. */
+(function(){
+  var embebido;
+  try{embebido=window.top!==window.self;}catch(e){embebido=true;}
+  if(!embebido)return;
+  document.documentElement.style.display="none";
+  document.addEventListener("DOMContentLoaded",function(){
+    var d=document.documentElement;
+    while(d.firstChild)d.removeChild(d.firstChild);
+    var body=document.createElement("body");
+    body.setAttribute("style","font:16px/1.5 Georgia,serif;padding:24px;color:#1d2a24;background:#f4f1ea");
+    var p=document.createElement("p");
+    p.textContent="Esta aplicação não pode ser apresentada dentro de outra página.";
+    var a=document.createElement("a");
+    /* location.href da PRÓPRIA página, não de nada vindo de fora. */
+    a.href=location.href;a.target="_blank";a.rel="noopener noreferrer";
+    a.textContent="Abrir a Auditoria 5S numa janela própria";
+    body.appendChild(p);body.appendChild(a);
+    d.appendChild(body);
+    d.style.display="";
+  });
+})();
+</script>
 <style>
 :root{
   --bg:#f4f1ea; --ink:#1d2a24; --panel:#ffffff; --line:#d9d3c5;
@@ -581,7 +617,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.1.1";
+const APP_VERSION="3.1.2";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);

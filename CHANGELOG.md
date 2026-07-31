@@ -5,6 +5,29 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.1.2] — 2026-07-31
+
+Continuação da auditoria: fecha o ponto 4 do [SECURITY.md](SECURITY.md).
+
+### Adicionado
+
+- **Guarda contra clickjacking.** A directiva `frame-ancestors` da CSP é
+  ignorada pelos browsers quando a política vem por `<meta>` — só vale em
+  cabeçalho HTTP, que o GitHub Pages não permite definir —, pelo que a
+  aplicação estava, na prática, sem qualquer protecção. Um bloco no `<head>`,
+  que corre antes de o `<body>` existir, esvazia o documento quando detecta que
+  está numa moldura e mostra uma ligação para o abrir em janela própria.
+  Deliberadamente **não** se tenta `top.location`: entre origens a escrita é
+  bloqueada e a tentativa falharia em silêncio, dando a ilusão de defesa.
+
+### Por resolver
+
+- **CVE-2024-22363 (SheetJS 0.18.5, ReDoS).** Continua em aberto: a partir de
+  0.18.5 o SheetJS deixou de ser distribuído no npm (`xlsx@latest` está fixo
+  nessa versão) e passou a sair apenas de `cdn.sheetjs.com`. A actualização
+  para ≥ 0.20.2 exige obter o ficheiro dessa origem e substituir o bloco
+  embutido no `index.html`.
+
 ## [3.1.1] — 2026-07-31
 
 Auditoria de segurança. Sem alterações de funcionalidade nem de formato de

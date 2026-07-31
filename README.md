@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.1.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.1.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.1.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.1.2** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -201,8 +201,9 @@ mitigado. Dois pontos a reter:
 
 - `frame-ancestors` numa CSP em `<meta>` é **ignorado pelos browsers**: só
   funciona em cabeçalho HTTP, que o GitHub Pages não permite definir. A
-  directiva fica na CSP para quando for servida por cabeçalho, mas hoje **não
-  há proteção contra clickjacking**.
+  directiva fica na CSP para quando for servida por cabeçalho; entretanto, uma
+  guarda em JS no `<head>` recusa mostrar a aplicação dentro de uma moldura
+  (3.1.2).
 - O `localStorage` pertence à **origem**, não ao caminho: em
   `qzte.github.io`, qualquer outra página publicada na mesma conta lê e escreve
   os dados desta aplicação. Para isolamento real seria preciso um domínio
