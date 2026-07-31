@@ -19,6 +19,12 @@ Continuação da auditoria: fecha o ponto 4 do [SECURITY.md](SECURITY.md).
   está numa moldura e mostra uma ligação para o abrir em janela própria.
   Deliberadamente **não** se tenta `top.location`: entre origens a escrita é
   bloqueada e a tentativa falharia em silêncio, dando a ilusão de defesa.
+- **Os três ícones do PWA.** O `manifest.json` referenciava
+  `./icons/icon-192.png`, `icon-512.png` e `icon-512-maskable.png`, que nunca
+  existiram no repositório: davam 404, o `install` do service worker falhava
+  nesses recursos e a instalação ficava sem ícone. Gerados com as cores da
+  própria aplicação; na variante *maskable* o conteúdo fica dentro dos 60%
+  centrais, para sobreviver ao recorte circular.
 
 ### Por resolver
 
