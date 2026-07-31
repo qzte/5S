@@ -33,7 +33,11 @@ function extractConst(src, name) {
    incluídas para que os testes exercitem o código REAL do index.html. */
 /* Ordem importa: `total` depende de `pctOf`, que é declarada com `function`
    (hoisted), por isso a ordem de inserção é segura. */
-const BASE_CONSTS = ["ESC_MAP", "esc", "clean", "WEIGHTS", "W_MAX", "wOf", "REC_KEYS", "total"];
+/* PILLARS/RESP/isResp são base desde 3.1.1: normItem() passou a normalizar o
+   pilar e o responsável, e é dependência de quase todos os testes. `isResp` tem
+   de vir depois de `RESP`, de quem depende. */
+const BASE_CONSTS = ["ESC_MAP", "esc", "clean", "PILLARS", "RESP", "isResp",
+  "WEIGHTS", "W_MAX", "wOf", "REC_KEYS", "total"];
 const BASE_FNS = ["pctOf"];
 
 function buildContext(fnNames, constNames) {

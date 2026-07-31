@@ -354,6 +354,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 /* ---------- Definição do checklist (da folha Excel) ---------- */
 const PILLARS=["Triagem","Arrumação","Limpeza","Normalização","Disciplina"];
 const RESP={U:"Utilizadores",M:"Manutenção",R:"Reposição","U+R":"Utilizador e Repositor"};
+
+/* Chave de responsável válida. `RESP[x]` sozinho não serve: herda do protótipo,
+   pelo que "constructor" ou "toString" passariam a guarda e chegariam ao render
+   (`esc(RESP[it.r])` imprimiria o código-fonte de Object). */
+const isResp=r=>typeof r==="string"&&Object.prototype.hasOwnProperty.call(RESP,r);
+
 const DEFAULT_ITEMS=[
  {p:0,n:1,t:"Materiais",r:"U",c:"Nº de artigos extra acordo no supermercado",tp:"count",t1:4,t2:1,t3:0,max:99},
  {p:0,n:2,t:"Artigos",r:"M",c:"Nº de artigos inactivos em supermercado",tp:"count",t1:3,t2:1,t3:0,max:99},
@@ -422,6 +428,13 @@ function fixedKey(it){return DIR[it&&it.tp]===-1?"t3":"t1";}
 function normItem(x){
   const it=Object.assign({},x);
   it.tp=["count","scale","elem","amostra"].includes(it.tp)?it.tp:"count";
+  /* Pilar e responsável são normalizados AQUI e não só nas importações: o
+     localStorage pode já ter sido contaminado por um ficheiro importado antes
+     de 3.1.1, e loadItems() é a única passagem obrigatória desses dados. Um
+     pilar fora de intervalo deixaria o item sem eixo em byPillar(); um
+     responsável desconhecido fá-lo-ia desaparecer de byResp(). */
+  it.p=Math.min(PILLARS.length-1,Math.max(0,parseInt(it.p,10)||0));
+  it.r=isResp(it.r)?it.r:"U";
   const inv=DIR[it.tp]===-1;
   /* Que formato entrou? v3 traz os três limiares; v2 traz t1/t2 com semântica
      de CORTES anónimos (t1 = corte inferior, t2 = corte superior), que não é a
@@ -547,7 +560,15 @@ let ITEMS=[];let MAX=0;
 const LBL=["Mau","Oportunidade","Excelente"];
 
 /* ---------- Estado ---------- */
-const load=(k,d)=>JSON.parse(localStorage.getItem(k)||JSON.stringify(d));
+/* O localStorage é partilhado por TODA a origem (em qzte.github.io, por todos
+   os projectos publicados na mesma conta), pelo que uma chave corrompida por
+   outra página não pode derrubar o arranque desta: sem o try, o JSON.parse
+   lançava antes do primeiro render e a app ficava em branco, com o service
+   worker a servir a mesma página partida offline. */
+const load=(k,d)=>{
+  try{const v=localStorage.getItem(k);return v==null||v===""?d:JSON.parse(v);}
+  catch(e){return d;}
+};
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
 /* Escape de HTML: obrigatório em TODA a interpolação de dados do utilizador
@@ -560,7 +581,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.1.0";
+const APP_VERSION="3.1.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -1143,6 +1164,33 @@ function exportJson(){
   URL.revokeObjectURL(a.href);}
 
 /* ---------- Importação do histórico ---------- */
+/* Normaliza uma lista de perguntas vinda de ficheiro. Porta ÚNICA de entrada
+   para edImport() e para o `itemsCfg` de importJson(): nenhum dos dois pode
+   gravar campos por validar — pilar fora de intervalo deixa itens órfãos de
+   eixo, responsável desconhecido faz o item desaparecer de byResp() (notas por
+   responsável erradas) e texto sem limite enche o localStorage. */
+function sanitizeItems(data){
+  if(!Array.isArray(data))return[];
+  const limpas=[];
+  for(const x of data){
+    if(!x||typeof x!=="object")continue;
+    const it={
+      p:Math.min(PILLARS.length-1,Math.max(0,parseInt(x.p,10)||0)),
+      n:parseInt(x.n,10)||0,
+      /* Texto limitado e sem caracteres de controlo. O escape em renderEditor/
+         renderForm é a defesa principal; isto é defesa em profundidade. */
+      t:clean(x.t,120)||"Tema",
+      r:isResp(x.r)?x.r:"U",
+      c:clean(x.c,500),
+      tp:x.tp,t1:x.t1,t2:x.t2,t3:x.t3,mau:x.mau,tgt:x.tgt,
+      max:parseInt(x.max,10)
+    };
+    /* normItem() migra `mau` legado, satura os cortes e fixa max. */
+    if(it.c)limpas.push(normItem(it));
+  }
+  return limpas;
+}
+
 function sanitizeAudit(x){
   if(!x||typeof x!=="object")return null;
   const service=clean(x.service,200);
@@ -1161,7 +1209,7 @@ function sanitizeAudit(x){
       p:Math.min(PILLARS.length-1,Math.max(0,parseInt(it&&it.p,10)||0)),
       n:parseInt(it&&it.n,10)||0,
       t:clean((it&&it.t)||"Tema",120),
-      r:(it&&RESP[it.r])?it.r:"U",
+      r:(it&&isResp(it.r))?it.r:"U",
       c:clean((it&&it.c),500)||"(sem texto)",
       /* t3 e tgt TÊM de viajar: sem t3, normItem() lê t1/t2 com a semântica
          de v2 (cortes anónimos) e reetiqueta-os, alterando a classificação de
@@ -1200,7 +1248,10 @@ function importJson(inp){
     const semItens=inAudits.filter(a=>!a.items&&a.scores.length!==ITEMS.length).length;
     const inSvc=Array.isArray(data.services)?data.services.map(s=>clean(s,200)).filter(Boolean):[];
     const inPpl=Array.isArray(data.people)?data.people.map(s=>clean(s,200)).filter(Boolean):[];
-    const temPerg=Array.isArray(data.itemsCfg)&&data.itemsCfg.length;
+    /* As perguntas do ficheiro passam pela MESMA porta que o editor usa. Antes
+       eram gravadas em bruto — era o único caminho que contornava a validação. */
+    const inPerg=sanitizeItems(data.itemsCfg);
+    const temPerg=inPerg.length;
     const origem=data.version?" (v"+data.version+")":"";
     const modo=prompt(
       "Ficheiro"+origem+": "+inAudits.length+" auditoria(s), "+inSvc.length+" serviço(s), "+inPpl.length+" pessoa(s)."+
@@ -1231,8 +1282,8 @@ function importJson(inp){
     }
     save("audits",audits);save("services",services);save("people",people);
 
-    if(temPerg&&confirm("O ficheiro inclui "+data.itemsCfg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas.")){
-      save("itemsCfg",data.itemsCfg);
+    if(temPerg&&confirm("O ficheiro inclui "+inPerg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas.")){
+      save("itemsCfg",inPerg);
       loadItems();answers={};rawVals={};tgtVals={};
       document.getElementById("f-live").value="—";
     }
@@ -1396,23 +1447,8 @@ function edImport(inp){
     let data;
     try{data=JSON.parse(rd.result);}catch(e){alert("Ficheiro inválido: não é JSON.");return;}
     if(!Array.isArray(data)||!data.length){alert("Ficheiro inválido: esperada uma lista de perguntas.");return;}
-    const limpas=[];
-    for(const x of data){
-      if(typeof x!=="object"||!x)continue;
-      const it={
-        p:Math.min(PILLARS.length-1,Math.max(0,parseInt(x.p,10)||0)),
-        n:parseInt(x.n,10)||0,
-        /* Texto limitado e sem caracteres de controlo. O escape em renderEditor/
-           renderForm é a defesa principal; isto é defesa em profundidade. */
-        t:String(x.t||"Tema").replace(/[\u0000-\u001F\u007F]/g,"").slice(0,120),
-        r:RESP[x.r]?x.r:"U",
-        c:String(x.c||"").replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,500),
-        tp:x.tp,t1:x.t1,t2:x.t2,t3:x.t3,mau:x.mau,tgt:x.tgt,
-        max:parseInt(x.max,10)
-      };
-      /* normItem() migra `mau` legado, satura os cortes e fixa max. */
-      if(it.c)limpas.push(normItem(it));
-    }
+    /* Mesma porta de entrada da importação de histórico (v3.1.1). */
+    const limpas=sanitizeItems(data);
     if(!limpas.length){alert("Ficheiro inválido: nenhuma pergunta com texto encontrada.");return;}
     if(!confirm("Importar "+limpas.length+" perguntas? As perguntas no editor serão substituídas (só ficam definitivas ao Guardar)."))return;
     edItems=limpas;renderEditor();

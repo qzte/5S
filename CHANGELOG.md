@@ -5,6 +5,57 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.1.1] — 2026-07-31
+
+Auditoria de segurança. Sem alterações de funcionalidade nem de formato de
+dados. Relatório completo em [SECURITY.md](SECURITY.md).
+
+### Corrigido
+
+- **A importação de histórico gravava as perguntas do ficheiro sem validação.**
+  `importJson()` fazia `save("itemsCfg", data.itemsCfg)` em bruto — era o único
+  caminho de entrada que contornava a limpeza aplicada em `edImport()` e em
+  `sanitizeAudit()`. Um pilar fora de intervalo deixava o item sem eixo em
+  `byPillar()` e um responsável desconhecido fazia-o desaparecer de `byResp()`,
+  falseando as notas por eixo sem qualquer aviso. A limpeza passou a viver em
+  `sanitizeItems()`, porta única partilhada pelos dois caminhos.
+- **A guarda de responsável aceitava chaves herdadas do protótipo.**
+  `RESP[x.r]` é *truthy* para `"constructor"`, `"toString"` ou `"valueOf"`, pelo
+  que essas chaves passavam a validação: o formulário chegava a mostrar
+  `Resp.: function Object() { [native code] }`. Substituída por `isResp()`, com
+  `hasOwnProperty`. `normItem()` passou também a normalizar o pilar e o
+  responsável, para que um `localStorage` contaminado por uma importação
+  anterior se repare no arranque em vez de ficar por corrigir.
+- **`localStorage` corrompido derrubava o arranque.** `load()` fazia
+  `JSON.parse` sem `try`: um valor inválido em qualquer chave lançava antes do
+  primeiro render e deixava a página em branco — e o service worker servia a
+  mesma página partida offline. Passa a recair no valor por omissão. Relevante
+  porque o `localStorage` pertence à origem inteira (`qzte.github.io`), não a
+  `/5S/`.
+- **A allowlist do service worker não se aplicava às navegações.** O ramo
+  `navigate` gravava em `./index.html` qualquer resposta 200 da própria origem,
+  ao contrário do que o comentário do ficheiro afirmava. Passa a consultar
+  `ALLOWED`, ignorando a query string.
+- **`gitignore` estava sem o ponto inicial**, pelo que nenhuma das regras era
+  aplicada — incluindo as que impedem que auditorias exportadas (com nomes de
+  colaboradores) sejam commitadas para um repositório público.
+- **A suite de testes não corria.** `harness.js` faz `require` de
+  `../index.html` mas os ficheiros estavam na raiz: `node --test tests/` não
+  encontrava nada e a partir da raiz falhava com `ENOENT`. As regressões que
+  protegem `sanitizeAudit()` não estavam a ser executadas. Movidos para
+  `tests/`.
+
+### Adicionado
+
+- `tests/perguntas.test.js`: 11 testes sobre `sanitizeItems()` — saturação do
+  pilar, rejeição de chaves do protótipo, limites de texto, tipo desconhecido,
+  preservação dos limiares v3 e do alvo das amostras, idempotência.
+- `SECURITY.md` com a auditoria, incluindo o que **não** está mitigado: a
+  CVE-2024-22363 do SheetJS 0.18.5 (ReDoS, exige actualizar para ≥ 0.20.2), a
+  ausência real de protecção contra clickjacking (`frame-ancestors` é ignorado
+  numa CSP em `<meta>`) e a partilha de `localStorage` entre todos os projectos
+  publicados na mesma conta do GitHub Pages.
+
 ## [3.1.0] — 2026-07-31
 
 Perguntas de amostra: alvo auditado definido por auditoria, limiares em
