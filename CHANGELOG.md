@@ -5,6 +5,41 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.1.4] — 2026-07-31
+
+### Corrigido
+
+- **O comentário de cabeçalho do `index.html` estava por fechar**, e engolia
+  metade do `<head>`. Uma edição anterior removeu as linhas finais do bloco
+  junto com o `-->`, pelo que tudo o que vinha a seguir passou a ser comentário
+  até ao primeiro `-->` seguinte — `<html>`, `<head>`, `<meta charset>`,
+  `<meta viewport>`, `<title>` e `<link rel="manifest">`.
+
+  O efeito na aplicação publicada não era subtil: sem `charset` o browser
+  assumia `windows-1252` e todo o texto acentuado aparecia partido
+  (`NÂº`, `serviÃ§o`); sem `viewport` a página abria à largura de um ecrã de
+  computador num telemóvel, que é onde a auditoria é feita; sem manifesto
+  deixava de ser instalável como PWA; e o separador ficava sem título. A CSP e
+  o favicon escaparam por estarem depois do ponto onde o comentário fechava.
+
+- **`findCols()` tomava uma linha de título por cabeçalho.** Num ficheiro com
+  `Relatório de serviços` antes da linha de rótulos, a palavra "serviços" casava
+  com `/servic/` e a importação trazia a coluna dos **códigos** como se fossem
+  nomes de serviço — ficavam na lista `11120`, `22450` em vez das descrições.
+
+  Duas regras novas: ganha a linha que identifica **mais** colunas, e não a
+  primeira que identifica alguma; e os padrões passam a estar ancorados no
+  início da célula, porque um cabeçalho é um rótulo ("Serviço") e um título é
+  uma frase que apenas contém a palavra. Escolhida a linha, as colunas que
+  ficarem por identificar levam ainda uma tentativa sem âncora dentro dessa
+  linha, para que rótulos invulgares como `Nº/Código` continuem a ser lidos.
+
+### Adicionado
+
+- `tests/excel-cabecalho.test.js`: 11 testes sobre `findCols()` — linha de
+  título, preâmbulo de várias linhas, desempate por número de colunas, rótulos
+  com acentos e espaços, folhas irregulares e a reserva sem âncora.
+
 ## [3.1.3] — 2026-07-31
 
 Migração guiada para as perguntas de amostra.
