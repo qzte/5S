@@ -190,8 +190,10 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
 - Service worker limitado a uma allowlist da própria origem, contra
   envenenamento da cache.
 - Sem CDN: `referrer` não é enviado e a aplicação é offline de facto.
-- Mitigação da CVE-2023-30533 (SheetJS 0.18.5): `Object.prototype` é congelado
-  durante o parsing de Excel.
+- SheetJS embutido em **0.20.3**, que corrige a CVE-2023-30533 (prototype
+  pollution) e a CVE-2024-22363 (ReDoS). Atenção ao actualizar: a biblioteca
+  sai apenas de `cdn.sheetjs.com`, porque o pacote `xlsx` no npm ficou
+  congelado em 0.18.5 (3.1.2).
 - Porta de entrada única para dados de ficheiro: `sanitizeAudit()` para
   auditorias e `sanitizeItems()` para perguntas — usada tanto pelo editor como
   pela importação de histórico (3.1.1).

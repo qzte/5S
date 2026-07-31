@@ -26,7 +26,7 @@ O que resta são três superfícies reais:
 | --- | --- | --- | --- |
 | 1 | Média | `itemsCfg` importado era gravado sem validação | **Corrigido em 3.1.1** |
 | 2 | Média | Guarda de responsável aceitava chaves do protótipo | **Corrigido em 3.1.1** |
-| 3 | Média | SheetJS 0.18.5 — CVE-2024-22363 (ReDoS) | Aceite, ver nota |
+| 3 | Média | SheetJS 0.18.5 — CVE-2024-22363 (ReDoS) | **Corrigido em 3.1.2** |
 | 4 | Baixa | `frame-ancestors` em `<meta>` não é aplicado | **Mitigado em 3.1.2** |
 | 5 | Baixa | `gitignore` sem ponto — regras nunca aplicadas | **Corrigido em 3.1.1** |
 | 6 | Baixa | Suite de testes não corria (ficheiros na raiz) | **Corrigido em 3.1.1** |
@@ -95,23 +95,29 @@ uma importação anterior a 3.1.1, `normItem()` — passagem obrigatória de
 repara sozinho no arranque seguinte. Verificado no browser com um `itemsCfg`
 contaminado escrito directamente no `localStorage`.
 
-## 3. SheetJS 0.18.5 — CVE-2024-22363, ReDoS (Média, aceite)
+## 3. SheetJS 0.18.5 — CVE-2024-22363, ReDoS (Média)
 
 A CVE-2023-30533 (prototype pollution) **está** mitigada: `importExcel()`
 congela `Object.prototype` antes de `XLSX.read()`, o que faz falhar a escrita.
 Confirmado no código.
 
 Já a **CVE-2024-22363** (expressão regular com retrocesso catastrófico,
-corrigida em 0.20.2) não tem mitigação possível sem actualizar a biblioteca:
-abrir um `.xlsx` preparado para o efeito bloqueia o separador. O impacto é
-local e requer que o utilizador escolha o ficheiro — nenhum dado sai do
-dispositivo e nada é executado. Não justifica alterar o modelo de distribuição,
-mas **fica em aberto**: a resolução é actualizar o SheetJS embutido para ≥ 0.20.2.
+corrigida em 0.20.2) não tinha mitigação possível sem actualizar a biblioteca:
+abrir um `.xlsx` preparado para o efeito bloqueava o separador.
 
-Nota sobre a mitigação existente: `Object.freeze(Object.prototype)` é
-irreversível e global à página. É aceitável nesta aplicação, que não estende o
-protótipo nem carrega código de terceiros, mas é uma restrição a lembrar antes
-de acrescentar qualquer biblioteca.
+**Corrigido em 3.1.2:** o SheetJS embutido passou a **0.20.3**, que fecha as
+duas CVE. A biblioteca veio de `cdn.sheetjs.com`, hoje a única via de
+distribuição — o pacote `xlsx` no npm ficou congelado em 0.18.5, o que torna
+qualquer auditoria de dependências por npm cega a este componente.
+
+Com a actualização, **a mitigação do `Object.freeze(Object.prototype)` foi
+removida**: existia só para travar a CVE-2023-30533 numa versão que não podia
+ser actualizada, era irreversível e global à página, e mantê-la por hábito
+custaria essa restrição sem contrapartida.
+
+Verificado no Chromium com um `.xlsx` real de duas folhas: `XLSX.version`
+devolve `0.20.3`, a importação traz os serviços e as pessoas esperados, e o
+`Object.prototype` já não fica congelado depois de importar.
 
 ## 4. `frame-ancestors` numa CSP em `<meta>` não é aplicado (Baixa)
 
