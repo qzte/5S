@@ -335,6 +335,14 @@ canvas{width:100%!important}
     <input type="file" id="xl-file" accept=".xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
     <div id="xl-people" style="margin-top:12px"></div>
   </div>
+  <!-- Só aparece quando há perguntas de amostra por converter (ver
+       proporMigracaoAmostra). Fica aqui para quem adiou a proposta do arranque
+       ter por onde a retomar sem passar pelo editor. -->
+  <div class="card hidden" id="migr-card">
+    <h3 style="margin-bottom:4px">Perguntas por amostra</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px" id="migr-txt"></p>
+    <button class="btn small ghost" id="btn-migr">Converter agora</button>
+  </div>
   <div class="card">
     <h3 style="margin-bottom:10px">Editor de perguntas</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Área reservada ao administrador. Permite alterar perguntas, responsáveis e parâmetros de avaliação.</p>
@@ -625,7 +633,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.1.2";
+const APP_VERSION="3.1.3";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -1121,6 +1129,19 @@ function renderCfg(){
       `<b>${audits.length}</b> auditoria(s) · <b>${services.length}</b> serviço(s) · <b>${people.length}</b> pessoa(s)<br>Período: ${esc(datas[0])} a ${esc(datas[datas.length-1])}`:
       `Sem auditorias guardadas.`;
   }
+  /* Cartão da migração: visível só enquanto houver perguntas por converter.
+     Desaparece sozinho depois de aplicada. */
+  const mc=document.getElementById("migr-card");
+  if(mc){
+    const r=pendentesDeAmostra();
+    mc.classList.toggle("hidden",!r.convertidas.length);
+    if(r.convertidas.length)
+      document.getElementById("migr-txt").textContent=
+        "As perguntas "+r.convertidas.join(", ")+" ainda são contagens simples. "+
+        "Converter passa-as a amostra: indica-se quantas unidades foram auditadas "+
+        "e a avaliação é feita em percentagem desse total. O enunciado e o "+
+        "responsável mantêm-se; as auditorias já gravadas não mudam.";
+  }
 }
 function rmPerson(i){people.splice(i,1);save("people",people);renderCfg();renderForm();}
 
@@ -1334,6 +1355,71 @@ function importJson(inp){
   rd.readAsText(file);
 }
 
+/* ---------- Migração para perguntas de amostra (v3.1.3) ----------
+   As perguntas 3, 18 e 19 passaram a ser de amostra em 3.1.0: têm um alvo
+   auditado por auditoria e limiares em percentagem desse alvo. Quem tinha
+   perguntas gravadas de uma versão anterior — basta ter aberto o editor uma vez
+   e carregado em Guardar — continua sem o campo "Auditados", porque a app lê
+   sempre o que está guardado e normItem() NÃO converte tipos: converter em
+   silêncio mudaria a classificação de auditorias já feitas.
+
+   Esta migração é explícita e a pedido: propõe-se uma vez, converte só as
+   perguntas cujo número corresponde a uma pergunta de amostra de origem, e
+   preserva tudo o que é do utilizador — enunciado, tema, pilar e responsável.
+   Os limiares antigos NÃO viajam: eram contagens absolutas e não têm leitura
+   possível como percentagem. */
+function migrarParaAmostra(guardadas,padrao){
+  const alvo=new Map();
+  (padrao||[]).forEach(d=>{if(d&&d.tp==="amostra")alvo.set(d.n,d);});
+  const convertidas=[];
+  const items=(guardadas||[]).map(it=>{
+    const d=it?alvo.get(it.n):null;
+    if(!d||it.tp==="amostra")return it;
+    convertidas.push(it.n);
+    return normItem(Object.assign({},it,
+      {tp:"amostra",tgt:d.tgt,t1:d.t1,t2:d.t2,t3:d.t3,max:100}));
+  });
+  return{items,convertidas};
+}
+
+/* Estado da proposta, para não voltar a perguntar a cada arranque:
+   "feita" | "adiada" | "desnecessaria". Adiar não fecha a porta — o cartão em
+   Configuração continua lá. */
+const MIGR_KEY="migrAmostra";
+function pendentesDeAmostra(){
+  /* Sem itemsCfg guardado a app corre com as perguntas de origem, que já são
+     de amostra: não há nada a migrar. */
+  if(localStorage.getItem("itemsCfg")==null)return{items:ITEMS,convertidas:[]};
+  return migrarParaAmostra(ITEMS,DEFAULT_ITEMS);
+}
+function aplicarMigracaoAmostra(r){
+  save("itemsCfg",r.items);
+  localStorage.setItem(MIGR_KEY,"feita");
+  loadItems();answers={};rawVals={};tgtVals={};renderForm();
+  document.getElementById("f-live").value="—";
+  renderCfg();
+  alert("Perguntas "+r.convertidas.join(", ")+" convertidas. Passam a ter o campo "+
+    "“Auditados” no formulário, com alvo sugerido de 10.\n\n"+
+    "As auditorias já gravadas não mudaram: cada uma guarda as suas próprias perguntas.");
+}
+function proporMigracaoAmostra(){
+  if(localStorage.getItem(MIGR_KEY)==="feita")return;
+  const r=pendentesDeAmostra();
+  if(!r.convertidas.length){localStorage.setItem(MIGR_KEY,"desnecessaria");return;}
+  if(localStorage.getItem(MIGR_KEY)==="adiada")return; /* o cartão em Configuração trata do resto */
+  const ok=confirm(
+    "As perguntas "+r.convertidas.join(", ")+" são de amostra desde a versão 3.1.0: "+
+    "indica-se quantas unidades foram auditadas e a avaliação passa a ser em "+
+    "percentagem desse total.\n\n"+
+    "As perguntas guardadas neste dispositivo são anteriores e não têm esse campo. "+
+    "Converter agora?\n\n"+
+    "· O enunciado, o tema, o pilar e o responsável são mantidos.\n"+
+    "· O alvo sugerido fica em 10 e os limiares passam a percentagem.\n"+
+    "· As auditorias já gravadas não são alteradas.");
+  if(!ok){localStorage.setItem(MIGR_KEY,"adiada");renderCfg();return;}
+  aplicarMigracaoAmostra(r);
+}
+
 /* ---------- Editor de perguntas (admin) ---------- */
 /* AVISO DE SEGURANÇA — leia antes de alterar:
    Esta aplicação é 100% client-side e o código é público. Um PIN aqui NÃO é
@@ -1517,6 +1603,7 @@ on("hist-file","change",function(){importJson(this);});
 on("btn-impxl","click",()=>document.getElementById("xl-file").click());
 on("xl-file","change",function(){importExcel(this);});
 on("btn-askpin","click",()=>askPin());
+on("btn-migr","click",()=>{const r=pendentesDeAmostra();if(r.convertidas.length)aplicarMigracaoAmostra(r);});
 on("btn-edadd","click",()=>edAdd());
 on("btn-edexp","click",()=>edExport());
 on("btn-edimp","click",()=>document.getElementById("ed-file").click());
@@ -1525,6 +1612,9 @@ on("btn-edsave","click",()=>edSave());
 on("btn-edreset","click",()=>edReset());
 
 renderForm();
+/* Depois do primeiro render: a proposta é uma caixa de diálogo e não deve
+   aparecer sobre uma página ainda em branco. */
+proporMigracaoAmostra();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
 </script>
 </body>

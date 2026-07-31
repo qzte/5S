@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.1.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.1.3 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.1.2** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.1.3** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -110,6 +110,22 @@ formulário. Sem alvo não há denominador: o item fica por responder e sai do
 denominador da nota, em vez de receber um zero.
 
 As perguntas 3, 18 e 19 usam este tipo, com alvo sugerido de 10 kanbans.
+
+### Não vejo o campo *Auditados*
+
+A aplicação lê sempre as perguntas guardadas no dispositivo, e só usa as de
+origem quando não há nenhumas gravadas. Quem tenha aberto o editor e carregado
+em *Guardar* antes da versão 3.1.0 ficou com as perguntas 3, 18 e 19 como
+contagens simples — sem alvo, e por isso sem o campo. A migração de tipos **não**
+é automática: reescrever o tipo em silêncio mudaria a classificação de
+auditorias já feitas.
+
+Desde 3.1.3, a aplicação propõe a conversão uma vez no arranque e, se for
+adiada, deixa um cartão em *Configuração* com o botão **Converter agora**. A
+conversão preserva o enunciado, o tema, o pilar e o responsável, e não toca nas
+auditorias já gravadas — cada uma guarda as suas próprias perguntas. Em
+alternativa, o editor permite mudar o tipo pergunta a pergunta, ou repor as
+perguntas originais.
 
 ## Dados e privacidade
 
