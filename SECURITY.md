@@ -211,11 +211,12 @@ exfiltração mesmo que houvesse. Se um dia se quiser fechar, o caminho é hashe
 
 ## Nota de empacotamento (fora do âmbito da segurança)
 
-`manifest.json` referencia `./icons/icon-192.png`, `icon-512.png` e
-`icon-512-maskable.png`, que não existem no repositório: o smoke test regista
-404 e o `install` do service worker falha nesses recursos (sem consequências,
-graças ao `allSettled`). Não é um problema de segurança, mas afecta a
-instalação como PWA.
+`manifest.json` referenciava `./icons/icon-192.png`, `icon-512.png` e
+`icon-512-maskable.png`, que não existiam no repositório: o smoke test
+registava 404 e o `install` do service worker falhava nesses recursos (sem
+consequências, graças ao `allSettled`). Não era um problema de segurança, mas
+afectava a instalação como PWA. **Resolvido em 3.1.2**: os três ícones foram
+gerados e acrescentados, e o smoke test deixou de registar 404.
 
 ## O que foi verificado e está bem
 
