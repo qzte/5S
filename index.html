@@ -1,28 +1,6 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.1.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
-  Repositório: https://github.com/qzte/5S
-  Changelog:
-    3.1.0 — Perguntas de amostra: alvo auditado por auditoria e limiares em %:
-            [Novo] Quarto tipo de resposta, `amostra`. A pergunta declara um alvo
-              sugerido (`tgt`) e limiares em PERCENTAGEM desse alvo; o alvo
-              efectivo é escolhido em cada auditoria, no próprio formulário.
-              Os cortes acompanham o alvo sem serem reescritos à mão: com T1=40%,
-              auditar 10 kanbans coloca Mau em 4, auditar 20 coloca-o em 8.
-              classify() ganha um terceiro argumento com o alvo e devolve null
-              quando não há alvo utilizável — o item fica por responder, em vez
-              de receber um zero que a nota trataria como Mau.
-            [Novo] Perguntas 3, 18 e 19 (kanbans) convertidas, com alvo 10. No
-              alvo nominal a classificação é IDÊNTICA à de 3.0.0, verificada por
-              teste valor a valor; as outras 16 perguntas ficam intactas.
-            [Novo] Relatório mostra a fracção auditada e a percentagem
-              (ex.: "3 / 12 (25%)") em vez da contagem nua.
-            [Correcção] sanitizeAudit() e a importação de perguntas descartavam
-              `t3`: sem ele, normItem() relia t1/t2 com a semântica de 2.0.0 e
-              reetiquetava-os, alterando a classificação de auditorias já
-              gravadas. Mesma família do `recs` perdido em 1.7.0.
--->
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
