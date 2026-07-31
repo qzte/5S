@@ -20,9 +20,17 @@ Migração guiada para as perguntas de amostra.
   silêncio mudaria a classificação de auditorias já feitas.
 
   A migração é explícita e a pedido. É proposta uma vez, no arranque, depois do
-  primeiro render; converte apenas as perguntas cujo número corresponde a uma
-  pergunta de amostra de origem; e preserva o que é do utilizador — enunciado,
-  tema, pilar e responsável. Os limiares antigos **não** viajam: eram contagens
+  primeiro render, e preserva o que é do utilizador — enunciado, tema, pilar e
+  responsável.
+
+  As perguntas são identificadas pelo **enunciado**, não pelo número: `edSave()`
+  renumera ao gravar (ordena por pilar e atribui `n` = posição), pelo que quem
+  acrescentou, removeu ou reordenou perguntas tem numeração que já não
+  corresponde à de origem — e emparelhar pelo número converteria a pergunta
+  errada, dando um alvo auditado a uma pergunta que não é de amostra e deixando
+  a verdadeira por converter. O número fica como reserva, para quem reescreveu
+  o enunciado mas manteve a ordem, e a proposta mostra sempre o enunciado antes
+  de converter seja o que for. Os limiares antigos **não** viajam: eram contagens
   absolutas (4 kanbans) e não têm leitura possível como percentagem, pelo que se
   assumem os de origem (40/10, 50/10 e 20/10 %).
 
@@ -30,9 +38,21 @@ Migração guiada para as perguntas de amostra.
   houver perguntas por converter e desaparece assim que a conversão é feita —
   adiar não fecha a porta, e a proposta não volta a aparecer a cada arranque.
 
-- `tests/amostra-migracao.test.js`: 8 testes sobre `migrarParaAmostra()`, entre
+- `tests/amostra-migracao.test.js`: 13 testes sobre `migrarParaAmostra()`, entre
   eles a preservação das personalizações, a não-conversão de perguntas que não
-  são de amostra na origem, e a idempotência.
+  são de amostra na origem, a idempotência, o emparelhamento com numeração
+  trocada e a recusa de converter uma pergunta alheia que calhe ter o número de
+  uma de amostra.
+
+### Corrigido
+
+- **O harness dos testes truncava declarações de mais de uma linha**, sem se
+  queixar: `extractConst()` lê até ao fim da linha, pelo que uma constante
+  partida em duas chegava incompleta e os testes passavam a exercitar código
+  que **não** é o de produção. Apanhado com a `chaveTexto()`, extraída sem o
+  `.normalize()` nem o `.trim()`. O harness passa a rebentar com uma mensagem
+  explícita quando isso acontece, e a `chaveTexto()` é declarada com `function`,
+  que é extraída por chavetas.
 
 ## [3.1.2] — 2026-07-31
 
