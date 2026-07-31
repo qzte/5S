@@ -8,7 +8,7 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
-  ["migrarParaAmostra", "normItem", "classify", "fixedKey"],
+  ["migrarParaAmostra", "chaveTexto", "normItem", "classify", "fixedKey"],
   ["PILLARS", "RESP", "DIR", "TKEYS", "isResp"]
 );
 const { migrarParaAmostra } = ctx;
@@ -16,7 +16,7 @@ const { migrarParaAmostra } = ctx;
 /* Os arrays devolvidos vêm do contexto `vm`, cujo Array.prototype não é o deste
    ficheiro: deepStrictEqual falha por identidade de protótipo, não por
    conteúdo. Compara-se o conteúdo. */
-const nums = a => Array.from(a).join(",");
+const nums = a => Array.from(a).map(x => x.n).join(",");
 const json = a => JSON.stringify(Array.from(a));
 
 /* As de origem que interessam: 3, 18 e 19 são de amostra; 1 é contagem. */
@@ -27,8 +27,13 @@ const PADRAO = [
   { p: 4, n: 19, t: "Validades", r: "U", c: "Fora de validade", tp: "amostra", tgt: 10, t1: 20, t2: 10, t3: 0, max: 100 }
 ];
 /* O que ficou gravado em quem usou o editor antes de 3.1.0. */
+/* O enunciado de origem é o que identifica a pergunta: o editor renumera ao
+   gravar, por isso o número sozinho não serve de identidade. */
+const TEXTO = { 3: "Nº de kanbans com quantidades excessivas",
+                18: "Norma de reposição", 19: "Fora de validade" };
 const antiga = (n, extra) => Object.assign(
-  { p: 0, n: n, t: "Tema", r: "U", c: "Pergunta " + n, tp: "count", t1: 4, t2: 1, t3: 0, max: 99 }, extra);
+  { p: 0, n: n, t: "Tema", r: "U", c: TEXTO[n] || ("Pergunta " + n),
+    tp: "count", t1: 4, t2: 1, t3: 0, max: 99 }, extra);
 
 test("converte as perguntas de amostra e devolve os números afectados", () => {
   const r = migrarParaAmostra([antiga(3), antiga(18), antiga(19)], PADRAO);
@@ -85,4 +90,46 @@ test("entradas nulas na lista guardada são atravessadas sem erro", () => {
   const r = migrarParaAmostra([null, antiga(3)], PADRAO);
   assert.strictEqual(nums(r.convertidas), "3");
   assert.strictEqual(r.items.length, 2);
+});
+
+/* --- Numeração: o editor renumera ao gravar (edSave faz n = posição), pelo
+   que quem acrescentou, removeu ou reordenou perguntas tem números que já não
+   correspondem aos de origem. Emparelhar pelo número converteria a pergunta
+   errada — foi o que motivou passar a emparelhar pelo enunciado. --- */
+
+test("encontra a pergunta pelo enunciado mesmo com o número trocado", () => {
+  /* A pergunta das validades ficou com o nº 12 depois de uma reordenação. */
+  const r = migrarParaAmostra([antiga(12, { c: "Fora de validade" })], PADRAO);
+  assert.strictEqual(nums(r.convertidas), "12");
+  assert.strictEqual(r.items[0].tp, "amostra");
+  assert.strictEqual(r.items[0].t1, 20, "tem de herdar os limiares das validades, não os de outra");
+});
+
+test("não converte uma pergunta alheia que calhe ter o número 18", () => {
+  /* Depois de apagar perguntas, a nº 18 passou a ser uma contagem qualquer.
+     Dar-lhe um alvo auditado seria pior do que não migrar nada. */
+  const alheia = antiga(18, { c: "Nº de extintores obstruídos" });
+  const semAmostras = PADRAO.filter(d => d.tp === "amostra" && d.n !== 18);
+  const r = migrarParaAmostra([alheia], semAmostras);
+  assert.strictEqual(nums(r.convertidas), "");
+  assert.strictEqual(r.items[0].tp, "count");
+});
+
+test("o número serve de reserva para quem reescreveu o enunciado", () => {
+  const r = migrarParaAmostra([antiga(3, { c: "Kanbans com excesso (texto meu)" })], PADRAO);
+  assert.strictEqual(nums(r.convertidas), "3");
+  assert.strictEqual(r.items[0].t1, 40);
+  assert.strictEqual(r.items[0].c, "Kanbans com excesso (texto meu)", "o texto do utilizador fica");
+});
+
+test("acentos, maiúsculas e espaços a mais não impedem o emparelhamento", () => {
+  const r = migrarParaAmostra(
+    [antiga(7, { c: "  NORMA   DE  REPOSICAO " })], PADRAO);
+  assert.strictEqual(nums(r.convertidas), "7");
+  assert.strictEqual(r.items[0].t1, 50, "é a pergunta da norma de reposição");
+});
+
+test("cada convertida traz o enunciado, para a proposta o poder mostrar", () => {
+  const r = migrarParaAmostra([antiga(3)], PADRAO);
+  assert.strictEqual(r.convertidas[0].c, "Nº de kanbans com quantidades excessivas");
 });
