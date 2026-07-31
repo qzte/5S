@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.1.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.1.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.0.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -35,7 +35,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 | Vista | O que faz |
 | --- | --- |
-| **Nova auditoria** | 19 itens, nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. |
+| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. |
 | **Histórico** | Todas as auditorias guardadas, por serviço e data. |
 | **Análise** | Evolução da nota, comparação entre serviços, radar por pilar 5S e radar por responsável — em SVG/canvas nativos, sem bibliotecas de gráficos. |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. |
@@ -72,25 +72,6 @@ A nota final é a percentagem entre os pontos obtidos e o máximo possível
 cada um pelo seu próprio número de itens, pelo que um eixo com 3 itens não é
 penalizado face a um com 6.
 
-### Responsáveis
-
-Cada item tem um responsável. São cinco (v3.1.0):
-
-| Código | Responsável | Itens |
-| --- | --- | --- |
-| `U` | Utilizadores | 1, 4, 9, 11, 12, 13, 17, 19 |
-| `M` | Manutenção | 2, 5, 6, 14, 15 |
-| `R` | Reposição | 7, 18 |
-| `U+R` | Utilizador e Repositor | 3, 10, 16 |
-| `P` | Picking | 8 |
-
-O radar "Por responsável" tem, por isso, **cinco eixos**, e o relatório tem
-cinco blocos de recomendações. Auditorias gravadas antes de v3.1.0 guardam o
-seu próprio snapshot de perguntas (a 8 pertencia então a Reposição): o radar
-dessas auditorias mostra os quatro eixos que existiam na altura, e a média por
-responsável na vista Análise ignora-as no eixo Picking em vez de as contar como
-0 %.
-
 **As notas já gravadas nunca são recalculadas.** As classificações (`scores`)
 são guardadas com a auditoria, o que garante que uma alteração posterior aos
 limiares não reescreve o passado.
@@ -104,18 +85,31 @@ valor **a partir do qual** cada classificação se aplica:
 - `t2` — a partir daqui é **Com oportunidade**
 - `t3` — a partir daqui é **Excelente**
 
-O sentido depende do tipo de resposta. Nas **contagens** menos é melhor, logo a
-ordem natural é `T3 ≤ T2 ≤ T1`; em **escala** e **elementos** mais é melhor, e a
-ordem é `T1 ≤ T2 ≤ T3`. Mudar o tipo de resposta recalcula os limiares em vez de
+O sentido depende do tipo de resposta. Nas **contagens** e nas **amostras** menos
+é melhor, logo a ordem natural é `T3 ≤ T2 ≤ T1`; em **escala** e **elementos**
+mais é melhor, e a ordem é `T1 ≤ T2 ≤ T3`. Mudar o tipo de resposta recalcula os limiares em vez de
 os manter, porque o mesmo trio de números lê-se ao contrário.
 
 Três classes contíguas têm apenas duas fronteiras: um dos três limiares é sempre
 `0` e não tem grau de liberdade. Aparece no editor **bloqueado e assinalado como
 fixo** — deixá-lo editável daria a ilusão de um controlo sem efeito.
 
-Perguntas dos tipos `scale` e `elem` mostram um ícone **i** com o tipo de
-resposta, o intervalo aceite e o mapeamento resposta → classificação. As
-contagens não o mostram: a regra já está no enunciado (*Nº de ...*).
+Todas as perguntas mostram um ícone **i** com o tipo de resposta, o intervalo
+aceite (ou o alvo sugerido) e o mapeamento resposta → classificação.
+
+## Perguntas de amostra
+
+Nas perguntas do tipo `amostra` audita-se um número fixo de unidades e conta-se
+quantas não estão conformes. Os limiares `t1`/`t2` são **percentagens do alvo**,
+não contagens, e o alvo efectivo é escolhido em cada auditoria, no campo
+*Auditados*. Os cortes acompanham o alvo sem serem reescritos: com `t1 = 40 %`,
+auditar 10 kanbans coloca *Mau* em 4; auditar 20 coloca-o em 8.
+
+A pergunta guarda um alvo **sugerido** (`tgt`), que apenas pré-preenche o
+formulário. Sem alvo não há denominador: o item fica por responder e sai do
+denominador da nota, em vez de receber um zero.
+
+As perguntas 3, 18 e 19 usam este tipo, com alvo sugerido de 10 kanbans.
 
 ## Dados e privacidade
 

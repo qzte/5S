@@ -4,16 +4,24 @@
   Versão: 3.1.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Changelog:
-    3.1.0 — Novo responsável "Picking":
-            [Novo] RESP passa a ter cinco responsáveis: Utilizadores,
-              Manutenção, Reposição, Utilizador e Repositor, Picking.
-            [Alterado] A pergunta 8 ("Nº de artigos em rutura mal
-              identificados") passa de Reposição para Picking.
-            [Alterado] O radar "Por responsável" passa a ter 5 eixos e as
-              recomendações do relatório passam a ter 5 blocos.
-            [Alterado] A média por responsável (vista Análise) ignora as
-              auditorias sem itens desse responsável, para que o histórico
-              anterior ao Picking não o dilua.
+    3.1.0 — Perguntas de amostra: alvo auditado por auditoria e limiares em %:
+            [Novo] Quarto tipo de resposta, `amostra`. A pergunta declara um alvo
+              sugerido (`tgt`) e limiares em PERCENTAGEM desse alvo; o alvo
+              efectivo é escolhido em cada auditoria, no próprio formulário.
+              Os cortes acompanham o alvo sem serem reescritos à mão: com T1=40%,
+              auditar 10 kanbans coloca Mau em 4, auditar 20 coloca-o em 8.
+              classify() ganha um terceiro argumento com o alvo e devolve null
+              quando não há alvo utilizável — o item fica por responder, em vez
+              de receber um zero que a nota trataria como Mau.
+            [Novo] Perguntas 3, 18 e 19 (kanbans) convertidas, com alvo 10. No
+              alvo nominal a classificação é IDÊNTICA à de 3.0.0, verificada por
+              teste valor a valor; as outras 16 perguntas ficam intactas.
+            [Novo] Relatório mostra a fracção auditada e a percentagem
+              (ex.: "3 / 12 (25%)") em vez da contagem nua.
+            [Correcção] sanitizeAudit() e a importação de perguntas descartavam
+              `t3`: sem ele, normItem() relia t1/t2 com a semântica de 2.0.0 e
+              reetiquetava-os, alterando a classificação de auditorias já
+              gravadas. Mesma família do `recs` perdido em 1.7.0.
     3.0.0 — Três limiares nomeados por classificação (ALTERAÇÃO DISRUPTIVA):
             T1 = a partir daqui é Mau, T2 = Com oportunidade, T3 = Excelente.
             Substituem os cortes anónimos t1/t2 de 2.0.0. Migração automática.
@@ -37,7 +45,7 @@
             exportação JSON; é uma alteração exclusivamente de interface.
     1.7.0 — Recomendações por responsável e histórico do serviço:
             [Novo] Nova folha 3 do PDF com um bloco por área de responsabilidade
-              (Utilizadores, Manutenção, Reposição, Utilizador e Repositor, Picking), cada
+              (Utilizadores, Manutenção, Reposição, Utilizador e Repositor), cada
               um com nota de texto e fotografia, dois blocos por linha.
               O TEXTO é guardado com a auditoria (campo opcional `recs`) e viaja
               na exportação JSON. A FOTOGRAFIA é efémera: vive apenas em memória
@@ -289,9 +297,7 @@ canvas{width:100%!important}
   #view-report .page-1>.hist-block{flex:1 1 100%}
   #view-report .page-1>.hist-block svg{max-width:440px!important}
 
-  /* Página 3: recomendações por responsável (5 desde v3.1.0), dois por linha.
-     Cinco blocos em grelha de 2 colunas = 3 linhas. Medido em impressão:
-     249px sem fotos e 655px com foto nos cinco, de 1047px úteis. */
+  /* Página 3: recomendações por responsável, dois blocos por linha. */
   #view-report .page-3{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}
   #view-report .page-3 h3{font-size:.85rem;margin-bottom:6px}
   #view-report .page-3 .rec-body{display:flex;gap:8px;align-items:flex-start}
@@ -451,16 +457,16 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 <script>
 /* ---------- Definição do checklist (da folha Excel) ---------- */
 const PILLARS=["Triagem","Arrumação","Limpeza","Normalização","Disciplina"];
-const RESP={U:"Utilizadores",M:"Manutenção",R:"Reposição","U+R":"Utilizador e Repositor",P:"Picking"};
+const RESP={U:"Utilizadores",M:"Manutenção",R:"Reposição","U+R":"Utilizador e Repositor"};
 const DEFAULT_ITEMS=[
  {p:0,n:1,t:"Materiais",r:"U",c:"Nº de artigos extra acordo no supermercado",tp:"count",t1:4,t2:1,t3:0,max:99},
  {p:0,n:2,t:"Artigos",r:"M",c:"Nº de artigos inactivos em supermercado",tp:"count",t1:3,t2:1,t3:0,max:99},
- {p:0,n:3,t:"Quantidades",r:"U+R",c:"Nº de kanbans com quantidades excessivas",tp:"count",t1:4,t2:1,t3:0,max:99},
+ {p:0,n:3,t:"Quantidades",r:"U+R",c:"Nº de kanbans com quantidades excessivas",tp:"amostra",tgt:10,t1:40,t2:10,t3:0,max:100},
  {p:0,n:4,t:"Piso, corredores",r:"U",c:"Nº de estantes com dificuldade de reabastecimento",tp:"count",t1:2,t2:1,t3:0,max:99},
  {p:1,n:5,t:"Localizações",r:"M",c:"Nº de artigos sem etiqueta de posição",tp:"count",t1:5,t2:1,t3:0,max:99},
  {p:1,n:6,t:"Estantes / Prateleiras",r:"M",c:"Nº de estantes/prateleiras sem identificação visual",tp:"count",t1:3,t2:1,t3:0,max:99},
  {p:1,n:7,t:"Caixas",r:"R",c:"Nº de KB's vazios mal arrumados na zona de reposição",tp:"count",t1:4,t2:1,t3:0,max:99},
- {p:1,n:8,t:"Material em Rutura",r:"P",c:"Nº de artigos em rutura mal identificados",tp:"count",t1:1,t2:1,t3:0,max:99},
+ {p:1,n:8,t:"Material em Rutura",r:"R",c:"Nº de artigos em rutura mal identificados",tp:"count",t1:1,t2:1,t3:0,max:99},
  {p:2,n:9,t:"Estantes",r:"U",c:"Nº de prateleiras danificadas por mau uso",tp:"count",t1:3,t2:1,t3:0,max:99},
  {p:2,n:10,t:"Caixas e Kanbans",r:"U+R",c:"Nº de kanbans/caixas em mau estado",tp:"count",t1:8,t2:1,t3:0,max:99},
  {p:2,n:11,t:"Limpeza",r:"U",c:"Nº de caixas sujas",tp:"count",t1:3,t2:1,t3:0,max:99},
@@ -470,8 +476,8 @@ const DEFAULT_ITEMS=[
  {p:3,n:15,t:"Normas de Picking",r:"M",c:"Nº de elementos presentes: norma de picking, ficha, indicadores, index (0 a 4)",tp:"elem",t1:0,t2:1,t3:4,max:4},
  {p:4,n:16,t:"Localizações",r:"U+R",c:"Nº de artigos fora da localização do Index",tp:"count",t1:5,t2:1,t3:0,max:99},
  {p:4,n:17,t:"Picking",r:"U",c:"Nº de artigos onde a norma de picking não é respeitada",tp:"count",t1:5,t2:1,t3:0,max:99},
- {p:4,n:18,t:"Reposição",r:"R",c:"Nº de kanbans onde a norma de reposição não é respeitada",tp:"count",t1:5,t2:1,t3:0,max:99},
- {p:4,n:19,t:"Validades",r:"U",c:"Nº de kanbans fora de validade",tp:"count",t1:2,t2:1,t3:0,max:99},
+ {p:4,n:18,t:"Reposição",r:"R",c:"Nº de kanbans onde a norma de reposição não é respeitada",tp:"amostra",tgt:10,t1:50,t2:10,t3:0,max:100},
+ {p:4,n:19,t:"Validades",r:"U",c:"Nº de kanbans fora de validade",tp:"amostra",tgt:10,t1:20,t2:10,t3:0,max:100},
 ];
 /* Classificador declarativo:
    count → 0 = Excelente · 1..(mau-1) = Oportunidade · ≥mau = Mau
@@ -505,7 +511,7 @@ const DEFAULT_ITEMS=[
    Qual deles depende do sentido (ver fixedKey). Mantém-se no modelo e visível
    no editor por ser o vocabulário pedido pelo utilizador, mas é calculado e não
    editável — deixá-lo editável daria a ilusão de um controlo sem efeito. */
-const DIR={count:-1,elem:1,scale:1};
+const DIR={count:-1,elem:1,scale:1,amostra:-1};
 const TKEYS=["t1","t2","t3"];
 
 /* Qual dos três limiares é fixo (sempre 0) para um dado tipo de resposta.
@@ -519,7 +525,7 @@ function fixedKey(it){return DIR[it&&it.tp]===-1?"t3":"t1";}
    nenhum formato antigo chegue a classify(). Idempotente. */
 function normItem(x){
   const it=Object.assign({},x);
-  it.tp=["count","scale","elem"].includes(it.tp)?it.tp:"count";
+  it.tp=["count","scale","elem","amostra"].includes(it.tp)?it.tp:"count";
   const inv=DIR[it.tp]===-1;
   /* Que formato entrou? v3 traz os três limiares; v2 traz t1/t2 com semântica
      de CORTES anónimos (t1 = corte inferior, t2 = corte superior), que não é a
@@ -529,6 +535,14 @@ function normItem(x){
   /* Uma `scale` sem limiares explícitos é a escala clássica 0/1/2. */
   if(it.tp==="scale"&&!v3&&!v2)it.max=2;
   it.max=Math.max(1,parseInt(it.max,10)||(it.tp==="scale"?2:99));
+  /* v3.1.0 — numa amostra os limiares são percentagens do alvo, pelo que o
+     domínio deles é sempre 0..100 e deixa de ser o tecto da resposta: esse
+     passa a ser o alvo escolhido em cada auditoria. `tgt` é só a sugestão que
+     pré-preenche o formulário; nos outros tipos não existe. */
+  if(it.tp==="amostra"){
+    it.max=100;
+    it.tgt=Math.max(1,parseInt(it.tgt,10)||10);
+  }else delete it.tgt;
   const num=v=>{const n=parseInt(v,10);return Number.isFinite(n)?n:0;};
   if(v3){
     it.t1=num(it.t1);it.t2=num(it.t2);it.t3=num(it.t3);
@@ -564,8 +578,24 @@ function normItem(x){
   return it;
 }
 
-/* Classificação de uma resposta: 0 = Mau, 1 = Com oportunidade, 2 = Excelente. */
-function classify(it,n){
+/* Classificação de uma resposta: 0 = Mau, 1 = Com oportunidade, 2 = Excelente.
+   `tgt` (v3.1.0) é o alvo efectivo desta auditoria e só conta nas amostras; os
+   restantes tipos ignoram-no, pelo que a assinatura antiga continua válida.
+   Devolve null quando não há classificação possível — sem alvo não há
+   denominador, e o item fica por responder em vez de receber um zero falso. */
+function classify(it,n,tgt){
+  if(it.tp==="amostra"){
+    const alvo=parseInt(tgt,10);
+    if(!Number.isFinite(alvo)||alvo<=0)return null;
+    /* Satura em 100%: encontrar mais não conformes do que unidades auditadas é
+       impossível, e se acontecer não deve piorar além de Mau. */
+    const v=Math.max(0,Math.min(alvo,parseInt(n,10)||0));
+    const pct=v/alvo*100;
+    /* Comparação em percentagem, sem converter o limiar para unidades: com
+       alvos que não sejam múltiplos de 10 as duas vias divergem, e esta é a
+       exacta. */
+    return pct>=it.t1?0:pct>=it.t2?1:2;
+  }
   n=Math.max(0,Math.min(it.max,parseInt(n,10)||0));
   if(DIR[it.tp]===-1)return n>=it.t1?0:n>=it.t2?1:2;
   return n>=it.t3?2:n>=it.t2?1:0;
@@ -576,6 +606,14 @@ function classify(it,n){
    tooltip da auditoria e pelo editor. */
 function ruleOf(it){
   const max=it.max;
+  if(it.tp==="amostra"){
+    const p=v=>v+"%";
+    return{
+      mau:it.t1>100?"—":p(it.t1)+" ou mais",
+      opor:it.t2>=it.t1?"—":p(it.t2)+" a menos de "+p(it.t1),
+      exc:it.t2<=0?"—":"menos de "+p(it.t2)
+    };
+  }
   const faixa=(a,b)=>a>b?"—":a===b?String(a):(b>=max?a+" ou mais":a+" a "+b);
   if(DIR[it.tp]===-1)return{
     mau:it.t1>max?"—":faixa(it.t1,max),
@@ -652,13 +690,16 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
    Gerada para TODAS as perguntas: com limiares livres, a regra deixou de ser
    dedutível a partir do enunciado, mesmo nas contagens. Os intervalos vêm de
    ruleOf(), que partilha os cortes com classify(). */
-const TP_LABEL={count:"Contagem",scale:"Escala",elem:"Elementos"};
+const TP_LABEL={count:"Contagem",scale:"Escala",elem:"Elementos",amostra:"Amostra"};
 function tipHTML(it){
   const r=ruleOf(it);
   const L=[
     `<b>Tipo:</b> ${esc(TP_LABEL[it.tp]||it.tp)}`,
-    `<b>Intervalo aceite:</b> 0 a ${esc(it.max)}`
+    it.tp==="amostra"
+      ? `<b>Alvo sugerido:</b> ${esc(it.tgt)} unidades a auditar`
+      : `<b>Intervalo aceite:</b> 0 a ${esc(it.max)}`
   ];
+  if(it.tp==="amostra")L.push(`<b>Faixas:</b> em % do alvo auditado`);
   const regra=`<ul>`+
     `<li><b>Excelente</b> — ${esc(r.exc)}</li>`+
     `<li><b>Com oportunidade</b> — ${esc(r.opor)}</li>`+
@@ -683,19 +724,53 @@ function renderForm(){
     <div class="card item" id="it${i}">
       <div class="meta">Nº ${esc(it.n)} · ${esc(it.t)} · Resp.: ${esc(RESP[it.r])}</div>
       <div class="q">${esc(it.c)}${tipHTML(it)}</div>
+      ${it.tp==="amostra"?`
+      <div class="row" style="margin:8px 0 0">
+        <div><label style="font-size:.72rem;color:var(--muted)">Auditados</label>
+          <input type="number" inputmode="numeric" min="1" value="${esc(it.tgt)}"
+            data-tgt="${i}"></div>
+        <div><label style="font-size:.72rem;color:var(--muted)">Não conformes</label>
+          <input type="number" inputmode="numeric" min="0" max="${esc(it.tgt)}" placeholder="0"
+            data-pick="${i}"></div>
+      </div>
+      <div class="hint" data-pctof="${i}" style="margin-top:6px">—</div>`:`
       <input type="number" inputmode="numeric" min="0" max="${esc(it.max)}" placeholder="0"
-        style="margin:8px 0 0" data-pick="${i}">
+        style="margin:8px 0 0" data-pick="${i}">`}
     </div>`);
   });
   box.querySelectorAll("[data-pick]").forEach(el=>el.oninput=()=>pick(+el.dataset.pick,el));
+  /* Mudar o alvo reclassifica a resposta já dada: o mesmo número de não
+     conformes muda de classe quando a amostra muda. */
+  box.querySelectorAll("[data-tgt]").forEach(el=>el.oninput=()=>{
+    const i=+el.dataset.tgt;
+    const resp=document.querySelector("[data-pick='"+i+"']");
+    const alvo=parseInt(el.value,10);
+    if(Number.isFinite(alvo)&&alvo>0)resp.max=alvo;
+    pick(i,resp);
+  });
 }
-let rawVals={};
+/* Alvo efectivo de um item no formulário: o que está no input, se existir. */
+function tgtOf(i){
+  const el=document.querySelector("[data-tgt='"+i+"']");
+  if(!el)return null;
+  const v=parseInt(el.value,10);
+  return Number.isFinite(v)&&v>0?v:null;
+}
+let rawVals={};let tgtVals={};
 function pick(i,el){
-  if(el.value===""){delete answers[i];delete rawVals[i];
+  const alvo=tgtOf(i);
+  tgtVals[i]=alvo;
+  /* classify() devolve null numa amostra sem alvo utilizável: o item fica por
+     responder, em vez de receber um zero que a nota trataria como Mau. */
+  const cls=el.value===""?null:classify(ITEMS[i],parseInt(el.value,10)||0,alvo);
+  if(cls==null){delete answers[i];delete rawVals[i];
     document.getElementById("it"+i).classList.remove("done");}
-  else{const n=parseInt(el.value,10)||0;
-    rawVals[i]=n;answers[i]=classify(ITEMS[i],n);
+  else{rawVals[i]=parseInt(el.value,10)||0;answers[i]=cls;
     document.getElementById("it"+i).classList.add("done");}
+  const pc=document.querySelector("[data-pctof='"+i+"']");
+  if(pc)pc.textContent=(rawVals[i]!=null&&alvo)
+    ?rawVals[i]+" / "+alvo+" = "+Math.round(rawVals[i]/alvo*1000)/10+"%"
+    :(alvo?"—":"Indique quantas unidades foram auditadas.");
   /* Nota em directo: ponderada (0/2/5,25) sobre os itens JÁ respondidos, para
      que a percentagem seja legível a meio do preenchimento. */
   const resp=Object.values(answers);
@@ -709,14 +784,28 @@ document.getElementById("btn-save").onclick=()=>{
     pick:document.getElementById("f-pick").value,
     repo:document.getElementById("f-repo").value,verif:document.getElementById("f-verif").value,
     note:document.getElementById("f-note").value,
-    scores:ITEMS.map((_,i)=>answers[i]),raw:ITEMS.map((_,i)=>rawVals[i]),items:ITEMS.map(x=>Object.assign({},x))};
+    scores:ITEMS.map((_,i)=>answers[i]),raw:ITEMS.map((_,i)=>rawVals[i]),
+    /* v3.1.0: alvo efectivo de cada item, para o relatório poder mostrar a
+       fracção e não apenas a contagem. Null nos tipos sem amostra. */
+    tgts:ITEMS.map((_,i)=>tgtVals[i]!=null?tgtVals[i]:null),
+    items:ITEMS.map(x=>Object.assign({},x))};
   audits.push(a);save("audits",audits);
-  answers={};rawVals={};renderForm();document.getElementById("f-live").value="—";
+  answers={};rawVals={};tgtVals={};renderForm();document.getElementById("f-live").value="—";
   openReport(a);
 };
 
 /* ---------- Cálculos ---------- */
 const itemsOf=a=>a.items&&a.items.length?a.items:ITEMS;
+/* Observação de um item no relatório: nas amostras, a fracção auditada e a
+   percentagem que a classificou; nos restantes tipos, a contagem. */
+function obsOf(a,it,i){
+  const raw=a.raw&&a.raw[i]!=null?a.raw[i]:null;
+  if(raw==null)return "—";
+  const tgt=a.tgts&&a.tgts[i]!=null?a.tgts[i]:null;
+  if(it&&it.tp==="amostra"&&tgt)
+    return raw+" / "+tgt+" ("+(Math.round(raw/tgt*1000)/10)+"%)";
+  return String(raw);
+}
 /* Nota global ponderada — equivalente ao E23 da folha de cálculo. */
 const total=a=>pctOf(a.scores);
 /* Pontos brutos por coluna, como no rodapé F23:H23 do Excel. */
@@ -736,34 +825,16 @@ function byPillar(a){const IT=itemsOf(a);return PILLARS.map((p,pi)=>{
 function byResp(a){const IT=itemsOf(a);return Object.keys(RESP).map(r=>{
   const sc=IT.map((it,i)=>it.r===r?a.scores[i]:null).filter(s=>s!=null);
   return{name:RESP[r],pct:pctOf(sc),n:sc.length};});}
-/* Eixos do radar "Por responsável" de UMA auditoria (v3.1.0): só os
-   responsáveis com itens nessa auditoria. Numa auditoria feita a partir de
-   v3.1.0 são cinco; num snapshot anterior (sem Picking) são os quatro que
-   existiam então — um eixo ausente não é um eixo a zero. */
-function respAxes(a){return byResp(a).filter(r=>r.n>0);}
-/* Contagem de itens em texto corrido: Picking tem exactamente 1 item,
-   pelo que o plural fixo "itens" deixaria de estar correcto. */
-function plItens(n){return n+(n===1?" item":" itens");}
-/* Média por responsável ao longo de várias auditorias (v3.1.0). Uma auditoria
-   só entra na média de um responsável se tiver itens desse responsável, para
-   que o histórico anterior ao Picking não o dilua. Os cinco eixos são sempre
-   devolvidos: sem dados, o eixo fica a 0%. */
-function medByResp(todas){
-  return Object.keys(RESP).map((k,i)=>({
-    name:RESP[k],
-    pct:avg((todas||[]).map(a=>byResp(a)[i]).filter(d=>d.n>0).map(d=>d.pct))
-  }));
-}
 const badge=p=>p>=80?["b-ok","Excelente"]:p>=50?["b-mid","Com oportunidade"]:["b-bad","Crítico"];
 const barCls=p=>p>=80?"":p>=50?"mid":"bad";
 
 /* ---------- Recomendações por responsável (v1.7.0) ----------
-   Cinco blocos fixos (v3.1.0), com as mesmas chaves de RESP. O TEXTO é guardado com a
+   Quatro blocos fixos, com as mesmas chaves de RESP. O TEXTO é guardado com a
    auditoria (campo opcional `recs`); a FOTO é efémera e vive apenas em memória
    enquanto a vista Relatório está aberta (ver REC_FOTOS), nunca em localStorage
    nem na exportação JSON. */
-const REC_KEYS=["U","M","R","U+R","P"];
-/* Normaliza o campo recs: devolve sempre as 5 chaves, descartando quaisquer
+const REC_KEYS=["U","M","R","U+R"];
+/* Normaliza o campo recs: devolve sempre as 4 chaves, descartando quaisquer
    outras (defesa contra JSON importado com chaves arbitrárias). */
 function recsOf(a){
   const src=(a&&a.recs)||{};const out={};
@@ -881,7 +952,7 @@ function shrinkImage(file,cb){
   rd.onerror=()=>cb(null);
   rd.readAsDataURL(file);
 }
-/* Página 3: um bloco por responsabilidade (5), dois por linha. */
+/* Página 3: um bloco por responsabilidade, dois por linha. */
 function recsHTML(a){
   const r=recsOf(a);
   return`<div class="page page-3">
@@ -955,7 +1026,7 @@ function redrawRecs(a){
 /* ---------- Relatório / PDF ---------- */
 function openReport(a){
   const [bc,bt]=badge(total(a));
-  const worst=itemsOf(a).map((it,i)=>({it,s:a.scores[i],raw:a.raw?a.raw[i]:null})).filter(x=>x.s<2);
+  const worst=itemsOf(a).map((it,i)=>({it,s:a.scores[i],raw:obsOf(a,it,i)})).filter(x=>x.s<2);
   document.getElementById("view-report").innerHTML=`
   <div class="card score-hero"><div class="lbl">Auditoria 5S · ${esc(a.service)} · ${esc(a.date)}</div>
     <div class="big">${total(a)}<span style="font-size:1.2rem">/100</span></div>
@@ -967,12 +1038,12 @@ function openReport(a){
   <div class="card"><h3 style="margin-bottom:10px">Por pilar 5S</h3>
     ${radarSVG(byPillar(a),"#1f6f50")}
     <div style="margin-top:14px">
-    ${byPillar(a).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${plItens(p.n)})</small></span><span>${p.pct}%</span></div>
+    ${byPillar(a).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${p.n} itens)</small></span><span>${p.pct}%</span></div>
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div></div>
   <div class="card"><h3 style="margin-bottom:10px">Por responsável</h3>
-    ${radarSVG(respAxes(a),"#e8500a")}
+    ${radarSVG(byResp(a).filter(r=>r.n>0),"#e8500a")}
     <div style="margin-top:14px">
-    ${respAxes(a).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${plItens(p.n)})</small></span><span>${p.pct}%</span></div>
+    ${byResp(a).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${p.n} itens)</small></span><span>${p.pct}%</span></div>
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div></div>
   ${(()=>{const h=svcHistory(a,audits);
     if(!h.length)return"";
@@ -998,13 +1069,13 @@ function openReport(a){
       return`<tr><td>${esc(it.n)}</td>
       <td>${esc(it.t)}<br><small style="color:var(--muted)">${esc(it.c)}</small></td>
       <td><small>${esc(it.r)}</small></td>
-      <td>${esc(a.raw&&a.raw[i]!=null?a.raw[i]:"—")}</td>
+      <td>${esc(obsOf(a,it,i))}</td>
       <td><span class="pill" style="background:${cor}">${esc(LBL[s])}</span></td></tr>`;}).join("")}
     </table></div>
   <div class="card no-print"><h3 style="margin-bottom:10px">Itens a melhorar (${worst.length})</h3>
     ${worst.length?`<table><tr><th>Nº</th><th>Item</th><th>Obs.</th><th>Avaliação</th></tr>${worst.map(x=>
       `<tr><td>${esc(x.it.n)}</td><td>${esc(x.it.t)}<br><small style="color:var(--muted)">${esc(x.it.c)}</small></td>
-      <td>${esc(x.raw??"—")}</td>
+      <td>${esc(x.raw)}</td>
       <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber)'}">${esc(LBL[x.s])}</span></td></tr>`).join("")}</table>`
       :`<p>Sem não-conformidades. 🎉</p>`}</div>
   </div>
@@ -1064,7 +1135,7 @@ function renderStats(){
     .map(s=>[s,avg(audits.filter(a=>a.service===s).map(total))]));
   /* Médias de todas as auditorias, nos mesmos eixos do relatório individual. */
   const medPilar=PILLARS.map((p,i)=>({name:p,pct:avg(audits.map(a=>byPillar(a)[i].pct))}));
-  const medResp=medByResp(audits);
+  const medResp=Object.values(RESP).map((r,i)=>({name:r,pct:avg(audits.map(a=>byResp(a)[i].pct))}));
   document.getElementById("rad-pilar").innerHTML=audits.length?radarSVG(medPilar,"#1f6f50"):"";
   document.getElementById("rad-resp").innerHTML=audits.length?radarSVG(medResp,"#e8500a"):"";
   document.getElementById("cmp-pilar").innerHTML=bars(medPilar.map(d=>[d.name,d.pct]));
@@ -1184,6 +1255,10 @@ function sanitizeAudit(x){
   if(!Array.isArray(x.scores)||!x.scores.length)return null;
   const scores=x.scores.map(v=>{const n=parseInt(v,10);return n>=0&&n<=2?n:0;});
   const raw=Array.isArray(x.raw)?x.raw.slice(0,scores.length):[];
+  /* v3.1.0: alvos efectivos. Validados valor a valor — um alvo inválido num
+     item não deve descartar os dos restantes. */
+  const tgts=Array.isArray(x.tgts)?x.tgts.slice(0,scores.length).map(v=>{
+    const n=parseInt(v,10);return Number.isFinite(n)&&n>0?n:null;}):[];
   let items;
   if(Array.isArray(x.items)&&x.items.length===scores.length){
     items=x.items.map(it=>({
@@ -1192,7 +1267,11 @@ function sanitizeAudit(x){
       t:clean((it&&it.t)||"Tema",120),
       r:(it&&RESP[it.r])?it.r:"U",
       c:clean((it&&it.c),500)||"(sem texto)",
-      tp:it&&it.tp,t1:it&&it.t1,t2:it&&it.t2,mau:it&&it.mau,
+      /* t3 e tgt TÊM de viajar: sem t3, normItem() lê t1/t2 com a semântica
+         de v2 (cortes anónimos) e reetiqueta-os, alterando a classificação de
+         uma auditoria já gravada. Mesmo tipo de perda que atingiu `recs`. */
+      tp:it&&it.tp,t1:it&&it.t1,t2:it&&it.t2,t3:it&&it.t3,mau:it&&it.mau,
+      tgt:it&&it.tgt,
       max:Math.max(1,parseInt(it&&it.max,10)||99)
     })).map(normItem);
   }
@@ -1202,7 +1281,7 @@ function sanitizeAudit(x){
     pick:clean(x.pick,120),
     repo:clean(x.repo,120),verif:clean(x.verif,120),
     note:clean(x.note,200),
-    scores,raw,
+    scores,raw,tgts,
     /* v1.7.0: recsOf() normaliza para as 4 chaves conhecidas e aplica clean(),
        descartando qualquer chave arbitrária vinda do ficheiro importado. */
     recs:recsOf(x),
@@ -1258,7 +1337,7 @@ function importJson(inp){
 
     if(temPerg&&confirm("O ficheiro inclui "+data.itemsCfg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas.")){
       save("itemsCfg",data.itemsCfg);
-      loadItems();answers={};rawVals={};
+      loadItems();answers={};rawVals={};tgtVals={};
       document.getElementById("f-live").value="—";
     }
     renderForm();renderCfg();renderHist();
@@ -1303,15 +1382,20 @@ function renderEditor(){
       <div><label>Tipo de resposta</label><select data-edtp="${i}">
         <option value="count" ${it.tp==="count"?"selected":""}>Contagem</option>
         <option value="scale" ${it.tp==="scale"?"selected":""}>Escala 0–2</option>
-        <option value="elem" ${it.tp==="elem"?"selected":""}>Elementos presentes</option></select></div>
+        <option value="elem" ${it.tp==="elem"?"selected":""}>Elementos presentes</option>
+        <option value="amostra" ${it.tp==="amostra"?"selected":""}>Amostra (% do alvo)</option></select></div>
     </div>
     <div class="row">
-      <div><label>Valor máximo</label><input type="number" min="1" value="${esc(it.max)}" data-edmax="${i}"></div>
+      ${it.tp==="amostra"
+        ?`<div><label>Alvo sugerido (unidades a auditar)</label>
+            <input type="number" min="1" value="${esc(it.tgt)}" data-edtgt="${i}"></div>`
+        :`<div><label>Valor máximo</label><input type="number" min="1" value="${esc(it.max)}" data-edmax="${i}"></div>`}
     </div>
     <div class="row">${TKEYS.map((k,ti)=>{
       const fixo=k===fixedKey(it);
       const nome=["Mau","Com oportunidade","Excelente"][ti];
-      return `<div><label>T${ti+1} · ${esc(nome)}${fixo?" (fixo)":""}</label>
+      const un=it.tp==="amostra"?" (%)":"";
+      return `<div><label>T${ti+1} · ${esc(nome)}${esc(un)}${fixo?" (fixo)":""}</label>
         <input type="number" min="0" max="${esc(it.max)}" value="${esc(it[k])}"
           data-edt${ti+1}="${i}"${fixo?" disabled title=\"É sempre 0: esta classificação ocupa o fundo da escala e não tem fronteira inferior.\"":""}></div>`;
       }).join("")}</div>
@@ -1339,6 +1423,8 @@ function renderEditor(){
     const it=edItems[+el.dataset.edtp];it.tp=el.value;
     delete it.t1;delete it.t2;delete it.t3;
     edItems[+el.dataset.edtp]=normItem(it);renderEditor();});
+  box.querySelectorAll("[data-edtgt]").forEach(el=>el.oninput=()=>{
+    edItems[+el.dataset.edtgt].tgt=Math.max(1,+el.value||1);edReRender();});
   box.querySelectorAll("[data-edmax]").forEach(el=>el.oninput=()=>{
     edItems[+el.dataset.edmax].max=Math.max(1,+el.value||1);edReRender();});
   TKEYS.forEach((k,ti)=>box.querySelectorAll("[data-edt"+(ti+1)+"]").forEach(el=>el.oninput=()=>{
@@ -1355,6 +1441,8 @@ function edValidate(lista){
     if(!String(it&&it.c||"").trim()){erros.push(id+"sem texto.");return;}
     const max=parseInt(it.max,10);
     if(!(max>=1)){erros.push(id+"valor máximo tem de ser 1 ou superior.");return;}
+    if(it.tp==="amostra"&&!(parseInt(it.tgt,10)>=1)){
+      erros.push(id+"o alvo sugerido tem de ser 1 ou superior.");return;}
     const v=TKEYS.map(k=>parseInt(it[k],10));
     if(v.some(x=>!Number.isInteger(x))){erros.push(id+"limiares por definir.");return;}
     if(v.some(x=>x<0)){erros.push(id+"os limiares não podem ser negativos.");return;}
@@ -1394,7 +1482,7 @@ function edSave(){
   edItems.sort((a,b)=>a.p-b.p);
   edItems.forEach((it,i)=>it.n=i+1);
   save("itemsCfg",edItems);
-  loadItems();answers={};rawVals={};renderForm();
+  loadItems();answers={};rawVals={};tgtVals={};renderForm();
   document.getElementById("f-live").value="—";
   document.getElementById("ed-panel").classList.add("hidden");
   alert("Alterações guardadas. O formulário foi atualizado.");
@@ -1423,7 +1511,7 @@ function edImport(inp){
         t:String(x.t||"Tema").replace(/[\u0000-\u001F\u007F]/g,"").slice(0,120),
         r:RESP[x.r]?x.r:"U",
         c:String(x.c||"").replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,500),
-        tp:x.tp,t1:x.t1,t2:x.t2,mau:x.mau,
+        tp:x.tp,t1:x.t1,t2:x.t2,t3:x.t3,mau:x.mau,tgt:x.tgt,
         max:parseInt(x.max,10)
       };
       /* normItem() migra `mau` legado, satura os cortes e fixa max. */
@@ -1439,7 +1527,7 @@ function edImport(inp){
 function edReset(){
   if(!confirm("Repor as "+DEFAULT_ITEMS.length+" perguntas originais? As alterações personalizadas serão perdidas."))return;
   localStorage.removeItem("itemsCfg");
-  loadItems();answers={};rawVals={};renderForm();
+  loadItems();answers={};rawVals={};tgtVals={};renderForm();
   document.getElementById("f-live").value="—";
   document.getElementById("ed-panel").classList.add("hidden");
   alert("Perguntas originais repostas.");

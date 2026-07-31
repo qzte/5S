@@ -1,5 +1,4 @@
-/* Harness de testes — Auditoria 5S · Supermercados Kaizen (v3.1.0)
-   Extrai as funções puras do index.html (ficheiro único) para poderem
+/* Harness: extrai as funções puras do index.html (ficheiro único) para poderem
    ser testadas em Node, sem DOM. Cada função é localizada pelo seu cabeçalho e
    avaliada num contexto isolado, junto com as dependências de que precisa. */
 const fs = require("fs");
@@ -30,25 +29,6 @@ function extractConst(src, name) {
   return m ? m[0] : null;
 }
 
-/* Extrai uma declaração `const nome=[...]` ou `const nome={...}` que ocupe
-   várias linhas, equilibrando parênteses rectos/chavetas. */
-function extractBlock(src, name) {
-  const esc = name.replace(/[+]/g, "\\$&");
-  const m = src.match(new RegExp("^(?:const|let)\\s+" + esc + "\\s*=\\s*[\\[{]", "m"));
-  if (!m) return null;
-  const abre = src[m.index + m[0].length - 1];
-  const fecha = abre === "[" ? "]" : "}";
-  let depth = 0;
-  for (let j = m.index + m[0].length - 1; j < src.length; j++) {
-    if (src[j] === abre) depth++;
-    else if (src[j] === fecha) {
-      depth--;
-      if (depth === 0) return src.slice(m.index, j + 1) + ";";
-    }
-  }
-  return null;
-}
-
 /* Dependências comuns que quase todas as funções puras usam. São sempre
    incluídas para que os testes exercitem o código REAL do index.html. */
 /* Ordem importa: `total` depende de `pctOf`, que é declarada com `function`
@@ -61,9 +41,7 @@ function buildContext(fnNames, constNames) {
   const consts = [...new Set([...BASE_CONSTS, ...(constNames || [])])];
   const fns = [...new Set([...BASE_FNS, ...(fnNames || [])])];
   consts.forEach(n => {
-    /* Uma declaração de uma linha é o caso comum; se não existir, tenta-se o
-       extractor de blocos (arrays/objectos em várias linhas). */
-    const c = extractConst(HTML, n) || extractBlock(HTML, n);
+    const c = extractConst(HTML, n);
     if (c) parts.push(c);
   });
   fns.forEach(n => {
@@ -83,4 +61,4 @@ function buildContext(fnNames, constNames) {
   return sandbox;
 }
 
-module.exports = { HTML, extractFn, extractConst, extractBlock, buildContext };
+module.exports = { HTML, extractFn, extractConst, buildContext };
