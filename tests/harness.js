@@ -26,7 +26,19 @@ function extractConst(src, name) {
      (ex.: ESC_MAP contém "&amp;"), pelo que não serve de delimitador. */
   const re = new RegExp("^(?:const|let)\\s+" + esc + "\\s*=.*$", "m");
   const m = src.match(re);
-  return m ? m[0] : null;
+  if (!m) return null;
+  /* Uma declaração que continue na linha seguinte chegaria aqui truncada, e os
+     testes passariam a exercitar código que NÃO é o de produção — que é pior do
+     que não a testar de todo. Aconteceu com `chaveTexto` (v3.1.3), extraída sem
+     o .normalize() e sem o .trim(): o teste dos acentos falhava por uma razão
+     que não existia no browser. Parênteses por fechar são o sinal. */
+  const abertos = (s, a, b) => s.split(a).length - s.split(b).length;
+  if (abertos(m[0], "(", ")") || abertos(m[0], "[", "]") || abertos(m[0], "{", "}"))
+    throw new Error(
+      "harness: a declaração de `" + name + "` não cabe numa linha e seria " +
+      "extraída truncada. Declare-a com `function` (extraída por chavetas) " +
+      "ou mantenha-a numa só linha.");
+  return m[0];
 }
 
 /* Dependências comuns que quase todas as funções puras usam. São sempre

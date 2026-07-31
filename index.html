@@ -1137,8 +1137,9 @@ function renderCfg(){
     mc.classList.toggle("hidden",!r.convertidas.length);
     if(r.convertidas.length)
       document.getElementById("migr-txt").textContent=
-        "As perguntas "+r.convertidas.join(", ")+" ainda são contagens simples. "+
-        "Converter passa-as a amostra: indica-se quantas unidades foram auditadas "+
+        "Ainda são contagens simples: "+
+        r.convertidas.map(x=>"nº "+x.n+" ("+String(x.c||"").slice(0,40)+")").join("; ")+
+        ". Converter passa-as a amostra: indica-se quantas unidades foram auditadas "+
         "e a avaliação é feita em percentagem desse total. O enunciado e o "+
         "responsável mantêm-se; as auditorias já gravadas não mudam.";
   }
@@ -1368,18 +1369,44 @@ function importJson(inp){
    preserva tudo o que é do utilizador — enunciado, tema, pilar e responsável.
    Os limiares antigos NÃO viajam: eram contagens absolutas e não têm leitura
    possível como percentagem. */
+/* Declarada com `function` de propósito: o harness dos testes extrai constantes
+   por linha e uma arrow em duas linhas chegaria truncada aos testes, que
+   passariam a exercitar código que não é o de produção. */
+function chaveTexto(s){
+  return String(s==null?"":s).toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+}
+
 function migrarParaAmostra(guardadas,padrao){
-  const alvo=new Map();
-  (padrao||[]).forEach(d=>{if(d&&d.tp==="amostra")alvo.set(d.n,d);});
+  const porTexto=new Map(),porNumero=new Map();
+  (padrao||[]).forEach(d=>{if(d&&d.tp==="amostra"){
+    porTexto.set(chaveTexto(d.c),d);porNumero.set(d.n,d);}});
   const convertidas=[];
   const items=(guardadas||[]).map(it=>{
-    const d=it?alvo.get(it.n):null;
-    if(!d||it.tp==="amostra")return it;
-    convertidas.push(it.n);
+    if(!it||it.tp==="amostra")return it;
+    /* O ENUNCIADO é o sinal forte, não o número: edSave() renumera as perguntas
+       ao gravar (ordena por pilar e reatribui n = posição), pelo que quem
+       acrescentou, removeu ou reordenou perguntas tem numeração que já não
+       corresponde à de origem. Procurar só pelo número converteria a pergunta
+       errada — daria um alvo auditado a uma pergunta que não é de amostra e
+       deixaria a verdadeira por converter.
+       O número fica como reserva, para quem reescreveu o enunciado mas manteve
+       a ordem. Em qualquer dos casos a proposta mostra o enunciado ao
+       utilizador antes de converter seja o que for. */
+    const d=porTexto.get(chaveTexto(it.c))||porNumero.get(it.n);
+    if(!d)return it;
+    convertidas.push({n:it.n,c:it.c});
     return normItem(Object.assign({},it,
       {tp:"amostra",tgt:d.tgt,t1:d.t1,t2:d.t2,t3:d.t3,max:100}));
   });
   return{items,convertidas};
+}
+
+/* Lista legível do que vai ser convertido. Mostrar o ENUNCIADO e não só o
+   número é o que permite ao utilizador apanhar um emparelhamento errado antes
+   de confirmar, já que a numeração pode ter mudado. */
+function listaConvertidas(r){
+  return r.convertidas.map(x=>"· Nº "+x.n+" — "+String(x.c||"").slice(0,60)).join("\n");
 }
 
 /* Estado da proposta, para não voltar a perguntar a cada arranque:
@@ -1398,8 +1425,8 @@ function aplicarMigracaoAmostra(r){
   loadItems();answers={};rawVals={};tgtVals={};renderForm();
   document.getElementById("f-live").value="—";
   renderCfg();
-  alert("Perguntas "+r.convertidas.join(", ")+" convertidas. Passam a ter o campo "+
-    "“Auditados” no formulário, com alvo sugerido de 10.\n\n"+
+  alert(r.convertidas.length+" pergunta(s) convertida(s):\n"+listaConvertidas(r)+"\n\n"+
+    "Passam a ter o campo “Auditados” no formulário, com alvo sugerido de 10.\n\n"+
     "As auditorias já gravadas não mudaram: cada uma guarda as suas próprias perguntas.");
 }
 function proporMigracaoAmostra(){
@@ -1408,11 +1435,10 @@ function proporMigracaoAmostra(){
   if(!r.convertidas.length){localStorage.setItem(MIGR_KEY,"desnecessaria");return;}
   if(localStorage.getItem(MIGR_KEY)==="adiada")return; /* o cartão em Configuração trata do resto */
   const ok=confirm(
-    "As perguntas "+r.convertidas.join(", ")+" são de amostra desde a versão 3.1.0: "+
-    "indica-se quantas unidades foram auditadas e a avaliação passa a ser em "+
-    "percentagem desse total.\n\n"+
-    "As perguntas guardadas neste dispositivo são anteriores e não têm esse campo. "+
-    "Converter agora?\n\n"+
+    "Estas perguntas são de amostra desde a versão 3.1.0 — indica-se quantas "+
+    "unidades foram auditadas e a avaliação passa a ser em percentagem desse "+
+    "total —, mas as que estão guardadas neste dispositivo são anteriores e não "+
+    "têm esse campo:\n\n"+listaConvertidas(r)+"\n\nConverter agora?\n\n"+
     "· O enunciado, o tema, o pilar e o responsável são mantidos.\n"+
     "· O alvo sugerido fica em 10 e os limiares passam a percentagem.\n"+
     "· As auditorias já gravadas não são alteradas.");
