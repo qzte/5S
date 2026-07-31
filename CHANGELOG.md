@@ -5,6 +5,35 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.1.3] — 2026-07-31
+
+Migração guiada para as perguntas de amostra.
+
+### Adicionado
+
+- **Proposta de conversão das perguntas 3, 18 e 19.** Desde 3.1.0 estas
+  perguntas são de amostra: indica-se quantas unidades foram auditadas e a
+  avaliação é feita em percentagem desse total. Quem tinha perguntas gravadas
+  de uma versão anterior — basta ter aberto o editor uma vez e carregado em
+  Guardar — continuava sem o campo "Auditados", porque a aplicação lê sempre o
+  que está guardado e `normItem()` **não** converte tipos: converter em
+  silêncio mudaria a classificação de auditorias já feitas.
+
+  A migração é explícita e a pedido. É proposta uma vez, no arranque, depois do
+  primeiro render; converte apenas as perguntas cujo número corresponde a uma
+  pergunta de amostra de origem; e preserva o que é do utilizador — enunciado,
+  tema, pilar e responsável. Os limiares antigos **não** viajam: eram contagens
+  absolutas (4 kanbans) e não têm leitura possível como percentagem, pelo que se
+  assumem os de origem (40/10, 50/10 e 20/10 %).
+
+- **Cartão em Configuração** para quem adiar a proposta. Fica visível enquanto
+  houver perguntas por converter e desaparece assim que a conversão é feita —
+  adiar não fecha a porta, e a proposta não volta a aparecer a cada arranque.
+
+- `tests/amostra-migracao.test.js`: 8 testes sobre `migrarParaAmostra()`, entre
+  eles a preservação das personalizações, a não-conversão de perguntas que não
+  são de amostra na origem, e a idempotência.
+
 ## [3.1.2] — 2026-07-31
 
 Continuação da auditoria: fecha o ponto 4 do [SECURITY.md](SECURITY.md).
