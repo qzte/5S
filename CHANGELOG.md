@@ -5,52 +5,50 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [3.1.0] — 2026-07-30
+## [3.1.0] — 2026-07-31
 
-Novo responsável **Picking**, com cinco eixos no radar por responsável.
+Perguntas de amostra: alvo auditado definido por auditoria, limiares em
+percentagem.
 
 ### Adicionado
 
-- **Responsável `P` — "Picking"**, a juntar aos quatro existentes. O desempenho
-  por responsável passa a cobrir: Utilizadores, Manutenção, Reposição,
-  Utilizador e Repositor, Picking.
-- `respAxes(auditoria)` — eixos do radar por responsável de uma auditoria (os
-  responsáveis com itens nessa auditoria), extraído do relatório para poder ser
-  testado sem DOM.
-- `medByResp(auditorias)` — média por responsável da vista Análise, extraída de
-  `renderAnalysis()` pela mesma razão.
-- `plItens(n)` — contagem de itens em texto corrido, para que o eixo Picking,
-  com exactamente 1 item, não apareça como "1 itens".
-- `extractBlock()` no harness de testes, para extrair literais multi-linha
-  (`DEFAULT_ITEMS`) do `index.html`; o `extractConst()` existente é orientado
-  a linhas e não os cobria.
-- Testes `tests/picking.test.js` (9 casos, escritos antes da implementação) e
-  `tests/print_check.py` (verificação de impressão com Playwright: eixos do
-  radar, blocos de recomendações e altura das três folhas).
+- **Quarto tipo de resposta, `amostra`.** A pergunta declara um alvo sugerido
+  (`tgt`) e os limiares `t1`/`t2` passam a ser **percentagens desse alvo**. O
+  alvo efectivo é escolhido em cada auditoria, num campo "Auditados" ao lado da
+  resposta. Os cortes acompanham o alvo sem serem reescritos: com `t1 = 40%`,
+  auditar 10 kanbans coloca "Mau" em 4; auditar 20 coloca-o em 8.
+- `classify(it, n, tgt)` ganha um terceiro argumento com o alvo efectivo. Os
+  restantes tipos ignoram-no, pelo que a assinatura antiga continua válida.
+  Devolve `null` quando não há alvo utilizável: sem denominador não há
+  classificação, e o item fica **por responder** em vez de receber um zero que a
+  nota trataria como "Mau". O denominador dinâmico de `pctOf()` já lida com isso.
+- **Perguntas 3, 18 e 19** (kanbans com quantidades excessivas, norma de
+  reposição, validades) convertidas para `amostra`, com alvo sugerido de 10.
+- Campo "Auditados" no formulário, com a percentagem calculada em directo por
+  baixo da resposta. Alterar o alvo reclassifica a resposta já introduzida.
+- Relatório e lista de itens a melhorar mostram a fracção auditada e a
+  percentagem (ex.: `3 / 12 (25%)`) em vez da contagem isolada.
+- Editor: tipo "Amostra (% do alvo)", campo de alvo sugerido, limiares
+  rotulados em `%` e validação do alvo.
+- Auditorias gravam `tgts[]`, paralelo a `scores[]` e `raw[]`.
 
-### Alterado
+### Corrigido
 
-- **A pergunta 8** ("Nº de artigos em rutura mal identificados") passa de
-  **Reposição** para **Picking**. Reposição fica com as perguntas 7 e 18.
-- **O radar "Por responsável" passa a ter 5 eixos** e o relatório passa a ter
-  **5 blocos de recomendações** (grelha de 2 colunas → 3 linhas na folha 3).
-  Medido em impressão no pior caso (5 fotos e texto no máximo): 655 px dos
-  1047 px úteis, pelo que o CSS de impressão não precisou de alterações.
-- **A média por responsável na vista Análise ignora as auditorias sem itens
-  desse responsável.** Sem isto, todo o histórico anterior a 3.1.0 entraria no
-  eixo Picking como 0 % e afundava a média de um responsável que ainda não
-  existia.
-- `tests/harness.js` movido para `tests/`, alinhando o ficheiro com o caminho
-  `../index.html` que já usava e com a estrutura documentada no README.
+- **`sanitizeAudit()` e a importação de perguntas descartavam `t3`.** Sem esse
+  campo, `normItem()` relia `t1`/`t2` com a semântica de cortes anónimos de
+  2.0.0 e reetiquetava-os — uma contagem `{t1:4, t2:1}` importada tornava-se
+  `{t1:4, t2:4}`, isto é, binária, alterando a classificação de uma auditoria
+  já gravada. É a mesma família do `recs` perdido em 1.7.0, e fica agora coberta
+  por testes.
 
-### Notas de compatibilidade
+### Compatibilidade
 
-- **Não é disruptivo.** Cada auditoria guarda o seu próprio snapshot de
-  perguntas e as classificações (`scores`) nunca são recalculadas: as auditorias
-  antigas continuam a ler-se exactamente como foram gravadas, com a pergunta 8
-  em Reposição e quatro eixos no radar.
-- `sanitizeAudit()` e a importação de perguntas aceitam `r:"P"` sem alterações,
-  por validarem contra `RESP`.
+- Não é disruptivo. As auditorias antigas guardam um instantâneo das perguntas
+  com `tp: "count"` e são reclassificadas exactamente como antes; os `scores`
+  gravados não são recalculados.
+- No alvo nominal de 10, as perguntas 3, 18 e 19 classificam de forma **idêntica**
+  a 3.0.0 — os limiares 40%/50%/20% e 10% reproduzem valor a valor os cortes
+  absolutos 4/5/2 e 1. Verificado por teste exaustivo.
 
 ## [3.0.0] — 2026-07-24
 
