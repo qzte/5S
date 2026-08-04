@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.2.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.3.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -247,6 +247,14 @@ canvas{width:100%!important}
 <main>
 <!-- ============ NOVA AUDITORIA ============ -->
 <section id="view-audit">
+  <!-- Só visível em modo de edição (ver editAudit). O formulário é o mesmo da
+       auditoria nova; muda o destino do Guardar e as perguntas usadas, que
+       passam a ser as gravadas COM a auditoria e não as actuais. -->
+  <div class="card hidden" id="edit-banner" style="border-color:var(--accent);border-width:2px">
+    <div class="stat-row"><span>A editar uma auditoria gravada</span></div>
+    <p style="font-size:.78rem;color:var(--muted);margin-top:6px" id="edit-info"></p>
+    <button class="btn small ghost" style="border-color:var(--red);color:var(--red);margin-top:8px" id="btn-canceledit">Cancelar edição</button>
+  </div>
   <div class="card">
     <label>Serviço / Supermercado</label>
     <select id="f-service"></select>
@@ -619,12 +627,20 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.2.1";
+const APP_VERSION="3.3.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
 let people=load("people",[]); /* repositores / picking */
 let answers={};
+/* v3.3.0 — edição de auditorias anteriores.
+   `editId` é o id da auditoria que o formulário está a editar (null = auditoria
+   nova). `FORM_ITEMS` são as perguntas que o formulário usa: em edição são as
+   que ficaram GRAVADAS com essa auditoria, não as actuais — de outro modo uma
+   pergunta acrescentada ou reordenada depois da auditoria desalinhava as
+   respostas em relação aos `scores` gravados. */
+let editId=null,FORM_ITEMS=null;
+const fitems=()=>FORM_ITEMS||ITEMS;
 /* v2.0.0: itemsCfg gravado por versões 1.x traz `mau` e nenhum t1/t2. A
    migração acontece aqui, no arranque, sem reescrever localStorage: só ao
    Guardar no editor é que o formato novo é persistido. */
@@ -671,7 +687,7 @@ function renderForm(){
   document.getElementById("dl-people").innerHTML=people.map(p=>`<option value="${esc(p)}">`).join("");
   const box=document.getElementById("items");box.innerHTML="";
   let curP=-1;
-  ITEMS.forEach((it,i)=>{
+  fitems().forEach((it,i)=>{
     if(it.p!==curP){curP=it.p;
       box.insertAdjacentHTML("beforeend",
       `<div class="pillar"><span class="n">${curP+1}</span><h2>${esc(PILLARS[curP])}</h2></div>`);}
@@ -703,6 +719,65 @@ function renderForm(){
     if(Number.isFinite(alvo)&&alvo>0)resp.max=alvo;
     pick(i,resp);
   });
+  /* Modo de edição: o formulário acabado de desenhar é repovoado a partir da
+     auditoria gravada. Fica no fim de renderForm() para que qualquer outro
+     caminho que redesenhe o formulário (adicionar/remover serviço, por
+     exemplo) não deixe a edição a meio, com os campos em branco. */
+  const emEdicao=editId!=null?audits.find(x=>x.id===editId):null;
+  if(editId!=null&&!emEdicao)endEdit();
+  const ed=document.getElementById("edit-banner");
+  if(ed)ed.classList.toggle("hidden",!emEdicao);
+  document.getElementById("btn-save").textContent=emEdicao?"Guardar alterações":"Guardar auditoria";
+  if(emEdicao){
+    document.getElementById("edit-info").textContent=
+      "«"+emEdicao.service+" · "+emEdicao.date+"». As perguntas são as que ficaram gravadas "+
+      "com esta auditoria; alterá-la substitui o registo existente em vez de criar um novo.";
+    preencherForm(emEdicao);
+  }
+}
+/* Repõe no formulário os valores de uma auditoria gravada. As respostas passam
+   por pick(), pelo que são RECLASSIFICADAS pelos limiares da própria auditoria
+   — os mesmos que a classificaram da primeira vez, já que `FORM_ITEMS` vem
+   dela. Editar não recalcula o passado com regras novas. */
+function preencherForm(a){
+  const sel=document.getElementById("f-service");
+  /* Um serviço entretanto removido da lista continua a ser o desta auditoria:
+     acrescenta-se como opção em vez de o trocar em silêncio pelo primeiro. */
+  if(!services.includes(a.service))
+    sel.insertAdjacentHTML("afterbegin",`<option>${esc(a.service)}</option>`);
+  sel.value=a.service;
+  document.getElementById("f-date").value=a.date;
+  document.getElementById("f-pick").value=a.pick||"";
+  document.getElementById("f-repo").value=a.repo||"";
+  document.getElementById("f-verif").value=a.verif||"";
+  document.getElementById("f-note").value=a.note||"";
+  answers={};rawVals={};tgtVals={};
+  fitems().forEach((it,i)=>{
+    const tEl=document.querySelector("[data-tgt='"+i+"']");
+    const tgt=a.tgts&&a.tgts[i]!=null?a.tgts[i]:null;
+    if(tEl&&tgt)tEl.value=tgt;
+    const el=document.querySelector("[data-pick='"+i+"']");
+    const raw=a.raw&&a.raw[i]!=null?a.raw[i]:null;
+    if(el&&raw!=null){
+      if(tEl&&tgt)el.max=tgt;
+      el.value=raw;pick(i,el);
+    }else{
+      /* Sem valor bruto gravado (auditoria importada de um ficheiro que não o
+         trazia) não há como pré-preencher o campo. A classificação gravada é
+         mantida, para que guardar a edição não a transforme num zero; quem
+         quiser reavaliar escreve um valor e pick() sobrepõe-se. */
+      const s=a.scores[i];
+      if(s==null)return;
+      answers[i]=s;tgtVals[i]=tgt;
+      const card=document.getElementById("it"+i);
+      card.classList.add("done");
+      card.insertAdjacentHTML("beforeend",
+        `<div style="font-size:.72rem;color:var(--amber);margin-top:6px">`+
+        `Sem valor gravado — mantém-se a classificação anterior (${esc(LBL[s])}). `+
+        `Escreva um valor para reavaliar.</div>`);
+    }
+  });
+  atualizarLive();
 }
 /* Alvo efectivo de um item no formulário: o que está no input, se existir. */
 function tgtOf(i){
@@ -717,7 +792,7 @@ function pick(i,el){
   tgtVals[i]=alvo;
   /* classify() devolve null numa amostra sem alvo utilizável: o item fica por
      responder, em vez de receber um zero que a nota trataria como Mau. */
-  const cls=el.value===""?null:classify(ITEMS[i],parseInt(el.value,10)||0,alvo);
+  const cls=el.value===""?null:classify(fitems()[i],parseInt(el.value,10)||0,alvo);
   if(cls==null){delete answers[i];delete rawVals[i];
     document.getElementById("it"+i).classList.remove("done");}
   else{rawVals[i]=parseInt(el.value,10)||0;answers[i]=cls;
@@ -726,26 +801,80 @@ function pick(i,el){
   if(pc)pc.textContent=(rawVals[i]!=null&&alvo)
     ?rawVals[i]+" / "+alvo+" = "+Math.round(rawVals[i]/alvo*1000)/10+"%"
     :(alvo?"—":"Indique quantas unidades foram auditadas.");
-  /* Nota em directo: ponderada (0/2/5,25) sobre os itens JÁ respondidos, para
-     que a percentagem seja legível a meio do preenchimento. */
+  atualizarLive();
+}
+/* Nota em directo: ponderada (0/2/5,25) sobre os itens JÁ respondidos, para
+   que a percentagem seja legível a meio do preenchimento. */
+function atualizarLive(){
   const resp=Object.values(answers);
   document.getElementById("f-live").value=resp.length?
-    pctOf(resp)+" / 100  ("+resp.length+"/"+ITEMS.length+" itens)":"—";
+    pctOf(resp)+" / 100  ("+resp.length+"/"+fitems().length+" itens)":"—";
 }
-document.getElementById("btn-save").onclick=()=>{
-  if(Object.keys(answers).length<ITEMS.length){alert("Faltam "+(ITEMS.length-Object.keys(answers).length)+" itens por avaliar.");return;}
-  const a={id:Date.now(),service:document.getElementById("f-service").value,
+/* Sai do modo de edição e devolve o formulário ao estado de auditoria nova. */
+function endEdit(){editId=null;FORM_ITEMS=null;}
+/* Limpa as respostas e redesenha. A nota em directo é reposta ANTES do render:
+   em modo de edição renderForm() repovoa o formulário e recalcula-a, e apagá-la
+   depois deixaria um travessão sobre um formulário cheio. */
+function refreshForm(){
+  answers={};rawVals={};tgtVals={};
+  document.getElementById("f-live").value="—";
+  /* Os campos do cabeçalho também são limpos (v3.3.0): até aqui sobreviviam à
+     gravação, e a observação da auditoria anterior aparecia já escrita na
+     seguinte. Em modo de edição renderForm() volta a preenchê-los a partir da
+     auditoria, pelo que a limpeza tem de vir antes. */
+  ["f-pick","f-repo","f-verif","f-note"].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value="";});
+  renderForm();
+}
+function resetForm(){endEdit();refreshForm();}
+/* Recolhe o formulário no formato de gravação. Partilhado pela auditoria nova e
+   pela edição, para que as duas gravem exactamente os mesmos campos. */
+function colherFormulario(){
+  const IT=fitems();
+  return{service:document.getElementById("f-service").value,
     date:document.getElementById("f-date").value,
     pick:document.getElementById("f-pick").value,
-    repo:document.getElementById("f-repo").value,verif:document.getElementById("f-verif").value,
+    repo:document.getElementById("f-repo").value,
+    verif:document.getElementById("f-verif").value,
     note:document.getElementById("f-note").value,
-    scores:ITEMS.map((_,i)=>answers[i]),raw:ITEMS.map((_,i)=>rawVals[i]),
+    scores:IT.map((_,i)=>answers[i]),
+    raw:IT.map((_,i)=>rawVals[i]!=null?rawVals[i]:null),
     /* v3.1.0: alvo efectivo de cada item, para o relatório poder mostrar a
        fracção e não apenas a contagem. Null nos tipos sem amostra. */
-    tgts:ITEMS.map((_,i)=>tgtVals[i]!=null?tgtVals[i]:null),
-    items:ITEMS.map(x=>Object.assign({},x))};
+    tgts:IT.map((_,i)=>tgtVals[i]!=null?tgtVals[i]:null),
+    items:IT.map(x=>Object.assign({},x))};
+}
+/* Substitui a auditoria `id` pela versão editada. Pura, para ser testável sem
+   DOM: devolve uma lista nova, ou null se o id já não existir (apagado noutro
+   separador, por exemplo).
+   O `Object.assign` sobre o registo antigo é o que preserva os campos que o
+   formulário não conhece — hoje `recs`, as recomendações por responsável, que
+   de outro modo desapareceriam a cada edição. O id é reafirmado no fim para que
+   nem um `dados.id` acidental o possa mudar: é a chave por que o histórico, a
+   fusão na importação e o próprio relatório encontram a auditoria. */
+function aplicarEdicao(lista,id,dados){
+  const i=(lista||[]).findIndex(a=>a&&a.id===id);
+  if(i<0)return null;
+  const out=lista.slice();
+  out[i]=Object.assign({},lista[i],dados,{id:lista[i].id});
+  return out;
+}
+document.getElementById("btn-save").onclick=()=>{
+  const IT=fitems();
+  if(Object.keys(answers).length<IT.length){alert("Faltam "+(IT.length-Object.keys(answers).length)+" itens por avaliar.");return;}
+  const dados=colherFormulario();
+  if(editId!=null){
+    const nova=aplicarEdicao(audits,editId,dados);
+    if(!nova){alert("Esta auditoria já não existe no histórico. As alterações não foram guardadas.");resetForm();return;}
+    audits=nova;save("audits",audits);
+    const a=audits.find(x=>x.id===editId);
+    resetForm();
+    openReport(a);
+    return;
+  }
+  const a=Object.assign({id:Date.now()},dados);
   audits.push(a);save("audits",audits);
-  answers={};rawVals={};tgtVals={};renderForm();document.getElementById("f-live").value="—";
+  resetForm();
   openReport(a);
 };
 
@@ -1038,9 +1167,11 @@ function openReport(a){
   </div>
   ${recsHTML(a)}
   <button class="btn no-print" id="btn-print">Gerar PDF</button>
+  <button class="btn ghost no-print" id="btn-edit">Editar auditoria</button>
   <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
   wireRecs(a);
   document.getElementById("btn-print").onclick=()=>window.print();
+  document.getElementById("btn-edit").onclick=()=>editAudit(a);
   document.getElementById("btn-back").onclick=()=>{clearFotos();document.querySelector('[data-v=history]').click();};
   ["audit","history","stats","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
   document.getElementById("view-report").classList.remove("hidden");
@@ -1060,12 +1191,41 @@ function renderHist(){
     <div style="font-size:.78rem;color:var(--muted)">${esc(a.date)} · Verif.: ${esc(a.verif||"—")}</div>
     <span class="badge ${bc}">${bt}</span>
     <div style="margin-top:8px"><button class="btn small ghost" data-rep="${i}">Relatório</button>
+    <button class="btn small ghost" data-edit="${i}">Editar</button>
     <button class="btn small ghost" style="border-color:var(--red);color:var(--red)" data-del="${i}">Apagar</button></div></div>`;}).join("");
   box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>openReport(ord[+b.dataset.rep]));
+  box.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editAudit(ord[+b.dataset.edit]));
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delAudit(ord[+b.dataset.del].id));
 }
+/* ---------- Edição de uma auditoria gravada (v3.3.0) ----------
+   Abre o formulário de auditoria com os valores já gravados. As perguntas são
+   as da própria auditoria (`a.items`), e não as actuais: só assim o índice de
+   cada resposta continua a apontar para a pergunta que a originou. */
+function editAudit(a){
+  const IT=itemsOf(a);
+  /* Auditoria antiga sem perguntas associadas e com um nº de respostas
+     diferente do actual: as respostas não têm a que pergunta pertencer, e
+     editá-las às cegas trocaria as classificações de sítio. */
+  if(IT.length!==a.scores.length){
+    alert("Esta auditoria não guardou as perguntas usadas e tem "+a.scores.length+
+      " resposta(s) para as "+IT.length+" perguntas actuais. Não é possível editá-la "+
+      "sem desalinhar as respostas.");return;}
+  if(editId!=null&&editId!==a.id&&
+     !confirm("Já está a editar outra auditoria. Abandonar essas alterações?"))return;
+  editId=a.id;
+  FORM_ITEMS=IT.map(normItem);
+  renderForm();
+  clearFotos();
+  document.querySelector('[data-v=audit]').click();
+  window.scrollTo(0,0);
+}
 function delAudit(id){if(!confirm("Apagar esta auditoria?"))return;
-  audits=audits.filter(a=>a.id!==id);save("audits",audits);renderHist();}
+  audits=audits.filter(a=>a.id!==id);save("audits",audits);
+  /* Apagar a auditoria que está aberta no formulário fecha a edição: guardá-la
+     depois disso encontraria a lista sem o registo e não teria o que
+     substituir. */
+  if(editId===id)resetForm();
+  renderHist();}
 
 /* ---------- Análise ---------- */
 function avg(arr){return arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):0;}
@@ -1390,10 +1550,9 @@ function importJson(inp){
 
     if(temPerg&&confirm("O ficheiro inclui "+inPerg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas.")){
       save("itemsCfg",inPerg);
-      loadItems();answers={};rawVals={};tgtVals={};
-      document.getElementById("f-live").value="—";
+      loadItems();
     }
-    renderForm();renderCfg();renderHist();
+    refreshForm();renderCfg();renderHist();
     alert("Importação concluída: "+audits.length+" auditoria(s) no histórico.");
   };
   rd.readAsText(file);
@@ -1465,8 +1624,7 @@ function pendentesDeAmostra(){
 function aplicarMigracaoAmostra(r){
   save("itemsCfg",r.items);
   localStorage.setItem(MIGR_KEY,"feita");
-  loadItems();answers={};rawVals={};tgtVals={};renderForm();
-  document.getElementById("f-live").value="—";
+  loadItems();refreshForm();
   renderCfg();
   alert(r.convertidas.length+" pergunta(s) convertida(s):\n"+listaConvertidas(r)+"\n\n"+
     "Passam a ter o campo “Auditados” no formulário, com alvo sugerido de 10.\n\n"+
@@ -1625,8 +1783,7 @@ function edSave(){
   edItems.sort((a,b)=>a.p-b.p);
   edItems.forEach((it,i)=>it.n=i+1);
   save("itemsCfg",edItems);
-  loadItems();answers={};rawVals={};tgtVals={};renderForm();
-  document.getElementById("f-live").value="—";
+  loadItems();refreshForm();
   document.getElementById("ed-panel").classList.add("hidden");
   alert("Alterações guardadas. O formulário foi atualizado.");
 }
@@ -1655,8 +1812,7 @@ function edImport(inp){
 function edReset(){
   if(!confirm("Repor as "+DEFAULT_ITEMS.length+" perguntas originais? As alterações personalizadas serão perdidas."))return;
   localStorage.removeItem("itemsCfg");
-  loadItems();answers={};rawVals={};tgtVals={};renderForm();
-  document.getElementById("f-live").value="—";
+  loadItems();refreshForm();
   document.getElementById("ed-panel").classList.add("hidden");
   alert("Perguntas originais repostas.");
 }
@@ -1665,6 +1821,10 @@ function edReset(){
    Nenhum handler inline no HTML: permite endurecer a CSP e elimina
    qualquer possibilidade de injecção através de atributos de evento. */
 const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn);};
+on("btn-canceledit","click",()=>{
+  if(!confirm("Cancelar a edição? As alterações não guardadas são perdidas."))return;
+  resetForm();
+});
 on("btn-addsvc","click",()=>addSvc());
 on("btn-expjson","click",()=>exportJson());
 on("btn-impjson","click",()=>document.getElementById("hist-file").click());

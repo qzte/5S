@@ -5,6 +5,54 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.3.0] — 2026-08-04
+
+### Adicionado
+
+- **Editar auditorias anteriores.** Cada auditoria do Histórico ganha um botão
+  **Editar** (e o relatório um **Editar auditoria**), que reabre o formulário
+  já preenchido: serviço, data, Picking, Repositor, Verificador, observação e
+  todas as respostas. Guardar **substitui** o registo existente em vez de criar
+  um segundo — o `id` mantém-se, e com ele o lugar da auditoria no histórico,
+  na análise e nas fusões da importação.
+
+  Três decisões que valem a pena registar:
+
+  - **As perguntas usadas na edição são as que ficaram gravadas com a
+    auditoria** (`a.items`), não as actuais. Uma pergunta acrescentada,
+    removida ou reordenada no editor desde então desalinharia cada resposta em
+    relação à pergunta que a originou. Pelo mesmo motivo, a reclassificação ao
+    reescrever um valor usa os limiares da própria auditoria: editar não é
+    ocasião para recalcular o passado com regras novas.
+  - **As recomendações por responsável (`recs`) sobrevivem à edição.** A
+    gravação assenta sobre o registo antigo em vez de o substituir, pelo que os
+    campos que o formulário não conhece ficam intactos — foi exactamente essa a
+    perda que atingiu `recs` na importação em 3.1.1.
+  - **Uma auditoria sem as perguntas associadas e com um número de respostas
+    diferente do actual não é editável**, e diz-se porquê. Sem saber a que
+    pergunta pertence cada resposta, editá-la trocaria as classificações de
+    sítio.
+
+  Auditorias importadas de ficheiros sem o campo `raw` não têm valor bruto para
+  pré-preencher: o item aparece com a classificação anterior mantida e um aviso
+  a dizer que escrever um valor a reavalia. Guardar não a transforma num zero.
+
+- **Cancelar edição** devolve o formulário ao estado de auditoria nova. Apagar
+  no Histórico a auditoria que está a ser editada fecha a edição pela mesma
+  razão: já não haveria registo que substituir.
+
+- `tests/smoke-edicao.mjs` — smoke test de browser do percurso completo:
+  gravar, reabrir, alterar, confirmar que o histórico continua com um só
+  registo e que a recomendação sobreviveu, e cancelar.
+
+### Corrigido
+
+- **Os campos do cabeçalho sobreviviam à gravação**: o Picking, o Repositor, o
+  Verificador e a observação da auditoria anterior ficavam escritos no
+  formulário da seguinte, à espera de serem gravados outra vez sem ninguém
+  reparar. Guardar (ou repor as perguntas) passa a deixar o formulário
+  verdadeiramente vazio.
+
 ## [3.2.1] — 2026-08-04
 
 ### Alterado
