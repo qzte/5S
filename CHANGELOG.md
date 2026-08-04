@@ -5,6 +5,50 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.5.0] — 2026-08-04
+
+### Adicionado
+
+- **Os responsáveis passam a ser editáveis na Configuração.** Deixam de estar
+  escritos no código: acrescentam-se, renomeiam-se e removem-se num cartão
+  próprio, e a lista guardada em `resps` manda no selector do editor de
+  perguntas, no selector da edição de auditorias, nos eixos do radar "Por
+  responsável" e nos blocos de recomendações do relatório. Sem nada guardado
+  valem os cinco de origem.
+
+  As decisões que estruturam o resto:
+
+  - **O código é a chave e não muda.** Cada pergunta guarda o responsável pelo
+    código (`r`), pelo que renomear é livre — muda só o que se lê — mas alterar
+    um código desligaria as perguntas que o referenciam. Fixa-se ao criar e
+    aparece como etiqueta, não como campo.
+  - **Um responsável em uso não pode ser removido**, e a mensagem diz onde está
+    o uso: em N perguntas do checklist, em N auditorias gravadas. Conta como uso
+    o texto de recomendação já escrito — apagá-lo faria desaparecer do relatório
+    o que alguém escreveu, sem aviso e sem recuperação. Para remover, reatribui-
+    se primeiro: no editor de perguntas, e em cada auditoria pelo botão Editar.
+  - **A lista é um rascunho até Guardar**, como no editor de perguntas, e
+    Guardar pede o código de acesso. Mexer na lista não muda nada entretanto.
+  - **A ordem é a dos eixos do radar.** Acrescentar fica no fim, para não
+    deslocar os que já lá estavam.
+
+- **A exportação JSON passa a incluir a lista de responsáveis, e a importação a
+  trazê-la.** Um ficheiro de um dispositivo com responsáveis próprios era lido
+  com os de quem importava, e as perguntas atribuídas a um responsável
+  desconhecido caíam em silêncio no primeiro da lista. Agora os responsáveis do
+  ficheiro entram antes da validação: *Substituir* fica com a lista do ficheiro,
+  *Fundir* acrescenta o que falta e mantém os nomes de casa. Cancelar a
+  importação repõe a lista como estava.
+
+### Alterado
+
+- **O responsável de recurso deixa de ser `"U"` à letra** e passa a ser o
+  primeiro da lista. Com a lista editável, quem removesse o "U" ficaria com
+  itens a apontar para uma chave inexistente e um eixo sem nome no radar.
+
+- `REC_KEYS`, que era uma cópia das chaves tirada no arranque, passa a
+  `respKeys()`. Uma lista que muda não pode ser lida de uma fotografia.
+
 ## [3.4.0] — 2026-08-04
 
 ### Adicionado

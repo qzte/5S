@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.4.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.5.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -23,6 +23,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Instalação e utilização](#instalação-e-utilização)
 - [Modelo de pontuação](#modelo-de-pontuação)
 - [Limiares por pergunta](#limiares-por-pergunta)
+- [Responsáveis](#responsáveis)
 - [Editar auditorias anteriores](#editar-auditorias-anteriores)
 - [Dados e privacidade](#dados-e-privacidade)
 - [Importação de Excel](#importação-de-excel)
@@ -40,7 +41,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | **Histórico** | Todas as auditorias guardadas, por serviço e data, com edição e remoção (ambas sob PIN). |
 | **Análise** | Evolução da nota, comparação entre serviços, radar por pilar 5S e radar por responsável — em SVG/canvas nativos, sem bibliotecas de gráficos. |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. |
-| **Configuração** | Serviços, exportação/importação JSON, importação de Excel e editor de perguntas (PIN). |
+| **Configuração** | Serviços, responsáveis, exportação/importação JSON, importação de Excel e editor de perguntas (PIN). |
 
 ## Instalação e utilização
 
@@ -128,6 +129,26 @@ auditorias já gravadas — cada uma guarda as suas próprias perguntas. Em
 alternativa, o editor permite mudar o tipo pergunta a pergunta, ou repor as
 perguntas originais.
 
+## Responsáveis
+
+Quem responde por cada pergunta. São os eixos do radar *Por responsável* e os
+blocos de recomendações do relatório, e editam-se em *Configuração →
+Responsáveis* (3.5.0). De origem são cinco: Utilizadores, Manutenção, Reposição,
+Utilizador e Repositor, e Picking.
+
+| Regra | Porquê |
+| --- | --- |
+| O **código** fixa-se ao criar e não muda | É a chave por que cada pergunta guarda o seu responsável (`r`); mudá-lo desligaria as perguntas que o referenciam. |
+| O **nome** pode ser corrigido sempre | É só o que se lê; nada o referencia. |
+| Um responsável **em uso não sai** | A mensagem diz onde está o uso — perguntas do checklist, auditorias gravadas, ou uma recomendação já escrita. Reatribua primeiro, no editor de perguntas e em cada auditoria pelo botão *Editar*. |
+| A lista é um **rascunho até Guardar** | E Guardar pede o código de acesso, como o editor de perguntas. |
+| Acrescentar fica **no fim** | A ordem da lista é a ordem dos eixos do radar; acrescentar no meio deslocaria os que já lá estavam. |
+
+A exportação JSON leva a lista consigo e a importação trá-la: *Substituir* fica
+com a do ficheiro, *Fundir* acrescenta o que falta e mantém os nomes de casa.
+Sem isto, um ficheiro de um dispositivo com responsáveis próprios era lido com
+os de quem importa, e as perguntas dele mudavam de dono em silêncio.
+
 ## Editar auditorias anteriores
 
 No Histórico, **Editar** reabre a auditoria no formulário com tudo preenchido;
@@ -173,6 +194,7 @@ telemetria nem recursos externos.
 | `services` | Serviços / supermercados |
 | `people` | Repositores e Picking |
 | `itemsCfg` | Perguntas e limiares personalizados |
+| `resps` | Responsáveis (código e nome), pela ordem dos eixos do radar |
 
 **Faça exportações regulares.** Limpar os dados do navegador apaga tudo sem
 possibilidade de recuperação. A exportação JSON inclui auditorias, serviços,
@@ -229,8 +251,9 @@ Os smoke tests de browser correm à parte, com a aplicação servida por HTTP
 (`python3 -m http.server 8765`) e o Playwright instalado:
 
 ```bash
-node tests/smoke.mjs          # perguntas de amostra
-node tests/smoke-edicao.mjs   # edição de auditorias anteriores
+node tests/smoke.mjs               # perguntas de amostra
+node tests/smoke-edicao.mjs        # edição de auditorias anteriores
+node tests/smoke-responsaveis.mjs  # responsáveis editáveis
 ```
 
 O ponto crítico coberto é a migração de limiares: as classificações são

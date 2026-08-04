@@ -48,8 +48,11 @@ function extractConst(src, name) {
 /* PILLARS/RESP/isResp são base desde 3.1.1: normItem() passou a normalizar o
    pilar e o responsável, e é dependência de quase todos os testes. `isResp` tem
    de vir depois de `RESP`, de quem depende. */
-const BASE_CONSTS = ["ESC_MAP", "esc", "clean", "PILLARS", "RESP", "isResp",
-  "WEIGHTS", "W_MAX", "wOf", "REC_KEYS", "total"];
+/* Desde 3.5.0 a lista de responsáveis é editável: `RESP` é montado a partir de
+   `RESP_BASE` (que tem de vir antes) e mutado por aplicarResps(); `respKeys` e
+   `respBase` leem-no, e substituíram a constante `REC_KEYS`. */
+const BASE_CONSTS = ["ESC_MAP", "esc", "clean", "PILLARS", "RESP_BASE", "RESP",
+  "isResp", "respBase", "respKeys", "WEIGHTS", "W_MAX", "wOf", "total"];
 const BASE_FNS = ["pctOf"];
 
 function buildContext(fnNames, constNames) {
