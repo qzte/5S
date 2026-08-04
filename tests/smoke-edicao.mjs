@@ -1,7 +1,8 @@
-/* Smoke test de browser da edição de auditorias anteriores (v3.3.0):
+/* Smoke test de browser das alterações ao histórico (v3.3.0 / v3.3.1):
    o formulário reabre preenchido, guardar SUBSTITUI o registo em vez de criar
    um segundo, as recomendações por responsável sobrevivem, e cancelar devolve
-   o formulário ao estado de auditoria nova. */
+   o formulário ao estado de auditoria nova. Editar e apagar exigem o código de
+   acesso, e um código errado não deixa passar nenhuma das duas. */
 import pw from "playwright";
 const { chromium } = pw;
 
@@ -89,6 +90,16 @@ await pg.locator("[data-v=history]").click();
 await pg.locator("[data-edit='0']").click();
 check(await pg.locator("#edit-banner").isHidden(),
   "um código errado não pode abrir o modo de edição");
+
+/* ---- 6. Apagar: confirmado, mas com o código errado, não apaga. ---- */
+await pg.locator("[data-del='0']").click();
+check(await nAudits() === 1, "um código errado não pode apagar a auditoria");
+
+/* ---- 7. Com o código certo, apaga. ---- */
+pg.removeAllListeners("dialog");
+pg.on("dialog", d => d.accept(d.type() === "prompt" ? PIN : ""));
+await pg.locator("[data-del='0']").click();
+check(await nAudits() === 0, "com o código certo, apagar devia apagar");
 
 await b.close();
 console.log(erros.length ? "ERROS JS:\n" + erros.join("\n") : "sem erros de JS");

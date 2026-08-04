@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.3.1] — 2026-08-04
+
+### Alterado
+
+- **Apagar uma auditoria passa a pedir o código de acesso**, o mesmo da edição e
+  do editor de perguntas. Apagar é a mais definitiva das alterações ao
+  histórico: não há como anular, e o que se perde não está em mais lado nenhum
+  sem uma exportação. A confirmação continua a vir primeiro, para que um toque
+  acidental se desfaça sem ninguém ter de escrever código nenhum.
+
+  Como em 3.3.0, o código é pedido a cada vez e continua a não ser um controlo
+  de segurança — protege contra o acidente, não contra quem queira mesmo.
+
 ## [3.3.0] — 2026-08-04
 
 ### Adicionado
