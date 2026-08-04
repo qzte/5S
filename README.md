@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.3.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.3.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.4.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -138,6 +138,15 @@ Ambos **pedem o código de acesso** — o mesmo do editor de perguntas, e pedido
 cada vez. Reescrever uma auditoria gravada é uma alteração ao histórico, e a
 protecção que aqui interessa é contra o toque distraído: o código é público (ver
 [Segurança](#segurança)) e nunca foi um controlo de segurança.
+
+Em edição, o responsável de cada pergunta deixa de ser texto fixo e passa a ser
+um **selector** (3.4.0): é o que permite reatribuir o passado depois de
+acrescentar um responsável ao modelo, em vez de deixar as auditorias antigas
+presas à atribuição do dia em que foram feitas. A mudança fica **só naquela
+auditoria** — o checklist em vigor não é tocado, e para o alterar continua a
+haver o editor de perguntas. As classificações não mexem: muda o eixo do radar
+e o bloco de recomendações a que a pergunta pertence, não o que lhe foi
+respondido.
 
 **Apagar** pede o mesmo código, depois da confirmação (3.3.1). É a alteração
 mais definitiva de todas: não há como anular, e sem uma exportação o que se
