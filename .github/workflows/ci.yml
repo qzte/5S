@@ -73,6 +73,9 @@ jobs:
       - name: Edição de auditorias anteriores
         run: node tests/smoke-edicao.mjs
 
+      - name: Responsáveis editáveis
+        run: node tests/smoke-responsaveis.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest
