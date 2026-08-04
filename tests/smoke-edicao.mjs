@@ -16,8 +16,10 @@ const BENIGNO = /frame-ancestors/;
 pg.on("console", m => {
   if (m.type() === "error" && !BENIGNO.test(m.text())) erros.push(m.text());
 });
-/* Nenhum confirm() pode ficar pendurado num teste sem interface. */
-pg.on("dialog", d => d.accept());
+/* Nenhum diálogo pode ficar pendurado num teste sem interface. Os prompt()
+   são o código de acesso, exigido para entrar em modo de edição. */
+const PIN = "3758";
+pg.on("dialog", d => d.accept(d.type() === "prompt" ? PIN : ""));
 await pg.goto(URL);
 
 const falhas = [];
@@ -40,7 +42,7 @@ check(/^\d+\/100$/.test(notaOriginal), "o relatório devia mostrar a nota sobre 
 await pg.locator("[data-rec='U']").fill("arrumar o corredor 3");
 const idOriginal = (await audit0()).id;
 
-/* ---- 2. Editar a partir do relatório. ---- */
+/* ---- 2. Editar a partir do relatório (pede o código de acesso). ---- */
 await pg.locator("#btn-edit").click();
 check(!(await pg.locator("#edit-banner").isHidden()), "o aviso de edição devia estar visível");
 check(await pg.locator("#btn-save").textContent() === "Guardar alterações",
@@ -79,6 +81,14 @@ check(await pg.locator("#btn-save").textContent() === "Guardar auditoria",
   "cancelar devia repor o botão de auditoria nova");
 check(await pg.locator("#f-note").inputValue() === "", "cancelar devia limpar o formulário");
 check(await nAudits() === 1, "cancelar não altera o histórico");
+
+/* ---- 5. Código errado não abre a edição. ---- */
+pg.removeAllListeners("dialog");
+pg.on("dialog", d => d.accept(d.type() === "prompt" ? "0000" : ""));
+await pg.locator("[data-v=history]").click();
+await pg.locator("[data-edit='0']").click();
+check(await pg.locator("#edit-banner").isHidden(),
+  "um código errado não pode abrir o modo de edição");
 
 await b.close();
 console.log(erros.length ? "ERROS JS:\n" + erros.join("\n") : "sem erros de JS");
