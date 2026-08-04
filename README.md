@@ -232,6 +232,24 @@ do modelo base, nos três formatos (1.x, 2.0.0, 3.0.0).
 > subpasta (`tests/`). Até 3.1.0 os ficheiros estavam na raiz e a suite não
 > corria de todo; foram movidos em 3.1.1.
 
+### Integração contínua
+
+`.github/workflows/ci.yml` corre em cada push para `main` e em cada pull
+request, com três verificações independentes:
+
+| Verificação | O que corre |
+| --- | --- |
+| Testes unitários | `node --test tests/*.test.js` |
+| Smoke tests de browser | `tests/smoke.mjs` e `tests/smoke-edicao.mjs`, com a aplicação servida em `127.0.0.1:8765` |
+| Coerência da versão | A versão de `manifest.json`, `index.html`, `sw.js` e `README.md` tem de ser a mesma |
+
+O Playwright está fixo em `1.56.0`: a versão do pacote e a do Chromium que
+descarrega andam ao par, e uma actualização silenciosa do browser é a forma
+mais comum de um smoke test passar a falhar sem que o `index.html` tenha
+mudado. A verificação da versão existe porque o `sw.js` usa `APP_VERSION` como
+nome da cache — uma divergência faz o browser servir a versão antiga sem
+qualquer aviso.
+
 ## Segurança
 
 Auditoria OWASP Top 10 aplicada na versão 1.4.0:
