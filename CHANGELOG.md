@@ -5,6 +5,54 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.5.2] — 2026-08-04
+
+Fecha os três pontos que a auditoria da 3.5.0 tinha registado **sem** corrigir.
+Nenhum deles era uma vulnerabilidade explorável; os três eram controlos em
+falta. Relatório actualizado em [SECURITY.md](SECURITY.md).
+
+### Segurança
+
+- **O SheetJS embutido passa a ter integridade verificada.** A *versão* não
+  precisou de mudar — `0.20.3` é a última publicada e não tem CVE por corrigir.
+  O que faltava era poder confiar no que lá está: são 930 KB de código
+  minificado dentro do `index.html`, sem `package.json` que o declare (logo
+  invisível ao `npm audit`), sem registo público contra o qual comparar (o
+  pacote `xlsx` no npm ficou congelado em 0.18.5) e ilegível a olho. Somado,
+  isso queria dizer que **qualquer alteração ao bloco entrava no repositório sem
+  que nada a assinalasse** — e a importação de Excel é a superfície de ficheiro
+  mais poderosa da aplicação. `tests/sheetjs.test.js` fixa-o pelo SHA-256 e faz
+  a CI falhar se mudar; o procedimento de actualização, incluindo a comparação
+  com `cdn.sheetjs.com`, está no cabeçalho do ficheiro.
+
+- **`clean()` passa a remover as marcas bidireccionais** (U+202E e afins) e os
+  espaços de largura zero. O U+202E — a técnica do *Trojan Source* — inverte
+  visualmente o texto que lhe segue sem deixar nada para ver, e o relatório é um
+  documento que se imprime e se assina: quem o lê em papel não tem como detectar
+  a inversão. Os juntores U+200C e U+200D ficam de fora de propósito, por serem
+  legítimos em árabe, em escritas índicas e nos emoji.
+
+- **E passa a ser aplicado ao texto escrito à mão**, que até aqui não passava
+  por limpeza nenhuma: o serviço acrescentado em Configuração, os campos
+  Picking/Repositor/Verificador/Observação da auditoria, e o enunciado e o tema
+  no editor de perguntas. Só o texto *importado* era limpo — ou seja, o caminho
+  menos provável dos quatro, e não os que encabeçam o relatório impresso. No
+  editor a limpeza corre antes da validação, para que um enunciado feito só de
+  caracteres invisíveis seja recusado em vez de guardado vazio.
+
+- **As actions da CI passam a ser fixadas por SHA** em vez de por etiqueta. Uma
+  etiqueta é móvel: quem controlar o repositório da action decide, sem que nada
+  aqui mude, que código corre na CI que atesta cada alteração. Os SHA escolhidos
+  são os que `v4` resolvia no momento, pelo que não muda o que corre — muda quem
+  decide quando isso passa a ser outra coisa.
+
+### Testes
+
+- Onze testes novos (96 no total): `tests/texto.test.js` para a limpeza de
+  caracteres invisíveis, incluindo a garantia de que os juntores legítimos e as
+  sequências de emoji sobrevivem, e `tests/sheetjs.test.js` para a integridade
+  da biblioteca embutida.
+
 ## [3.5.1] — 2026-08-04
 
 Auditoria de segurança à versão 3.5.0, centrada no que mudou desde a revisão
