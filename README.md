@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.1.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.3.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.1.4** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.3.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -23,6 +23,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Instalação e utilização](#instalação-e-utilização)
 - [Modelo de pontuação](#modelo-de-pontuação)
 - [Limiares por pergunta](#limiares-por-pergunta)
+- [Editar auditorias anteriores](#editar-auditorias-anteriores)
 - [Dados e privacidade](#dados-e-privacidade)
 - [Importação de Excel](#importação-de-excel)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -36,7 +37,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | Vista | O que faz |
 | --- | --- |
 | **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. |
-| **Histórico** | Todas as auditorias guardadas, por serviço e data. |
+| **Histórico** | Todas as auditorias guardadas, por serviço e data, com edição e remoção. |
 | **Análise** | Evolução da nota, comparação entre serviços, radar por pilar 5S e radar por responsável — em SVG/canvas nativos, sem bibliotecas de gráficos. |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. |
 | **Configuração** | Serviços, exportação/importação JSON, importação de Excel e editor de perguntas (PIN). |
@@ -127,6 +128,22 @@ auditorias já gravadas — cada uma guarda as suas próprias perguntas. Em
 alternativa, o editor permite mudar o tipo pergunta a pergunta, ou repor as
 perguntas originais.
 
+## Editar auditorias anteriores
+
+No Histórico, **Editar** reabre a auditoria no formulário com tudo preenchido;
+Guardar substitui o registo em vez de criar um segundo. O mesmo botão existe no
+fim do relatório.
+
+A edição corre sobre as **perguntas gravadas com essa auditoria**, não sobre as
+actuais: se o editor de perguntas mudou entretanto, cada resposta continua a
+pertencer à pergunta que a originou, e os limiares que reclassificam um valor
+reescrito são os que a classificaram da primeira vez. As recomendações por
+responsável mantêm-se.
+
+Uma auditoria antiga que não tenha guardado as suas perguntas e cujo número de
+respostas não coincida com o das perguntas actuais **não é editável** — não há
+como saber a que pergunta pertence cada resposta.
+
 ## Dados e privacidade
 
 Tudo vive em `localStorage`, apenas no dispositivo. Não há servidor, conta,
@@ -173,7 +190,7 @@ CHANGELOG.md       Histórico de versões (Keep a Changelog)
 SECURITY.md        Relatório da auditoria de segurança (3.1.1)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
 tests/*.test.js    Testes unitários (node:test)
-tests/smoke.mjs    Smoke test de browser (Playwright)
+tests/smoke*.mjs   Smoke tests de browser (Playwright)
 ```
 
 `index.html` é deliberadamente um ficheiro único: é o que permite instalar,
@@ -188,6 +205,14 @@ real** em produção, sem cópia paralela e sem DOM.
 
 ```bash
 node --test tests/*.test.js
+```
+
+Os smoke tests de browser correm à parte, com a aplicação servida por HTTP
+(`python3 -m http.server 8765`) e o Playwright instalado:
+
+```bash
+node tests/smoke.mjs          # perguntas de amostra
+node tests/smoke-edicao.mjs   # edição de auditorias anteriores
 ```
 
 O ponto crítico coberto é a migração de limiares: as classificações são
