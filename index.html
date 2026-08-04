@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -169,6 +169,18 @@ canvas{width:100%!important}
 .svc-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);
   border-radius:99px;padding:6px 6px 6px 14px;margin:0 6px 8px 0;font-family:var(--f-sans);font-size:.8rem;font-weight:700}
 .svc-chip button{border:0;background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-weight:900}
+/* Linha de responsável (v3.5.0): código fixo à esquerda, nome editável, remover
+   à direita. O código não é um <input> porque não é editável — mostrá-lo como
+   campo sugeriria que se podia mudar, e mudá-lo desligaria as perguntas que o
+   referenciam. */
+.resp-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.resp-row .resp-k{flex:0 0 84px;font-family:var(--f-sans);font-weight:900;font-size:.78rem;
+  background:#f0ece1;border:1.5px solid var(--line);border-radius:8px;padding:9px 8px;
+  text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resp-row input{flex:1 1 auto;margin:0}
+.resp-row button{flex:0 0 auto;border:0;background:var(--red);color:#fff;border-radius:8px;
+  padding:9px 12px;font-family:var(--f-sans);font-weight:700;font-size:.7rem;cursor:pointer}
+.resp-row .uso{font-size:.68rem;color:var(--muted);font-family:var(--f-sans)}
 /* ---------- Impressão (v1.6.0) ----------
    Layout de duas folhas exactas por relatório:
      Página 1 — cabeçalho da nota + os dois radares e respectivas barras.
@@ -338,6 +350,23 @@ canvas{width:100%!important}
     <button class="btn small ghost" id="btn-migr">Converter agora</button>
   </div>
   <div class="card">
+    <h3 style="margin-bottom:10px">Responsáveis</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
+      Quem responde por cada pergunta. São os eixos do radar "Por responsável" e os blocos de
+      recomendações do relatório, pela ordem em que aparecem aqui.<br>
+      O <b>código</b> é a referência que cada pergunta guarda: fixa-se ao criar e não muda mais.
+      O <b>nome</b> é só o que se lê, e pode ser corrigido a qualquer momento.
+      As alterações só se aplicam ao carregar em <i>Guardar responsáveis</i>, com código de acesso.</p>
+    <div id="resp-list"></div>
+    <div class="row">
+      <input id="resp-newk" placeholder="Código (ex.: L)" maxlength="12" style="flex:0 0 30%">
+      <input id="resp-newn" placeholder="Nome (ex.: Logística)" maxlength="40">
+    </div>
+    <button class="btn small ghost" id="btn-addresp">+ Adicionar responsável</button>
+    <button class="btn small ghost" id="btn-saveresp">Guardar responsáveis (PIN)</button>
+    <button class="btn small ghost" style="border-color:var(--red);color:var(--red)" id="btn-resetresp">Repor originais</button>
+  </div>
+  <div class="card">
     <h3 style="margin-bottom:10px">Editor de perguntas</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Área reservada ao administrador. Permite alterar perguntas, responsáveis e parâmetros de avaliação.</p>
     <button class="btn small ghost" id="btn-askpin">Abrir editor (PIN)</button>
@@ -399,16 +428,76 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
 <script>
 /* ---------- Definição do checklist (da folha Excel) ---------- */
 const PILLARS=["Triagem","Arrumação","Limpeza","Normalização","Disciplina"];
-/* v3.2.0: "P" (Picking) é o quinto responsável. A ordem deste objecto é a ordem
-   dos eixos do radar e das barras — acrescentar no fim mantém os quatro
-   anteriores no mesmo sítio, e nenhuma pergunta do checklist lhe está atribuída
-   de origem (atribui-se no editor de perguntas). */
-const RESP={U:"Utilizadores",M:"Manutenção",R:"Reposição","U+R":"Utilizador e Repositor",P:"Picking"};
+/* v3.2.0: "P" (Picking) é o quinto responsável. A ORDEM deste objecto é a ordem
+   dos eixos do radar e das barras — acrescentar no fim mantém os anteriores no
+   mesmo sítio.
+   v3.5.0: esta lista deixou de ser fixa. Passa a ser o ponto de partida, e a que
+   vale é a guardada em `resps` (ver loadResps). */
+const RESP_BASE={U:"Utilizadores",M:"Manutenção",R:"Reposição","U+R":"Utilizador e Repositor",P:"Picking"};
+/* RESP é MUTADO em vez de reatribuído: meia dúzia de sítios fecham sobre este
+   objecto (byResp, o editor, o selector da edição, as recomendações), e trocar
+   o binding deixaria todos a ler a lista antiga. */
+const RESP=Object.assign({},RESP_BASE);
 
 /* Chave de responsável válida. `RESP[x]` sozinho não serve: herda do protótipo,
    pelo que "constructor" ou "toString" passariam a guarda e chegariam ao render
    (`esc(RESP[it.r])` imprimiria o código-fonte de Object). */
 const isResp=r=>typeof r==="string"&&Object.prototype.hasOwnProperty.call(RESP,r);
+/* Responsável de recurso, para quando o que vem num ficheiro ou no localStorage
+   não existe na lista. Era "U" à letra até 3.5.0, e deixou de poder ser: quem
+   apagar o "U" ficaria com itens a apontar para uma chave inexistente, e o
+   radar mostraria um eixo sem nome. */
+const respBase=()=>Object.keys(RESP)[0]||"U";
+/* A lista efectiva, na ordem em que é desenhada. */
+const respsActuais=()=>Object.keys(RESP).map(k=>({k:k,n:RESP[k]}));
+/* Normaliza uma lista de responsáveis vinda de ficheiro, do localStorage ou do
+   editor. Códigos repetidos ou vazios caem — o código é a chave por que cada
+   pergunta guarda o seu responsável, e dois iguais fariam desaparecer um deles.
+   Pura, para ser testável sem DOM. */
+function sanitizeResps(data){
+  const out=[],vistos=Object.create(null);
+  if(!Array.isArray(data))return out;
+  for(const x of data){
+    if(!x||typeof x!=="object")continue;
+    const k=clean(x.k,12),n=clean(x.n,40);
+    if(!k||!n||vistos[k])continue;
+    vistos[k]=1;out.push({k:k,n:n});
+  }
+  return out;
+}
+/* Escreve a lista em RESP, preservando a ordem e sem trocar o objecto. */
+function aplicarResps(lista){
+  Object.keys(RESP).forEach(k=>{delete RESP[k];});
+  (lista&&lista.length?lista:sanitizeResps(Object.keys(RESP_BASE).map(k=>({k:k,n:RESP_BASE[k]}))))
+    .forEach(r=>{RESP[r.k]=r.n;});
+}
+/* Fusão de duas listas: a de casa manda nos nomes, a de fora acrescenta os
+   códigos que faltam. É o que permite importar um ficheiro de um dispositivo
+   com responsáveis diferentes sem que as perguntas dele caiam no de recurso. */
+function fundirResps(nossos,outros){
+  const out=(nossos||[]).slice(),tem=Object.create(null);
+  out.forEach(r=>{tem[r.k]=1;});
+  (outros||[]).forEach(r=>{if(!tem[r.k]){tem[r.k]=1;out.push(r);}});
+  return out;
+}
+/* Onde é que um responsável está a ser usado. Devolve contagens, não um
+   booleano: a mensagem que trava a remoção diz ao utilizador ONDE está o uso,
+   que é o que lhe permite decidir. As auditorias sem `items` próprios seguem as
+   perguntas actuais, e por isso contam pelo lado das perguntas.
+   Pura, para ser testável sem DOM. */
+function respEmUso(k,items,lista){
+  let perguntas=0,auditorias=0;
+  (items||[]).forEach(it=>{if(it&&it.r===k)perguntas++;});
+  (lista||[]).forEach(a=>{
+    if(!a)return;
+    const its=Array.isArray(a.items)?a.items:[];
+    /* O texto de recomendação conta como uso: apagar o responsável fá-lo-ia
+       desaparecer do relatório, sem aviso e sem forma de o recuperar. */
+    const rec=a.recs&&typeof a.recs==="object"&&clean(a.recs[k],600)!=="";
+    if(rec||its.some(it=>it&&it.r===k))auditorias++;
+  });
+  return{perguntas:perguntas,auditorias:auditorias};
+}
 
 const DEFAULT_ITEMS=[
  {p:0,n:1,t:"Materiais",r:"U",c:"Nº de artigos extra acordo no supermercado",tp:"count",t1:4,t2:1,t3:0,max:99},
@@ -484,7 +573,7 @@ function normItem(x){
      pilar fora de intervalo deixaria o item sem eixo em byPillar(); um
      responsável desconhecido fá-lo-ia desaparecer de byResp(). */
   it.p=Math.min(PILLARS.length-1,Math.max(0,parseInt(it.p,10)||0));
-  it.r=isResp(it.r)?it.r:"U";
+  it.r=isResp(it.r)?it.r:respBase();
   const inv=DIR[it.tp]===-1;
   /* Que formato entrou? v3 traz os três limiares; v2 traz t1/t2 com semântica
      de CORTES anónimos (t1 = corte inferior, t2 = corte superior), que não é a
@@ -631,7 +720,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.4.0";
+const APP_VERSION="3.5.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -649,6 +738,12 @@ const fitems=()=>FORM_ITEMS||ITEMS;
    migração acontece aqui, no arranque, sem reescrever localStorage: só ao
    Guardar no editor é que o formato novo é persistido. */
 function loadItems(){ITEMS=load("itemsCfg",DEFAULT_ITEMS).map(normItem);MAX=ITEMS.length*2;}
+/* v3.5.0: os responsáveis vivem em `resps`, editáveis na Configuração. Sem nada
+   guardado valem os de origem. TEM de correr ANTES de loadItems(): normItem()
+   valida `it.r` contra RESP, e com a lista por carregar um responsável
+   acrescentado pelo utilizador cairia no de recurso logo no arranque. */
+function loadResps(){aplicarResps(sanitizeResps(load("resps",null)));}
+loadResps();
 loadItems();
 
 /* ---------- Navegação ---------- */
@@ -936,17 +1031,19 @@ const barCls=p=>p>=80?"":p>=50?"mid":"bad";
    auditoria (campo opcional `recs`); a FOTO é efémera e vive apenas em memória
    enquanto a vista Relatório está aberta (ver REC_FOTOS), nunca em localStorage
    nem na exportação JSON. */
-const REC_KEYS=Object.keys(RESP);
+/* Deixou de ser uma constante em 3.5.0: a lista de responsáveis é editável, e
+   uma cópia tirada no arranque ficaria a apontar para a de ontem. */
+const respKeys=()=>Object.keys(RESP);
 /* Normaliza o campo recs: devolve sempre as chaves de RESP, descartando
    quaisquer outras (defesa contra JSON importado com chaves arbitrárias).
    As auditorias gravadas antes de 3.2.0 não têm "P" — `clean(undefined)`
    devolve "", pelo que o bloco novo aparece simplesmente vazio. */
 function recsOf(a){
   const src=(a&&a.recs)||{};const out={};
-  REC_KEYS.forEach(k=>{out[k]=clean(src[k],600);});
+  respKeys().forEach(k=>{out[k]=clean(src[k],600);});
   return out;
 }
-function hasRecs(a){const r=recsOf(a);return REC_KEYS.some(k=>r[k]!=="");}
+function hasRecs(a){const r=recsOf(a);return respKeys().some(k=>r[k]!=="");}
 
 /* ---------- Histórico do serviço (v1.7.0) ----------
    Últimas 6 auditorias ao mesmo serviço, por ordem cronológica crescente,
@@ -1066,7 +1163,7 @@ function recsHTML(a){
       <p style="font-size:.75rem;color:var(--muted)">O texto é guardado com a auditoria.
         As fotos servem apenas para este PDF e não são guardadas.</p>
     </div>
-    ${REC_KEYS.map(k=>{
+    ${respKeys().map(k=>{
       const foto=REC_FOTOS.get(k);
       return`<div class="card rec-block">
         <h3>${esc(RESP[k])}</h3>
@@ -1307,6 +1404,7 @@ function renderCfg(){
     `<label>Repositores / Picking (${people.length})</label>`+people.map((p,i)=>
     `<span class="svc-chip">${esc(p)}<button data-rmppl="${i}">×</button></span>`).join(""):"";
   pplBox.querySelectorAll("[data-rmppl]").forEach(b=>b.onclick=()=>rmPerson(+b.dataset.rmppl));
+  renderResps();
   const ds=document.getElementById("data-stats");
   if(ds){
     const datas=audits.map(a=>a.date).sort();
@@ -1330,6 +1428,83 @@ function renderCfg(){
   }
 }
 function rmPerson(i){people.splice(i,1);save("people",people);renderCfg();renderForm();}
+
+/* ---------- Responsáveis (v3.5.0) ----------
+   Rascunho à parte, como no editor de perguntas: mexer na lista não muda nada
+   até Guardar. Sem isso, remover um responsável por engano reescreveria o
+   modelo à primeira tecla. */
+let respDraft=respsActuais();
+function renderResps(){
+  const box=document.getElementById("resp-list");
+  if(!box)return;
+  box.innerHTML=respDraft.map((r,i)=>{
+    const u=respEmUso(r.k,ITEMS,audits);
+    const usos=[u.perguntas?u.perguntas+" pergunta(s)":"",u.auditorias?u.auditorias+" auditoria(s)":""]
+      .filter(Boolean).join(" · ");
+    return`<div class="resp-row">
+      <span class="resp-k" title="Código: ${esc(r.k)}">${esc(r.k)}</span>
+      <input value="${esc(r.n)}" maxlength="40" data-respn="${i}" aria-label="Nome do responsável ${esc(r.k)}">
+      <button data-resprm="${i}">Remover</button>
+    </div>${usos?`<div class="resp-row"><span class="resp-k" style="visibility:hidden"></span>
+      <span class="uso">Em uso: ${esc(usos)}</span></div>`:""}`;}).join("");
+  box.querySelectorAll("[data-respn]").forEach(el=>el.oninput=()=>{
+    respDraft[+el.dataset.respn].n=el.value;});
+  box.querySelectorAll("[data-resprm]").forEach(b=>b.onclick=()=>rmResp(+b.dataset.resprm));
+}
+function addResp(){
+  const ke=document.getElementById("resp-newk"),ne=document.getElementById("resp-newn");
+  const k=clean(ke.value,12),n=clean(ne.value,40);
+  if(!k||!n){alert("Indique o código e o nome do responsável.");return;}
+  if(respDraft.some(r=>r.k===k)){alert("Já existe um responsável com o código "+k+".");return;}
+  respDraft.push({k:k,n:n});
+  ke.value="";ne.value="";
+  renderResps();
+}
+function rmResp(i){
+  const r=respDraft[i];
+  if(!r)return;
+  /* O uso é medido contra o que está GRAVADO, não contra o rascunho: é o que
+     ficaria a apontar para uma chave inexistente depois de guardar. */
+  const u=respEmUso(r.k,ITEMS,audits);
+  if(u.perguntas||u.auditorias){
+    alert("«"+r.n+"» não pode ser removido: está em uso em "+
+      (u.perguntas?u.perguntas+" pergunta(s) do checklist":"")+
+      (u.perguntas&&u.auditorias?" e ":"")+
+      (u.auditorias?u.auditorias+" auditoria(s) gravada(s)":"")+".\n\n"+
+      "Reatribua essas perguntas a outro responsável primeiro — no editor de perguntas, "+
+      "e em cada auditoria pelo botão Editar.");
+    return;}
+  if(respDraft.length<2){alert("Tem de haver pelo menos um responsável.");return;}
+  respDraft.splice(i,1);renderResps();
+}
+function saveResps(){
+  const limpos=sanitizeResps(respDraft);
+  if(limpos.length!==respDraft.length){
+    alert("Há responsáveis sem código, sem nome ou com o código repetido. Corrija antes de guardar.");return;}
+  if(!limpos.length){alert("Tem de haver pelo menos um responsável.");return;}
+  /* Segunda verificação, agora sobre o conjunto: uma remoção feita antes de a
+     pergunta ser reatribuída passaria pela primeira. */
+  const perdidos=respsActuais().map(r=>r.k).filter(k=>!limpos.some(r=>r.k===k))
+    .filter(k=>{const u=respEmUso(k,ITEMS,audits);return u.perguntas||u.auditorias;});
+  if(perdidos.length){
+    alert("Ainda há perguntas ou auditorias atribuídas a: "+perdidos.join(", ")+
+      ".\nReatribua-as antes de guardar.");return;}
+  if(!pedirPin("Código de acesso para alterar os responsáveis (evita alterações acidentais):"))return;
+  save("resps",limpos);
+  loadResps();
+  respDraft=respsActuais();
+  /* As perguntas em vigor são revalidadas contra a lista nova, e o formulário,
+     a Configuração e o histórico redesenhados: os nomes aparecem em todo o
+     lado, e um radar desenhado com a lista antiga ficaria com eixos a menos. */
+  loadItems();refreshForm();renderCfg();
+  alert("Responsáveis guardados: "+limpos.map(r=>r.n).join(", ")+".");
+}
+function resetResps(){
+  if(!confirm("Repor os "+Object.keys(RESP_BASE).length+" responsáveis originais? Os que tiver acrescentado desaparecem da lista."))return;
+  respDraft=Object.keys(RESP_BASE).map(k=>({k:k,n:RESP_BASE[k]}));
+  renderResps();
+  alert("Lista reposta no rascunho. Carregue em Guardar responsáveis para aplicar.");
+}
 
 /* ---------- Importação Excel (SheetJS, carregado sob demanda) ---------- */
 function loadXLSX(){ /* v1.1.1: SheetJS embutido — nada a descarregar */
@@ -1452,6 +1627,10 @@ function exportJson(){
     version:APP_VERSION,
     exportedAt:new Date().toISOString(),
     audits,services,people,
+    /* v3.5.0: a lista efectiva, e não só a personalizada — um ficheiro sem ela
+       seria lido com os responsáveis de quem importa, e as atribuições das
+       perguntas passariam a apontar para nomes diferentes dos originais. */
+    resps:respsActuais(),
     itemsCfg:JSON.parse(localStorage.getItem("itemsCfg")||"null")
   };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
@@ -1476,7 +1655,7 @@ function sanitizeItems(data){
       /* Texto limitado e sem caracteres de controlo. O escape em renderEditor/
          renderForm é a defesa principal; isto é defesa em profundidade. */
       t:clean(x.t,120)||"Tema",
-      r:isResp(x.r)?x.r:"U",
+      r:isResp(x.r)?x.r:respBase(),
       c:clean(x.c,500),
       tp:x.tp,t1:x.t1,t2:x.t2,t3:x.t3,mau:x.mau,tgt:x.tgt,
       max:parseInt(x.max,10)
@@ -1505,7 +1684,7 @@ function sanitizeAudit(x){
       p:Math.min(PILLARS.length-1,Math.max(0,parseInt(it&&it.p,10)||0)),
       n:parseInt(it&&it.n,10)||0,
       t:clean((it&&it.t)||"Tema",120),
-      r:(it&&isResp(it.r))?it.r:"U",
+      r:(it&&isResp(it.r))?it.r:respBase(),
       c:clean((it&&it.c),500)||"(sem texto)",
       /* t3 e tgt TÊM de viajar: sem t3, normItem() lê t1/t2 com a semântica
          de v2 (cortes anónimos) e reetiqueta-os, alterando a classificação de
@@ -1538,9 +1717,19 @@ function importJson(inp){
     if(Array.isArray(data))data={audits:data};
     if(!data||typeof data!=="object"){alert("Ficheiro inválido: estrutura não reconhecida.");return;}
     if(!Array.isArray(data.audits)){alert("Ficheiro inválido: não contém a lista de auditorias.");return;}
+    /* v3.5.0 — os responsáveis do ficheiro entram ANTES da sanitização, e só em
+       memória. sanitizeAudit()/sanitizeItems() validam `r` contra RESP: com a
+       lista de casa, um responsável que só exista no ficheiro cairia no de
+       recurso e a auditoria chegaria com a atribuição trocada. Se a importação
+       for cancelada, `desfazerResps()` repõe tudo como estava. */
+    const respsAntes=respsActuais();
+    const respsFich=sanitizeResps(data.resps);
+    const respsFundidos=fundirResps(respsAntes,respsFich);
+    if(respsFich.length)aplicarResps(respsFundidos);
+    const desfazerResps=()=>{if(respsFich.length)aplicarResps(respsAntes);};
     const inAudits=data.audits.map(sanitizeAudit).filter(Boolean);
     const descartadas=data.audits.length-inAudits.length;
-    if(!inAudits.length){alert("Nenhuma auditoria válida encontrada no ficheiro.");return;}
+    if(!inAudits.length){desfazerResps();alert("Nenhuma auditoria válida encontrada no ficheiro.");return;}
     const semItens=inAudits.filter(a=>!a.items&&a.scores.length!==ITEMS.length).length;
     const inSvc=Array.isArray(data.services)?data.services.map(s=>clean(s,200)).filter(Boolean):[];
     const inPpl=Array.isArray(data.people)?data.people.map(s=>clean(s,200)).filter(Boolean):[];
@@ -1554,12 +1743,12 @@ function importJson(inp){
       (descartadas?"\n"+descartadas+" registo(s) inválido(s) serão ignorados.":"")+
       (semItens?"\nAtenção: "+semItens+" auditoria(s) sem as perguntas associadas e com nº de respostas diferente do actual — os relatórios podem ficar desalinhados.":"")+
       "\n\nEscreva:\n  F = Fundir com os dados actuais (não duplica)\n  S = Substituir tudo","F");
-    if(modo===null)return;
+    if(modo===null){desfazerResps();return;}
     const m=modo.trim().toUpperCase();
-    if(m!=="F"&&m!=="S"){alert("Opção inválida. Importação cancelada.");return;}
+    if(m!=="F"&&m!=="S"){desfazerResps();alert("Opção inválida. Importação cancelada.");return;}
 
     if(m==="S"){
-      if(!confirm("Substituir TODOS os dados actuais ("+audits.length+" auditoria(s))? Esta acção não pode ser anulada."))return;
+      if(!confirm("Substituir TODOS os dados actuais ("+audits.length+" auditoria(s))? Esta acção não pode ser anulada.")){desfazerResps();return;}
       audits=inAudits;
       services=inSvc.length?[...new Set(inSvc)]:services;
       people=[...new Set(inPpl)];
@@ -1574,9 +1763,16 @@ function importJson(inp){
       });
       services=[...new Set(services.concat(inSvc))];
       people=[...new Set(people.concat(inPpl))];
-      if(!novas&&!inSvc.length&&!inPpl.length){alert("Nada de novo a importar: as auditorias já existem.");return;}
+      if(!novas&&!inSvc.length&&!inPpl.length){desfazerResps();alert("Nada de novo a importar: as auditorias já existem.");return;}
     }
     save("audits",audits);save("services",services);save("people",people);
+    /* Substituir troca a lista pela do ficheiro; fundir acrescenta o que falta e
+       mantém os nomes de casa. Em qualquer dos casos fica GRAVADA, para que a
+       leitura seguinte não volte a cair no de recurso. */
+    if(respsFich.length){
+      const finais=m==="S"?respsFich:respsFundidos;
+      save("resps",finais);loadResps();respDraft=respsActuais();
+    }
 
     if(temPerg&&confirm("O ficheiro inclui "+inPerg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas.")){
       save("itemsCfg",inPerg);
@@ -1870,6 +2066,9 @@ on("btn-impjson","click",()=>document.getElementById("hist-file").click());
 on("hist-file","change",function(){importJson(this);});
 on("btn-impxl","click",()=>document.getElementById("xl-file").click());
 on("xl-file","change",function(){importExcel(this);});
+on("btn-addresp","click",()=>addResp());
+on("btn-saveresp","click",()=>saveResps());
+on("btn-resetresp","click",()=>resetResps());
 on("btn-askpin","click",()=>askPin());
 on("btn-migr","click",()=>{const r=pendentesDeAmostra();if(r.convertidas.length)aplicarMigracaoAmostra(r);});
 on("btn-edadd","click",()=>edAdd());
