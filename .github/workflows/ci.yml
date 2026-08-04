@@ -1,0 +1,100 @@
+# Verificações automáticas de cada push e de cada pull request.
+#
+# O repositório não tem build nem dependências de produção: `index.html` é um
+# ficheiro único. A CI limita-se, por isso, a correr o que já existe em
+# `tests/`, exactamente com os mesmos comandos documentados no README.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Um push novo no mesmo ramo cancela a execução anterior: só interessa o
+# resultado do último commit.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Testes unitários (node:test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # O harness extrai as funções puras do index.html e avalia-as num
+      # contexto vm; não há nada para instalar.
+      - name: node --test tests/*.test.js
+        run: node --test tests/*.test.js
+
+  smoke:
+    name: Smoke tests de browser (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Versão fixa: o Playwright e o Chromium que descarrega andam ao par, e
+      # uma actualização silenciosa do browser é a forma mais comum de um
+      # smoke test passar a falhar sem que o index.html tenha mudado.
+      - name: Instala o Playwright
+        run: npm install --no-save --no-audit --no-fund playwright@1.56.0
+
+      - name: Instala o Chromium
+        run: npx playwright install --with-deps chromium
+
+      # A aplicação é servida por HTTP porque o service worker e o fetch de
+      # ficheiros não funcionam em file://.
+      - name: Serve a aplicação em 127.0.0.1:8765
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          for _ in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8765/index.html >/dev/null && exit 0
+            sleep 1
+          done
+          echo "o servidor não respondeu em 30s" >&2
+          exit 1
+
+      - name: Perguntas de amostra
+        run: node tests/smoke.mjs
+
+      - name: Edição de auditorias anteriores
+        run: node tests/smoke-edicao.mjs
+
+  versao:
+    name: Coerência da versão
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A versão está repetida em quatro sítios (index.html, sw.js,
+      # manifest.json, README.md) e o sw.js usa-a como nome da cache: uma
+      # divergência faz o browser servir a versão antiga sem qualquer aviso.
+      - name: A versão tem de ser a mesma em todo o lado
+        run: |
+          manifesto=$(node -p "require('./manifest.json').version")
+          app=$(grep -oP 'const APP_VERSION="\K[^"]+' index.html)
+          sw=$(grep -oP 'const APP_VERSION = "\K[^"]+' sw.js)
+          leiame=$(grep -oP '^\*\*Versão \K[0-9]+\.[0-9]+\.[0-9]+' README.md)
+          echo "manifest.json: $manifesto"
+          echo "index.html:    $app"
+          echo "sw.js:         $sw"
+          echo "README.md:     $leiame"
+          for v in "$app" "$sw" "$leiame"; do
+            if [ "$v" != "$manifesto" ]; then
+              echo "::error::versões divergentes — ver a lista acima" >&2
+              exit 1
+            fi
+          done
