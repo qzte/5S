@@ -1,5 +1,228 @@
 # Auditoria de segurança · Auditoria 5S
 
+Duas revisões, por ordem inversa:
+
+- **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em **3.5.1**.
+- **[Revisão de 3.1.0](#revisão-de-310-2026-07-31)** — correcções em 3.1.1 e 3.1.2.
+
+Âmbito de ambas: `index.html` (aplicação e SheetJS embutido), `sw.js`,
+`manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+---
+
+# Revisão de 3.5.0 (2026-08-04)
+
+Segunda revisão, centrada no que mudou desde a primeira: a edição de auditorias
+gravadas (3.3.0), a reatribuição de responsáveis por pergunta (3.4.0) e,
+sobretudo, a **lista editável de responsáveis** (3.5.0). Esta última é a
+alteração com consequências de segurança, porque transforma um conjunto fechado
+de cinco chaves escritas no código num conjunto **aberto, escrito pelo
+utilizador e persistido** — e essas chaves são usadas como índices de objectos e
+como valores de atributos HTML.
+
+## Resumo
+
+| # | Gravidade | Assunto | Estado |
+| --- | --- | --- | --- |
+| 12 | Média | Código de responsável herdado do protótipo (`constructor`) chegava ao relatório e prendia a remoção | **Corrigido em 3.5.1** |
+| 13 | Média | `localStorage` com JSON válido mas de forma errada derrubava o arranque | **Corrigido em 3.5.1** |
+| 14 | Baixa | `localStorage` cheio: auditoria perdida em silêncio ao Guardar | **Corrigido em 3.5.1** |
+| 15 | Baixa | Listas importadas sem tecto (responsáveis, perguntas, auditorias) | **Corrigido em 3.5.1** |
+| 16 | Baixa | Código de responsável `__proto__` era aceite e desaparecia | **Corrigido em 3.5.1** |
+| 17 | Baixa | «Substituir tudo» na importação apagava todo o histórico sem código de acesso | **Corrigido em 3.5.1** |
+| 18 | Info | SheetJS 0.20.3 continua sem CVE por corrigir (alerta do Snyk é falso positivo) | Verificado |
+| 19 | Info | `clean()` não remove caracteres bidireccionais | Aceite, documentado |
+| 20 | Info | *Actions* da CI fixadas por etiqueta e não por SHA | Aceite, documentado |
+
+**Continua sem XSS explorável.** Foram revistas uma a uma as interpolações
+acrescentadas desde 3.1.2 — o selector de responsável por pergunta
+(`data-edresp`), o cartão de responsáveis em Configuração (`data-respn`,
+`data-resprm`) e os blocos de recomendação indexados pelo código do responsável
+(`data-rec`, `data-file`, `data-add`, `data-rmf`, `data-foto`). Todas passam por
+`esc()`, incluindo os valores de atributo, e o único selector CSS construído a
+partir de uma chave escrita pelo utilizador (`recsHTML`/`wireRecs`) usa
+`CSS.escape()`. Os restantes selectores interpolam índices numéricos.
+
+---
+
+## 12. Código de responsável herdado do protótipo (Média)
+
+`RESP` e `recs` são objectos literais. Até 3.5.0 as chaves eram cinco constantes
+do código, pelo que ler `recs[k]` era seguro por construção. Em 3.5.0 o código
+do responsável passou a ser escrito pelo utilizador em Configuração (12
+caracteres, à escolha) — e `recsOf()` continuou a ler por índice directo:
+
+```js
+respKeys().forEach(k=>{out[k]=clean(src[k],600);});   // antes de 3.5.1
+```
+
+Com um responsável de código `constructor` (ou `toString`, `valueOf`,
+`hasOwnProperty`) e uma auditoria **sem recomendação escrita**, `src[k]` devolve
+a propriedade **herdada** do protótipo. Verificado no Chromium: o relatório
+imprime, no bloco desse responsável,
+
+```
+function Object() { [native code] }
+```
+
+tanto na caixa de texto como na versão impressa — e fica **gravado** em
+`localStorage` na primeira vez que alguém toque no campo, porque `wireRecs()`
+grava o resultado de `recsOf()`.
+
+O efeito de segundo grau é pior do que o texto: `respEmUso()` lia o mesmo valor
+e concluía que havia uma recomendação escrita em **todas** as auditorias. Como
+um responsável em uso não pode ser removido, o responsável ficava **preso para
+sempre**, com uma mensagem a apontar auditorias onde ninguém escreveu nada.
+
+Não é XSS — o valor é escapado no render — mas é leitura do protótipo a chegar
+ao ecrã, a ficar persistida e a bloquear uma operação. É exactamente a classe de
+defeito que a guarda `isResp()` fechou em 3.1.1 (ponto 2), reaberta por outro
+caminho quando as chaves deixaram de ser fixas.
+
+**Correcção:** função `recTexto(recs,k)`, porta única de `recsOf()` e de
+`respEmUso()`, com `Object.prototype.hasOwnProperty.call()` antes de ler.
+Regressões em `tests/responsaveis.test.js`.
+
+## 13. `localStorage` com a forma errada derrubava o arranque (Média)
+
+A correcção de 3.1.1 (ponto 7) pôs um `try` à volta do `JSON.parse`, e fechou o
+caso do valor que **não faz parse**. Ficou de fora o valor que faz parse e tem a
+**forma** errada:
+
+```js
+let services=load("services",["UCIP (11120)"]);   // "\"xpto\"" -> uma string
+```
+
+`services.map` deixa de existir e a excepção sobe antes do primeiro render.
+Verificado no Chromium, com o `localStorage` semeado a partir de outra página:
+
+| Chave semeada | Resultado antes de 3.5.1 |
+| --- | --- |
+| `services` = `"xpto"` | `TypeError: services.map is not a function` · **0 itens desenhados** |
+| `itemsCfg` = `42` | `TypeError: load(...).map is not a function` · **0 itens desenhados** |
+| `audits` = `{"a":1}` | arranca, mas o histórico rebenta ao abrir |
+
+O desfecho é o mesmo que o ponto 7 foi buscar — página em branco, e o service
+worker a servir essa mesma página partida offline — e é alcançável exactamente
+pelo mesmo caminho: qualquer outra página em `qzte.github.io` escreve nestas
+chaves (ponto 9). Não requer sequer intenção: um projecto vizinho que use a
+chave `services` para outra coisa basta.
+
+**Correcção:** `loadArr(k,d)`, que devolve o valor por omissão quando o que está
+guardado não é um array. Todas as chaves desta aplicação são listas. Aplicado a
+`audits`, `services`, `people` e `itemsCfg`; `resps` já estava coberto por
+`sanitizeResps()`. Verificado no Chromium: as três linhas da tabela acima passam
+a arrancar com os 19 itens e sem erro na consola.
+
+## 14. `localStorage` cheio: auditoria perdida em silêncio (Baixa)
+
+```js
+const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));   // antes de 3.5.1
+```
+
+`setItem` **lança** `QuotaExceededError` quando a origem enche (~5 MB,
+partilhados com tudo o que esteja publicado no mesmo domínio — ponto 9). Sem
+`try`, a excepção subia do `onclick` de Guardar. Verificado no Chromium com o
+`localStorage` saturado a partir de outra chave: preencher a auditoria toda e
+carregar em **Guardar auditoria** não grava nada, não abre o relatório e **não
+mostra mensagem nenhuma** — o botão parece morto e o trabalho da auditoria
+perde-se assim que a página fecha.
+
+**Correcção:** `save()` apanha a excepção, devolve se gravou e avisa uma vez por
+acção (a importação grava quatro chaves seguidas). Quem grava a auditoria
+verifica o resultado: em caso de falha **o formulário não é limpo** — o que está
+escrito é a única cópia que existe — e a lista em memória volta atrás, para não
+mostrar no histórico um registo que o disco não tem. O aviso diz o que fazer:
+exportar e apagar auditorias antigas.
+
+## 15. Listas importadas sem tecto (Baixa)
+
+`sanitizeResps()`, `sanitizeItems()` e o ciclo das auditorias em `importJson()`
+aceitavam listas de qualquer dimensão. Um ficheiro com 10 000 responsáveis dá
+10 000 eixos de radar e 10 000 blocos de recomendação a desenhar de uma vez;
+10 000 perguntas dão um formulário que não termina de pintar. O ficheiro é
+escolhido pelo utilizador, pelo que isto é sobretudo uma protecção contra o
+engano — mas o custo de a ter é uma linha por porta.
+
+**Correcção:** `MAX_RESPS` (60), `MAX_ITEMS` (500) e `MAX_AUDITS` (5000). Cada
+um está uma ordem de grandeza acima do maior caso plausível, e o diálogo da
+importação diz quantas auditorias foram ignoradas por truncatura.
+
+## 16. Código de responsável `__proto__` (Baixa)
+
+`sanitizeResps()` aceitava `__proto__` como código. Não há poluição de protótipo
+— atribuir uma **string** a `RESP.__proto__` é ignorado em silêncio pelo motor —
+mas o responsável ficava gravado em `resps` e **nunca chegava à lista**: o
+utilizador via a confirmação «Responsáveis guardados: …» e a entrada desaparecia
+do ecrã a seguir, e qualquer pergunta que lhe apontasse caía no responsável de
+recurso sem explicação.
+
+**Correcção:** recusado à entrada, que é onde se pode dizer porquê. Os restantes
+nomes do protótipo (`constructor`, `toString`) continuam a ser códigos válidos —
+depois de atribuídos são propriedades próprias, e o ponto 12 fechou a leitura.
+
+## 17. «Substituir tudo» sem código de acesso (Baixa)
+
+Desde 3.3.1 apagar **uma** auditoria pede o código de acesso, com a
+justificação, escrita no próprio ficheiro, de que «apagar é a mais definitiva
+das alterações ao histórico». A importação em modo **S** apaga-as **todas** de
+uma vez, é igualmente irreversível, e era a única porta destrutiva que não o
+pedia — bastava escolher um ficheiro e escrever `S`.
+
+**Correcção:** `pedirPin()` também aí, a seguir à confirmação. Continua a não
+ser um controlo de segurança (ponto 10): é a mesma protecção contra o gesto
+distraído que as outras portas já tinham, agora aplicada de forma coerente.
+
+## 18. SheetJS 0.20.3 (Info)
+
+Confirmado em execução que a biblioteca embutida é de facto a que o comentário
+diz (`XLSX.version === "0.20.3"`) e que o `Object.prototype` já não fica
+congelado depois de importar. Não há CVE por corrigir nesta versão: a
+CVE-2023-30533 foi corrigida em 0.19.3 e a CVE-2024-22363 em 0.20.2. O alerta
+`SNYK-JS-XLSX-6252523` que ainda aparece contra `xlsx@0.20.3` refere-se à
+correcção que só existe na distribuição oficial (`cdn.sheetjs.com`) e é, para
+esta cópia, um falso positivo — a mesma razão pela qual o pacote `xlsx` no npm,
+congelado em 0.18.5, torna qualquer auditoria por npm cega a este componente.
+
+## 19. `clean()` não remove caracteres bidireccionais (Info)
+
+`clean()` remove caracteres de controlo `C0`/`DEL` e limita o comprimento, mas
+deixa passar as marcas bidireccionais (U+202E e afins) e os espaços de largura
+zero. Um nome de serviço ou de responsável pode, com isso, aparecer no relatório
+com o texto visualmente invertido. Não afecta a pontuação nem escapa ao `esc()`;
+fica registado por ser um vector de **engano visual** num documento que se
+imprime e se assina. Não corrigido: os nomes são escritos por quem usa a
+aplicação, no próprio dispositivo, e filtrar categorias inteiras de Unicode tem
+o seu próprio custo em nomes legítimos.
+
+## 20. CI fixada por etiqueta (Info)
+
+`.github/workflows/ci.yml` usa `actions/checkout@v4` e `actions/setup-node@v4`.
+Uma etiqueta é móvel: quem controlar o repositório da acção pode mudar o que ela
+aponta. O risco concreto aqui é pequeno — as permissões estão em
+`contents: read`, não há segredos no fluxo de trabalho e não se usa
+`pull_request_target` — mas fixar por SHA é a prática recomendada e custa uma
+linha. Fica como recomendação, não como correcção: o Playwright já está fixado
+em versão exacta pela mesma razão, e a incoerência é só de grau.
+
+## O que foi verificado e continua bem
+
+- As portas de entrada de dados de ficheiro continuam a ser três, e únicas:
+  `sanitizeAudit()`, `sanitizeItems()` e, desde 3.5.0, `sanitizeResps()`.
+- Nenhum `eval`, `new Function`, `document.write` ou `srcdoc`; nenhum handler
+  inline acrescentado desde a revisão anterior.
+- O único selector CSS construído a partir de texto do utilizador usa
+  `CSS.escape()`; todos os outros interpolam índices numéricos.
+- As fotografias das recomendações continuam a viver só em memória e a não
+  entrar no `localStorage` nem na exportação.
+- A guarda contra clickjacking e a allowlist do service worker mantêm-se como
+  ficaram em 3.1.2, e a CSP não foi relaxada.
+- A suite passa: 85 testes unitários e três smoke tests de browser.
+
+---
+
+# Revisão de 3.1.0 (2026-07-31)
+
 Revisão da versão **3.1.0**, correcções aplicadas em **3.1.1** e **3.1.2**
 (2026-07-31).
 Âmbito: `index.html` (aplicação e SheetJS embutido), `sw.js`, `manifest.json`
