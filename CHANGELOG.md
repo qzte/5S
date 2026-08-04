@@ -37,6 +37,13 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
   pré-preencher: o item aparece com a classificação anterior mantida e um aviso
   a dizer que escrever um valor a reavalia. Guardar não a transforma num zero.
 
+- **A edição pede o código de acesso**, o mesmo do editor de perguntas. As duas
+  acções reescrevem o que já está guardado, e é isso que justifica o código —
+  não o separador em que estão. É pedido a cada vez, e não uma vez por sessão:
+  um desbloqueio que ficasse de pé até fechar a aplicação deixava de travar
+  exactamente o que o PIN existe para travar, o toque distraído. Continua a não
+  ser um controlo de segurança — o código é público, como sempre foi.
+
 - **Cancelar edição** devolve o formulário ao estado de auditoria nova. Apagar
   no Histórico a auditoria que está a ser editada fecha a edição pela mesma
   razão: já não haveria registo que substituir.

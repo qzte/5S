@@ -134,6 +134,11 @@ No Histórico, **Editar** reabre a auditoria no formulário com tudo preenchido;
 Guardar substitui o registo em vez de criar um segundo. O mesmo botão existe no
 fim do relatório.
 
+Ambos **pedem o código de acesso** — o mesmo do editor de perguntas, e pedido a
+cada vez. Reescrever uma auditoria gravada é uma alteração ao histórico, e a
+protecção que aqui interessa é contra o toque distraído: o código é público (ver
+[Segurança](#segurança)) e nunca foi um controlo de segurança.
+
 A edição corre sobre as **perguntas gravadas com essa auditoria**, não sobre as
 actuais: se o editor de perguntas mudou entretanto, cada resposta continua a
 pertencer à pergunta que a originou, e os limiares que reclassificam um valor
@@ -256,7 +261,8 @@ mitigado. Dois pontos a reter:
   os dados desta aplicação. Para isolamento real seria preciso um domínio
   próprio.
 
-**O PIN do editor não é um controlo de segurança.** O código é público num
+**O PIN do editor — pedido também para editar uma auditoria gravada — não é um
+controlo de segurança.** O código é público num
 ficheiro estático; qualquer pessoa o pode ler. Protege apenas contra alterações
 acidentais.
 
