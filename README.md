@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.5.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.5.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.5.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.5.2** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -234,6 +234,7 @@ sw.js              Service worker — cache offline versionada, com allowlist
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
 SECURITY.md        Relatórios das auditorias de segurança (3.1.0 e 3.5.0)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
+tests/sheetjs.*    Integridade do SheetJS embutido (SHA-256 fixado)
 tests/*.test.js    Testes unitários (node:test)
 tests/smoke*.mjs   Smoke tests de browser (Playwright)
 ```
@@ -302,7 +303,9 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
 - SheetJS embutido em **0.20.3**, que corrige a CVE-2023-30533 (prototype
   pollution) e a CVE-2024-22363 (ReDoS). Atenção ao actualizar: a biblioteca
   sai apenas de `cdn.sheetjs.com`, porque o pacote `xlsx` no npm ficou
-  congelado em 0.18.5 (3.1.2).
+  congelado em 0.18.5 (3.1.2) — o que também torna o `npm audit` cego a este
+  componente. Por isso o bloco embutido está **fixado pelo seu SHA-256** em
+  `tests/sheetjs.test.js`: qualquer alteração faz a CI falhar (3.5.2).
 - Porta de entrada única para dados de ficheiro: `sanitizeAudit()` para
   auditorias, `sanitizeItems()` para perguntas e `sanitizeResps()` para
   responsáveis — usada tanto pelo editor como pela importação de histórico
@@ -312,6 +315,13 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
   `recTexto()` para as recomendações (3.1.1, 3.5.1).
 - O que vem do `localStorage` é validado na FORMA e não só no parse, e gravar
   deixou de poder falhar em silêncio quando o armazenamento enche (3.5.1).
+- `clean()` remove as marcas **bidireccionais** (U+202E e afins, a técnica do
+  *Trojan Source*, que inverteria o texto do relatório impresso sem deixar nada
+  para ver) e é aplicado a TODO o texto — escrito à mão e importado. Os juntores
+  U+200C/U+200D ficam de fora, por serem legítimos em árabe, escritas índicas e
+  emoji (3.5.2).
+- As *actions* da CI estão fixadas por **SHA de commit**, não por etiqueta
+  móvel; o `ci.yml` documenta como actualizar (3.5.2).
 
 Revisão completa em [SECURITY.md](SECURITY.md), incluindo o que **não** está
 mitigado. Dois pontos a reter:

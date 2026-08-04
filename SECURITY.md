@@ -2,7 +2,7 @@
 
 Duas revisões, por ordem inversa:
 
-- **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em **3.5.1**.
+- **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em **3.5.1** e **3.5.2**.
 - **[Revisão de 3.1.0](#revisão-de-310-2026-07-31)** — correcções em 3.1.1 e 3.1.2.
 
 Âmbito de ambas: `index.html` (aplicação e SheetJS embutido), `sw.js`,
@@ -30,9 +30,9 @@ como valores de atributos HTML.
 | 15 | Baixa | Listas importadas sem tecto (responsáveis, perguntas, auditorias) | **Corrigido em 3.5.1** |
 | 16 | Baixa | Código de responsável `__proto__` era aceite e desaparecia | **Corrigido em 3.5.1** |
 | 17 | Baixa | «Substituir tudo» na importação apagava todo o histórico sem código de acesso | **Corrigido em 3.5.1** |
-| 18 | Info | SheetJS 0.20.3 continua sem CVE por corrigir (alerta do Snyk é falso positivo) | Verificado |
-| 19 | Info | `clean()` não remove caracteres bidireccionais | Aceite, documentado |
-| 20 | Info | *Actions* da CI fixadas por etiqueta e não por SHA | Aceite, documentado |
+| 18 | Baixa | SheetJS embutido sem qualquer verificação de integridade | **Corrigido em 3.5.2** |
+| 19 | Baixa | `clean()` não removia caracteres bidireccionais, e não era aplicado ao texto escrito à mão | **Corrigido em 3.5.2** |
+| 20 | Baixa | *Actions* da CI fixadas por etiqueta e não por SHA | **Corrigido em 3.5.2** |
 
 **Continua sem XSS explorável.** Foram revistas uma a uma as interpolações
 acrescentadas desde 3.1.2 — o selector de responsável por pergunta
@@ -173,37 +173,102 @@ pedia — bastava escolher um ficheiro e escrever `S`.
 ser um controlo de segurança (ponto 10): é a mesma protecção contra o gesto
 distraído que as outras portas já tinham, agora aplicada de forma coerente.
 
-## 18. SheetJS 0.20.3 (Info)
+## 18. SheetJS embutido sem verificação de integridade (Baixa)
 
-Confirmado em execução que a biblioteca embutida é de facto a que o comentário
-diz (`XLSX.version === "0.20.3"`) e que o `Object.prototype` já não fica
-congelado depois de importar. Não há CVE por corrigir nesta versão: a
-CVE-2023-30533 foi corrigida em 0.19.3 e a CVE-2024-22363 em 0.20.2. O alerta
-`SNYK-JS-XLSX-6252523` que ainda aparece contra `xlsx@0.20.3` refere-se à
-correcção que só existe na distribuição oficial (`cdn.sheetjs.com`) e é, para
-esta cópia, um falso positivo — a mesma razão pela qual o pacote `xlsx` no npm,
-congelado em 0.18.5, torna qualquer auditoria por npm cega a este componente.
+A **versão** está certa e não precisou de mudar: `0.20.3` é a última publicada
+(2026-02-09), confirmada em execução (`XLSX.version`), e não tem CVE por
+corrigir — a CVE-2023-30533 foi fechada em 0.19.3 e a CVE-2024-22363 em 0.20.2.
+O alerta `SNYK-JS-XLSX-6252523` que ainda aparece contra `xlsx@0.20.3` refere-se
+a uma correcção que só existe na distribuição oficial e é, para esta cópia, um
+falso positivo.
 
-## 19. `clean()` não remove caracteres bidireccionais (Info)
+O que faltava não era a versão, era **poder confiar no que está lá**. O SheetJS
+é a única dependência de produção da aplicação e está *vendored*: 930 KB de
+código minificado dentro do `index.html`. Três consequências, que se somam:
 
-`clean()` remove caracteres de controlo `C0`/`DEL` e limita o comprimento, mas
-deixa passar as marcas bidireccionais (U+202E e afins) e os espaços de largura
-zero. Um nome de serviço ou de responsável pode, com isso, aparecer no relatório
-com o texto visualmente invertido. Não afecta a pontuação nem escapa ao `esc()`;
-fica registado por ser um vector de **engano visual** num documento que se
-imprime e se assina. Não corrigido: os nomes são escritos por quem usa a
-aplicação, no próprio dispositivo, e filtrar categorias inteiras de Unicode tem
-o seu próprio custo em nomes legítimos.
+- não há `package.json` que o declare, pelo que `npm audit` — e qualquer
+  ferramenta que leia um manifesto — **não vê este componente de todo**;
+- o pacote `xlsx` no npm ficou congelado em 0.18.5, pelo que a biblioteca só sai
+  de `cdn.sheetjs.com` e não há registo público contra o qual comparar;
+- o bloco é ilegível a olho e enorme, pelo que uma alteração de uma linha no
+  meio dele é indistinguível de ruído numa revisão de código.
 
-## 20. CI fixada por etiqueta (Info)
+Somadas, davam isto: **qualquer alteração ao SheetJS embutido entrava no
+repositório sem que nada a assinalasse.** Não é uma vulnerabilidade explorável
+hoje; é a ausência do controlo que a apanharia se alguém a introduzisse — e a
+importação de Excel é a superfície de ficheiro mais poderosa da aplicação.
 
-`.github/workflows/ci.yml` usa `actions/checkout@v4` e `actions/setup-node@v4`.
-Uma etiqueta é móvel: quem controlar o repositório da acção pode mudar o que ela
-aponta. O risco concreto aqui é pequeno — as permissões estão em
-`contents: read`, não há segredos no fluxo de trabalho e não se usa
-`pull_request_target` — mas fixar por SHA é a prática recomendada e custa uma
-linha. Fica como recomendação, não como correcção: o Playwright já está fixado
-em versão exacta pela mesma razão, e a incoerência é só de grau.
+**Correcção:** `tests/sheetjs.test.js` fixa o bloco pelo seu SHA-256
+(`cc015130…6f41`, 951 904 bytes), delimitado por marcadores e não por números de
+linha. Corre na suite que já existe, sem infraestrutura nova. O teste não prova
+proveniência — para isso é preciso comparar com `cdn.sheetjs.com`, e o
+procedimento está escrito no cabeçalho do ficheiro para quem actualizar — mas
+prova que o bloco **não mudou** desde que foi verificado, e falha a CI se mudar.
+Verificado a alterar um único caractere no meio do blob: o teste falha e diz o
+SHA-256 esperado, o obtido e o que fazer em cada caso.
+
+Fixa também a versão declarada, para que uma **descida** de versão — o erro
+plausível, não o improvável — falhe contra os mínimos das duas CVE.
+
+## 19. Caracteres bidireccionais, e o texto que nunca passava por `clean()` (Baixa)
+
+Duas metades do mesmo problema.
+
+A primeira: `clean()` removia os caracteres de controlo `C0`/`DEL`, mas deixava
+passar as marcas **bidireccionais**. O U+202E (RIGHT-TO-LEFT OVERRIDE) — a
+técnica do *Trojan Source* — inverte visualmente o texto que lhe segue sem
+deixar nada para ver. O relatório é um documento que se imprime e se assina, e
+quem o lê em papel não tem como detectar a inversão: não há caractere no ecrã.
+
+A segunda, encontrada ao corrigir a primeira e mais séria do que ela: **o texto
+escrito à mão nunca passava por `clean()` de todo.** Só o importado passava.
+
+| Caminho | Antes de 3.5.2 |
+| --- | --- |
+| Serviço em Configuração (`addSvc`) | `.value.trim()` — nenhuma limpeza |
+| Picking / Repositor / Verificador / Observação (`colherFormulario`) | valor cru do campo |
+| Enunciado e tema no editor (`edSave`) | `normItem()` nunca tocou no texto |
+
+São exactamente os campos que encabeçam o relatório impresso e a grelha de
+verificação. Sem esta segunda metade, filtrar as marcas bidireccionais valeria
+apenas para os ficheiros importados — o caminho **menos** provável dos três.
+
+**Correcção:** `clean()` passa a remover U+061C, U+200B, U+200E, U+200F,
+U+202A–U+202E, U+2066–U+2069 e U+FEFF, e é aplicado nos três caminhos acima, com
+os mesmos limites que `sanitizeAudit()` e `sanitizeItems()` já usavam na
+importação. No editor a limpeza corre **antes** da validação: um enunciado feito
+só de caracteres invisíveis passaria o `trim()` de `edValidate()` e chegaria
+vazio ao ficheiro guardado; assim é recusado com a mensagem que já existe.
+
+Ficam de fora, deliberadamente, o U+200C (ZWNJ) e o U+200D (ZWJ): são juntores
+legítimos, usados em árabe, em escritas índicas e nas sequências de emoji.
+Apagá-los partiria texto verdadeiro para travar um engano que eles não permitem.
+
+Verificado no Chromium, nos dois caminhos escritos à mão: um serviço e uma
+observação com U+202E ficam gravados sem ele.
+
+## 20. CI fixada por etiqueta (Baixa)
+
+`.github/workflows/ci.yml` usava `actions/checkout@v4` e `actions/setup-node@v4`.
+Uma etiqueta é **móvel**: quem controlar o repositório da action decide, a
+qualquer momento e sem que nada neste repositório mude, que código passa a
+correr na CI. O risco directo aqui é pequeno — `contents: read`, sem segredos no
+fluxo de trabalho e sem `pull_request_target` —, mas a CI é o que atesta que uma
+alteração é boa antes de ir para produção, e o Playwright já estava fixado em
+versão exacta pela mesma razão.
+
+**Correcção:** as cinco utilizações passam a apontar para o SHA do commit, com
+a versão em comentário ao lado:
+
+```yaml
+- uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4.4.0
+- uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+```
+
+Ambos os SHA são o que `v4` resolvia no momento da alteração, pelo que a
+fixação **não muda o que corre** — muda quem decide quando isso passa a ser
+outra coisa. O procedimento de actualização ficou escrito no cabeçalho do
+`ci.yml`.
 
 ## O que foi verificado e continua bem
 
@@ -217,7 +282,9 @@ em versão exacta pela mesma razão, e a incoerência é só de grau.
   entrar no `localStorage` nem na exportação.
 - A guarda contra clickjacking e a allowlist do service worker mantêm-se como
   ficaram em 3.1.2, e a CSP não foi relaxada.
-- A suite passa: 85 testes unitários e três smoke tests de browser.
+- O texto passa agora por `clean()` em TODOS os caminhos de entrada — importado
+  e escrito à mão —, e não apenas no importado (3.5.2).
+- A suite passa: 96 testes unitários e três smoke tests de browser.
 
 ---
 
