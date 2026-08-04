@@ -8,9 +8,9 @@ const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
   ["sanitizeItems", "normItem", "classify", "fixedKey"],
-  ["PILLARS", "RESP", "DIR", "TKEYS", "isResp"]
+  ["PILLARS", "RESP", "DIR", "TKEYS", "isResp", "MAX_ITEMS"]
 );
-const { sanitizeItems, RESP, PILLARS } = ctx;
+const { sanitizeItems, RESP, PILLARS, MAX_ITEMS } = ctx;
 
 const base = { c: "Pergunta", t: "Tema", r: "U", tp: "count", t1: 1, t2: 1, t3: 0, max: 9 };
 const um = extra => sanitizeItems([Object.assign({}, base, extra)])[0];
@@ -81,4 +81,11 @@ test("alvo de uma amostra é preservado e saturado no mínimo", () => {
 test("é idempotente: reimportar o que já foi limpo não altera nada", () => {
   const uma = sanitizeItems([Object.assign({}, base, { p: 99, r: "constructor" })]);
   assert.deepStrictEqual(sanitizeItems(uma), uma);
+});
+
+test("sanitizeItems trunca listas absurdas em MAX_ITEMS", () => {
+  /* Um ficheiro com 10 000 perguntas dava um formulário que não termina de
+     pintar. O tecto é uma ordem de grandeza acima do maior caso plausível. */
+  const enorme = Array.from({ length: MAX_ITEMS + 50 }, () => Object.assign({}, base));
+  assert.strictEqual(sanitizeItems(enorme).length, MAX_ITEMS);
 });
