@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.3.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -108,6 +108,10 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 .item{border-left:4px solid var(--line);padding-left:12px;margin-bottom:16px}
 .item .q{font-size:.95rem;margin:2px 0 4px}
 .item .meta{font-size:.7rem;color:var(--muted);font-family:var(--f-sans);letter-spacing:.5px}
+/* Selector de responsável, só em modo de edição (v3.4.0): inline na linha de
+   meta, em vez do bloco de largura total que os <select> têm por omissão. */
+.item .resp-sel{width:auto;display:inline-block;margin:0 0 0 4px;padding:2px 6px;
+  font-family:var(--f-sans);font-size:.72rem;letter-spacing:.3px}
 /* Tooltip de parâmetros (v1.8.0) — só nas perguntas de tipo != contagem.
    Detalhes: o <details> nativo garante que funciona sem JS e por toque. */
 .tip{display:inline-block;margin-left:6px;vertical-align:middle}
@@ -627,7 +631,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.3.1";
+const APP_VERSION="3.4.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -681,6 +685,10 @@ function tipHTML(it){
 
 /* ---------- Formulário ---------- */
 function renderForm(){
+  /* A auditoria em edição é determinada ANTES de desenhar os itens: em edição
+     cada item mostra um selector de responsável em vez do nome fixo. */
+  const emEdicao=editId!=null?audits.find(x=>x.id===editId):null;
+  if(editId!=null&&!emEdicao)endEdit();
   document.getElementById("f-date").value=new Date().toISOString().slice(0,10);
   const sel=document.getElementById("f-service");
   sel.innerHTML=services.map(s=>`<option>${esc(s)}</option>`).join("");
@@ -693,7 +701,10 @@ function renderForm(){
       `<div class="pillar"><span class="n">${curP+1}</span><h2>${esc(PILLARS[curP])}</h2></div>`);}
     box.insertAdjacentHTML("beforeend",`
     <div class="card item" id="it${i}">
-      <div class="meta">Nº ${esc(it.n)} · ${esc(it.t)} · Resp.: ${esc(RESP[it.r])}</div>
+      <div class="meta">Nº ${esc(it.n)} · ${esc(it.t)} · Resp.:${emEdicao?`
+        <select class="resp-sel" data-edresp="${i}" aria-label="Responsável pela pergunta ${esc(it.n)}">
+          ${Object.keys(RESP).map(r=>`<option value="${esc(r)}"${r===it.r?" selected":""}>${esc(RESP[r])}</option>`).join("")}
+        </select>`:" "+esc(RESP[it.r])}</div>
       <div class="q">${esc(it.c)}${tipHTML(it)}</div>
       ${it.tp==="amostra"?`
       <div class="row" style="margin:8px 0 0">
@@ -719,19 +730,27 @@ function renderForm(){
     if(Number.isFinite(alvo)&&alvo>0)resp.max=alvo;
     pick(i,resp);
   });
+  /* v3.4.0: em edição, o responsável de cada pergunta é alterável. Escreve na
+     CÓPIA que o formulário usa (FORM_ITEMS), pelo que só passa à auditoria ao
+     Guardar — e só àquela auditoria: as perguntas em vigor, em `itemsCfg`, não
+     são tocadas. É o que permite reatribuir o passado depois de acrescentar um
+     responsável, sem reescrever as auditorias todas nem o checklist actual. */
+  box.querySelectorAll("[data-edresp]").forEach(el=>el.onchange=()=>{
+    if(isResp(el.value))fitems()[+el.dataset.edresp].r=el.value;
+  });
   /* Modo de edição: o formulário acabado de desenhar é repovoado a partir da
      auditoria gravada. Fica no fim de renderForm() para que qualquer outro
      caminho que redesenhe o formulário (adicionar/remover serviço, por
      exemplo) não deixe a edição a meio, com os campos em branco. */
-  const emEdicao=editId!=null?audits.find(x=>x.id===editId):null;
-  if(editId!=null&&!emEdicao)endEdit();
   const ed=document.getElementById("edit-banner");
   if(ed)ed.classList.toggle("hidden",!emEdicao);
   document.getElementById("btn-save").textContent=emEdicao?"Guardar alterações":"Guardar auditoria";
   if(emEdicao){
     document.getElementById("edit-info").textContent=
       "«"+emEdicao.service+" · "+emEdicao.date+"». As perguntas são as que ficaram gravadas "+
-      "com esta auditoria; alterá-la substitui o registo existente em vez de criar um novo.";
+      "com esta auditoria; alterá-la substitui o registo existente em vez de criar um novo. "+
+      "Além das respostas, pode reatribuir o responsável de cada pergunta — a mudança fica "+
+      "só nesta auditoria.";
     preencherForm(emEdicao);
   }
 }
