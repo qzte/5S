@@ -5,6 +5,34 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.4.0] — 2026-08-04
+
+### Adicionado
+
+- **Reatribuir o responsável de cada pergunta dentro de uma auditoria já
+  gravada.** Em modo de edição, a linha de cada item deixa de mostrar o
+  responsável como texto fixo e passa a mostrá-lo num selector. É o que faltava
+  para que acrescentar um responsável — como o Picking em 3.2.0 — possa alcançar
+  o passado: até aqui, as auditorias anteriores ficavam presas à atribuição que
+  tinham no dia em que foram feitas, e o radar por responsável nunca lhes
+  reconhecia o eixo novo.
+
+  Duas fronteiras deliberadas:
+
+  - **A mudança fica só naquela auditoria.** O selector escreve na cópia que o
+    formulário usa (`FORM_ITEMS`), que ao Guardar substitui o `items` daquele
+    registo. O checklist em vigor (`itemsCfg`) não é tocado — reatribuir o
+    passado não é o mesmo que mudar as perguntas de hoje, e para isso continua
+    a haver o editor de perguntas.
+  - **Só aparece em edição.** Numa auditoria nova o responsável vem do
+    checklist, onde é editável com o resto da pergunta; um selector por item
+    ali dentro seria uma segunda maneira de dizer a mesma coisa, e as duas
+    acabariam a divergir.
+
+  As classificações não mexem: mudar de responsável muda a que eixo do radar e
+  a que bloco de recomendações a pergunta pertence, não o que lhe foi
+  respondido.
+
 ## [3.3.1] — 2026-08-04
 
 ### Alterado

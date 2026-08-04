@@ -1,8 +1,10 @@
-/* Smoke test de browser das alterações ao histórico (v3.3.0 / v3.3.1):
+/* Smoke test de browser das alterações ao histórico (v3.3.0 / v3.3.1 / v3.4.0):
    o formulário reabre preenchido, guardar SUBSTITUI o registo em vez de criar
    um segundo, as recomendações por responsável sobrevivem, e cancelar devolve
    o formulário ao estado de auditoria nova. Editar e apagar exigem o código de
-   acesso, e um código errado não deixa passar nenhuma das duas. */
+   acesso, e um código errado não deixa passar nenhuma das duas. Em edição, o
+   responsável de cada pergunta é reatribuível, e a mudança fica só naquela
+   auditoria — o checklist em vigor não é tocado. */
 import pw from "playwright";
 const { chromium } = pw;
 
@@ -29,6 +31,8 @@ const nAudits = () => pg.evaluate(() => JSON.parse(localStorage.getItem("audits"
 const audit0 = () => pg.evaluate(() => JSON.parse(localStorage.getItem("audits") || "[]")[0]);
 
 /* ---- 1. Gravar uma auditoria com todas as respostas a zero. ---- */
+check(await pg.locator("[data-edresp]").count() === 0,
+  "fora da edição, o responsável não é alterável no formulário");
 await pg.locator("#f-verif").fill("Zé");
 await pg.locator("#f-note").fill("primeira");
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
@@ -51,6 +55,10 @@ check(await pg.locator("#btn-save").textContent() === "Guardar alterações",
 check(await pg.locator("#f-verif").inputValue() === "Zé", "o verificador devia vir preenchido");
 check(await pg.locator("#f-note").inputValue() === "primeira", "a observação devia vir preenchida");
 check(await pg.locator("[data-pick='0']").inputValue() === "0", "a resposta devia vir preenchida");
+check(await pg.locator("[data-edresp]").count() === 19,
+  "em edição, cada pergunta devia ter selector de responsável");
+check(await pg.locator("[data-edresp='0']").inputValue() === "U",
+  "o selector devia vir no responsável gravado com a auditoria");
 check((await pg.locator("#f-live").inputValue()).startsWith(notaOriginal.replace("/100", " / 100")),
   "a nota em directo devia estar recalculada a partir das respostas repostas");
 
@@ -58,6 +66,9 @@ check((await pg.locator("#f-live").inputValue()).startsWith(notaOriginal.replace
 await pg.locator("#f-note").fill("corrigida");
 /* Pergunta 1 é uma contagem com T1 = 4: 5 artigos a mais é Mau. */
 await pg.locator("[data-pick='0']").fill("5");
+/* Reatribuir a pergunta 1 ao Picking, o caso que motivou a funcionalidade:
+   acrescentou-se um responsável e o passado tem de poder acompanhá-lo. */
+await pg.locator("[data-edresp='0']").selectOption("P");
 await pg.locator("#btn-save").click();
 check(await nAudits() === 1, "editar não pode criar uma segunda auditoria");
 const dep = await audit0();
@@ -67,6 +78,12 @@ check(dep.scores[0] === 0, "5 artigos a mais deviam classificar como Mau");
 check(dep.raw[0] === 5, "o valor bruto editado devia ficar gravado");
 check(dep.recs && dep.recs.U === "arrumar o corredor 3",
   "a recomendação por responsável tem de sobreviver à edição");
+check(dep.items[0].r === "P", "o responsável reatribuído devia ficar gravado na auditoria");
+check(dep.items[1].r === "M", "reatribuir uma pergunta não pode mexer nas outras");
+check(await pg.evaluate(() => localStorage.getItem("itemsCfg")) === null,
+  "reatribuir dentro de uma auditoria não pode reescrever o checklist em vigor");
+check((await pg.locator("#view-report .page-1 .card").nth(1).textContent()).includes("Picking"),
+  "o radar por responsável devia passar a contar com o Picking");
 check(await pg.locator("#edit-banner").isHidden(),
   "depois de guardar, o formulário devia sair do modo de edição");
 
