@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.2.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.2.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -406,7 +406,7 @@ const DEFAULT_ITEMS=[
  {p:1,n:5,t:"Localizações",r:"M",c:"Nº de artigos sem etiqueta de posição",tp:"count",t1:5,t2:1,t3:0,max:99},
  {p:1,n:6,t:"Estantes / Prateleiras",r:"M",c:"Nº de estantes/prateleiras sem identificação visual",tp:"count",t1:3,t2:1,t3:0,max:99},
  {p:1,n:7,t:"Caixas",r:"R",c:"Nº de KB's vazios mal arrumados na zona de reposição",tp:"count",t1:4,t2:1,t3:0,max:99},
- {p:1,n:8,t:"Material em Rutura",r:"R",c:"Nº de artigos em rutura mal identificados",tp:"count",t1:1,t2:1,t3:0,max:99},
+ {p:1,n:8,t:"Material em Rutura",r:"P",c:"Nº de artigos em rutura mal identificados",tp:"count",t1:1,t2:1,t3:0,max:99},
  {p:2,n:9,t:"Estantes",r:"U",c:"Nº de prateleiras danificadas por mau uso",tp:"count",t1:3,t2:1,t3:0,max:99},
  {p:2,n:10,t:"Caixas e Kanbans",r:"U+R",c:"Nº de kanbans/caixas em mau estado",tp:"count",t1:8,t2:1,t3:0,max:99},
  {p:2,n:11,t:"Limpeza",r:"U",c:"Nº de caixas sujas",tp:"count",t1:3,t2:1,t3:0,max:99},
@@ -619,7 +619,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.2.0";
+const APP_VERSION="3.2.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
