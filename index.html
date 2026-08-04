@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.3.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.3.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -627,7 +627,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.3.0";
+const APP_VERSION="3.3.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -1223,7 +1223,14 @@ function editAudit(a){
   document.querySelector('[data-v=audit]').click();
   window.scrollTo(0,0);
 }
-function delAudit(id){if(!confirm("Apagar esta auditoria?"))return;
+function delAudit(id){
+  if(!confirm("Apagar esta auditoria?"))return;
+  /* Mesmo código da edição e do editor de perguntas (3.3.1): apagar é a mais
+     definitiva das alterações ao histórico — não há como anular, e o que se
+     perde não está em mais lado nenhum sem uma exportação. A confirmação vem
+     primeiro para que um toque acidental se desfaça sem ninguém ter de escrever
+     código nenhum. */
+  if(!pedirPin("Código de acesso para apagar uma auditoria (não é possível anular):"))return;
   audits=audits.filter(a=>a.id!==id);save("audits",audits);
   /* Apagar a auditoria que está aberta no formulário fecha a edição: guardá-la
      depois disso encontraria a lista sem o registo e não teria o que
