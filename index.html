@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.1.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.2.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -387,7 +387,11 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
 <script>
 /* ---------- Definição do checklist (da folha Excel) ---------- */
 const PILLARS=["Triagem","Arrumação","Limpeza","Normalização","Disciplina"];
-const RESP={U:"Utilizadores",M:"Manutenção",R:"Reposição","U+R":"Utilizador e Repositor"};
+/* v3.2.0: "P" (Picking) é o quinto responsável. A ordem deste objecto é a ordem
+   dos eixos do radar e das barras — acrescentar no fim mantém os quatro
+   anteriores no mesmo sítio, e nenhuma pergunta do checklist lhe está atribuída
+   de origem (atribui-se no editor de perguntas). */
+const RESP={U:"Utilizadores",M:"Manutenção",R:"Reposição","U+R":"Utilizador e Repositor",P:"Picking"};
 
 /* Chave de responsável válida. `RESP[x]` sozinho não serve: herda do protótipo,
    pelo que "constructor" ou "toString" passariam a guarda e chegariam ao render
@@ -615,7 +619,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.1.4";
+const APP_VERSION="3.2.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=load("audits",[]);
 let services=load("services",["UCIP (11120)"]);
@@ -780,13 +784,15 @@ const badge=p=>p>=80?["b-ok","Excelente"]:p>=50?["b-mid","Com oportunidade"]:["b
 const barCls=p=>p>=80?"":p>=50?"mid":"bad";
 
 /* ---------- Recomendações por responsável (v1.7.0) ----------
-   Quatro blocos fixos, com as mesmas chaves de RESP. O TEXTO é guardado com a
+   Um bloco fixo por chave de RESP (cinco desde 3.2.0). O TEXTO é guardado com a
    auditoria (campo opcional `recs`); a FOTO é efémera e vive apenas em memória
    enquanto a vista Relatório está aberta (ver REC_FOTOS), nunca em localStorage
    nem na exportação JSON. */
-const REC_KEYS=["U","M","R","U+R"];
-/* Normaliza o campo recs: devolve sempre as 4 chaves, descartando quaisquer
-   outras (defesa contra JSON importado com chaves arbitrárias). */
+const REC_KEYS=Object.keys(RESP);
+/* Normaliza o campo recs: devolve sempre as chaves de RESP, descartando
+   quaisquer outras (defesa contra JSON importado com chaves arbitrárias).
+   As auditorias gravadas antes de 3.2.0 não têm "P" — `clean(undefined)`
+   devolve "", pelo que o bloco novo aparece simplesmente vazio. */
 function recsOf(a){
   const src=(a&&a.recs)||{};const out={};
   REC_KEYS.forEach(k=>{out[k]=clean(src[k],600);});
@@ -994,7 +1000,7 @@ function openReport(a){
   <div class="card"><h3 style="margin-bottom:10px">Por responsável</h3>
     ${radarSVG(byResp(a).filter(r=>r.n>0),"#e8500a")}
     <div style="margin-top:14px">
-    ${byResp(a).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${p.n} itens)</small></span><span>${p.pct}%</span></div>
+    ${byResp(a).filter(r=>r.n>0).map(p=>`<div class="stat-row"><span>${esc(p.name)} <small style="color:var(--muted);font-weight:400">(${p.n} itens)</small></span><span>${p.pct}%</span></div>
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("")}</div></div>
   ${(()=>{const h=svcHistory(a,audits);
     if(!h.length)return"";
@@ -1086,7 +1092,14 @@ function renderStats(){
     .map(s=>[s,avg(audits.filter(a=>a.service===s).map(total))]));
   /* Médias de todas as auditorias, nos mesmos eixos do relatório individual. */
   const medPilar=PILLARS.map((p,i)=>({name:p,pct:avg(audits.map(a=>byPillar(a)[i].pct))}));
-  const medResp=Object.values(RESP).map((r,i)=>({name:r,pct:avg(audits.map(a=>byResp(a)[i].pct))}));
+  /* v3.2.0: um responsável sem perguntas atribuídas (o "Picking" acabado de
+     criar, enquanto não lhe for atribuída nenhuma) daria pctOf([])=0 e entraria
+     no radar como o pior de todos. Zero perguntas não é zero por cento — o eixo
+     fica de fora até haver perguntas, tal como já acontece no relatório. */
+  const medResp=Object.values(RESP)
+    .map((r,i)=>({name:r,pct:avg(audits.map(a=>byResp(a)[i].pct)),
+      n:audits.reduce((s,a)=>s+byResp(a)[i].n,0)}))
+    .filter(d=>d.n>0);
   document.getElementById("rad-pilar").innerHTML=audits.length?radarSVG(medPilar,"#1f6f50"):"";
   document.getElementById("rad-resp").innerHTML=audits.length?radarSVG(medResp,"#e8500a"):"";
   document.getElementById("cmp-pilar").innerHTML=bars(medPilar.map(d=>[d.name,d.pct]));
