@@ -1212,6 +1212,10 @@ function editAudit(a){
       "sem desalinhar as respostas.");return;}
   if(editId!=null&&editId!==a.id&&
      !confirm("Já está a editar outra auditoria. Abandonar essas alterações?"))return;
+  /* Reescrever uma auditoria gravada é uma alteração ao histórico, e passa pelo
+     mesmo código do editor de perguntas. A ordem importa: primeiro diz-se se a
+     auditoria é sequer editável, para não pedir um código e só depois recusar. */
+  if(!pedirPin("Código de acesso para editar uma auditoria gravada (evita alterações acidentais):"))return;
   editId=a.id;
   FORM_ITEMS=IT.map(normItem);
   renderForm();
@@ -1651,15 +1655,24 @@ function proporMigracaoAmostra(){
 /* AVISO DE SEGURANÇA — leia antes de alterar:
    Esta aplicação é 100% client-side e o código é público. Um PIN aqui NÃO é
    um controlo de segurança: qualquer pessoa que abra o código-fonte lê-o.
-   Serve apenas para evitar alterações ACIDENTAIS às perguntas.
+   Serve apenas para evitar alterações ACIDENTAIS às perguntas e ao histórico.
    Os dados residem só no dispositivo, pelo que não há travessia entre utilizadores.
    Se algum dia for preciso controlo de acesso a sério, terá de haver servidor. */
 const ADMIN_PIN="3758";
+/* Porta comum ao editor de perguntas e à edição de auditorias gravadas (3.3.0):
+   as duas acções reescrevem o que já está guardado, e é isso — não o separador
+   em que estão — que justifica o código. Pede-se a cada vez, e não uma vez por
+   sessão: um desbloqueio que ficasse de pé até fechar a aplicação deixava de
+   travar precisamente o que o PIN existe para travar, o toque distraído. */
+function pedirPin(motivo){
+  const p=prompt(motivo);
+  if(p===null)return false;
+  if(p!==ADMIN_PIN){alert("Código incorreto.");return false;}
+  return true;
+}
 let edItems=[];
 function askPin(){
-  const p=prompt("Código de acesso ao editor (evita alterações acidentais):");
-  if(p===null)return;
-  if(p!==ADMIN_PIN){alert("Código incorreto.");return;}
+  if(!pedirPin("Código de acesso ao editor (evita alterações acidentais):"))return;
   edItems=ITEMS.map(normItem);
   renderEditor();
   document.getElementById("ed-panel").classList.remove("hidden");
