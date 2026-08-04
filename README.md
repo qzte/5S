@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.5.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.5.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.5.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -199,7 +199,12 @@ telemetria nem recursos externos.
 **Faça exportações regulares.** Limpar os dados do navegador apaga tudo sem
 possibilidade de recuperação. A exportação JSON inclui auditorias, serviços,
 pessoas e perguntas; a importação permite **Fundir** (sem duplicar, por
-`id` ou serviço+data) ou **Substituir**.
+`id` ou serviço+data) ou **Substituir** — este último pede o código de acesso,
+por apagar todo o histórico de uma vez (3.5.1).
+
+O armazenamento do navegador é finito (~5 MB por origem). Se encher, gravar
+falha com um aviso explícito, o formulário **não** é limpo e nada do que já
+estava guardado se perde; a saída é exportar e apagar auditorias antigas.
 
 As fotografias das recomendações são a única excepção: vivem em memória enquanto
 a vista Relatório está aberta e **nunca** são escritas em `localStorage` nem
@@ -227,7 +232,7 @@ index.html         Aplicação completa: HTML, CSS, JS e SheetJS embutido
 manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
-SECURITY.md        Relatório da auditoria de segurança (3.1.1)
+SECURITY.md        Relatórios das auditorias de segurança (3.1.0 e 3.5.0)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
 tests/*.test.js    Testes unitários (node:test)
 tests/smoke*.mjs   Smoke tests de browser (Playwright)
@@ -299,8 +304,14 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
   sai apenas de `cdn.sheetjs.com`, porque o pacote `xlsx` no npm ficou
   congelado em 0.18.5 (3.1.2).
 - Porta de entrada única para dados de ficheiro: `sanitizeAudit()` para
-  auditorias e `sanitizeItems()` para perguntas — usada tanto pelo editor como
-  pela importação de histórico (3.1.1).
+  auditorias, `sanitizeItems()` para perguntas e `sanitizeResps()` para
+  responsáveis — usada tanto pelo editor como pela importação de histórico
+  (3.1.1, 3.5.0).
+- Leitura de índices de objecto sempre com `hasOwnProperty`, agora que o código
+  do responsável é escrito pelo utilizador: `isResp()` para as perguntas e
+  `recTexto()` para as recomendações (3.1.1, 3.5.1).
+- O que vem do `localStorage` é validado na FORMA e não só no parse, e gravar
+  deixou de poder falhar em silêncio quando o armazenamento enche (3.5.1).
 
 Revisão completa em [SECURITY.md](SECURITY.md), incluindo o que **não** está
 mitigado. Dois pontos a reter:
@@ -316,7 +327,8 @@ mitigado. Dois pontos a reter:
   próprio.
 
 **O PIN do editor — pedido também para editar e para apagar uma auditoria
-gravada — não é um controlo de segurança.** O código é público num
+gravada, e para substituir todo o histórico numa importação — não é um controlo
+de segurança.** O código é público num
 ficheiro estático; qualquer pessoa o pode ler. Protege apenas contra alterações
 acidentais.
 

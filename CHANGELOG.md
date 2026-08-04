@@ -5,6 +5,71 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.5.1] — 2026-08-04
+
+Auditoria de segurança à versão 3.5.0, centrada no que mudou desde a revisão
+anterior: a lista de responsáveis deixou de ser um conjunto fechado de cinco
+chaves escritas no código e passou a ser **aberta, escrita pelo utilizador e
+persistida** — e essas chaves são usadas como índices de objectos. Relatório
+completo em [SECURITY.md](SECURITY.md); nenhuma alteração de comportamento fora
+das correcções abaixo.
+
+### Corrigido
+
+- **Um responsável de código `constructor` lia o protótipo de `Object`.** Com
+  esse código e uma auditoria sem recomendação escrita, o relatório imprimia
+  «function Object() { [native code] }» no bloco desse responsável — texto que
+  ficava gravado à primeira vez que alguém tocasse no campo. Pior do que o
+  texto: a mesma leitura fazia `respEmUso()` concluir que havia recomendação em
+  **todas** as auditorias, e o responsável passava a não poder ser removido,
+  com uma mensagem a apontar auditorias onde ninguém escreveu nada. Passa a
+  haver uma porta única de leitura, `recTexto()`, com `hasOwnProperty`. É a
+  mesma classe de defeito que a guarda `isResp()` fechou em 3.1.1, reaberta por
+  outro caminho quando as chaves deixaram de ser fixas.
+
+- **`localStorage` com JSON válido mas de forma errada derrubava o arranque.**
+  O `try` de 3.1.1 cobria o que não faz *parse*; ficou de fora o que faz *parse*
+  e não é uma lista. Uma chave `services` com o texto `"xpto"` rebentava em
+  `services.map` antes do primeiro render — página em branco, e o service worker
+  a servir essa mesma página partida offline. Alcançável a partir de qualquer
+  outra página da origem, que é o cenário já documentado do armazenamento
+  partilhado. Passa a haver `loadArr()`, que recai no valor por omissão quando o
+  que está guardado não é uma lista.
+
+- **Armazenamento cheio perdia a auditoria em silêncio.** `setItem` lança
+  quando a origem enche (~5 MB, partilhados com tudo o que esteja publicado no
+  mesmo domínio), e a excepção subia do `onclick` de Guardar: o relatório não
+  abria, nada era gravado e não aparecia mensagem nenhuma — o botão parecia
+  morto e o trabalho perdia-se ao fechar a página. `save()` passa a avisar (uma
+  vez por acção) e a devolver se gravou; em caso de falha o formulário **não** é
+  limpo, porque o que lá está escrito é a única cópia que existe.
+
+- **`__proto__` era aceite como código de responsável e desaparecia.** Ficava
+  gravado em `resps` e nunca chegava à lista — atribuir uma string a
+  `RESP.__proto__` é ignorado em silêncio pelo motor —, e as perguntas que lhe
+  apontassem caíam no responsável de recurso sem explicação. Passa a ser
+  recusado à entrada, que é onde se pode dizer porquê. Os restantes nomes do
+  protótipo continuam a ser códigos válidos.
+
+### Alterado
+
+- **Substituir todo o histórico numa importação passa a pedir o código de
+  acesso.** Desde 3.3.1 apagar *uma* auditoria já o pedia, pela razão de ser
+  irreversível; substituir apaga-as *todas* de uma vez e era a única porta
+  destrutiva que não o pedia.
+
+- **As listas importadas passam a ter tecto**: 60 responsáveis, 500 perguntas e
+  5000 auditorias. Cada um está uma ordem de grandeza acima do maior caso
+  plausível, e existe só para que um ficheiro absurdo seja truncado em vez de
+  bloquear o dispositivo a desenhar. O diálogo da importação diz quantas
+  auditorias foram ignoradas.
+
+### Testes
+
+- Sete regressões novas (85 no total): leitura de chaves herdadas do protótipo
+  em `recTexto()` e `respEmUso()`, recusa de `__proto__` e truncatura das listas
+  em `sanitizeResps()` e `sanitizeItems()`.
+
 ## [3.5.0] — 2026-08-04
 
 ### Adicionado

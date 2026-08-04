@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.5.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -450,6 +450,18 @@ const isResp=r=>typeof r==="string"&&Object.prototype.hasOwnProperty.call(RESP,r
 const respBase=()=>Object.keys(RESP)[0]||"U";
 /* A lista efectiva, na ordem em que é desenhada. */
 const respsActuais=()=>Object.keys(RESP).map(k=>({k:k,n:RESP[k]}));
+/* ---------- Tectos das listas importadas (v3.5.1) ----------
+   Um ficheiro JSON não tem tamanho declarado, e as portas de entrada aceitavam
+   listas de qualquer dimensão: 10 000 responsáveis dão 10 000 eixos de radar e
+   10 000 blocos de recomendação a desenhar de uma vez, e 10 000 perguntas dão
+   um formulário que não termina de pintar. Nenhum destes tectos limita o uso
+   real — são uma ordem de grandeza acima do maior caso plausível —, e existem
+   só para que um ficheiro absurdo (por engano ou de propósito) seja truncado em
+   vez de bloquear o dispositivo. */
+const MAX_RESPS=60;
+const MAX_ITEMS=500;
+const MAX_AUDITS=5000;
+
 /* Normaliza uma lista de responsáveis vinda de ficheiro, do localStorage ou do
    editor. Códigos repetidos ou vazios caem — o código é a chave por que cada
    pergunta guarda o seu responsável, e dois iguais fariam desaparecer um deles.
@@ -458,9 +470,16 @@ function sanitizeResps(data){
   const out=[],vistos=Object.create(null);
   if(!Array.isArray(data))return out;
   for(const x of data){
+    if(out.length>=MAX_RESPS)break;
     if(!x||typeof x!=="object")continue;
     const k=clean(x.k,12),n=clean(x.n,40);
     if(!k||!n||vistos[k])continue;
+    /* "__proto__" é aceite aqui e depois DESAPARECE em aplicarResps(): atribuir
+       uma string a `RESP.__proto__` é ignorado em silêncio pelo motor, pelo que
+       o responsável ficava gravado em `resps` mas nunca chegava à lista — e as
+       perguntas que lhe apontassem caíam no de recurso sem explicação. Recusa-se
+       à entrada, que é onde se pode dizer porquê. */
+    if(k==="__proto__")continue;
     vistos[k]=1;out.push({k:k,n:n});
   }
   return out;
@@ -480,6 +499,23 @@ function fundirResps(nossos,outros){
   (outros||[]).forEach(r=>{if(!tem[r.k]){tem[r.k]=1;out.push(r);}});
   return out;
 }
+/* Leitura de UM texto de recomendação, indexado pelo código do responsável.
+   Porta única de recsOf() e de respEmUso().
+
+   O `hasOwnProperty` não é zelo: desde 3.5.0 o código do responsável é escrito
+   pelo utilizador, e `recs` é um objecto literal. Com um responsável de código
+   "constructor" (ou "toString", "valueOf", …) e uma auditoria sem recomendação
+   escrita, `recs[k]` devolvia a propriedade HERDADA do protótipo, e o relatório
+   imprimia «function Object() { [native code] }» como recomendação — texto que
+   ficava gravado à primeira edição. Pior: respEmUso() lia o mesmo valor como
+   uso, e o responsável passava a não poder ser removido de todo.
+   É a mesma classe de defeito que a guarda `isResp()` fechou em 3.1.1, agora
+   pelo lado das recomendações. */
+function recTexto(recs,k){
+  if(!recs||typeof recs!=="object")return "";
+  return Object.prototype.hasOwnProperty.call(recs,k)?clean(recs[k],600):"";
+}
+
 /* Onde é que um responsável está a ser usado. Devolve contagens, não um
    booleano: a mensagem que trava a remoção diz ao utilizador ONDE está o uso,
    que é o que lhe permite decidir. As auditorias sem `items` próprios seguem as
@@ -493,7 +529,7 @@ function respEmUso(k,items,lista){
     const its=Array.isArray(a.items)?a.items:[];
     /* O texto de recomendação conta como uso: apagar o responsável fá-lo-ia
        desaparecer do relatório, sem aviso e sem forma de o recuperar. */
-    const rec=a.recs&&typeof a.recs==="object"&&clean(a.recs[k],600)!=="";
+    const rec=recTexto(a.recs,k)!=="";
     if(rec||its.some(it=>it&&it.r===k))auditorias++;
   });
   return{perguntas:perguntas,auditorias:auditorias};
@@ -708,7 +744,35 @@ const load=(k,d)=>{
   try{const v=localStorage.getItem(k);return v==null||v===""?d:JSON.parse(v);}
   catch(e){return d;}
 };
-const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+/* JSON válido mas com a FORMA errada era o que faltava cobrir (v3.5.1): o try
+   acima só apanha o que não faz parse. Uma chave `services` com o texto `"x"`
+   passa o parse e rebenta logo a seguir em `services.map`, antes do primeiro
+   render — página em branco, e o service worker a servir essa mesma página
+   partida offline. É o mesmo desfecho que o try foi buscar, pela outra porta, e
+   é alcançável a partir de qualquer outra página da origem (ver README, secção
+   do armazenamento partilhado). Todas as chaves desta aplicação são listas. */
+const loadArr=(k,d)=>{const v=load(k,d);return Array.isArray(v)?v:d;};
+/* O localStorage é finito (~5 MB por origem, partilhados com tudo o que esteja
+   publicado no mesmo domínio) e `setItem` LANÇA quando enche. Sem este try, a
+   excepção subia do onclick de Guardar: o relatório não abria, a auditoria
+   ficava só em memória e o utilizador não via mensagem nenhuma — o botão
+   parecia morto. Devolve se gravou, para que quem chama possa não seguir em
+   frente como se tivesse gravado. */
+let avisoCheio=false;
+const save=(k,v)=>{
+  try{localStorage.setItem(k,JSON.stringify(v));return true;}
+  catch(e){
+    /* Um só aviso por acção: a importação grava quatro chaves seguidas e
+       quatro caixas iguais não dizem mais do que uma. */
+    if(!avisoCheio){
+      avisoCheio=true;setTimeout(()=>{avisoCheio=false;},0);
+      alert("Não foi possível guardar: o armazenamento local do navegador está cheio.\n\n"+
+        "Exporte os dados (Configuração → Exportar JSON) e apague auditorias antigas "+
+        "para libertar espaço. Nada do que estava guardado se perdeu.");
+    }
+    return false;
+  }
+};
 
 /* Escape de HTML: obrigatório em TODA a interpolação de dados do utilizador
    (ficheiros importados, serviços, pessoas, perguntas) dentro de innerHTML. */
@@ -720,11 +784,11 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.5.0";
+const APP_VERSION="3.5.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
-let audits=load("audits",[]);
-let services=load("services",["UCIP (11120)"]);
-let people=load("people",[]); /* repositores / picking */
+let audits=loadArr("audits",[]);
+let services=loadArr("services",["UCIP (11120)"]);
+let people=loadArr("people",[]); /* repositores / picking */
 let answers={};
 /* v3.3.0 — edição de auditorias anteriores.
    `editId` é o id da auditoria que o formulário está a editar (null = auditoria
@@ -737,7 +801,7 @@ const fitems=()=>FORM_ITEMS||ITEMS;
 /* v2.0.0: itemsCfg gravado por versões 1.x traz `mau` e nenhum t1/t2. A
    migração acontece aqui, no arranque, sem reescrever localStorage: só ao
    Guardar no editor é que o formato novo é persistido. */
-function loadItems(){ITEMS=load("itemsCfg",DEFAULT_ITEMS).map(normItem);MAX=ITEMS.length*2;}
+function loadItems(){ITEMS=loadArr("itemsCfg",DEFAULT_ITEMS).map(normItem);MAX=ITEMS.length*2;}
 /* v3.5.0: os responsáveis vivem em `resps`, editáveis na Configuração. Sem nada
    guardado valem os de origem. TEM de correr ANTES de loadItems(): normItem()
    valida `it.r` contra RESP, e com a lista por carregar um responsável
@@ -980,14 +1044,22 @@ document.getElementById("btn-save").onclick=()=>{
   if(editId!=null){
     const nova=aplicarEdicao(audits,editId,dados);
     if(!nova){alert("Esta auditoria já não existe no histórico. As alterações não foram guardadas.");resetForm();return;}
-    audits=nova;save("audits",audits);
+    const anterior=audits;
+    audits=nova;
+    /* Gravação falhada (armazenamento cheio) NÃO limpa o formulário: o que o
+       utilizador escreveu é a única cópia que existe, e mandá-lo de volta a um
+       formulário em branco seria perder o trabalho por cima do erro. A lista em
+       memória volta atrás para não mostrar no histórico uma alteração que o
+       disco não tem. */
+    if(!save("audits",audits)){audits=anterior;return;}
     const a=audits.find(x=>x.id===editId);
     resetForm();
     openReport(a);
     return;
   }
   const a=Object.assign({id:Date.now()},dados);
-  audits.push(a);save("audits",audits);
+  audits.push(a);
+  if(!save("audits",audits)){audits.pop();return;}
   resetForm();
   openReport(a);
 };
@@ -1036,11 +1108,11 @@ const barCls=p=>p>=80?"":p>=50?"mid":"bad";
 const respKeys=()=>Object.keys(RESP);
 /* Normaliza o campo recs: devolve sempre as chaves de RESP, descartando
    quaisquer outras (defesa contra JSON importado com chaves arbitrárias).
-   As auditorias gravadas antes de 3.2.0 não têm "P" — `clean(undefined)`
-   devolve "", pelo que o bloco novo aparece simplesmente vazio. */
+   As auditorias gravadas antes de 3.2.0 não têm "P" — `recTexto()` devolve "",
+   pelo que o bloco novo aparece simplesmente vazio. */
 function recsOf(a){
   const src=(a&&a.recs)||{};const out={};
-  respKeys().forEach(k=>{out[k]=clean(src[k],600);});
+  respKeys().forEach(k=>{out[k]=recTexto(src,k);});
   return out;
 }
 function hasRecs(a){const r=recsOf(a);return respKeys().some(k=>r[k]!=="");}
@@ -1648,6 +1720,7 @@ function sanitizeItems(data){
   if(!Array.isArray(data))return[];
   const limpas=[];
   for(const x of data){
+    if(limpas.length>=MAX_ITEMS)break;
     if(!x||typeof x!=="object")continue;
     const it={
       p:Math.min(PILLARS.length-1,Math.max(0,parseInt(x.p,10)||0)),
@@ -1727,8 +1800,9 @@ function importJson(inp){
     const respsFundidos=fundirResps(respsAntes,respsFich);
     if(respsFich.length)aplicarResps(respsFundidos);
     const desfazerResps=()=>{if(respsFich.length)aplicarResps(respsAntes);};
-    const inAudits=data.audits.map(sanitizeAudit).filter(Boolean);
-    const descartadas=data.audits.length-inAudits.length;
+    const inAudits=data.audits.slice(0,MAX_AUDITS).map(sanitizeAudit).filter(Boolean);
+    const descartadas=Math.min(data.audits.length,MAX_AUDITS)-inAudits.length;
+    const truncadas=Math.max(0,data.audits.length-MAX_AUDITS);
     if(!inAudits.length){desfazerResps();alert("Nenhuma auditoria válida encontrada no ficheiro.");return;}
     const semItens=inAudits.filter(a=>!a.items&&a.scores.length!==ITEMS.length).length;
     const inSvc=Array.isArray(data.services)?data.services.map(s=>clean(s,200)).filter(Boolean):[];
@@ -1741,6 +1815,7 @@ function importJson(inp){
     const modo=prompt(
       "Ficheiro"+origem+": "+inAudits.length+" auditoria(s), "+inSvc.length+" serviço(s), "+inPpl.length+" pessoa(s)."+
       (descartadas?"\n"+descartadas+" registo(s) inválido(s) serão ignorados.":"")+
+      (truncadas?"\nO ficheiro traz mais de "+MAX_AUDITS+" auditorias: as "+truncadas+" últimas são ignoradas.":"")+
       (semItens?"\nAtenção: "+semItens+" auditoria(s) sem as perguntas associadas e com nº de respostas diferente do actual — os relatórios podem ficar desalinhados.":"")+
       "\n\nEscreva:\n  F = Fundir com os dados actuais (não duplica)\n  S = Substituir tudo","F");
     if(modo===null){desfazerResps();return;}
@@ -1749,6 +1824,10 @@ function importJson(inp){
 
     if(m==="S"){
       if(!confirm("Substituir TODOS os dados actuais ("+audits.length+" auditoria(s))? Esta acção não pode ser anulada.")){desfazerResps();return;}
+      /* v3.5.1 — o mesmo código de acesso que apagar UMA auditoria pede desde
+         3.3.1. Substituir apaga-as a TODAS de uma vez e é igualmente
+         irreversível: a porta mais destrutiva era a única que não o pedia. */
+      if(!pedirPin("Código de acesso para substituir todo o histórico (não é possível anular):")){desfazerResps();return;}
       audits=inAudits;
       services=inSvc.length?[...new Set(inSvc)]:services;
       people=[...new Set(inPpl)];
