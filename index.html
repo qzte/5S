@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.5.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.5.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -779,12 +779,32 @@ const save=(k,v)=>{
 const ESC_MAP={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 
-/* Limpeza de texto proveniente de ficheiros: remove caracteres de controlo e
-   limita o comprimento. O escape no render continua a ser a defesa principal. */
-const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F]/g,"").trim().slice(0,max||200);
+/* Limpeza de TODO o texto que o utilizador escreve ou importa: remove
+   caracteres invisíveis e limita o comprimento. O escape no render continua a
+   ser a defesa principal contra HTML; isto trata do que o escape não vê.
+
+   Além dos caracteres de controlo C0/DEL, caem desde 3.5.2 as marcas
+   BIDIRECCIONAIS e os espaços de largura zero:
+
+     U+061C            marca árabe
+     U+200B            espaço de largura zero
+     U+200E U+200F     marcas esquerda-para-direita / direita-para-esquerda
+     U+202A a U+202E   embutir e SOBREPOR direcção (o U+202E do «Trojan Source»)
+     U+2066 a U+2069   isolar direcção
+     U+FEFF            espaço sem quebra de largura zero (BOM)
+
+   O motivo é o relatório: é um documento que se imprime e se assina, e um
+   U+202E num nome de serviço ou de responsável inverte visualmente o texto
+   que lhe segue. Quem lê o PDF não tem como notar — não há caractere para ver.
+
+   NÃO caem o U+200C (ZWNJ) nem o U+200D (ZWJ): são juntores legítimos, usados
+   em árabe, em escritas índicas e nas sequências de emoji. Apagá-los partiria
+   texto verdadeiro para travar um engano que eles não permitem — as marcas de
+   direcção acima é que o permitem, e essas não têm uso legítimo aqui. */
+const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F\u061C\u200B\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.5.1";
+const APP_VERSION="3.5.2";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=loadArr("audits",[]);
 let services=loadArr("services",["UCIP (11120)"]);
@@ -1009,12 +1029,17 @@ function resetForm(){endEdit();refreshForm();}
    pela edição, para que as duas gravem exactamente os mesmos campos. */
 function colherFormulario(){
   const IT=fitems();
+  /* v3.5.2: os nomes e a observação passam por clean(), com os mesmos limites
+     que sanitizeAudit() aplica na importação. Uma auditoria escrita aqui ficava
+     por limpar até ser exportada e reimportada — e são precisamente estes
+     campos que encabeçam o relatório impresso. O serviço vem de um <select> já
+     limpo à entrada e a data de um <input type=date>. */
   return{service:document.getElementById("f-service").value,
     date:document.getElementById("f-date").value,
-    pick:document.getElementById("f-pick").value,
-    repo:document.getElementById("f-repo").value,
-    verif:document.getElementById("f-verif").value,
-    note:document.getElementById("f-note").value,
+    pick:clean(document.getElementById("f-pick").value,120),
+    repo:clean(document.getElementById("f-repo").value,120),
+    verif:clean(document.getElementById("f-verif").value,120),
+    note:clean(document.getElementById("f-note").value,200),
     scores:IT.map((_,i)=>answers[i]),
     raw:IT.map((_,i)=>rawVals[i]!=null?rawVals[i]:null),
     /* v3.1.0: alvo efectivo de cada item, para o relatório poder mostrar a
@@ -1689,7 +1714,11 @@ function importExcel(inp){
     rd.readAsArrayBuffer(file);
   }).catch(e=>alert(e.message));
 }
-function addSvc(){const v=document.getElementById("svc-new").value.trim();
+/* v3.5.2: `clean()` e não `.trim()`. Um serviço escrito à mão nunca passava por
+   nenhuma limpeza — só os que vinham do Excel — e é texto que vai parar ao
+   cabeçalho do relatório impresso. Sem isto, o filtro das marcas bidireccionais
+   valeria apenas para os ficheiros importados, que é o caminho menos provável. */
+function addSvc(){const v=clean(document.getElementById("svc-new").value,200);
   if(!v)return;services.push(v);save("services",services);
   document.getElementById("svc-new").value="";renderCfg();renderForm();}
 function rmSvc(i){services.splice(i,1);save("services",services);renderCfg();renderForm();}
@@ -2090,6 +2119,17 @@ function edAdd(){
   document.getElementById("ed-list").lastElementChild.scrollIntoView({behavior:"smooth"});
 }
 function edSave(){
+  /* v3.5.2: o enunciado e o tema passam por clean(), com os mesmos limites de
+     sanitizeItems(). O editor era o último caminho por onde texto chegava ao
+     localStorage sem limpeza nenhuma — normItem() trata do tipo e dos limiares,
+     nunca tocou no texto —, e o enunciado é o que se lê na grelha do relatório.
+
+     Limpa-se ANTES de validar: um enunciado feito só de caracteres invisíveis
+     passaria a validação (não são espaço em branco, logo o `trim()` de
+     edValidate não os apaga) e chegaria vazio ao ficheiro guardado. Assim, é
+     recusado com a mensagem que já existe para uma pergunta sem texto. */
+  edItems=edItems.map(it=>Object.assign({},it,
+    {c:clean(it.c,500),t:clean(it.t,120)||"Tema"}));
   const erros=edValidate(edItems);
   if(erros.length){alert("Não é possível guardar:\n\n"+erros.slice(0,8).join("\n")+
     (erros.length>8?"\n… e mais "+(erros.length-8)+".":""));return;}

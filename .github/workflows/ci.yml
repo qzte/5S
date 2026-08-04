@@ -3,6 +3,16 @@
 # O repositório não tem build nem dependências de produção: `index.html` é um
 # ficheiro único. A CI limita-se, por isso, a correr o que já existe em
 # `tests/`, exactamente com os mesmos comandos documentados no README.
+#
+# AS ACTIONS SÃO FIXADAS POR SHA, não por etiqueta (3.5.2). Uma etiqueta como
+# `@v4` é móvel: quem controlar o repositório da action decide, a qualquer
+# momento e sem que nada aqui mude, que código passa a correr nesta CI. O SHA é
+# imutável. O comentário ao lado diz a que versão corresponde, para que a
+# actualização continue a ser legível — e é uma decisão deliberada, feita à mão,
+# em vez de acontecer sozinha.
+#
+# Para actualizar: `git ls-remote --tags https://github.com/actions/<nome>`,
+# escolher a versão e trocar o SHA e o comentário no mesmo gesto.
 name: CI
 
 on:
@@ -25,9 +35,9 @@ jobs:
     name: Testes unitários (node:test)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
 
@@ -40,9 +50,9 @@ jobs:
     name: Smoke tests de browser (Playwright)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
 
@@ -80,7 +90,7 @@ jobs:
     name: Coerência da versão
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # A versão está repetida em quatro sítios (index.html, sw.js,
       # manifest.json, README.md) e o sw.js usa-a como nome da cache: uma
