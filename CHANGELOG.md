@@ -5,6 +5,36 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.2.0] — 2026-08-04
+
+### Adicionado
+
+- **Quinto responsável: Picking.** `RESP` passa a ter a chave `P`, a par de
+  Utilizadores, Manutenção, Reposição e Utilizador e Repositor. Aparece no
+  selector de responsável do editor de perguntas, no radar e nas barras
+  "Desempenho por responsável", e ganha bloco próprio nas recomendações do
+  relatório. Nenhuma pergunta do checklist de origem lhe é atribuída — quem
+  audita escolhe quais passam a Picking no editor de perguntas.
+
+  A chave nova é acrescentada **no fim** de `RESP`: a ordem do objeto é a ordem
+  dos eixos do radar, pelo que os quatro responsáveis anteriores ficam onde
+  estavam. `REC_KEYS` deixa de ser uma lista escrita à mão e passa a derivar de
+  `Object.keys(RESP)`, para não haver duas listas de responsáveis a divergir.
+
+### Corrigido
+
+- **Um responsável sem perguntas atribuídas entrava no radar da Análise com
+  0%.** `pctOf([])` devolve 0, o que é indistinguível de uma pontuação nula:
+  o Picking recém-criado apareceria como o pior de todos até lhe ser atribuída
+  a primeira pergunta. Zero perguntas não é zero por cento — os eixos sem
+  perguntas ficam agora de fora do radar e das barras da Análise, tal como já
+  acontecia no radar do relatório. As barras do relatório seguem a mesma regra,
+  em vez de listarem "(0 itens) · 0%".
+
+- Auditorias gravadas antes desta versão não têm texto de recomendação para o
+  Picking; `recsOf()` normaliza a chave em falta para `""` e o bloco aparece
+  vazio, sem migração nem perda do que lá estava.
+
 ## [3.1.4] — 2026-07-31
 
 ### Corrigido
