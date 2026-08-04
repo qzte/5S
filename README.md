@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.3.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.3.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.3.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.3.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -37,7 +37,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | Vista | O que faz |
 | --- | --- |
 | **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. |
-| **Histórico** | Todas as auditorias guardadas, por serviço e data, com edição e remoção. |
+| **Histórico** | Todas as auditorias guardadas, por serviço e data, com edição e remoção (ambas sob PIN). |
 | **Análise** | Evolução da nota, comparação entre serviços, radar por pilar 5S e radar por responsável — em SVG/canvas nativos, sem bibliotecas de gráficos. |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. |
 | **Configuração** | Serviços, exportação/importação JSON, importação de Excel e editor de perguntas (PIN). |
@@ -138,6 +138,10 @@ Ambos **pedem o código de acesso** — o mesmo do editor de perguntas, e pedido
 cada vez. Reescrever uma auditoria gravada é uma alteração ao histórico, e a
 protecção que aqui interessa é contra o toque distraído: o código é público (ver
 [Segurança](#segurança)) e nunca foi um controlo de segurança.
+
+**Apagar** pede o mesmo código, depois da confirmação (3.3.1). É a alteração
+mais definitiva de todas: não há como anular, e sem uma exportação o que se
+perde não está em mais lado nenhum.
 
 A edição corre sobre as **perguntas gravadas com essa auditoria**, não sobre as
 actuais: se o editor de perguntas mudou entretanto, cada resposta continua a
@@ -261,8 +265,8 @@ mitigado. Dois pontos a reter:
   os dados desta aplicação. Para isolamento real seria preciso um domínio
   próprio.
 
-**O PIN do editor — pedido também para editar uma auditoria gravada — não é um
-controlo de segurança.** O código é público num
+**O PIN do editor — pedido também para editar e para apagar uma auditoria
+gravada — não é um controlo de segurança.** O código é público num
 ficheiro estático; qualquer pessoa o pode ler. Protege apenas contra alterações
 acidentais.
 
