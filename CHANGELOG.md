@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.2.1] — 2026-08-04
+
+### Alterado
+
+- **A pergunta nº 8 — "Nº de artigos em rutura mal identificados" — passa de
+  Reposição para Picking**, e é a primeira do checklist de origem atribuída ao
+  responsável criado em 3.2.0. É o que faz o quinto eixo aparecer no radar por
+  responsável sem ser preciso mexer no editor de perguntas.
+
+  Só afecta auditorias **novas**: as já gravadas guardam a sua própria cópia das
+  perguntas (`a.items`), pelo que os radares e as recomendações do passado
+  continuam a atribuir a nº 8 à Reposição, tal como no dia em que foram feitas.
+
 ## [3.2.0] — 2026-08-04
 
 ### Adicionado
