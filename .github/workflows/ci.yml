@@ -86,6 +86,9 @@ jobs:
       - name: Responsáveis editáveis
         run: node tests/smoke-responsaveis.mjs
 
+      - name: Painel e-ink (5s.painel.json)
+        run: node tests/smoke-painel.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest

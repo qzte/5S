@@ -8,6 +8,17 @@ Duas revisões, por ordem inversa:
 Âmbito de ambas: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
 
+## Nota de 3.6.0 (2026-10-08): o ficheiro para o painel e-ink
+
+A 3.6.0 passa a **escrever um ficheiro no disco**: `5s.painel.json`, para o painel e-ink (qzte/e-ink_panel).
+
+| Ponto | Como ficou |
+| --- | --- |
+| Acesso ao disco | File System Access, `mode: 'readwrite'`, **só na pasta que o utilizador escolhe** (um clique; o browser volta a pedir licença em cada sessão). Escreve um único ficheiro de nome fixo; não lê nem apaga nada. |
+| O que sai da app | Nomes dos serviços, datas e percentagens (por auditoria e por pilar). **Não** leva Picking, Repositor, Verificador, observações, recomendações nem fotografias. |
+| Escrita a meio | `createWritable()` só substitui o ficheiro no `close()`. |
+| CSP | Inalterada: escrever num ficheiro local não é um pedido de rede. |
+
 ---
 
 # Revisão de 3.5.0 (2026-08-04)

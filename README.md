@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.5.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.6.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.5.2** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.6.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -41,7 +41,18 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | **Histórico** | Todas as auditorias guardadas, por serviço e data, com edição e remoção (ambas sob PIN). |
 | **Análise** | Evolução da nota, comparação entre serviços, radar por pilar 5S e radar por responsável — em SVG/canvas nativos, sem bibliotecas de gráficos. |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. |
-| **Configuração** | Serviços, responsáveis, exportação/importação JSON, importação de Excel e editor de perguntas (PIN). |
+| **Configuração** | Serviços, responsáveis, exportação/importação JSON, importação de Excel, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
+
+### Painel e-ink
+
+O painel e-ink de 7.5″ (a app `painel.html` do repositório [qzte/e-ink_panel](https://github.com/qzte/e-ink_panel))
+mostra uma página com as auditorias 5S: o nº de auditorias, a média, a média por pilar e a última auditoria de cada
+serviço (do pior para o melhor, com a tendência face à anterior). Em **Configuração → Painel e-ink** escolhe-se uma
+**pasta partilhada** — a mesma das outras apps e do `painel.html` —, uma vez; a app grava lá `5s.painel.json` sempre
+que uma auditoria é gravada, editada ou apagada (e quando as perguntas ou os responsáveis mudam). Ao reabrir a app o
+browser pode pedir licença outra vez: «Dar acesso à pasta». Só no Chrome ou no Edge de computador; o resto da app
+funciona igual em qualquer browser. O formato está em `docs/09-formato-feed.md` do qzte/e-ink_panel; os números são
+calculados aqui, com as mesmas funções do relatório (`dadosPainel5s`, testado em `tests/painel.test.js`).
 
 ## Instalação e utilização
 
