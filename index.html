@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.5.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.6.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -329,6 +329,16 @@ canvas{width:100%!important}
     <input type="file" id="hist-file" accept=".json,application/json" class="hidden">
     <div id="data-stats" style="font-size:.78rem;color:var(--muted);margin-top:12px"></div>
     <p style="font-size:.78rem;color:var(--muted);margin-top:10px">Os dados ficam guardados apenas neste dispositivo. Faça exportações regulares como cópia de segurança.</p>
+  </div>
+  <div class="card" id="card-painel">
+    <h3 style="margin-bottom:10px">Painel e-ink</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
+      O painel e-ink (a app <b>painel.html</b>, do repositório qzte/e-ink_panel) mostra uma página com as auditorias 5S:
+      a média por pilar e a última auditoria de cada serviço. Esta app grava o ficheiro <b>5s.painel.json</b> numa
+      <b>pasta partilhada</b> — a mesma das outras apps e do painel.html —, escolhida uma vez. Volta a gravá-lo
+      sempre que uma auditoria é gravada, editada ou apagada. Só no Chrome ou no Edge de computador.</p>
+    <button class="btn small ghost" id="btn-painel">Escolher pasta</button>
+    <div id="painel-estado" role="status" style="font-size:.78rem;color:var(--muted);margin-top:10px"></div>
   </div>
   <div class="card">
     <h3 style="margin-bottom:10px">Importar Excel (códigos e descrições)</h3>
@@ -760,7 +770,10 @@ const loadArr=(k,d)=>{const v=load(k,d);return Array.isArray(v)?v:d;};
    frente como se tivesse gravado. */
 let avisoCheio=false;
 const save=(k,v)=>{
-  try{localStorage.setItem(k,JSON.stringify(v));return true;}
+  try{localStorage.setItem(k,JSON.stringify(v));
+    /* v3.6.0: o que entra no painel e-ink mudou — volta a gravar o 5s.painel.json. */
+    if(k==="audits"||k==="itemsCfg"||k==="resps")agendarPainel();
+    return true;}
   catch(e){
     /* Um só aviso por acção: a importação grava quatro chaves seguidas e
        quatro caixas iguais não dizem mais do que uma. */
@@ -804,7 +817,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F\u061C\u200B\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.5.2";
+const APP_VERSION="3.6.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 let audits=loadArr("audits",[]);
 let services=loadArr("services",["UCIP (11120)"]);
@@ -2171,6 +2184,179 @@ function edReset(){
   alert("Perguntas originais repostas.");
 }
 
+/* ---------- Painel e-ink (v3.6.0) ----------
+   O painel e-ink é uma app à parte (qzte/e-ink_panel, painel.html) que lê os ficheiros
+   que as apps gravam numa pasta partilhada. Esta grava 5s.painel.json com o resumo das
+   auditorias — calculado aqui, com as regras de pontuação desta app (pctOf, byPillar).
+   Contrato: docs/09-formato-feed.md lá; o escritor abaixo é uma cópia do de lá. */
+// ─────────────────────────────────────────────────────────────────────────────
+// ESCRITOR DO FICHEIRO PARA O PAINEL E-INK («painel-feed» v1)
+//
+// Cópia de referência de qzte/e-ink_panel (exemplos/escritor-painel.js). Cada app que alimenta o
+// painel tem uma cópia deste ficheiro; o contrato está em docs/09-formato-feed.md desse repositório.
+// Sem dependências e sem framework: serve a apps em React e a apps em JavaScript simples.
+//
+//   const painel = criarEscritorPainel({ app: '5s', titulo: 'Auditoria 5S', versaoApp: APP_VERSION });
+//   painel.subscrever(estado => …);        // 'indisponivel' | 'sem' | 'licenca' | 'ok' | 'erro' — para mostrar na app
+//   await painel.iniciar();                 // ao abrir a app: lembra-se da pasta escolhida antes
+//   botão «Escolher pasta» → painel.escolher();   botão «Dar acesso» → painel.darAcesso()   (têm de vir de um clique)
+//   painel.escrever(dados);                 // sempre que os dados mudam (a app agrupa as mudanças, p. ex. 2 s)
+//
+// Grava `<app>.painel.json` na pasta com createWritable(), que só substitui o ficheiro no close() — o
+// painel nunca lê um ficheiro a meio. Não regrava se os dados forem iguais aos da última escrita.
+// Se a pasta ainda não tem licença, guarda os dados e escreve-os quando a licença for dada.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function criarEscritorPainel({ app, titulo, versaoApp = '' }) {
+  if (!/^[a-z0-9-]{1,40}$/.test(app)) throw new Error('criarEscritorPainel: «app» inválido');
+  const FICHEIRO = `${app}.painel.json`;
+  const IDB = `painel-feed:${app}`, LOJA = 'kv', CHAVE = 'pasta';
+  const suportado = typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+  let handle = null, estado = suportado ? 'sem' : 'indisponivel', erro = '', escritoEm = null;
+  let pendentes = null, ultimoTexto = '', aEscrever = null;
+  const ouvintes = new Set();
+  const avisar = () => { for (const f of ouvintes) { try { f(info()); } catch (e) { /* um ouvinte não estraga os outros */ } } };
+  const mudar = (novo, msg = '') => { estado = novo; erro = msg; avisar(); };
+  const info = () => ({ estado, erro, pasta: handle?.name || '', ficheiro: FICHEIRO, escritoEm });
+
+  function idb(modo, fn) {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB, 1);
+      req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains(LOJA)) req.result.createObjectStore(LOJA); };
+      req.onerror = () => reject(req.error);
+      req.onsuccess = () => {
+        const db = req.result;
+        // Um valor que não se deixa guardar (DataCloneError) lança aqui, dentro do evento: sem o try,
+        // a promessa nunca acabava e quem esperava por ela («Escolher pasta») ficava pendurado.
+        try {
+          const tx = db.transaction(LOJA, modo), r = fn(tx.objectStore(LOJA));
+          tx.oncomplete = () => { db.close(); resolve(r?.result); };
+          tx.onerror = tx.onabort = () => { db.close(); reject(tx.error); };
+        } catch (e) { db.close(); reject(e); }
+      };
+    });
+  }
+  const permissao = async (pedir) => {
+    const opc = { mode: 'readwrite' };
+    try {
+      let p = await handle.queryPermission(opc);
+      if (p !== 'granted' && pedir) p = await handle.requestPermission(opc);
+      return p;
+    } catch (e) { return 'denied'; }
+  };
+
+  async function gravar(texto) {
+    const fh = await handle.getFileHandle(FICHEIRO, { create: true });
+    const w = await fh.createWritable();
+    try { await w.write(texto); await w.close(); }
+    catch (e) { try { await w.abort(); } catch (e2) { /* já fechado */ } throw e; }
+  }
+
+  // As escritas vão uma de cada vez; a última pedida é a que fica.
+  async function despejar() {
+    if (aEscrever) return aEscrever;
+    aEscrever = (async () => {
+      while (pendentes && estado === 'ok') {
+        const dados = pendentes; pendentes = null;
+        const corpo = JSON.stringify(dados);
+        if (corpo === ultimoTexto) continue;
+        const texto = JSON.stringify({ formato: 'painel-feed', versao: 1, app, titulo, versaoApp, gerado: new Date().toISOString(), dados });
+        try { await gravar(texto); ultimoTexto = corpo; escritoEm = Date.now(); mudar('ok'); }
+        catch (e) {
+          pendentes = pendentes || dados;      // tenta outra vez quando a licença voltar
+          if (await permissao(false) !== 'granted') mudar('licenca');
+          else mudar('erro', e?.message || String(e));
+          break;
+        }
+      }
+    })();
+    try { await aEscrever; } finally { aEscrever = null; }
+  }
+
+  return {
+    subscrever(f) { ouvintes.add(f); f(info()); return () => ouvintes.delete(f); },
+    info,
+    /** Ao abrir a app: volta à pasta de antes, se a houver (sem clique, só se a licença ainda valer). */
+    async iniciar() {
+      if (!suportado) return info();
+      try { handle = (await idb('readonly', s => s.get(CHAVE))) || null; } catch (e) { handle = null; }
+      if (!handle) { mudar('sem'); return info(); }
+      mudar(await permissao(false) === 'granted' ? 'ok' : 'licenca');
+      await despejar();
+      return info();
+    },
+    /** Escolher a pasta (de um clique). Devolve false se o utilizador cancelou. */
+    async escolher() {
+      if (!suportado) return false;
+      try { handle = await window.showDirectoryPicker({ id: 'painel-eink', mode: 'readwrite' }); }
+      catch (e) { if (e?.name === 'AbortError') return false; mudar('erro', e?.message || String(e)); return false; }
+      try { await idb('readwrite', s => s.put(handle, CHAVE)); } catch (e) { /* fica só para esta sessão */ }
+      ultimoTexto = '';
+      mudar('ok'); await despejar();
+      return true;
+    },
+    /** Voltar a dar licença à pasta lembrada (de um clique). */
+    async darAcesso() {
+      if (!handle) return false;
+      const ok = await permissao(true) === 'granted';
+      if (ok) { mudar('ok'); await despejar(); }
+      return ok;
+    },
+    /** Deixar de escrever para o painel (esquece a pasta). */
+    async esquecer() {
+      handle = null; pendentes = null; ultimoTexto = '';
+      try { await idb('readwrite', s => s.delete(CHAVE)); } catch (e) { /* nada a esquecer */ }
+      mudar(suportado ? 'sem' : 'indisponivel');
+    },
+    /** Os dados mudaram: escreve-os (já, se houver pasta com licença; senão, quando houver). */
+    async escrever(dados) {
+      pendentes = dados;
+      if (estado === 'ok') await despejar();
+    },
+  };
+}
+
+/* Os `dados` do 5s.painel.json: nº de auditorias, média, a mais recente, a média por pilar
+   e a última auditoria de cada serviço (com a % da penúltima, para a seta de tendência). */
+function dadosPainel5s(lista){
+  const todas=[...lista].sort((a,b)=>a.date.localeCompare(b.date)||(Number(a.id)||0)-(Number(b.id)||0));
+  const porSvc=new Map();
+  for(const a of todas){if(!porSvc.has(a.service))porSvc.set(a.service,[]);porSvc.get(a.service).push(a);}
+  const servicos=[...porSvc].map(([nome,l])=>{
+    const ult=l[l.length-1],ant=l.length>1?l[l.length-2]:null;
+    return{nome,pct:total(ult),data:ult.date,anterior:ant?total(ant):null,n:l.length};
+  }).sort((a,b)=>b.data.localeCompare(a.data));
+  return{
+    total:todas.length,
+    media:todas.length?avg(todas.map(total)):null,
+    ultima:todas.length?todas[todas.length-1].date:null,
+    pilares:PILLARS.map((p,i)=>({nome:p,pct:todas.length?avg(todas.map(a=>byPillar(a)[i].pct)):null})),
+    servicos
+  };
+}
+
+const painel=criarEscritorPainel({app:"5s",titulo:"Auditoria 5S",versaoApp:APP_VERSION});
+let painelTimer=null;
+/* Agrupa gravações seguidas (a importação grava várias chaves de uma vez). */
+function agendarPainel(){clearTimeout(painelTimer);painelTimer=setTimeout(()=>painel.escrever(dadosPainel5s(audits)),2000);}
+function mostrarPainel(i){
+  const btn=document.getElementById("btn-painel"),txt=document.getElementById("painel-estado");
+  if(!btn||!txt)return;
+  const hora=i.escritoEm?new Date(i.escritoEm).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}):"";
+  btn.dataset.estado=i.estado;
+  btn.disabled=i.estado==="indisponivel";
+  btn.textContent=i.estado==="licenca"?"Dar acesso à pasta":i.estado==="ok"?"Escolher outra pasta":"Escolher pasta";
+  txt.textContent={
+    indisponivel:"Este browser não consegue gravar numa pasta (use o Chrome ou o Edge de computador).",
+    sem:"Nenhuma pasta escolhida: o painel não recebe as auditorias 5S.",
+    licenca:"O browser pede licença outra vez para gravar na pasta «"+i.pasta+"» (acontece ao reabrir a app).",
+    ok:"A gravar "+i.ficheiro+" na pasta «"+i.pasta+"»"+(hora?" — última vez às "+hora:"")+".",
+    erro:"Não foi possível gravar "+i.ficheiro+": "+i.erro
+  }[i.estado]||"";
+}
+painel.subscrever(mostrarPainel);
+painel.iniciar().then(()=>painel.escrever(dadosPainel5s(audits)));
+
 /* ---------- Ligação dos controlos estáticos ----------
    Nenhum handler inline no HTML: permite endurecer a CSP e elimina
    qualquer possibilidade de injecção através de atributos de evento. */
@@ -2196,6 +2382,10 @@ on("btn-edimp","click",()=>document.getElementById("ed-file").click());
 on("ed-file","change",function(){edImport(this);});
 on("btn-edsave","click",()=>edSave());
 on("btn-edreset","click",()=>edReset());
+on("btn-painel","click",()=>{
+  const e=painel.info().estado;
+  (e==="licenca"?painel.darAcesso():painel.escolher()).then(()=>painel.escrever(dadosPainel5s(audits)));
+});
 
 renderForm();
 /* Depois do primeiro render: a proposta é uma caixa de diálogo e não deve
