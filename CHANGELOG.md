@@ -5,6 +5,22 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.6.0] — 2026-10-08
+
+### Adicionado
+
+- **Painel e-ink.** A app grava `5s.painel.json` numa pasta partilhada, escolhida em
+  **Configuração → Painel e-ink**, para o painel e-ink (a app `painel.html` do repositório
+  qzte/e-ink_panel) mostrar uma página com as auditorias 5S: nº de auditorias, média,
+  média por pilar e a última auditoria de cada serviço, com a tendência face à anterior.
+  Volta a gravar ~2 s depois de qualquer gravação de auditorias, perguntas ou
+  responsáveis, e não regrava se nada mudou. Usa a File System Access API (Chrome/Edge):
+  a escrita fica limitada à pasta escolhida e a um ficheiro de nome fixo; o ficheiro tem
+  serviços e notas, não tem nomes de pessoas nem fotografias.
+- `tests/painel.test.js` (o resumo, com as funções de pontuação da app) e
+  `tests/smoke-painel.mjs` (escolher a pasta grava o ficheiro; gravar uma auditoria
+  volta a gravá-lo).
+
 ## [3.5.2] — 2026-08-04
 
 Fecha os três pontos que a auditoria da 3.5.0 tinha registado **sem** corrigir.
