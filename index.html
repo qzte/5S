@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.9.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.10.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -19,15 +19,19 @@
      As fontes usam pilhas do sistema (ver --f-sans / --f-serif). -->
 <meta name="referrer" content="no-referrer">
 <!--
-  CSP: 'unsafe-inline' em script-src é necessário porque toda a aplicação
-  (incluindo o SheetJS) vive em <script> embutidos neste ficheiro único.
+  CSP: neste ficheiro, script-src traz 'unsafe-inline', porque toda a
+  aplicação (incluindo o SheetJS) vive em <script> embutidos e assim pode ser
+  editada e servida localmente sem passo nenhum.
+  Na versão PUBLICADA (v3.10.0), scripts/csp.mjs troca-o pelo hash SHA-256 de
+  cada <script>, aqui e no _headers: só esses blocos, tal como estão, correm.
+  Todos os <script> embutidos têm por isso de abrir no início de uma linha e
+  sem atributos — o csp.mjs recusa publicar se algum ficar sem hash.
   NÃO existem handlers de evento inline (onclick/onchange/...) — foram todos
-  substituídos por addEventListener, pelo que a superfície de injecção via
-  atributos é nula. As restantes directivas continuam a valer mesmo assim:
-  connect-src 'self' impede exfiltração para domínios externos, object-src
-  e base-uri 'none' bloqueiam plugins e sequestro de URLs relativos.
-  Para eliminar 'unsafe-inline': mover o JS para ./app.js (script-src 'self')
-  ou usar hashes sha256 dos blocos — recalculando-os a cada alteração.
+  substituídos por addEventListener, e nenhum seria autorizado por um hash.
+  As restantes directivas: connect-src 'self' impede exfiltração para
+  domínios externos, object-src e base-uri 'none' bloqueiam plugins e
+  sequestro de URLs relativos. style-src mantém 'unsafe-inline': há atributos
+  style em todo o HTML gerado, e estilos não executam código.
 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
 <script>
@@ -73,13 +77,44 @@
 :root{
   --bg:#f4f1ea; --ink:#1d2a24; --panel:#ffffff; --line:#d9d3c5;
   --green:#1f6f50; --green-dk:#12211c; --amber:#c98a1b; --red:#b03a2e;
-  --accent:#e8500a; --muted:#6d7a72;
+  --accent:#e8500a; --muted:#5f6b64;
+  /* v3.10.0 — contraste (WCAG AA, 4,5:1) e modo escuro. As cores de marca
+     ficam para o que é gráfico (barras, bordas, linhas); o TEXTO e os fundos
+     com texto branco por cima usam estas, que passam o contraste e mudam no
+     modo escuro. O --muted escureceu de #6d7a72 (4,49:1 sobre branco). */
+  --green-ink:#1f6f50; --red-ink:#b03a2e; --amber-ink:#8a5a0c;
+  --amber-bg:#94600d; --accent-ink:#c2410c;
+  --field:#fdfcf9; --field-2:#fff; --track:#e6e1d4; --chip:#f0ece1;
+  --photo-bg:#faf8f3; --photo-line:#cfc8b8; --chart-axis:#b9b2a2;
+  /* Séries do gráfico de evolução, uma por serviço. */
+  --s0:#1f6f50; --s1:#e8500a; --s2:#2f5d9e; --s3:#c98a1b;
+  --s4:#7b4fa0; --s5:#b03a2e; --s6:#3a8f8a; --s7:#6d7a72;
+  color-scheme:light;
   --radius:14px;
   /* Pilhas de fontes do sistema — sem dependencia de CDN externo. */
   --f-sans:"Archivo","Helvetica Neue",Helvetica,Arial,"Segoe UI",Roboto,system-ui,sans-serif;
   --f-serif:"Source Serif 4","Iowan Old Style",Georgia,"Times New Roman",serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+/* v3.10.0: modo escuro, só no ecrã. A impressão continua clara: o relatório é
+   para papel. */
+@media screen and (prefers-color-scheme:dark){
+  :root{
+    --bg:#101815; --ink:#e3e9e5; --panel:#18231e; --line:#33433b; --muted:#a3b0a8;
+    --green-ink:#7dd3ab; --red-ink:#f19b90; --amber-ink:#e9b65f;
+    --field:#111b17; --field-2:#111b17; --track:#2a3832; --chip:#22302a;
+    --photo-bg:#111b17; --photo-line:#3d4d45; --chart-axis:#55675e;
+    --s0:#5cc196; --s1:#f4823f; --s2:#7fa8ea; --s3:#e3b04b;
+    --s4:#b993e3; --s5:#ee8478; --s6:#5ec7c0; --s7:#a3b0a8;
+    color-scheme:dark;
+  }
+  body{background-image:radial-gradient(circle at 15% 10%,rgba(125,211,171,.06),transparent 45%)}
+  .card{box-shadow:none}
+}
+/* Só para leitores de ecrã: os títulos de secção (h2) que faltavam entre o
+   h1 da app e os h3 dos cartões. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0}
 body{font-family:var(--f-serif);background:var(--bg);color:var(--ink);
   background-image:radial-gradient(circle at 15% 10%,rgba(31,111,80,.07),transparent 45%),
   repeating-linear-gradient(45deg,transparent 0 14px,rgba(29,42,36,.018) 14px 15px);
@@ -101,11 +136,11 @@ main{max-width:760px;margin:0 auto;padding:18px 14px}
 label{display:block;font-family:var(--f-sans);font-size:.7rem;font-weight:700;
   letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
 input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:9px;
-  font-family:inherit;font-size:1rem;background:#fdfcf9;margin-bottom:12px}
+  font-family:inherit;font-size:1rem;background:var(--field);color:var(--ink);margin-bottom:12px}
 input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green)}
 .row{display:flex;gap:10px}.row>*{flex:1}
 .pillar{margin:22px 0 8px;display:flex;align-items:center;gap:10px}
-.pillar h2{font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--green)}
+.pillar h2{font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--green-ink)}
 .pillar .n{background:var(--green);color:#fff;width:26px;height:26px;border-radius:50%;
   display:grid;place-items:center;font-family:var(--f-sans);font-weight:900;font-size:.8rem}
 .item{border-left:4px solid var(--line);padding-left:12px;margin-bottom:16px}
@@ -119,7 +154,7 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
    Detalhes: o <details> nativo garante que funciona sem JS e por toque. */
 .tip{display:inline-block;margin-left:6px;vertical-align:middle}
 .tip>summary{list-style:none;cursor:pointer;display:inline-grid;place-items:center;
-  width:16px;height:16px;border-radius:50%;background:var(--muted);color:#fff;
+  width:16px;height:16px;border-radius:50%;background:#5f6b64;color:#fff;
   font-family:var(--f-sans);font-weight:900;font-size:.62rem;line-height:1;user-select:none}
 .tip>summary::-webkit-details-marker{display:none}
 .tip[open]>summary{background:var(--green)}
@@ -133,25 +168,25 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 @media print{.tip{display:none}}
 .opts{display:flex;gap:8px;margin-top:8px}
 .opt{flex:1;border:1.5px solid var(--line);border-radius:9px;padding:9px 4px;text-align:center;
-  font-family:var(--f-sans);font-size:.72rem;font-weight:700;cursor:pointer;background:#fdfcf9;
+  font-family:var(--f-sans);font-size:.72rem;font-weight:700;cursor:pointer;background:var(--field);
   color:var(--muted);letter-spacing:.3px}
 .opt small{display:block;font-size:.62rem;font-weight:500;margin-top:2px;letter-spacing:0}
 .opt.s0.sel{background:var(--red);border-color:var(--red);color:#fff}
-.opt.s1.sel{background:var(--amber);border-color:var(--amber);color:#fff}
+.opt.s1.sel{background:var(--amber-bg);border-color:var(--amber-bg);color:#fff}
 .opt.s2.sel{background:var(--green);border-color:var(--green);color:#fff}
 .item.done{border-left-color:var(--green)}
-.btn{display:block;width:100%;padding:15px;border:0;border-radius:11px;background:var(--accent);
+.btn{display:block;width:100%;padding:15px;border:0;border-radius:11px;background:var(--accent-ink);
   color:#fff;font-weight:900;font-size:.95rem;letter-spacing:1.5px;text-transform:uppercase;
   cursor:pointer;margin-top:8px}
-.btn.ghost{background:transparent;color:var(--green);border:2px solid var(--green)}
+.btn.ghost{background:transparent;color:var(--green-ink);border:2px solid var(--green-ink)}
 .btn.small{padding:9px;font-size:.75rem;width:auto;display:inline-block}
 .score-hero{background:var(--green-dk);color:#f4f1ea;text-align:center;border:0}
 .score-hero .big{font-family:var(--f-sans);font-weight:900;font-size:3.6rem;line-height:1}
 .score-hero .lbl{font-family:var(--f-sans);font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:#9db8a9}
 .badge{display:inline-block;padding:4px 12px;border-radius:99px;font-size:.7rem;font-weight:700;
   letter-spacing:1px;text-transform:uppercase;margin-top:8px}
-.b-ok{background:var(--green);color:#fff}.b-mid{background:var(--amber);color:#fff}.b-bad{background:var(--red);color:#fff}
-.bar{height:10px;background:#e6e1d4;border-radius:99px;overflow:hidden;margin:4px 0 12px}
+.b-ok{background:var(--green);color:#fff}.b-mid{background:var(--amber-bg);color:#fff}.b-bad{background:var(--red);color:#fff}
+.bar{height:10px;background:var(--track);border-radius:99px;overflow:hidden;margin:4px 0 12px}
 .bar>i{display:block;height:100%;background:var(--green);border-radius:99px}
 .bar>i.mid{background:var(--amber)}.bar>i.bad{background:var(--red)}
 .stat-row{display:flex;justify-content:space-between;font-size:.82rem;font-family:var(--f-sans);font-weight:700}
@@ -160,34 +195,33 @@ th{font-size:.68rem;letter-spacing:1px;text-transform:uppercase;color:var(--mute
   padding:6px 8px;border-bottom:2px solid var(--line)}
 td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .pill{padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:900;color:#fff}
-canvas{width:100%!important}
 .empty{text-align:center;color:var(--muted);padding:30px 10px;font-style:italic}
 .hidden{display:none}
 /* v3.8.0: avisos (nova versão, cópia de segurança, auditoria por terminar). */
 .aviso{border-color:var(--amber);border-width:2px}
 .aviso-txt{font-size:.78rem;color:var(--muted);margin:6px 0 8px}
 /* v3.9.0: diálogo, variação face à auditoria anterior, legenda da evolução. */
-#dlg{margin:auto;border:0;border-radius:var(--radius);padding:20px;max-width:min(92vw,440px);width:100%;
+#dlg{margin:auto;border:0;background:var(--panel);color:var(--ink);border-radius:var(--radius);padding:20px;max-width:min(92vw,440px);width:100%;
   box-shadow:0 12px 40px rgba(0,0,0,.35)}
 #dlg::backdrop{background:rgba(18,33,28,.55)}
 #dlg h3{margin-bottom:8px}
 #dlg-txt{font-size:.85rem;white-space:pre-wrap;margin-bottom:12px}
 #dlg-campo{margin-bottom:10px;font-size:1.2rem;letter-spacing:4px}
-#dlg-erro{color:var(--red);font-size:.8rem;margin-bottom:10px}
+#dlg-erro{color:var(--red-ink);font-size:.8rem;margin-bottom:10px}
 #dlg-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-.btn.perigo{border-color:var(--red);color:var(--red)}
+.btn.perigo{border-color:var(--red-ink);color:var(--red-ink)}
 .delta{font-size:.75rem;font-weight:700;margin-left:6px}
-.delta.up{color:var(--green)}.delta.down{color:var(--red)}.delta.eq{color:var(--muted)}
-.prev{font-size:.72rem;color:var(--amber);margin-top:6px}
+.delta.up{color:var(--green-ink)}.delta.down{color:var(--red-ink)}.delta.eq{color:var(--muted)}
+.prev{font-size:.72rem;color:var(--amber-ink);margin-top:6px}
 .legenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.75rem;margin-top:8px}
 .legenda i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
-.ed-item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;background:#fdfcf9}
-.ed-item textarea{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:.95rem;background:#fff;margin-bottom:10px;resize:vertical;min-height:52px}
+.ed-item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--field)}
+.ed-item textarea{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:.95rem;background:var(--field-2);color:var(--ink);margin-bottom:10px;resize:vertical;min-height:52px}
 .ed-item .hint{font-size:.72rem;color:var(--muted);margin:-6px 0 10px}
 .ed-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .ed-head b{font-family:var(--f-sans);font-size:.8rem;letter-spacing:.5px}
 .ed-del{border:0;background:var(--red);color:#fff;border-radius:8px;padding:5px 10px;font-family:var(--f-sans);font-weight:700;font-size:.7rem;cursor:pointer}
-.svc-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);
+.svc-chip{display:inline-flex;align-items:center;gap:8px;background:var(--field-2);border:1.5px solid var(--line);
   border-radius:99px;padding:6px 6px 6px 14px;margin:0 6px 8px 0;font-family:var(--f-sans);font-size:.8rem;font-weight:700}
 .svc-chip button{border:0;background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-weight:900}
 /* Linha de responsável (v3.5.0): código fixo à esquerda, nome editável, remover
@@ -196,7 +230,7 @@ canvas{width:100%!important}
    referenciam. */
 .resp-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .resp-row .resp-k{flex:0 0 84px;font-family:var(--f-sans);font-weight:900;font-size:.78rem;
-  background:#f0ece1;border:1.5px solid var(--line);border-radius:8px;padding:9px 8px;
+  background:var(--chip);border:1.5px solid var(--line);border-radius:8px;padding:9px 8px;
   text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .resp-row input{flex:1 1 auto;margin:0}
 .resp-row button{flex:0 0 auto;border:0;background:var(--red);color:#fff;border-radius:8px;
@@ -214,13 +248,13 @@ canvas{width:100%!important}
 @page{size:A4 portrait;margin:10mm}
 /* ---------- Recomendações por responsável (v1.7.0) ---------- */
 .rec-block .rec-body{display:flex;gap:12px;align-items:flex-start;margin-top:6px}
-.rec-block .rec-foto{flex:0 0 40%;min-height:110px;border:1px dashed #cfc8b8;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;overflow:hidden;background:#faf8f3}
+.rec-block .rec-foto{flex:0 0 40%;min-height:110px;border:1px dashed var(--photo-line);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--photo-bg)}
 .rec-block .rec-foto img{width:100%;height:100%;object-fit:cover;display:block}
 .rec-block .rec-vazio{font-size:.75rem;color:var(--muted)}
 .rec-block .rec-txt{flex:1 1 auto;min-width:0}
 .rec-block textarea{width:100%;font:inherit;font-size:.85rem;padding:8px;border-radius:8px;
-  border:1px solid #d9d3c5;background:#fff;resize:vertical}
+  border:1px solid var(--line);background:var(--field-2);color:var(--ink);resize:vertical}
 .rec-block .rec-acts{display:flex;gap:8px;margin-top:8px}
 /* No ecrã mostra-se o textarea; na impressão mostra-se o texto simples. */
 .rec-print{display:none;white-space:pre-wrap}
@@ -301,12 +335,13 @@ canvas{width:100%!important}
 </div>
 <!-- ============ NOVA AUDITORIA ============ -->
 <section id="view-audit">
+  <h2 class="sr-only">Nova auditoria</h2>
   <!-- v3.8.0: só visível quando há uma auditoria nova por terminar guardada no
        dispositivo (ver guardarRascunho). Nunca em modo de edição. -->
   <div class="card hidden" id="draft-banner">
     <div class="stat-row"><span>Auditoria por terminar</span></div>
     <p class="aviso-txt" id="draft-info"></p>
-    <button class="btn small ghost" style="border-color:var(--red);color:var(--red)" id="btn-descartar">Descartar e começar de novo</button>
+    <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" id="btn-descartar">Descartar e começar de novo</button>
   </div>
   <!-- Só visível em modo de edição (ver editAudit). O formulário é o mesmo da
        auditoria nova; muda o destino do Guardar e as perguntas usadas, que
@@ -314,7 +349,7 @@ canvas{width:100%!important}
   <div class="card hidden" id="edit-banner" style="border-color:var(--accent);border-width:2px">
     <div class="stat-row"><span>A editar uma auditoria gravada</span></div>
     <p style="font-size:.78rem;color:var(--muted);margin-top:6px" id="edit-info"></p>
-    <button class="btn small ghost" style="border-color:var(--red);color:var(--red);margin-top:8px" id="btn-canceledit">Cancelar edição</button>
+    <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink);margin-top:8px" id="btn-canceledit">Cancelar edição</button>
   </div>
   <div class="card">
     <label>Serviço / Supermercado</label>
@@ -339,6 +374,7 @@ canvas{width:100%!important}
 
 <!-- ============ HISTÓRICO ============ -->
 <section id="view-history" class="hidden">
+  <h2 class="sr-only">Histórico</h2>
   <!-- v3.9.0: filtros do histórico. Só mudam o que se mostra: nada é gravado. -->
   <div class="card" id="hist-filtros">
     <div class="row">
@@ -362,6 +398,7 @@ canvas{width:100%!important}
 
 <!-- ============ ANÁLISE ============ -->
 <section id="view-stats" class="hidden">
+  <h2 class="sr-only">Análise</h2>
   <!-- v3.9.0: a Análise inteira segue o serviço e o período escolhidos aqui. -->
   <div class="card">
     <div class="row">
@@ -374,7 +411,7 @@ canvas{width:100%!important}
     </div>
     <div id="an-conta" style="font-size:.78rem;color:var(--muted)" role="status"></div>
   </div>
-  <div class="card"><h3>Evolução da nota</h3><canvas id="ch-evo" height="180" role="img"></canvas>
+  <div class="card"><h3>Evolução da nota</h3><div id="ch-evo" role="img"></div>
     <div id="ch-leg" class="legenda"></div></div>
   <div class="card"><h3>Comparação entre serviços</h3><div id="cmp-svc"></div></div>
   <div class="card"><h3>Pontos fracos por pilar 5S</h3>
@@ -388,6 +425,7 @@ canvas{width:100%!important}
 
 <!-- ============ CONFIG ============ -->
 <section id="view-cfg" class="hidden">
+  <h2 class="sr-only">Configuração</h2>
   <div class="card">
     <h3 style="margin-bottom:10px">Serviços</h3>
     <div id="svc-list"></div>
@@ -418,7 +456,7 @@ canvas{width:100%!important}
       <b>pasta partilhada</b> — a mesma das outras apps e do painel.html —, escolhida uma vez. Volta a gravá-lo
       sempre que uma auditoria é gravada, editada ou apagada. Só no Chrome ou no Edge de computador.</p>
     <button class="btn small ghost" id="btn-painel">Escolher pasta</button>
-    <button class="btn small ghost" style="display:none;border-color:var(--red);color:var(--red)" id="btn-painel-off">Deixar de gravar</button>
+    <button class="btn small ghost" style="display:none;border-color:var(--red-ink);color:var(--red-ink)" id="btn-painel-off">Deixar de gravar</button>
     <div id="painel-estado" role="status" style="font-size:.78rem;color:var(--muted);margin-top:10px"></div>
   </div>
   <div class="card">
@@ -455,7 +493,7 @@ canvas{width:100%!important}
     </div>
     <button class="btn small ghost" id="btn-addresp">+ Adicionar responsável</button>
     <button class="btn small ghost" id="btn-saveresp">Guardar responsáveis (PIN)</button>
-    <button class="btn small ghost" style="border-color:var(--red);color:var(--red)" id="btn-resetresp">Repor originais</button>
+    <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" id="btn-resetresp">Repor originais</button>
   </div>
   <div class="card">
     <h3 style="margin-bottom:10px">Editor de perguntas</h3>
@@ -474,7 +512,7 @@ canvas{width:100%!important}
     <button class="btn small ghost" id="btn-edimp">Importar perguntas (JSON)</button>
     <input type="file" id="ed-file" accept=".json,application/json" class="hidden">
     <button class="btn" id="btn-edsave">Guardar alterações</button>
-    <button class="btn ghost" style="border-color:var(--red);color:var(--red)" id="btn-edreset">Repor perguntas originais</button>
+    <button class="btn ghost" style="border-color:var(--red-ink);color:var(--red-ink)" id="btn-edreset">Repor perguntas originais</button>
   </div>
 </section>
 </main>
@@ -834,7 +872,7 @@ function pctOf(scores){
   const got=scores.reduce((a,s)=>a+wOf(s),0);
   return Math.round(got/(scores.length*W_MAX)*100);
 }
-let ITEMS=[];let MAX=0;
+let ITEMS=[];
 const LBL=["Mau","Oportunidade","Excelente"];
 
 /* ---------- Estado ---------- */
@@ -916,7 +954,10 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
    NÃO caem o U+200C (ZWNJ) nem o U+200D (ZWJ): são juntores legítimos, usados
    em árabe, em escritas índicas e nas sequências de emoji. Apagá-los partiria
    texto verdadeiro para travar um engano que eles não permitem — as marcas de
-   direcção acima é que o permitem, e essas não têm uso legítimo aqui. */
+   direcção acima é que o permitem, e essas não têm uso legítimo aqui.
+   Os caracteres de controlo no padrão são o que se quer apagar: daí a excepção
+   à regra do lint (v3.10.0). */
+// eslint-disable-next-line no-control-regex
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F\u061C\u200B\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,"").trim().slice(0,max||200);
 
 /* ---------- Rascunho da auditoria em curso (v3.8.0) ----------
@@ -1009,7 +1050,7 @@ function avisoBackup(info,n,agora){
 }
 
 
-const APP_VERSION="3.9.0";
+const APP_VERSION="3.10.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1031,7 +1072,7 @@ const fitems=()=>FORM_ITEMS||ITEMS;
 /* v2.0.0: itemsCfg gravado por versões 1.x traz `mau` e nenhum t1/t2. A
    migração acontece aqui, no arranque, sem reescrever localStorage: só ao
    Guardar no editor é que o formato novo é persistido. */
-function loadItems(){ITEMS=loadArr("itemsCfg",DEFAULT_ITEMS).map(normItem);MAX=ITEMS.length*2;}
+function loadItems(){ITEMS=loadArr("itemsCfg",DEFAULT_ITEMS).map(normItem);}
 /* v3.5.0: os responsáveis vivem em `resps`, editáveis na Configuração. Sem nada
    guardado valem os de origem. TEM de correr ANTES de loadItems(): normItem()
    valida `it.r` contra RESP, e com a lista por carregar um responsável
@@ -1072,6 +1113,21 @@ function tipHTML(it){
          `<div class="tip-body">${L.join("<br>")}${regra}</div></details>`;
 }
 
+/* ---------- Rótulos (v3.10.0) ----------
+   Os rótulos da app são <label> seguidos do campo, sem `for`: lidos por um
+   leitor de ecrã, o campo ficava sem nome. Em vez de dar um id à mão a cada
+   campo (muitos são gerados pelo JS, no formulário e no editor), cada <label>
+   sem `for` é ligado ao campo que vem logo a seguir. Corre depois de cada
+   desenho que cria rótulos. */
+let rotuloSeq=0;
+function ligarRotulos(raiz){
+  (raiz||document).querySelectorAll("label:not([for])").forEach(l=>{
+    const c=l.nextElementSibling;
+    if(!c||!/^(INPUT|SELECT|TEXTAREA)$/.test(c.tagName))return;
+    if(!c.id)c.id="campo-"+(++rotuloSeq);
+    l.htmlFor=c.id;
+  });
+}
 /* ---------- Formulário ---------- */
 function renderForm(){
   /* A auditoria em edição é determinada ANTES de desenhar os itens: em edição
@@ -1099,14 +1155,14 @@ function renderForm(){
       <div class="row" style="margin:8px 0 0">
         <div><label style="font-size:.72rem;color:var(--muted)">Auditados</label>
           <input type="number" inputmode="numeric" min="1" value="${esc(it.tgt)}"
-            data-tgt="${i}"></div>
+            data-tgt="${i}" aria-label="Pergunta ${esc(it.n)}: unidades auditadas"></div>
         <div><label style="font-size:.72rem;color:var(--muted)">Não conformes</label>
           <input type="number" inputmode="numeric" min="0" max="${esc(it.tgt)}" placeholder="0"
-            data-pick="${i}"></div>
+            data-pick="${i}" aria-label="Pergunta ${esc(it.n)}: unidades não conformes"></div>
       </div>
       <div class="hint" data-pctof="${i}" style="margin-top:6px">—</div>`:`
       <input type="number" inputmode="numeric" min="0" max="${esc(it.max)}" placeholder="0"
-        style="margin:8px 0 0" data-pick="${i}">`}
+        style="margin:8px 0 0" data-pick="${i}" aria-label="Pergunta ${esc(it.n)}: resposta (0 a ${esc(it.max)})">`}
       <div class="prev hidden" data-prev="${i}"></div>
     </div>`);
   });
@@ -1147,6 +1203,7 @@ function renderForm(){
      isto que faz sobreviver as respostas a um separador fechado, mas também a
      tudo o que redesenhe o formulário a meio (acrescentar um serviço na
      Configuração, por exemplo, apagava até aqui as respostas já dadas). */
+  ligarRotulos(document.getElementById("view-audit"));
   if(emEdicao){mostrarRascunho(null);mostrarAnteriores();return;}
   const rasc=lerRascunhoGuardado();
   if(rasc)aplicarRascunho(rasc);
@@ -1209,7 +1266,7 @@ function preencherForm(a){
       const card=document.getElementById("it"+i);
       card.classList.add("done");
       card.insertAdjacentHTML("beforeend",
-        `<div style="font-size:.72rem;color:var(--amber);margin-top:6px">`+
+        `<div style="font-size:.72rem;color:var(--amber-ink);margin-top:6px">`+
         `Sem valor gravado — mantém-se a classificação anterior (${esc(LBL[s])}). `+
         `Escreva um valor para reavaliar.</div>`);
     }
@@ -1556,7 +1613,6 @@ function recsOf(a){
   respKeys().forEach(k=>{out[k]=recTexto(src,k);});
   return out;
 }
-function hasRecs(a){const r=recsOf(a);return respKeys().some(k=>r[k]!=="");}
 
 /* ---------- Histórico do serviço (v1.7.0) ----------
    Últimas 6 auditorias ao mesmo serviço, por ordem cronológica crescente,
@@ -1574,7 +1630,7 @@ function barsSVG(dados){
   const W=440,H=150,BASE=H-24,TOP=22,ALT=BASE-TOP;
   const passo=W/dados.length,larg=Math.min(46,passo*.56);
   const grelha=[0,50,100].map(v=>{const y=BASE-v/100*ALT;
-    return`<line x1="0" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}" stroke="#d9d3c5" stroke-width="1"/>`;}).join("");
+    return`<line x1="0" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}" style="stroke:var(--line)" stroke-width="1"/>`;}).join("");
   const barras=dados.map((d,i)=>{
     const p=Math.max(0,Math.min(100,d.pct));
     const h=p/100*ALT,x=i*passo+(passo-larg)/2,y=BASE-h;
@@ -1583,16 +1639,16 @@ function barsSVG(dados){
     return`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${larg.toFixed(1)}"
       height="${Math.max(1,h).toFixed(1)}" fill="${cor}" rx="2"/>
       <text x="${(x+larg/2).toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle"
-        font-size="11" font-weight="700" fill="#1d2a24"
+        font-size="11" font-weight="700" style="fill:var(--ink)"
         font-family="Archivo,Helvetica,Arial,sans-serif">${p}%</text>
       <text x="${(x+larg/2).toFixed(1)}" y="${(BASE+14).toFixed(1)}" text-anchor="middle"
-        font-size="10" fill="#6d7a72"
+        font-size="10" style="fill:var(--muted)"
         font-family="Archivo,Helvetica,Arial,sans-serif">${esc(dm)}</text>`;}).join("");
   return`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img"
     aria-label="Histórico das últimas auditorias: ${esc(dados.map(d=>d.date+" "+d.pct+"%").join(", "))}"
     style="max-width:440px;display:block;margin:0 auto">
     ${grelha}${barras}
-    <line x1="0" y1="${BASE}" x2="${W}" y2="${BASE}" stroke="#b9b2a2" stroke-width="1.5"/>
+    <line x1="0" y1="${BASE}" x2="${W}" y2="${BASE}" style="stroke:var(--chart-axis)" stroke-width="1.5"/>
   </svg>`;
 }
 
@@ -1611,9 +1667,9 @@ function radarSVG(dados,cor){
   const pt=(i,r)=>[CX+Math.cos(ang(i))*r,CY+Math.sin(ang(i))*r];
   const poly=r=>dados.map((_,i)=>pt(i,r).map(v=>v.toFixed(1)).join(",")).join(" ");
   const malha=[.25,.5,.75,1].map(f=>
-    `<polygon points="${poly(R*f)}" fill="none" stroke="#d9d3c5" stroke-width="1"/>`).join("");
+    `<polygon points="${poly(R*f)}" fill="none" style="stroke:var(--line)" stroke-width="1"/>`).join("");
   const raios=dados.map((_,i)=>{const[x,y]=pt(i,R);
-    return`<line x1="${CX}" y1="${CY}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#d9d3c5" stroke-width="1"/>`;}).join("");
+    return`<line x1="${CX}" y1="${CY}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" style="stroke:var(--line)" stroke-width="1"/>`;}).join("");
   const serie=dados.map((d,i)=>pt(i,R*Math.max(0,Math.min(100,d.pct))/100)
     .map(v=>v.toFixed(1)).join(",")).join(" ");
   const pontos=dados.map((d,i)=>{const[x,y]=pt(i,R*Math.max(0,Math.min(100,d.pct))/100);
@@ -1624,10 +1680,10 @@ function radarSVG(dados,cor){
     const cx=Math.cos(ang(i));
     const anchor=Math.abs(cx)<0.25?"middle":(cx>0?"start":"end");
     return`<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="${anchor}"
-      font-size="11" font-weight="700" fill="#1d2a24"
+      font-size="11" font-weight="700" style="fill:var(--ink)"
       font-family="Archivo,Helvetica,Arial,sans-serif">${esc(d.name)}</text>
       <text x="${x.toFixed(1)}" y="${(y+16).toFixed(1)}" text-anchor="${anchor}"
-      font-size="10" fill="#6d7a72"
+      font-size="10" style="fill:var(--muted)"
       font-family="Archivo,Helvetica,Arial,sans-serif">${d.pct}%</text>`;}).join("");
   return`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img"
     aria-label="Gráfico radar: ${esc(dados.map(d=>d.name+" "+d.pct+"%").join(", "))}"
@@ -1635,7 +1691,7 @@ function radarSVG(dados,cor){
     ${malha}${raios}
     <polygon points="${serie}" fill="${cor}" fill-opacity=".22" stroke="${cor}" stroke-width="2.5"/>
     ${pontos}
-    <text x="${CX}" y="${(CY-R-6).toFixed(1)}" text-anchor="middle" font-size="9" fill="#6d7a72"
+    <text x="${CX}" y="${(CY-R-6).toFixed(1)}" text-anchor="middle" font-size="9" style="fill:var(--muted)"
       font-family="Archivo,Helvetica,Arial,sans-serif">100%</text>
     ${rotulos}
   </svg>`;
@@ -1748,7 +1804,7 @@ function recsHTML(a){
         <div class="rec-acts no-print">
           <input type="file" accept="image/*" capture="environment" data-file="${esc(k)}" hidden>
           <button class="btn small ghost" data-add="${esc(k)}">${foto?"Trocar foto":"Adicionar foto"}</button>
-          ${foto?`<button class="btn small ghost" style="border-color:var(--red);color:var(--red)" data-rmf="${esc(k)}">Remover</button>`:""}
+          ${foto?`<button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" data-rmf="${esc(k)}">Remover</button>`:""}
         </div>
       </div>`;}).join("")}
   </div>`;
@@ -1800,12 +1856,12 @@ function redrawRecs(a){
 /* v3.9.0: cartão de seguimento face à auditoria anterior ao mesmo serviço.
    Fica fora da impressão, como "Itens a melhorar": a folha 2 está medida para
    caber os 19 itens. */
-const SEG_LBL={melhorou:["▲ Melhorou","var(--green)"],piorou:["▼ Piorou","var(--red)"],igual:["= Mantém-se","var(--amber)"]};
+const SEG_LBL={melhorou:["▲ Melhorou","var(--green-ink)"],piorou:["▼ Piorou","var(--red-ink)"],igual:["= Mantém-se","var(--amber-ink)"]};
 function seguimentoHTML(a){
   const sg=seguimento(a,anteriorDe(a,audits));
   if(!sg)return`<div class="card no-print" id="seguimento"><h3 style="margin-bottom:6px">Seguimento</h3>
     <p style="font-size:.78rem;color:var(--muted)">É a primeira auditoria a este serviço: não há com que comparar.</p></div>`;
-  const pill=s=>`<span class="pill" style="background:${s===2?"var(--green)":s===1?"var(--amber)":"var(--red)"}">${esc(LBL[s])}</span>`;
+  const pill=s=>`<span class="pill" style="background:${s===2?"var(--green)":s===1?"var(--amber-bg)":"var(--red)"}">${esc(LBL[s])}</span>`;
   return`<div class="card no-print" id="seguimento"><h3 style="margin-bottom:4px">Seguimento da auditoria anterior</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Face a ${esc(sg.date)} (${sg.pct}/100):
       <b>${sg.melhoraram}</b> melhorou(aram), <b>${sg.iguais}</b> mantém(êm)-se por resolver, <b>${sg.pioraram}</b> piorou(aram).</p>
@@ -1824,6 +1880,7 @@ function openReport(a){
   const [bc,bt]=badge(total(a));
   const worst=itemsOf(a).map((it,i)=>({it,s:a.scores[i],raw:obsOf(a,it,i)})).filter(x=>x.s<2);
   document.getElementById("view-report").innerHTML=`
+  <h2 class="sr-only">Relatório da auditoria</h2>
   <div class="card score-hero"><div class="lbl">Auditoria 5S · ${esc(a.service)} · ${esc(a.date)}</div>
     <div class="big">${total(a)}<span style="font-size:1.2rem">/100</span></div>
     <span class="badge ${bc}">${bt}</span>
@@ -1854,14 +1911,14 @@ function openReport(a){
     ${(()=>{const t=colTotals(a);return`<table>
       <tr><th>Avaliação</th><th>Itens</th><th>Pontos</th></tr>
       <tr><td><span class="pill" style="background:var(--red)">Mau</span></td><td>${t.mau}</td><td>${t.ptsMau}</td></tr>
-      <tr><td><span class="pill" style="background:var(--amber)">Com oportunidade</span></td><td>${t.opor}</td><td>${t.ptsOpor}</td></tr>
+      <tr><td><span class="pill" style="background:var(--amber-bg)">Com oportunidade</span></td><td>${t.opor}</td><td>${t.ptsOpor}</td></tr>
       <tr><td><span class="pill" style="background:var(--green)">Excelente</span></td><td>${t.exc}</td><td>${t.ptsExc}</td></tr>
       <tr><td><b>Total</b></td><td><b>${a.scores.length}</b></td><td><b>${t.pts} / ${t.max}</b></td></tr>
     </table>`;})()}</div>
   <div class="card"><h3 style="margin-bottom:10px">Grelha de verificação</h3>
     <table><tr><th>Nº</th><th>Item</th><th>Resp.</th><th>Obs.</th><th>Aval.</th></tr>
     ${itemsOf(a).map((it,i)=>{const s=a.scores[i];
-      const cor=s===2?"var(--green)":s===1?"var(--amber)":"var(--red)";
+      const cor=s===2?"var(--green)":s===1?"var(--amber-bg)":"var(--red)";
       return`<tr><td>${esc(it.n)}</td>
       <td>${esc(it.t)}<br><small style="color:var(--muted)">${esc(it.c)}</small></td>
       <td><small>${esc(it.r)}</small></td>
@@ -1872,7 +1929,7 @@ function openReport(a){
     ${worst.length?`<table><tr><th>Nº</th><th>Item</th><th>Obs.</th><th>Avaliação</th></tr>${worst.map(x=>
       `<tr><td>${esc(x.it.n)}</td><td>${esc(x.it.t)}<br><small style="color:var(--muted)">${esc(x.it.c)}</small></td>
       <td>${esc(x.raw)}</td>
-      <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber)'}">${esc(LBL[x.s])}</span></td></tr>`).join("")}</table>`
+      <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber-bg)'}">${esc(LBL[x.s])}</span></td></tr>`).join("")}</table>`
       :`<p>Sem não-conformidades. 🎉</p>`}</div>
   ${seguimentoHTML(a)}
   </div>
@@ -1945,7 +2002,7 @@ function renderHist(){
     <span class="badge ${bc}">${bt}</span>
     <div style="margin-top:8px"><button class="btn small ghost" data-rep="${i}">Relatório</button>
     <button class="btn small ghost" data-edit="${i}">Editar</button>
-    <button class="btn small ghost" style="border-color:var(--red);color:var(--red)" data-del="${i}">Apagar</button></div></div>`;}).join("");
+    <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" data-del="${i}">Apagar</button></div></div>`;}).join("");
   box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>openReport(ord[+b.dataset.rep]));
   box.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editAudit(ord[+b.dataset.edit]));
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delAudit(ord[+b.dataset.del].id));
@@ -1997,7 +2054,34 @@ async function delAudit(id){
 function avg(arr){return arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):0;}
 const anFiltro={svc:"",meses:0};
 /* Cores das linhas da evolução, uma por serviço. A primeira é a da app. */
-const PALETA=["#1f6f50","#e8500a","#2f5d9e","#c98a1b","#7b4fa0","#b03a2e","#3a8f8a","#6d7a72"];
+/* v3.10.0: variáveis CSS, para o modo escuro ter tons legíveis sobre o fundo. */
+const PALETA=[0,1,2,3,4,5,6,7].map(k=>"var(--s"+k+")");
+/* Gráfico de evolução: uma linha por serviço, com o TEMPO no eixo horizontal,
+   comum a todas as linhas. A descrição acessível fica no contentor (role=img),
+   pelo que o SVG em si é decorativo para os leitores de ecrã. */
+function evolucaoSVG(series,lista){
+  if(!series.length)return`<p class="empty">Sem auditorias no período.</p>`;
+  const W=640,H=230,L=34,R=12,T=12,B=26,AW=W-L-R,AH=H-T-B;
+  const dia=d=>Date.parse(d+"T00:00:00Z")/864e5;
+  const dias=lista.map(a=>dia(a.date)).filter(Number.isFinite);
+  const d0=Math.min(...dias),d1=Math.max(...dias);
+  const xOf=d=>L+(d1===d0?.5:(dia(d)-d0)/(d1-d0))*AW;
+  const yOf=p=>T+AH-(Math.max(0,Math.min(100,p))/100)*AH;
+  const txt=`font-family="Archivo,Helvetica,Arial,sans-serif" font-size="11" style="fill:var(--muted)"`;
+  const grelha=[0,25,50,75,100].map(v=>{const y=yOf(v).toFixed(1);
+    return`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" style="stroke:var(--line)" stroke-width="1"/>`+
+      `<text x="${L-6}" y="${(+y+4).toFixed(1)}" text-anchor="end" ${txt}>${v}</text>`;}).join("");
+  const fmt=d=>d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(2,4);
+  const datas=d1===d0?[lista[0].date]:[new Date(d0*864e5).toISOString().slice(0,10),new Date(d1*864e5).toISOString().slice(0,10)];
+  const eixo=datas.map((d,k)=>`<text x="${xOf(d).toFixed(1)}" y="${H-8}" text-anchor="${datas.length===1?"middle":k?"end":"start"}" ${txt}>${esc(fmt(d))}</text>`).join("");
+  const linhas=series.map((sr,k)=>{
+    const cor=PALETA[k%PALETA.length];
+    const pts=sr.pontos.map(pt=>xOf(pt.date).toFixed(1)+","+yOf(pt.pct).toFixed(1));
+    return(pts.length>1?`<polyline points="${pts.join(" ")}" fill="none" style="stroke:${cor}" stroke-width="3" stroke-linejoin="round"/>`:"")+
+      sr.pontos.map((pt,i)=>`<circle cx="${pts[i].split(",")[0]}" cy="${pts[i].split(",")[1]}" r="4.5" style="fill:${cor}"><title>${esc(sr.service+" · "+pt.date+" · "+pt.pct+"%")}</title></circle>`).join("");
+  }).join("");
+  return`<svg viewBox="0 0 ${W} ${H}" width="100%" aria-hidden="true" style="display:block">${grelha}${eixo}${linhas}</svg>`;
+}
 function hojeISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
 function renderStats(){
   anFiltro.svc=opcoesServico(document.getElementById("an-svc"),anFiltro.svc,"Todos os serviços");
@@ -2006,35 +2090,15 @@ function renderStats(){
   document.getElementById("an-conta").textContent=audits.length?
     "Com base em "+lista.length+" de "+audits.length+" auditoria(s).":"Sem auditorias guardadas.";
   const series=seriesEvolucao(lista);
-  const cv=document.getElementById("ch-evo"),ctx=cv.getContext("2d");
-  const W=cv.width=cv.clientWidth*2,H=cv.height=360;ctx.clearRect(0,0,W,H);
-  const leg=document.getElementById("ch-leg");
-  leg.innerHTML="";
-  cv.setAttribute("aria-label",series.length?"Evolução da nota: "+series.map(sr=>
+  /* v3.10.0: SVG em vez de <canvas>, como os outros gráficos. Imprime nítido,
+     acompanha o modo escuro e o texto do gráfico existe para quem lê o ecrã. */
+  const ch=document.getElementById("ch-evo");
+  ch.innerHTML=evolucaoSVG(series,lista);
+  ch.setAttribute("aria-label",series.length?"Evolução da nota: "+series.map(sr=>
     sr.service+" "+sr.pontos.map(pt=>pt.date+" "+pt.pct+"%").join(", ")).join("; "):"Sem auditorias no período.");
-  if(series.length){
-    ctx.strokeStyle="#d9d3c5";ctx.lineWidth=2;
-    [0,25,50,75,100].forEach(v=>{const y=H-30-(v/100)*(H-60);
-      ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(W-10,y);ctx.stroke();
-      ctx.fillStyle="#6d7a72";ctx.font="20px Archivo";ctx.fillText(v,6,y+6);});
-    /* O eixo horizontal é o TEMPO, comum a todas as linhas: com uma linha por
-       serviço, a posição pela ordem da auditoria já não as alinharia. */
-    const dia=d=>Date.parse(d+"T00:00:00Z")/864e5;
-    const dias=lista.map(a=>dia(a.date)).filter(Number.isFinite);
-    const d0=Math.min(...dias),d1=Math.max(...dias);
-    const xOf=d=>40+(d1===d0?.5:(dia(d)-d0)/(d1-d0))*(W-60);
-    const yOf=p=>H-30-(p/100)*(H-60);
-    series.forEach((sr,k)=>{
-      const cor=PALETA[k%PALETA.length];
-      ctx.strokeStyle=cor;ctx.lineWidth=5;ctx.beginPath();
-      sr.pontos.forEach((pt,i)=>i?ctx.lineTo(xOf(pt.date),yOf(pt.pct)):ctx.moveTo(xOf(pt.date),yOf(pt.pct)));
-      ctx.stroke();
-      ctx.fillStyle=cor;
-      sr.pontos.forEach(pt=>{ctx.beginPath();ctx.arc(xOf(pt.date),yOf(pt.pct),8,0,7);ctx.fill();});
-    });
-    if(series.length>1||!anFiltro.svc)
-      leg.innerHTML=series.map((sr,k)=>`<span><i style="background:${PALETA[k%PALETA.length]}"></i>${esc(sr.service)}</span>`).join("");
-  }
+  const leg=document.getElementById("ch-leg");
+  leg.innerHTML=series.length&&(series.length>1||!anFiltro.svc)?
+    series.map((sr,k)=>`<span><i style="background:${PALETA[k%PALETA.length]}"></i>${esc(sr.service)}</span>`).join(""):"";
   const bars=(pairs)=>pairs.map(([n,p])=>`<div class="stat-row"><span>${esc(n)}</span><span>${p}%</span></div>
     <div class="bar"><i class="${barCls(p)}" style="width:${p}%"></i></div>`).join("")||`<p class="empty">Sem dados.</p>`;
   document.getElementById("cmp-svc").innerHTML=bars(
@@ -2059,12 +2123,12 @@ function renderStats(){
 function renderCfg(){
   const svcBox=document.getElementById("svc-list");
   svcBox.innerHTML=services.map((s,i)=>
-  `<span class="svc-chip">${esc(s)}<button data-rmsvc="${i}">×</button></span>`).join("");
+  `<span class="svc-chip">${esc(s)}<button data-rmsvc="${i}" aria-label="Remover o serviço ${esc(s)}">×</button></span>`).join("");
   svcBox.querySelectorAll("[data-rmsvc]").forEach(b=>b.onclick=()=>rmSvc(+b.dataset.rmsvc));
   const pplBox=document.getElementById("xl-people");
   pplBox.innerHTML=people.length?
     `<label>Repositores / Picking (${people.length})</label>`+people.map((p,i)=>
-    `<span class="svc-chip">${esc(p)}<button data-rmppl="${i}">×</button></span>`).join(""):"";
+    `<span class="svc-chip">${esc(p)}<button data-rmppl="${i}" aria-label="Remover ${esc(p)}">×</button></span>`).join(""):"";
   pplBox.querySelectorAll("[data-rmppl]").forEach(b=>b.onclick=()=>rmPerson(+b.dataset.rmppl));
   renderResps();
   const ds=document.getElementById("data-stats");
@@ -2698,6 +2762,7 @@ function renderEditor(){
     edItems[+el.dataset.edmax].max=Math.max(1,+el.value||1);edReRender();});
   TKEYS.forEach((k,ti)=>box.querySelectorAll("[data-edt"+(ti+1)+"]").forEach(el=>el.oninput=()=>{
     edItems[+el.dataset["edt"+(ti+1)]][k]=Math.max(0,+el.value||0);edReRender();}));
+  ligarRotulos(document.getElementById("ed-panel"));
 }
 /* Validação da lista do editor. Devolve um array de mensagens (vazio = válida).
    É pura para poder ser testada sem DOM e é reutilizada em dois sítios: o aviso
@@ -3095,6 +3160,7 @@ window.addEventListener("beforeunload",e=>{
 });
 
 renderForm();
+ligarRotulos();
 mostrarAvisoBackup();
 pedirPersistencia();
 /* Depois do primeiro render: a proposta é uma caixa de diálogo e não deve

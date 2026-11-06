@@ -1,0 +1,15 @@
+{
+  "name": "auditoria5s-lint",
+  "private": true,
+  "description": "Ferramentas de desenvolvimento (3.10.0): o ESLint para o JavaScript embutido no index.html e o axe-core para tests/smoke-a11y.mjs. A app não tem dependências.",
+  "type": "module",
+  "scripts": {
+    "lint": "node lint.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "axe-core": "4.14.0",
+    "eslint": "10.14.0",
+    "globals": "17.14.0"
+  }
+}

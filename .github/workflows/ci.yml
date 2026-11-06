@@ -54,6 +54,28 @@ jobs:
       - name: node --test tests/*.test.js
         run: node --test tests/*.test.js
 
+  # 3.10.0: lint do JavaScript embutido no index.html. O ESLint vive em
+  # tools/lint, com o seu package.json e lockfile: a app continua sem
+  # dependências, e na raiz não há package.json (o Cloudflare Pages
+  # instalaria dependências em cada publicação).
+  lint:
+    name: Lint (ESLint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Instala o ESLint (versões do lockfile)
+        run: npm ci --prefix tools/lint --no-audit --no-fund
+
+      - name: node tools/lint/lint.mjs
+        run: node tools/lint/lint.mjs
+
   smoke:
     name: Smoke tests de browser (Playwright)
     runs-on: ubuntu-latest
@@ -104,6 +126,18 @@ jobs:
 
       - name: Histórico, análise, seguimento, fotos, Excel e diálogo
         run: node tests/smoke-historico.mjs
+
+      # Prepara o dist/ com scripts/publicar.sh e serve-o noutra porta: é a
+      # versão publicada, com a CSP por hashes.
+      - name: CSP publicada (hashes, sem 'unsafe-inline')
+        run: node tests/smoke-csp.mjs
+
+      # O axe-core vem de tools/lint, com a versão do lockfile.
+      - name: Instala o axe-core
+        run: npm ci --prefix tools/lint --no-audit --no-fund
+
+      - name: Acessibilidade (axe-core, modo claro e escuro)
+        run: node tests/smoke-a11y.mjs
 
   versao:
     name: Coerência da versão
