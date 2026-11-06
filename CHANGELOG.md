@@ -5,6 +5,37 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.7.0] — 2026-11-06
+
+A app muda-se para o **Cloudflare Pages**. O GitHub Pages deixou de a publicar
+quando o repositório passou a privado — no plano gratuito só publica
+repositórios públicos —, e o endereço antigo dava 404.
+
+### Adicionado
+
+- `_headers`: os cabeçalhos HTTP que o Cloudflare envia — a CSP (igual à do
+  `<meta>`), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`,
+  `Permissions-Policy`, HSTS, e `no-cache` para o `sw.js`.
+- `scripts/publicar.sh`: prepara `dist/` com só os ficheiros da app, para que o
+  repositório inteiro não fique acessível pelo endereço dela.
+- `tests/publicacao.test.js`: a CSP do cabeçalho e a do `<meta>` não podem
+  divergir, e o que se publica é o que o service worker guarda em cache.
+- README: configuração do Cloudflare Pages e como passar os dados do endereço
+  antigo para o novo.
+
+### Alterado
+
+- O service worker passa a abrir a cópia em cache quando o servidor responde com
+  **erro** (404, 5xx), e não só quando falta a rede. Era o que impedia, com o
+  site em 404, de abrir a app e exportar os dados.
+
+### Segurança
+
+- Endereço próprio: o `localStorage` e a licença da pasta do painel deixam de
+  ser partilhados com os outros projectos de `qzte.github.io`, e a protecção
+  contra molduras passa a ir em cabeçalho HTTP, onde funciona. Fecha os pontos
+  4, 9 e 21 do [SECURITY.md](SECURITY.md).
+
 ## [3.6.2] — 2026-11-06
 
 Retira do repositório os dados que identificavam pessoas e a unidade onde a app

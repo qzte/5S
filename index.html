@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.6.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -34,7 +34,10 @@
 /* ---------- Guarda contra clickjacking (v3.1.2) ----------
    A directiva frame-ancestors da CSP acima é IGNORADA pelos browsers quando a
    política vem por <meta>: só vale em cabeçalho HTTP, que o GitHub Pages não
-   permite definir. Esta guarda é o que resta.
+   permitia definir. Desde 3.7.0 a app é publicada no Cloudflare Pages, que envia
+   a CSP (com frame-ancestors) e X-Frame-Options em cabeçalho — ver _headers —,
+   e o browser recusa a moldura antes de este código correr. A guarda fica para
+   quem sirva a app de outro lado sem esses cabeçalhos.
 
    Não se tenta sair da moldura com top.location: entre origens o browser
    bloqueia a escrita, e a tentativa falharia em silêncio dando a ilusão de
@@ -746,8 +749,8 @@ let ITEMS=[];let MAX=0;
 const LBL=["Mau","Oportunidade","Excelente"];
 
 /* ---------- Estado ---------- */
-/* O localStorage é partilhado por TODA a origem (em qzte.github.io, por todos
-   os projectos publicados na mesma conta), pelo que uma chave corrompida por
+/* O localStorage é partilhado por TODA a origem (em qzte.github.io, até 3.6.x,
+   por todos os projectos publicados na mesma conta), pelo que uma chave corrompida por
    outra página não pode derrubar o arranque desta: sem o try, o JSON.parse
    lançava antes do primeiro render e a app ficava em branco, com o service
    worker a servir a mesma página partida offline. */
@@ -828,7 +831,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F\u061C\u200B\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.6.2";
+const APP_VERSION="3.7.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem

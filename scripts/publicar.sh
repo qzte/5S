@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Prepara a pasta que o Cloudflare Pages publica (3.7.0).
+#
+# Copia para dist/ SÓ os ficheiros da aplicação. Sem isto, o Cloudflare
+# publicaria o repositório inteiro — testes, CHANGELOG, SECURITY.md, a CI —,
+# tudo acessível pelo endereço da app.
+#
+# A lista é a do service worker (ASSETS em sw.js) mais o _headers, e
+# tests/publicacao.test.js verifica que as duas não divergem.
+#
+# No Cloudflare Pages:  comando de build = bash scripts/publicar.sh
+#                       pasta de saída   = dist
+set -euo pipefail
+cd "$(dirname "$0")/.."
+rm -rf dist
+mkdir -p dist/icons
+cp index.html sw.js manifest.json _headers dist/
+cp icons/icon-192.png icons/icon-512.png icons/icon-512-maskable.png dist/icons/
+echo "dist/ pronta:"; (cd dist && find . -type f | sort)

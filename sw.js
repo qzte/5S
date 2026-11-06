@@ -1,6 +1,6 @@
 /*
   Auditoria 5S · Supermercados Kaizen — Service Worker
-  Versão: 3.6.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Função: cache offline da aplicação. O nome da cache inclui a versão,
           por isso cada nova versão invalida automaticamente a anterior.
   Segurança (v1.4.0): a cache só aceita recursos da própria origem que
@@ -8,7 +8,7 @@
           Desde 3.1.1 a allowlist vale também para as navegações, que antes
           escreviam em ./index.html sem a consultar.
 */
-const APP_VERSION = "3.6.2";
+const APP_VERSION = "3.7.0";
 const CACHE = "auditoria5s-v" + APP_VERSION;
 
 const ASSETS = [
@@ -63,13 +63,22 @@ self.addEventListener("fetch", e => {
        é servido offline. A query string é ignorada na comparação porque não
        muda o documento devolvido. */
     const semQuery = url.origin + url.pathname;
+    /* v3.7.0: um ERRO do servidor (404, 5xx) passa a cair na cópia em cache,
+       como já caía a falta de rede. Até aqui só a falta de rede caía: quando o
+       GitHub Pages deixou de publicar a app, o service worker entregava o 404
+       do servidor e a cópia guardada — com acesso às auditorias no
+       localStorage, e ao botão de exportar — ficava inalcançável enquanto
+       houvesse rede. Sem cópia em cache, devolve-se a resposta do servidor. */
     e.respondWith(
       fetch(req)
         .then(r => {
           if (r && r.status === 200 && r.type === "basic" && ALLOWED.has(semQuery)) {
             const copy = r.clone();
             caches.open(CACHE).then(c => c.put("./index.html", copy));
+            return r;
           }
+          if (r && r.status >= 400)
+            return caches.match("./index.html").then(hit => hit || r);
           return r;
         })
         .catch(() => caches.match("./index.html"))

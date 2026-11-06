@@ -2,12 +2,45 @@
 
 Três revisões, por ordem inversa:
 
-- **[Revisão de 3.6.0](#revisão-de-360-2026-11-06)** — correcções em **3.6.1**.
+- **[Nota de 3.7.0](#nota-de-370-2026-11-06-cloudflare-pages)** — a mudança para o Cloudflare Pages fecha os pontos 4, 9 e 21.
+- **[Revisão de 3.6.0](#revisão-de-360-2026-11-06)** — correcções em 3.6.1.
 - **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em 3.5.1 e 3.5.2.
 - **[Revisão de 3.1.0](#revisão-de-310-2026-07-31)** — correcções em 3.1.1 e 3.1.2.
 
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+## Nota de 3.7.0 (2026-11-06): Cloudflare Pages
+
+O GitHub Pages deixou de publicar a app quando o repositório passou a privado,
+e a 3.7.0 passa a publicá-la no Cloudflare Pages, em endereço próprio
+(`auditoria-5s.pages.dev`). Três pontos das revisões anteriores, todos
+aceites ou só mitigados por falta de controlo sobre o alojamento, mudam de
+estado:
+
+| # | Ponto | Antes | Em 3.7.0 |
+| --- | --- | --- | --- |
+| 4 | `frame-ancestors` em `<meta>` não é aplicado | Mitigado por uma guarda em JS | **Fechado**: CSP e `X-Frame-Options: DENY` em cabeçalho HTTP (`_headers`). Verificado no Chromium: dentro de uma moldura o browser recusa carregar a página. |
+| 9 | `localStorage` partilhado por toda a origem | Aceite | **Fechado**: a origem é só desta app. |
+| 21 | A licença da pasta do painel é da origem | Documentado | **Fechado** pela mesma razão. A recomendação de usar uma pasta só para o painel mantém-se. |
+
+E dois controlos novos:
+
+- **`scripts/publicar.sh`** publica só os ficheiros da app. Sem ele o
+  Cloudflare publicaria o repositório inteiro, testes e documentação incluídos.
+  `tests/publicacao.test.js` verifica que a lista é a da cache do service
+  worker, e que a CSP do `_headers` é igual à do `<meta>`.
+- **O service worker cai na cópia em cache quando o servidor responde com
+  erro**, e não só quando falta a rede. Foi o que faltou quando o site
+  desapareceu: com rede, o 404 do GitHub tapava a cópia guardada, e com ela o
+  botão de exportar os dados. Verificado no Chromium com um servidor que deixa
+  de servir o `index.html`: o service worker novo abre a app, o anterior mostra
+  o 404.
+
+O `'unsafe-inline'` em `script-src` (ponto 11) não muda: continua a ser o custo
+do ficheiro único.
+
+---
 
 # Revisão de 3.6.0 (2026-11-06)
 
