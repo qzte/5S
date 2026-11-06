@@ -142,6 +142,9 @@ jobs:
       - name: Armazenamento compacto, 5 000 auditorias e Excel offline
         run: node tests/smoke-armazenamento.mjs
 
+      - name: Plano de acção
+        run: node tests/smoke-acoes.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest

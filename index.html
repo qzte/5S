@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.11.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.12.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -195,7 +195,7 @@ table{width:100%;border-collapse:collapse;font-size:.85rem}
 th{font-size:.68rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:left;
   padding:6px 8px;border-bottom:2px solid var(--line)}
 td{padding:9px 8px;border-bottom:1px solid var(--line)}
-.pill{padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:900;color:#fff}
+.pill{padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:900;color:#fff;white-space:nowrap;display:inline-block}
 .empty{text-align:center;color:var(--muted);padding:30px 10px;font-style:italic}
 .hidden{display:none}
 /* v3.8.0: avisos (nova versão, cópia de segurança, auditoria por terminar). */
@@ -214,6 +214,14 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .delta{font-size:.75rem;font-weight:700;margin-left:6px}
 .delta.up{color:var(--green-ink)}.delta.down{color:var(--red-ink)}.delta.eq{color:var(--muted)}
 .prev{font-size:.72rem;color:var(--amber-ink);margin-top:6px}
+/* v3.12.0: plano de acção. */
+.chk{display:flex;gap:6px;align-items:flex-start;font-family:var(--f-sans);font-size:.75rem;
+  letter-spacing:0;text-transform:none;color:var(--ink);font-weight:700;margin:0;cursor:pointer}
+.chk input{width:auto;margin:2px 0 0;flex:0 0 auto}
+.acao-linha{padding:8px 0;border-top:1px solid var(--line);font-weight:400;font-size:.82rem}
+.acao-linha:first-of-type{border-top:0}
+.acao-form{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+#plano .ed-del{background:none;color:var(--red-ink);padding:2px 0;margin-top:4px;text-decoration:underline}
 .legenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.75rem;margin-top:8px}
 .legenda i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .ed-item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--field)}
@@ -272,6 +280,9 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
      uma terceira página em branco. */
   #view-report .page{break-after:page;page-break-after:always}
   #view-report .page:last-of-type{break-after:auto;page-break-after:auto}
+  /* v3.12.0: o plano de acção é um <section>, numa folha própria. */
+  #view-report #plano.page{break-before:page;page-break-before:always;break-after:auto}
+  #view-report #plano table{font-size:.7rem}
 
   /* Página 1: os dois blocos de radar lado a lado. */
   #view-report .page-1{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
@@ -369,6 +380,9 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
       <datalist id="dl-people"></datalist>
     </div>
   </div>
+  <!-- v3.12.0: acções em aberto de auditorias anteriores ao serviço escolhido,
+       para serem verificadas no terreno e marcadas como feitas. -->
+  <div class="card hidden" id="acoes-abertas"></div>
   <div id="items"></div>
   <button class="btn" id="btn-save">Guardar auditoria</button>
 </section>
@@ -642,7 +656,9 @@ function respEmUso(k,items,lista){
     /* O texto de recomendação conta como uso: apagar o responsável fá-lo-ia
        desaparecer do relatório, sem aviso e sem forma de o recuperar. */
     const rec=recTexto(a.recs,k)!=="";
-    if(rec||its.some(it=>it&&it.r===k))auditorias++;
+    /* v3.12.0: uma acção atribuída também — perderia o dono. */
+    const acao=Array.isArray(a.acoes)&&a.acoes.some(ac=>ac&&ac.r===k);
+    if(rec||acao||its.some(it=>it&&it.r===k))auditorias++;
   });
   return{perguntas:perguntas,auditorias:auditorias};
 }
@@ -1102,7 +1118,7 @@ function avisoBackup(info,n,agora){
 }
 
 
-const APP_VERSION="3.11.0";
+const APP_VERSION="3.12.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1277,6 +1293,7 @@ function renderForm(){
    que ficou por resolver da vez anterior, enquanto está no sítio. Só numa
    auditoria nova: em edição, a "anterior" seria a própria auditoria. */
 function mostrarAnteriores(){
+  mostrarAcoesAbertas();
   const IT=fitems();
   const ult=editId==null?ultimaDe(document.getElementById("f-service").value,audits):null;
   const mapa=new Map();
@@ -1289,6 +1306,29 @@ function mostrarAnteriores(){
     const vis=sc===0||sc===1;
     el.classList.toggle("hidden",!vis);
     el.textContent=vis?"Na auditoria anterior ("+ult.date+"): "+LBL[sc]+" — "+obsOf(ult,itemsOf(ult)[j],j):"";
+  });
+}
+/* v3.12.0: no formulário de uma auditoria nova, as acções em aberto do serviço
+   escolhido. Marcá-las aqui é o momento natural: quem audita está no sítio e vê
+   se ficou resolvido. Em edição não aparecem: é uma auditoria do passado. */
+function mostrarAcoesAbertas(){
+  const box=document.getElementById("acoes-abertas");
+  if(!box)return;
+  const pend=editId==null?acoesPendentes(audits,document.getElementById("f-service").value,hojeISO()):[];
+  box.classList.toggle("hidden",!pend.length);
+  if(!pend.length){box.innerHTML="";return;}
+  const atr=pend.filter(p=>p.estado==="atrasada").length;
+  box.innerHTML=`<h3 style="margin-bottom:4px">Acções em aberto neste serviço (${pend.length})</h3>
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:8px">Das auditorias anteriores${atr?` — <b style="color:var(--red-ink)">${atr} em atraso</b>`:""}.
+      Verifique no terreno e marque as que ficaram resolvidas.</p>
+    ${pend.map(p=>{const[rot,cor]=ESTADO_ACAO[p.estado];
+      return`<label class="chk acao-linha"><input type="checkbox" data-acao-feita="${p.auditId}:${p.acao.id}">
+        <span><b>${esc(isResp(p.acao.r)?RESP[p.acao.r]:p.acao.r)}</b> · ${esc(p.acao.texto)}
+        <small style="color:var(--muted)"> — de ${esc(dataCurta(p.date))}${p.acao.prazo?", prazo "+esc(dataCurta(p.acao.prazo)):""}</small>
+        ${p.estado==="atrasada"?`<span class="pill" style="background:${cor}">${rot}</span>`:""}</span></label>`;}).join("")}`;
+  box.querySelectorAll("[data-acao-feita]").forEach(c=>c.onchange=()=>{
+    if(!marcarAcao(c.dataset.acaoFeita,c.checked)){c.checked=!c.checked;return;}
+    mostrarAcoesAbertas();
   });
 }
 /* Repõe no formulário os valores de uma auditoria gravada. As respostas passam
@@ -1636,6 +1676,70 @@ function seguimento(a,ant){
   return{date:ant.date,pct:total(ant),linhas,
     melhoraram:conta("melhorou"),pioraram:conta("piorou"),iguais:conta("igual")};
 }
+/* ---------- Plano de acções (v3.12.0) ----------
+   As recomendações por responsável (texto e foto, folha 3 do relatório) dizem
+   o que melhorar, mas não deixavam seguir se foi feito. Uma ACÇÃO é um passo
+   concreto, com responsável, prazo e estado, guardado com a auditoria que a
+   criou (`acoes`). Fica em aberto até alguém a marcar como feita — no
+   relatório, ou no formulário da auditoria seguinte ao mesmo serviço, que é
+   onde se verifica no terreno se ficou resolvida. É o ciclo PDCA do 5S.
+
+   Forma de uma acção:
+     {id, r: código do responsável, texto, prazo: "AAAA-MM-DD" | "",
+      estado: "aberta" | "feita", feitaEm: "AAAA-MM-DD" | "", item: nº | null}
+   `item` liga a acção a uma pergunta (o número), quando nasce de uma delas. */
+const MAX_ACOES=100;
+/* Porta única de entrada para acções: importação, alterações no relatório e no
+   formulário. Texto limpo e limitado, datas na forma certa, responsável
+   conhecido (senão o de recurso, como nas perguntas), ids únicos. */
+function sanitizeAcoes(x){
+  if(!Array.isArray(x))return [];
+  const data=v=>typeof v==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v:"";
+  const limpas=[];
+  x.slice(0,MAX_ACOES).forEach(a=>{
+    if(!a||typeof a!=="object"||Array.isArray(a))return;
+    const texto=clean(a.texto,300);
+    if(!texto)return;
+    const feita=a.estado==="feita";
+    const item=parseInt(a.item,10);
+    limpas.push({id:Number.isInteger(a.id)&&a.id>0?a.id:0,r:isResp(a.r)?a.r:respBase(),texto,
+      prazo:data(a.prazo),estado:feita?"feita":"aberta",feitaEm:feita?data(a.feitaEm):"",
+      item:item>0&&item<1000?item:null});
+  });
+  /* Ids repetidos ou em falta recebem os seguintes ao maior. */
+  const vistos=new Set();
+  let prox=limpas.reduce((m,a)=>Math.max(m,a.id),0)+1;
+  limpas.forEach(a=>{if(!a.id||vistos.has(a.id))a.id=prox++;vistos.add(a.id);});
+  return limpas;
+}
+/* "feita", "atrasada" (prazo passado e ainda aberta) ou "aberta". */
+function estadoAcao(ac,hoje){
+  if(ac.estado==="feita")return "feita";
+  return ac.prazo&&ac.prazo<hoje?"atrasada":"aberta";
+}
+/* Acções em aberto de auditorias ao serviço `svc`. Com `antesDe`, só as das
+   auditorias anteriores a essa (no relatório de uma auditoria, o que vinha de
+   trás); sem ele, todas (no formulário de uma auditoria nova). As atrasadas
+   primeiro, depois por prazo (sem prazo no fim), depois pela auditoria. */
+function acoesPendentes(lista,svc,hoje,antesDe){
+  const out=[];
+  (lista||[]).forEach(au=>{
+    if(!au||au.service!==svc||!Array.isArray(au.acoes))return;
+    if(antesDe&&(au.id===antesDe.id||ordemCron(au,antesDe)>=0))return;
+    au.acoes.forEach(ac=>{
+      if(ac&&ac.estado!=="feita")out.push({auditId:au.id,date:au.date,acao:ac,estado:estadoAcao(ac,hoje)});
+    });
+  });
+  const pz=x=>x.acao.prazo||"9999-99-99";
+  return out.sort((x,y)=>(y.estado==="atrasada")-(x.estado==="atrasada")||
+    pz(x).localeCompare(pz(y))||String(x.date).localeCompare(String(y.date))||x.acao.id-y.acao.id);
+}
+/* Quantas acções de uma auditoria estão em aberto, e quantas destas atrasadas. */
+function contaAcoes(au,hoje){
+  const ab=(Array.isArray(au&&au.acoes)?au.acoes:[]).filter(ac=>ac&&ac.estado!=="feita");
+  return{abertas:ab.length,atrasadas:ab.filter(ac=>estadoAcao(ac,hoje)==="atrasada").length};
+}
+
 /* Linhas das duas folhas da exportação para Excel: uma linha por auditoria,
    com a nota, os pilares e os responsáveis, e uma linha por resposta, que é o
    formato que uma tabela dinâmica quer. */
@@ -1655,7 +1759,14 @@ function linhasExcel(lista){
     "Pilar":PILLARS[it.p]||"","Responsável":isResp(it.r)?RESP[it.r]:String(it.r||""),
     "Valor":a.raw&&a.raw[i]!=null?a.raw[i]:"","Auditados":a.tgts&&a.tgts[i]!=null?a.tgts[i]:"",
     "Classificação":LBL[a.scores[i]]||""})));
-  return{auditorias,respostas};
+  /* v3.12.0: terceira folha, uma linha por acção do plano. */
+  const acoes=[];
+  ord.forEach(a=>(Array.isArray(a.acoes)?a.acoes:[]).forEach(ac=>acoes.push({
+    "ID auditoria":a.id,"Serviço":a.service,"Data da auditoria":a.date,
+    "Responsável":isResp(ac.r)?RESP[ac.r]:String(ac.r||""),"Acção":ac.texto,
+    "Pergunta Nº":ac.item||"","Prazo":ac.prazo||"","Estado":ac.estado==="feita"?"Feita":"Aberta",
+    "Concluída em":ac.feitaEm||""})));
+  return{auditorias,respostas,acoes};
 }
 
 /* ---------- Recomendações por responsável (v1.7.0) ----------
@@ -1933,6 +2044,110 @@ function seguimentoHTML(a){
       <td style="color:${SEG_LBL[l.estado][1]};font-weight:700">${SEG_LBL[l.estado][0]}</td></tr>`).join("")}</table>`
       :`<p>Tudo Excelente nas duas auditorias.</p>`}</div>`;
 }
+/* ---------- Plano de acção: relatório (v3.12.0) ----------
+   Folha própria (a 4.ª), impressa só quando há acções — desta auditoria ou em
+   aberto de auditorias anteriores ao serviço. É um <section> e não um <div>:
+   a regra de impressão que tira a quebra de página depois da última folha usa
+   `div:last-of-type`, e assim a folha 3 continua a ser a última <div>. */
+const ESTADO_ACAO={feita:["Feita","var(--green)"],atrasada:["Em atraso","var(--red)"],aberta:["Aberta","var(--amber-bg)"]};
+function dataCurta(d){return d?d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(2,4):"";}
+function linhaAcao(ac,hoje,ctl){
+  const e=estadoAcao(ac,hoje),[rot,cor]=ESTADO_ACAO[e];
+  return`<tr><td><small>${esc(isResp(ac.r)?RESP[ac.r]:ac.r)}</small></td>
+    <td>${esc(ac.texto)}${ac.item?`<br><small style="color:var(--muted)">Pergunta nº ${esc(ac.item)}</small>`:""}</td>
+    <td>${esc(dataCurta(ac.prazo))||"—"}</td>
+    <td><span class="pill" style="background:${cor}">${rot}</span>${e==="feita"&&ac.feitaEm?`<br><small style="color:var(--muted)">${esc(dataCurta(ac.feitaEm))}</small>`:""}</td>
+    <td class="no-print">${ctl}</td></tr>`;
+}
+const CAB_ACOES=`<tr><th>Resp.</th><th>Acção</th><th>Prazo</th><th>Estado</th><th class="no-print"><span class="sr-only">Alterar</span></th></tr>`;
+function planoHTML(a){
+  const hoje=hojeISO();
+  const acoes=Array.isArray(a.acoes)?a.acoes:[];
+  const pend=acoesPendentes(audits,a.service,hoje,a);
+  const impresso=acoes.length||pend.length;
+  const feito=(auditId,ac)=>`<label class="chk"><input type="checkbox" data-acao-feita="${auditId}:${ac.id}"${ac.estado==="feita"?" checked":""}> Feita</label>`;
+  return`<section id="plano" class="${impresso?"page page-4":"no-print"}">
+  <div class="card"><h3 style="margin-bottom:4px">Plano de acção · ${esc(a.service)} · ${esc(a.date)}</h3>
+    <p class="no-print" style="font-size:.75rem;color:var(--muted);margin-bottom:10px">Passos concretos, com responsável e prazo.
+      Ficam em aberto até serem marcados como feitos — aqui, ou na próxima auditoria a este serviço.</p>
+    ${acoes.length?`<table>${CAB_ACOES}${acoes.map(ac=>linhaAcao(ac,hoje,
+      feito(a.id,ac)+` <button class="ed-del" data-acao-rm="${ac.id}" aria-label="Remover a acção">Remover</button>`)).join("")}</table>`
+      :`<p style="font-size:.8rem;color:var(--muted)">Ainda sem acções nesta auditoria.</p>`}
+    <div class="no-print acao-form" id="acao-form">
+      <div class="row">
+        <div style="flex:0 0 38%"><label>Responsável</label><select id="acao-r">
+          ${Object.keys(RESP).map(k=>`<option value="${esc(k)}">${esc(RESP[k])}</option>`).join("")}</select></div>
+        <div><label>Prazo</label><input type="date" id="acao-prazo"></div>
+      </div>
+      <label>Acção</label><input id="acao-texto" maxlength="300" placeholder="O que fazer (ex.: retirar as caixas vazias do corredor 3)">
+      <input type="hidden" id="acao-item">
+      <button class="btn small" id="btn-acao-add">Acrescentar acção</button>
+    </div>
+  </div>
+  ${pend.length?`<div class="card"><h3 style="margin-bottom:4px">Em aberto de auditorias anteriores (${pend.length})</h3>
+    <table>${CAB_ACOES}${pend.map(p=>linhaAcao(p.acao,hoje,feito(p.auditId,p.acao)+
+      `<br><small style="color:var(--muted)">de ${esc(dataCurta(p.date))}</small>`)).join("")}</table></div>`:""}
+  </section>`;
+}
+/* Prepara o formulário do plano a partir de uma pergunta ("+ Acção" em Itens a
+   melhorar): responsável e número da pergunta preenchidos, o texto começado. */
+function novaAcaoPara(it){
+  const r=document.getElementById("acao-r"),t=document.getElementById("acao-texto");
+  if(!r||!t)return;
+  if(isResp(it.r))r.value=it.r;
+  document.getElementById("acao-item").value=it.n||"";
+  t.value="Nº "+it.n+" — "+it.t+": ";
+  document.getElementById("acao-form").scrollIntoView({behavior:"smooth",block:"center"});
+  t.focus();
+}
+/* Altera as acções da auditoria `auditId`, no sítio (o relatório aberto guarda
+   uma referência a este objecto), passando o resultado por sanitizeAcoes().
+   Se a gravação falhar (armazenamento cheio), a alteração é desfeita. */
+function mudarAcoes(auditId,fn){
+  const alvo=audits.find(x=>x.id===auditId);
+  if(!alvo)return false;
+  const antes=alvo.acoes;
+  alvo.acoes=sanitizeAcoes(fn((Array.isArray(antes)?antes:[]).map(x=>Object.assign({},x))));
+  if(!save("audits",audits)){alvo.acoes=antes;return false;}
+  registarAlteracao();
+  return true;
+}
+/* Marca como feita (com a data de hoje) ou volta a abrir. */
+function marcarAcao(chave,feita){
+  const [aid,id]=String(chave).split(":").map(Number);
+  return mudarAcoes(aid,l=>l.map(ac=>ac.id===id?Object.assign(ac,{estado:feita?"feita":"aberta",feitaEm:feita?hojeISO():""}):ac));
+}
+function redrawPlano(a){
+  const old=document.getElementById("plano");
+  if(!old)return;
+  const tmp=document.createElement("div");
+  tmp.innerHTML=planoHTML(a);
+  old.replaceWith(tmp.firstElementChild);
+  wirePlano(a);
+}
+function wirePlano(a){
+  const box=document.getElementById("plano");
+  if(!box)return;
+  ligarRotulos(box);
+  box.querySelectorAll("[data-acao-feita]").forEach(c=>c.onchange=()=>{
+    if(!marcarAcao(c.dataset.acaoFeita,c.checked))c.checked=!c.checked;
+    else redrawPlano(a);
+  });
+  box.querySelectorAll("[data-acao-rm]").forEach(b=>b.onclick=()=>{
+    if(!confirm("Remover esta acção do plano?"))return;
+    const id=+b.dataset.acaoRm;
+    if(mudarAcoes(a.id,l=>l.filter(ac=>ac.id!==id)))redrawPlano(a);
+  });
+  document.getElementById("btn-acao-add").onclick=()=>{
+    const texto=clean(document.getElementById("acao-texto").value,300);
+    if(!texto){alert("Escreva a acção.");document.getElementById("acao-texto").focus();return;}
+    const nova={r:document.getElementById("acao-r").value,texto,
+      prazo:document.getElementById("acao-prazo").value,estado:"aberta",
+      item:parseInt(document.getElementById("acao-item").value,10)||null};
+    if(mudarAcoes(a.id,l=>l.concat([nova])))redrawPlano(a);
+  };
+}
+
 /* ---------- Relatório / PDF ---------- */
 function openReport(a){
   /* Limpo ANTES de desenhar: recsHTML() lê REC_FOTOS, e mostraria por instantes
@@ -1988,14 +2203,16 @@ function openReport(a){
       <td><span class="pill" style="background:${cor}">${esc(LBL[s])}</span></td></tr>`;}).join("")}
     </table></div>
   <div class="card no-print"><h3 style="margin-bottom:10px">Itens a melhorar (${worst.length})</h3>
-    ${worst.length?`<table><tr><th>Nº</th><th>Item</th><th>Obs.</th><th>Avaliação</th></tr>${worst.map(x=>
+    ${worst.length?`<table><tr><th>Nº</th><th>Item</th><th>Obs.</th><th>Avaliação</th><th><span class="sr-only">Acção</span></th></tr>${worst.map((x,k)=>
       `<tr><td>${esc(x.it.n)}</td><td>${esc(x.it.t)}<br><small style="color:var(--muted)">${esc(x.it.c)}</small></td>
       <td>${esc(x.raw)}</td>
-      <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber-bg)'}">${esc(LBL[x.s])}</span></td></tr>`).join("")}</table>`
+      <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber-bg)'}">${esc(LBL[x.s])}</span></td>
+      <td><button class="btn small ghost" data-acao-worst="${k}" aria-label="Criar acção para a pergunta ${esc(x.it.n)}">+ Acção</button></td></tr>`).join("")}</table>`
       :`<p>Sem não-conformidades. 🎉</p>`}</div>
   ${seguimentoHTML(a)}
   </div>
   ${recsHTML(a)}
+  ${planoHTML(a)}
   <button class="btn no-print" id="btn-print">Gerar PDF</button>
   <button class="btn ghost no-print" id="btn-edit">Editar auditoria</button>
   <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
@@ -2010,6 +2227,11 @@ function openReport(a){
       redrawRecs(a);
     }).catch(()=>{});
   }
+  wirePlano(a);
+  document.querySelectorAll("#view-report [data-acao-worst]").forEach(b=>b.onclick=()=>{
+    const x=worst[+b.dataset.acaoWorst];
+    novaAcaoPara(x.it);
+  });
   document.getElementById("btn-print").onclick=()=>window.print();
   document.getElementById("btn-edit").onclick=()=>editAudit(a);
   document.getElementById("btn-back").onclick=()=>{clearFotos();document.querySelector('[data-v=history]').click();};
@@ -2060,7 +2282,9 @@ function renderHist(){
         `${d>0?"▲ +"+d:d<0?"▼ "+d:"= 0"}</span>`;
     }
     return`<div class="card"><div class="stat-row"><span>${esc(a.service)}</span><span>${p}/100${delta}</span></div>
-    <div style="font-size:.78rem;color:var(--muted)">${esc(a.date)} · Verif.: ${esc(a.verif||"—")}${ant?" · anterior: "+esc(ant.date):""}</div>
+    <div style="font-size:.78rem;color:var(--muted)">${esc(a.date)} · Verif.: ${esc(a.verif||"—")}${ant?" · anterior: "+esc(ant.date):""}${(()=>{
+      const c=contaAcoes(a,hojeISO());
+      return c.abertas?` · <span style="color:${c.atrasadas?"var(--red-ink)":"var(--amber-ink)"}">${c.abertas} acç${c.abertas>1?"ões":"ão"} em aberto${c.atrasadas?` (${c.atrasadas} em atraso)`:""}</span>`:"";})()}</div>
     <span class="badge ${bc}">${bt}</span>
     <div style="margin-top:8px"><button class="btn small ghost" data-rep="${i}">Relatório</button>
     <button class="btn small ghost" data-edit="${i}">Editar</button>
@@ -2473,11 +2697,12 @@ function exportJson(){
    segurança: o ficheiro não pode ser importado de volta. */
 function exportExcel(){
   loadXLSX().then(()=>{
-    const {auditorias,respostas}=linhasExcel(audits);
+    const {auditorias,respostas,acoes}=linhasExcel(audits);
     if(!auditorias.length){alert("Ainda não há auditorias para exportar.");return;}
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(auditorias),"Auditorias");
     XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(respostas),"Respostas");
+    if(acoes.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(acoes),"Acções");
     XLSX.writeFile(wb,"auditorias5s_"+hojeISO()+".xlsx",{compression:true});
   }).catch(e=>alert("Não foi possível exportar para Excel: "+e.message));
 }
@@ -2549,6 +2774,8 @@ function sanitizeAudit(x){
     /* v1.7.0: recsOf() normaliza para as 4 chaves conhecidas e aplica clean(),
        descartando qualquer chave arbitrária vinda do ficheiro importado. */
     recs:recsOf(x),
+    /* v3.12.0: o plano de acções viaja com a auditoria, pela mesma porta. */
+    acoes:sanitizeAcoes(x.acoes),
     items:items||undefined
   };
 }

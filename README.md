@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.11.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.12.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.11.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.12.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -25,6 +25,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Limiares por pergunta](#limiares-por-pergunta)
 - [Responsáveis](#responsáveis)
 - [Editar auditorias anteriores](#editar-auditorias-anteriores)
+- [Plano de acção](#plano-de-acção)
 - [Dados e privacidade](#dados-e-privacidade)
 - [Importação de Excel](#importação-de-excel)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -40,7 +41,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente. |
 | **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço; edição e remoção (ambas sob PIN). |
 | **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG/canvas nativos, sem bibliotecas de gráficos. |
-| **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. No ecrã, também o seguimento face à auditoria anterior. |
+| **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Uma quarta, o **plano de acção**, quando há acções. No ecrã, também o seguimento face à auditoria anterior. |
 | **Configuração** | Serviços, responsáveis, exportação/importação JSON, exportação e importação de Excel, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
 
 Segue o **modo escuro** do sistema no ecrã (a impressão é sempre clara), e todas
@@ -245,6 +246,31 @@ Uma auditoria antiga que não tenha guardado as suas perguntas e cujo número de
 respostas não coincida com o das perguntas actuais **não é editável** — não há
 como saber a que pergunta pertence cada resposta.
 
+## Plano de acção
+
+Desde 3.12.0, cada auditoria pode ter um **plano de acção**: passos concretos,
+cada um com **responsável**, **prazo** e **estado** (aberta ou feita). As
+recomendações por responsável (texto e foto, folha 3) continuam como estavam;
+as acções são o que se pode seguir até ficar resolvido.
+
+- **Criar.** No relatório, na secção *Plano de acção*, ou com **+ Acção** num
+  dos *Itens a melhorar* — o responsável e o número da pergunta vêm
+  preenchidos.
+- **Seguir.** Uma acção fica **em aberto** até ser marcada como feita (com a
+  data). Passado o prazo, aparece **em atraso**. O Histórico mostra quantas
+  acções cada auditoria tem em aberto.
+- **Fechar no terreno.** O formulário de uma auditoria nova mostra as acções em
+  aberto das auditorias anteriores ao serviço escolhido: quem audita verifica
+  no local e marca as que ficaram resolvidas.
+- **Imprimir.** O plano é a 4.ª folha do relatório, com as acções da auditoria
+  e as que vinham em aberto de antes. Sem acções, o relatório continua com 3
+  folhas.
+
+As acções viajam com a auditoria na exportação JSON e na importação (validadas
+pela mesma porta, `sanitizeAcoes()`), e têm uma folha própria, *Acções*, na
+exportação para Excel. Um responsável com acções atribuídas não pode ser
+removido, tal como um com perguntas ou recomendações.
+
 ## Dados e privacidade
 
 Tudo vive em `localStorage`, apenas no dispositivo. Não há servidor, conta,
@@ -320,6 +346,8 @@ com o SheetJS que já servia para a importação:
   nomes, observação e a percentagem por pilar e por responsável.
 - **Respostas** — uma linha por resposta: pergunta, pilar, responsável, valor,
   unidades auditadas e classificação. É o formato que uma tabela dinâmica quer.
+- **Acções** (3.12.0, quando há) — uma linha por acção do plano: responsável,
+  texto, pergunta, prazo, estado e data de conclusão.
 
 Serve para análise noutro programa. **Não** é uma cópia de segurança: não pode
 ser importado de volta, e por isso não conta para o lembrete de exportação.
@@ -395,6 +423,7 @@ node tests/smoke-historico.mjs     # filtros, análise, seguimento, fotos, Excel
 node tests/smoke-csp.mjs           # versão publicada: CSP por hashes (serve dist/ na 8766)
 node tests/smoke-a11y.mjs          # acessibilidade com o axe-core, modo claro e escuro
 node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditorias, Excel offline
+node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no terreno, PDF
 ```
 
 O lint e o teste de acessibilidade precisam das ferramentas de `tools/lint/`:
