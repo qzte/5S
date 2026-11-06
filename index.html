@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.6.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.6.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -338,6 +338,7 @@ canvas{width:100%!important}
       <b>pasta partilhada</b> — a mesma das outras apps e do painel.html —, escolhida uma vez. Volta a gravá-lo
       sempre que uma auditoria é gravada, editada ou apagada. Só no Chrome ou no Edge de computador.</p>
     <button class="btn small ghost" id="btn-painel">Escolher pasta</button>
+    <button class="btn small ghost" style="display:none;border-color:var(--red);color:var(--red)" id="btn-painel-off">Deixar de gravar</button>
     <div id="painel-estado" role="status" style="font-size:.78rem;color:var(--muted);margin-top:10px"></div>
   </div>
   <div class="card">
@@ -762,6 +763,16 @@ const load=(k,d)=>{
    é alcançável a partir de qualquer outra página da origem (ver README, secção
    do armazenamento partilhado). Todas as chaves desta aplicação são listas. */
 const loadArr=(k,d)=>{const v=load(k,d);return Array.isArray(v)?v:d;};
+/* O mínimo que o resto da app LÊ de uma auditoria sem verificar: total() e
+   colTotals() percorrem `scores`; o Histórico, a Análise e o painel ordenam por
+   `date` com localeCompare; itemsOf() usa `items.length`. Não é a sanitização
+   completa (essa é sanitizeAudit(), à entrada de ficheiro): é a forma, para que
+   um registo estragado no localStorage não derrube as vistas que o desenham. */
+function auditUsavel(a){
+  return !!a&&typeof a==="object"&&!Array.isArray(a)&&
+    typeof a.service==="string"&&typeof a.date==="string"&&
+    Array.isArray(a.scores)&&(a.items==null||Array.isArray(a.items));
+}
 /* O localStorage é finito (~5 MB por origem, partilhados com tudo o que esteja
    publicado no mesmo domínio) e `setItem` LANÇA quando enche. Sem este try, a
    excepção subia do onclick de Guardar: o relatório não abria, a auditoria
@@ -817,9 +828,14 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F\u061C\u200B\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.6.0";
+const APP_VERSION="3.6.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
-let audits=loadArr("audits",[]);
+/* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
+   é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
+   passava, e rebentava depois em total() (`a.scores` indefinido): o Histórico e
+   a Análise ficavam em branco e o 5s.painel.json deixava de ser gravado, sem
+   aviso. Ver auditUsavel(). */
+let audits=loadArr("audits",[]).filter(auditUsavel);
 let services=loadArr("services",["UCIP (11120)"]);
 let people=loadArr("people",[]); /* repositores / picking */
 let answers={};
@@ -1079,6 +1095,13 @@ document.getElementById("btn-save").onclick=()=>{
   const IT=fitems();
   if(Object.keys(answers).length<IT.length){alert("Faltam "+(IT.length-Object.keys(answers).length)+" itens por avaliar.");return;}
   const dados=colherFormulario();
+  /* v3.6.1: a data é obrigatória e tem de ter a forma que sanitizeAudit() exige.
+     O <input type=date> pode ser esvaziado, e a auditoria era gravada com
+     `date:""` — e depois DESCARTADA em silêncio ao importar a exportação, como
+     «registo inválido». A cópia de segurança perdia exactamente o que devia
+     guardar. */
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(dados.date)){alert("Indique a data da auditoria.");
+    document.getElementById("f-date").focus();return;}
   if(editId!=null){
     const nova=aplicarEdicao(audits,editId,dados);
     if(!nova){alert("Esta auditoria já não existe no histórico. As alterações não foram guardadas.");resetForm();return;}
@@ -1745,7 +1768,11 @@ function exportJson(){
        seria lido com os responsáveis de quem importa, e as atribuições das
        perguntas passariam a apontar para nomes diferentes dos originais. */
     resps:respsActuais(),
-    itemsCfg:JSON.parse(localStorage.getItem("itemsCfg")||"null")
+    /* v3.6.1: loadArr e não JSON.parse directo. Um `itemsCfg` que não fizesse
+       parse (escrito por outra página da origem) lançava aqui, e o botão de
+       exportar não fazia nada — a cópia de segurança ficava impossível
+       precisamente quando o armazenamento já estava estragado. */
+    itemsCfg:loadArr("itemsCfg",null)
   };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
@@ -2346,6 +2373,12 @@ function mostrarPainel(i){
   btn.dataset.estado=i.estado;
   btn.disabled=i.estado==="indisponivel";
   btn.textContent=i.estado==="licenca"?"Dar acesso à pasta":i.estado==="ok"?"Escolher outra pasta":"Escolher pasta";
+  /* v3.6.1: havia forma de escolher a pasta mas não de a largar — o esquecer()
+     do escritor existia e não estava ligado a nada. */
+  const off=document.getElementById("btn-painel-off");
+  /* style e não a classe .hidden: `.btn.small` fixa display:inline-block e, por
+     ser mais específica, ganha a `.hidden`. */
+  if(off)off.style.display=i.pasta?"":"none";
   txt.textContent={
     indisponivel:"Este browser não consegue gravar numa pasta (use o Chrome ou o Edge de computador).",
     sem:"Nenhuma pasta escolhida: o painel não recebe as auditorias 5S.",
@@ -2382,6 +2415,10 @@ on("btn-edimp","click",()=>document.getElementById("ed-file").click());
 on("ed-file","change",function(){edImport(this);});
 on("btn-edsave","click",()=>edSave());
 on("btn-edreset","click",()=>edReset());
+on("btn-painel-off","click",()=>{
+  if(!confirm("Deixar de gravar o 5s.painel.json nesta pasta? O ficheiro que já lá está não é apagado."))return;
+  painel.esquecer();
+});
 on("btn-painel","click",()=>{
   const e=painel.info().estado;
   (e==="licenca"?painel.darAcesso():painel.escolher()).then(()=>painel.escrever(dadosPainel5s(audits)));

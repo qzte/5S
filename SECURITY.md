@@ -1,12 +1,163 @@
 # Auditoria de segurança · Auditoria 5S
 
-Duas revisões, por ordem inversa:
+Três revisões, por ordem inversa:
 
-- **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em **3.5.1** e **3.5.2**.
+- **[Revisão de 3.6.0](#revisão-de-360-2026-11-06)** — correcções em **3.6.1**.
+- **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em 3.5.1 e 3.5.2.
 - **[Revisão de 3.1.0](#revisão-de-310-2026-07-31)** — correcções em 3.1.1 e 3.1.2.
 
-Âmbito de ambas: `index.html` (aplicação e SheetJS embutido), `sw.js`,
+Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+# Revisão de 3.6.0 (2026-11-06)
+
+Terceira revisão. A 3.6.0 trouxe a primeira **escrita fora do navegador**: o
+`5s.painel.json`, gravado numa pasta do disco pela File System Access API, e o
+*handle* dessa pasta guardado em IndexedDB. Foi revisto esse código linha a
+linha (`criarEscritorPainel`, `dadosPainel5s`, `agendarPainel`, `mostrarPainel`)
+e, de novo, o resto da aplicação contra o modelo de ameaça da primeira revisão.
+
+## Resumo
+
+| # | Gravidade | Assunto | Estado |
+| --- | --- | --- | --- |
+| 21 | Baixa | A licença da pasta do painel é da **origem**, não desta app | Documentado; «Deixar de gravar» em **3.6.1** |
+| 22 | Baixa | `itemsCfg` estragado impedia a exportação (a cópia de segurança) | **Corrigido em 3.6.1** |
+| 23 | Baixa | Auditoria gravada sem data perdia-se ao reimportar a cópia de segurança | **Corrigido em 3.6.1** |
+| 24 | Baixa | Auditoria com forma errada no `localStorage` derrubava Histórico, Análise e painel | **Corrigido em 3.6.1** |
+
+**Continua sem XSS explorável.** O código novo não escreve HTML: o estado do
+painel vai para o ecrã por `textContent` (incluindo o nome da pasta e a mensagem
+de erro do browser, que são texto de fora), e o ficheiro é `JSON.stringify` de
+números, datas e nomes de serviço já passados por `clean()`. O nome do ficheiro
+é fixo e validado por regex (`^[a-z0-9-]{1,40}$`) antes de chegar a
+`getFileHandle()`, pelo que não há travessia de caminhos. A CSP não precisou de
+mudar e não mudou.
+
+Confirmou-se também o que a nota de 3.6.0 afirma sobre os **dados**: o ficheiro
+leva serviços, datas e percentagens, e **não** leva Picking, Repositor,
+Verificador, observações, recomendações nem fotografias.
+
+---
+
+## 21. A licença da pasta do painel é da origem (Baixa)
+
+A nota de 3.6.0 diz que a app escreve «só na pasta que o utilizador escolhe» e
+que «não lê nem apaga nada». As duas coisas são verdade **para este código**. Não
+são verdade para a licença que o utilizador concede, e é essa que conta:
+
+- o *handle* da pasta fica em IndexedDB (`painel-feed:5s`), e o IndexedDB é da
+  **origem**, como o `localStorage` (ponto 9): qualquer página em
+  `qzte.github.io` o abre e lê;
+- a licença `readwrite` sobre uma pasta é concedida à **origem**, não à página.
+  Com o *handle* na mão, outra página da mesma origem pergunta
+  `queryPermission()` e recebe `granted` enquanto a licença durar — na sessão,
+  ou para sempre se o utilizador tiver escolhido «Permitir em todas as visitas»;
+- `readwrite` numa pasta não é «escrever um ficheiro»: é listar, ler,
+  substituir e apagar (`removeEntry`) tudo o que lá está, incluindo subpastas.
+
+E a pasta é, por desenho, **partilhada**: «a mesma das outras apps e do
+painel.html», que também vivem em `qzte.github.io`. Quem conceder a licença a
+esta app concede-a, na prática, a todo o código publicado na conta.
+
+Não é explorável por um terceiro sem antes controlar uma página da origem — a
+mesma pré-condição do ponto 9. Mas o ponto 9 dava acesso a dados do navegador; este
+alarga-o a uma **pasta do disco**, e por isso fica registado à parte.
+
+**O que mudou em 3.6.1:** o escritor do painel já tinha `esquecer()`, mas nada
+na app o chamava — havia forma de escolher a pasta e nenhuma de a largar. Passa
+a haver o botão **Deixar de gravar** no cartão do painel. Larga o *handle* e
+apaga-o do IndexedDB; a licença em si só o browser a retira (definições do
+site), e o texto do botão não promete mais do que isso.
+
+**Recomendações**, que não são código:
+
+- escolher para o painel uma pasta **só com os ficheiros do painel**, e nunca
+  Documentos, Ambiente de trabalho ou a pasta pessoal;
+- não escolher «Permitir em todas as visitas» se a licença por sessão bastar;
+- o isolamento real, como no ponto 9, é um domínio próprio;
+- o `painel.html` (qzte/e-ink_panel, fora do âmbito desta revisão) deve tratar
+  `servicos[].nome` como **texto não confiável** ao desenhar: é escrito pelo
+  utilizador, e qualquer página da origem pode escrever o ficheiro.
+
+## 22. `itemsCfg` estragado impedia a exportação (Baixa)
+
+`load()` ganhou um `try` em 3.1.1 (ponto 7) e `loadArr()` a verificação da forma
+em 3.5.1 (ponto 13), mas `exportJson()` lia a mesma chave **por fora** dessas
+portas:
+
+```js
+itemsCfg:JSON.parse(localStorage.getItem("itemsCfg")||"null")   // antes de 3.6.1
+```
+
+Com `itemsCfg` = `{x` — o caso que o ponto 7 descreve, escrito por outra página
+da origem — a app arranca bem (as perguntas caem nas de origem), mas carregar em
+**Exportar histórico** lança `SyntaxError` e **não descarrega nada**, sem
+mensagem. Verificado no Chromium. A cópia de segurança fica impossível
+precisamente quando o armazenamento já está estragado, que é quando mais falta
+faz.
+
+**Correcção:** `loadArr("itemsCfg",null)`. Um valor ilegível exporta `null`,
+que é o que significa «sem perguntas personalizadas», e as auditorias exportam
+na mesma. Verificado no Chromium: com o mesmo valor, o ficheiro descarrega.
+
+## 23. Auditoria sem data perdida na cópia de segurança (Baixa)
+
+O campo **Data** é um `<input type=date>` pré-preenchido com o dia, mas pode ser
+esvaziado — e **Guardar auditoria** não o verificava. A auditoria era gravada
+com `date:""`, aparecia no histórico, e na exportação ia para o ficheiro. Ao
+**importar** esse ficheiro, `sanitizeAudit()` — que exige `AAAA-MM-DD` — rejeita-a
+como «registo inválido». Verificado no Chromium, de ponta a ponta: uma auditoria
+sem data, exportada e reimportada em modo Substituir, dá «Nenhuma auditoria
+válida encontrada no ficheiro».
+
+Não é uma vulnerabilidade, é integridade: a cópia de segurança perdia em
+silêncio uma auditoria que o utilizador via no histórico.
+
+**Correcção:** Guardar exige a mesma forma de data que a importação, com a
+mensagem «Indique a data da auditoria.» e o foco no campo. As duas portas passam
+a aceitar exactamente o mesmo.
+
+## 24. Auditoria com forma errada derrubava as vistas (Baixa)
+
+É o ponto 13 um nível abaixo. `loadArr()` garante que `audits` é uma **lista**,
+não que cada elemento é uma **auditoria**. Com `audits` =
+`[{"service":"x"}]` — escrito por outra página da origem, ou por uma versão
+muito antiga — a app arranca, mas:
+
+| Vista | Antes de 3.6.1 |
+| --- | --- |
+| Histórico | `TypeError` em `total()` · lista em branco, mesmo com auditorias boas ao lado |
+| Análise | idem |
+| Painel e-ink | `dadosPainel5s()` lança dentro de um `setTimeout`/promessa: o `5s.painel.json` **deixa de ser actualizado**, e o cartão continua a dizer «A gravar…» |
+
+Verificado no Chromium. O último é o pior dos três por ser invisível: o painel
+continua a mostrar números, só que de há dias.
+
+**Correcção:** `auditUsavel()`, aplicada ao carregar `audits`. Exige o que o
+resto da app lê sem verificar — `service` e `date` texto, `scores` lista,
+`items` lista ou ausente — e descarta o resto. Não é a sanitização completa
+(essa continua a ser `sanitizeAudit()`, à entrada de ficheiro); é a forma. Um
+registo descartado não se podia abrir de qualquer maneira. Testes em
+`tests/forma.test.js`; verificado no Chromium com um registo estragado ao lado de
+um bom: o Histórico mostra o bom e a consola fica limpa.
+
+## O que foi verificado e continua bem
+
+- Todas as interpolações em `innerHTML`/`insertAdjacentHTML` acrescentadas ou
+  mexidas desde 3.5.2 passam por `esc()`; o código do painel não usa nenhuma.
+- Nenhum `eval`, `new Function`, `document.write` ou `srcdoc`; nenhum handler
+  inline.
+- O service worker e a allowlist estão como ficaram em 3.1.1; o SheetJS
+  embutido continua com o SHA-256 fixado em 3.5.2 (o teste passa).
+- As actions da CI continuam fixadas por SHA, com `permissions: contents: read`.
+- O escritor do painel escreve com `createWritable()`, que só substitui o
+  ficheiro no `close()` e faz `abort()` em caso de erro: o painel nunca lê um
+  ficheiro a meio.
+- A suite passa: 102 testes unitários e quatro smoke tests de browser (o do
+  painel cobre agora também «Deixar de gravar»).
+
+---
 
 ## Nota de 3.6.0 (2026-10-08): o ficheiro para o painel e-ink
 
@@ -14,7 +165,7 @@ A 3.6.0 passa a **escrever um ficheiro no disco**: `5s.painel.json`, para o pain
 
 | Ponto | Como ficou |
 | --- | --- |
-| Acesso ao disco | File System Access, `mode: 'readwrite'`, **só na pasta que o utilizador escolhe** (um clique; o browser volta a pedir licença em cada sessão). Escreve um único ficheiro de nome fixo; não lê nem apaga nada. |
+| Acesso ao disco | File System Access, `mode: 'readwrite'`, **só na pasta que o utilizador escolhe** (um clique; o browser volta a pedir licença em cada sessão). Escreve um único ficheiro de nome fixo; não lê nem apaga nada. *A licença é da origem e não desta app: ver ponto 21.* |
 | O que sai da app | Nomes dos serviços, datas e percentagens (por auditoria e por pilar). **Não** leva Picking, Repositor, Verificador, observações, recomendações nem fotografias. |
 | Escrita a meio | `createWritable()` só substitui o ficheiro no `close()`. |
 | CSP | Inalterada: escrever num ficheiro local não é um pedido de rede. |
