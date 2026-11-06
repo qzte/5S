@@ -1,6 +1,6 @@
 /*
   Auditoria 5S · Supermercados Kaizen — Service Worker
-  Versão: 3.10.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.11.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Função: cache offline da aplicação. O nome da cache inclui a versão,
           por isso cada nova versão invalida automaticamente a anterior.
   Segurança (v1.4.0): a cache só aceita recursos da própria origem que
@@ -8,16 +8,21 @@
           Desde 3.1.1 a allowlist vale também para as navegações, que antes
           escreviam em ./index.html sem a consultar.
 */
-const APP_VERSION = "3.10.0";
+const APP_VERSION = "3.11.0";
 const CACHE = "auditoria5s-v" + APP_VERSION;
 
+/* v3.11.0: "./vendor/xlsx.full.min.js" é o SheetJS, carregado só ao importar ou
+   exportar Excel. Fica em cache na instalação para funcionar offline como até
+   aqui, quando vinha embutido no index.html. (Sem comentários DENTRO da lista:
+   tests/publicacao.test.js lê-a como JSON.) */
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./icons/icon-512-maskable.png"
+  "./icons/icon-512-maskable.png",
+  "./vendor/xlsx.full.min.js"
 ];
 
 /* Conjunto de URLs absolutos permitidos em cache. Qualquer resposta cujo URL

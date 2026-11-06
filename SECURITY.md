@@ -2,6 +2,7 @@
 
 Três revisões, por ordem inversa:
 
+- **[Nota de 3.11.0](#nota-de-3110-2026-11-06-sheetjs-em-ficheiro-próprio)** — o SheetJS sai do `index.html` e passa a ser carregado com SRI.
 - **[Nota de 3.10.0](#nota-de-3100-2026-11-06-csp-por-hashes)** — a versão publicada deixa de ter `'unsafe-inline'` no `script-src` (ponto 11).
 - **[Nota de 3.9.0](#nota-de-390-2026-11-06-fotos-em-indexeddb)** — as fotos das recomendações passam a ser guardadas.
 - **[Nota de 3.7.0](#nota-de-370-2026-11-06-cloudflare-pages)** — a mudança para o Cloudflare Pages fecha os pontos 4, 9 e 21.
@@ -11,6 +12,23 @@ Três revisões, por ordem inversa:
 
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+## Nota de 3.11.0 (2026-11-06): SheetJS em ficheiro próprio
+
+O SheetJS deixa de vir embutido no `index.html` e passa a ser o ficheiro
+`vendor/xlsx.full.min.js`, carregado só ao importar ou exportar Excel.
+
+- O ficheiro é **byte a byte** o bloco que estava embutido: o SHA-256 fixado em
+  `tests/sheetjs.test.js` (ponto 18) é o mesmo, e a cadeia de verificação não
+  foi reiniciada.
+- É carregado com `integrity` (SRI, SHA-384). O browser recusa-o se não for
+  exactamente esse ficheiro — uma garantia em tempo de execução que o teste da
+  CI não dava. `tests/sheetjs.test.js` confirma que o SRI do `index.html` é o
+  do ficheiro.
+- A CSP publicada autoriza-o pelo `'self'`; os `<script>` embutidos que restam
+  (a guarda contra molduras e a app) continuam autorizados pelo hash.
+- O service worker guarda-o em cache na instalação (está em `ASSETS`), pelo que
+  continua a funcionar offline.
 
 ## Nota de 3.10.0 (2026-11-06): CSP por hashes
 

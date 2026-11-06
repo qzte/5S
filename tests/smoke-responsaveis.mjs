@@ -72,7 +72,10 @@ const opcoes = await pg.locator("[data-edresp='0'] option").allTextContents();
 check(opcoes.includes("Logística"), "o selector da edição devia oferecer o responsável novo");
 await pg.locator("[data-edresp='0']").selectOption("L");
 await pg.locator("#btn-save").click();
-const a = await pg.evaluate(() => JSON.parse(localStorage.getItem("audits"))[0]);
+/* As perguntas gravam-se à parte desde 3.11.0: lê-se o gravado, expandido. */
+const gravadas = () => pg.evaluate(() => expandirAudits(JSON.parse(localStorage.getItem("audits")),
+  JSON.parse(localStorage.getItem("perguntasAud") || "{}")));
+const a = (await gravadas())[0];
 check(a.items[0].r === "L", "a atribuição nova devia ficar gravada na auditoria");
 check((await pg.locator("#view-report .page-1 .card").nth(1).textContent()).includes("Logística"),
   "o radar por responsável devia ganhar o eixo novo");
@@ -105,8 +108,7 @@ check(depois.some(r => r.k === "Z"),
   "o responsável que só existe no ficheiro tem de ser trazido com ele");
 check(depois.length === 7 && depois[0].k === "U",
   "fundir acrescenta no fim e mantém os de casa");
-const imp = await pg.evaluate(() =>
-  JSON.parse(localStorage.getItem("audits")).find(x => x.id === 987654));
+const imp = (await gravadas()).find(x => x.id === 987654);
 check(imp.items[0].r === "Z",
   "sem a lista do ficheiro, esta pergunta chegaria atribuída ao responsável de recurso");
 fs.unlinkSync(ficheiro);

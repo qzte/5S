@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.10.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.11.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.10.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.11.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -257,6 +257,7 @@ telemetria nem recursos externos.
 | `people` | Repositores e Picking |
 | `itemsCfg` | Perguntas e limiares personalizados |
 | `resps` | Responsáveis (código e nome), pela ordem dos eixos do radar |
+| `perguntasAud` | Perguntas com que as auditorias foram feitas, cada conjunto uma vez (3.11.0) |
 | `rascunho` | Auditoria nova por terminar (3.8.0) — apagada ao gravar ou descartar |
 | `backup` | Data da última exportação e alterações desde então (3.8.0) |
 
@@ -290,6 +291,17 @@ O armazenamento do navegador é finito (~5 MB por origem). Se encher, gravar
 falha com um aviso explícito, o formulário **não** é limpo e nada do que já
 estava guardado se perde; a saída é exportar e apagar auditorias antigas.
 
+**Desde 3.11.0, cada conjunto de perguntas é gravado uma vez.** Cada auditoria
+guarda as perguntas com que foi feita, para o relatório e a edição de uma
+auditoria antiga usarem as perguntas daquela altura. Até 3.10.x cada uma
+gravava a sua cópia (~2,8 KB, quase sempre igual), e o armazenamento enchia por
+volta das **1 700 auditorias**. Agora as perguntas vão para `perguntasAud`, uma
+vez por conjunto diferente, e cada auditoria grava só a chave: 5 000 auditorias
+(o máximo, `MAX_AUDITS`) ocupam ~1,4 M caracteres, contra ~14 M antes. As
+auditorias gravadas por versões anteriores são convertidas no primeiro arranque.
+Em memória e na exportação JSON nada muda: cada auditoria continua a trazer as
+suas perguntas, e os ficheiros de cópia lêem-se em qualquer versão.
+
 As fotografias das recomendações são a excepção: desde 3.9.0 ficam no
 **IndexedDB** (base `auditoria5s-fotos`), por auditoria e por responsável,
 reduzidas a 640 px. Não ocupam a quota do `localStorage` e estão cobertas pelo
@@ -302,7 +314,7 @@ ao sair do Relatório.
 ### Exportação para Excel (3.9.0)
 
 *Configuração → Dados → Exportar para Excel* gera um `.xlsx` com duas folhas,
-com o SheetJS que já estava embutido para a importação:
+com o SheetJS que já servia para a importação:
 
 - **Auditorias** — uma linha por auditoria: serviço, data, nota, classificação,
   nomes, observação e a percentagem por pilar e por responsável.
@@ -318,8 +330,10 @@ O cabeçalho é procurado nas primeiras 15 linhas e é a linha que identificar
 **mais** colunas — uma linha de título antes dos rótulos (`Relatório de
 serviços`) não a engana, ainda que contenha a palavra "serviços".
 
-Aceita `.xlsx`, `.xls` e `.csv`, processados localmente pelo SheetJS embutido no
-próprio ficheiro:
+Aceita `.xlsx`, `.xls` e `.csv`, processados localmente pelo SheetJS, que vem
+com a app (`vendor/xlsx.full.min.js`) e funciona offline. Desde 3.11.0 só é
+carregado quando é preciso, em vez de a cada arranque: eram 952 KB dos 1,13 MB
+do `index.html`, e o arranque num telemóvel médio desceu de ~690 ms para ~290 ms:
 
 - Folha **Serviços** — colunas `Código` e `Descrição`.
 - Folha **Repositor** ou **Picking** — coluna `Nome` (e opcionalmente `Código`).
@@ -330,7 +344,8 @@ deteção pelas colunas.
 ## Estrutura do repositório
 
 ```
-index.html         Aplicação completa: HTML, CSS, JS e SheetJS embutido
+index.html         Aplicação completa: HTML, CSS e JS
+vendor/xlsx.full.min.js  SheetJS 0.20.3, carregado só para Excel (3.11.0)
 manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
 _headers           Cabeçalhos HTTP do Cloudflare Pages (CSP, molduras, cache do SW)
@@ -340,7 +355,7 @@ tools/lint/        Ferramentas de desenvolvimento (ESLint, axe-core), com lockfi
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
 SECURITY.md        Relatórios das auditorias de segurança (3.1.0, 3.5.0 e 3.6.0)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
-tests/sheetjs.*    Integridade do SheetJS embutido (SHA-256 fixado)
+tests/sheetjs.*    Integridade do SheetJS (SHA-256 fixado, e o SRI do carregador)
 tests/*.test.js    Testes unitários (node:test)
 tests/smoke*.mjs   Smoke tests de browser (Playwright)
 tests/dialogos.mjs Responde à caixa de diálogo da app nos smoke tests
@@ -379,6 +394,7 @@ node tests/smoke-rascunho.mjs      # rascunho, cópia de segurança, nova versã
 node tests/smoke-historico.mjs     # filtros, análise, seguimento, fotos, Excel, diálogo
 node tests/smoke-csp.mjs           # versão publicada: CSP por hashes (serve dist/ na 8766)
 node tests/smoke-a11y.mjs          # acessibilidade com o axe-core, modo claro e escuro
+node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditorias, Excel offline
 ```
 
 O lint e o teste de acessibilidade precisam das ferramentas de `tools/lint/`:
@@ -429,18 +445,20 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
   `data-attributes`.
 - CSP com `object-src 'none'`, `base-uri 'none'`, `frame-ancestors 'none'`,
   `connect-src 'self'`. Na versão publicada, desde 3.10.0, o `script-src` não
-  tem `'unsafe-inline'`: autoriza só os três `<script>` embutidos, pelo hash
+  tem `'unsafe-inline'`: autoriza só os `<script>` embutidos, pelo hash
   SHA-256 de cada um (`scripts/csp.mjs`). Um `<script>` injectado na página não
   corre. `tests/smoke-csp.mjs` verifica-o num browser.
 - Service worker limitado a uma allowlist da própria origem, contra
   envenenamento da cache.
 - Sem CDN: `referrer` não é enviado e a aplicação é offline de facto.
-- SheetJS embutido em **0.20.3**, que corrige a CVE-2023-30533 (prototype
+- SheetJS em **0.20.3** (`vendor/xlsx.full.min.js`, desde 3.11.0), que corrige a CVE-2023-30533 (prototype
   pollution) e a CVE-2024-22363 (ReDoS). Atenção ao actualizar: a biblioteca
   sai apenas de `cdn.sheetjs.com`, porque o pacote `xlsx` no npm ficou
   congelado em 0.18.5 (3.1.2) — o que também torna o `npm audit` cego a este
-  componente. Por isso o bloco embutido está **fixado pelo seu SHA-256** em
-  `tests/sheetjs.test.js`: qualquer alteração faz a CI falhar (3.5.2).
+  componente. Por isso o ficheiro está **fixado pelo seu SHA-256** em
+  `tests/sheetjs.test.js`: qualquer alteração faz a CI falhar (3.5.2). É
+  carregado com `integrity` (SRI), pelo que o browser também o recusa se não
+  for exactamente esse (3.11.0).
 - Porta de entrada única para dados de ficheiro: `sanitizeAudit()` para
   auditorias, `sanitizeItems()` para perguntas e `sanitizeResps()` para
   responsáveis — usada tanto pelo editor como pela importação de histórico

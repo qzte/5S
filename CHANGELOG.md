@@ -5,6 +5,35 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.11.0] — 2026-11-06
+
+Espaço para o histórico inteiro, e arranque mais rápido.
+
+### Alterado
+
+- **As perguntas de cada auditoria são gravadas uma vez por conjunto.** Até
+  aqui cada auditoria gravava a sua cópia das perguntas (~2,8 KB, quase sempre
+  igual), e o armazenamento enchia por volta das 1 700 auditorias, muito antes
+  do máximo previsto (5 000). Agora os conjuntos vão para `perguntasAud` e cada
+  auditoria grava só a chave: 5 000 auditorias ocupam ~1,4 M caracteres, contra
+  ~14 M. As auditorias antigas são convertidas no primeiro arranque. A gravação
+  faz-se por uma ordem que nunca deixa auditorias gravadas sem as suas
+  perguntas, mesmo que o armazenamento encha a meio. Em memória e na exportação
+  JSON nada muda.
+- **O SheetJS só é carregado quando é preciso** (importar ou exportar Excel),
+  como ficheiro próprio, `vendor/xlsx.full.min.js`. Eram 952 KB dos 1,13 MB do
+  `index.html`, lidos a cada arranque: num telemóvel médio, o arranque desce de
+  ~690 ms para ~290 ms. Continua a funcionar offline (o service worker guarda-o
+  em cache) e é carregado com `integrity` (SRI). O ficheiro é byte a byte o
+  bloco que estava embutido, com o mesmo SHA-256 fixado.
+
+### Adicionado
+
+- `tests/armazenamento.test.js` e `tests/smoke-armazenamento.mjs` (na CI):
+  conversão do formato antigo sem perder nada, cada auditoria com as suas
+  perguntas, 5 000 auditorias a caber, e Excel sem rede.
+- `tests/sheetjs.test.js` confirma que o SRI do carregador é o do ficheiro.
+
 ## [3.10.0] — 2026-11-06
 
 Acessibilidade, modo escuro, CSP sem `'unsafe-inline'` na versão publicada, e

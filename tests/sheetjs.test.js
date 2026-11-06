@@ -1,9 +1,11 @@
-/* Integridade do SheetJS embutido (v3.5.2).
+/* Integridade do SheetJS (v3.5.2; ficheiro próprio desde 3.11.0).
 
    O SheetJS é a única dependência de produção desta aplicação e está *vendored*:
-   vive como um bloco de ~930 KB dentro do `index.html`. Isso tem uma
-   consequência de cadeia de fornecimento que nenhuma das outras verificações
-   apanha:
+   até 3.10.x vivia como um bloco de ~930 KB dentro do `index.html`; desde
+   3.11.0 é o ficheiro `vendor/xlsx.full.min.js`, carregado só ao importar ou
+   exportar Excel — byte a byte o mesmo bloco, pelo que o SHA-256 abaixo é o
+   que já estava fixado. Isso tem uma consequência de cadeia de fornecimento que
+   nenhuma das outras verificações apanha:
 
    - não há `package.json` que o declare, pelo que `npm audit` — e qualquer
      ferramenta que leia um manifesto — é CEGA a este componente;
@@ -19,33 +21,29 @@
    falhar em vez de passar despercebida.
 
    AO ACTUALIZAR O SHEETJS: obter a distribuição oficial de cdn.sheetjs.com,
-   comparar com o bloco embutido, correr `node tests/sheetjs.test.js` para ler o
-   novo SHA-256 na mensagem de erro, e só então actualizar as constantes abaixo
-   — no mesmo commit que troca a biblioteca, nunca noutro. */
+   comparar com vendor/xlsx.full.min.js, correr `node tests/sheetjs.test.js`
+   para ler o novo SHA-256 na mensagem de erro, e só então actualizar as
+   constantes abaixo E o XLSX_SRI do index.html (o teste diz qual é) — no mesmo
+   commit que troca a biblioteca, nunca noutro. */
 const test = require("node:test");
 const assert = require("node:assert");
 const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
 const { HTML } = require("./harness.js");
+const FICHEIRO = path.join(__dirname, "..", "vendor", "xlsx.full.min.js");
 
 /* Versão verificada e o seu SHA-256. Ver o cabeçalho antes de mexer. */
 const VERSAO = "0.20.3";
 const SHA256 = "cc015130aa8521e7f088f88898eba949ccdcbfb38df0bd129b44b7273c3a6f41";
 const BYTES = 951904;
 
-/* O bloco vai do cabeçalho de direitos de autor do SheetJS até ao fecho do
-   <script> que o contém. Delimitado por marcadores e não por números de linha,
-   que mudam a cada alteração no resto do ficheiro. */
 const MARCA = "/*! xlsx.js (C) 2013-present SheetJS";
-function blocoSheetJS() {
-  const ini = HTML.indexOf(MARCA);
-  assert.notStrictEqual(ini, -1, "o cabeçalho do SheetJS desapareceu do index.html");
-  const fim = HTML.indexOf("</script>", ini);
-  assert.notStrictEqual(fim, -1, "o <script> do SheetJS não fecha");
-  return HTML.slice(ini, fim);
-}
 
-test("o SheetJS embutido não foi alterado", () => {
-  const blob = Buffer.from(blocoSheetJS(), "utf8");
+test("o SheetJS não foi alterado", () => {
+  const blob = fs.readFileSync(FICHEIRO);
+  assert.ok(blob.subarray(0, MARCA.length).toString() === MARCA,
+    "o ficheiro devia começar pelo cabeçalho de direitos de autor do SheetJS");
   const sha = crypto.createHash("sha256").update(blob).digest("hex");
   assert.strictEqual(sha, SHA256,
     "O bloco do SheetJS mudou.\n" +
@@ -60,10 +58,26 @@ test("o SheetJS embutido não foi alterado", () => {
 test("a versão anunciada no comentário é a que está fixada aqui", () => {
   /* Guarda contra a incoerência mais fácil de deixar passar: actualizar o
      comentário do index.html e esquecer as constantes deste ficheiro, ou o
-     inverso. */
-  const ctx = HTML.slice(Math.max(0, HTML.indexOf(MARCA) - 700), HTML.indexOf(MARCA));
-  assert.ok(ctx.includes("SheetJS v" + VERSAO),
+     inverso. O comentário fica junto do carregador (XLSX_SRC). */
+  const i = HTML.indexOf('const XLSX_SRC=');
+  assert.notStrictEqual(i, -1, "o index.html já não tem o carregador do SheetJS");
+  assert.ok(HTML.slice(Math.max(0, i - 1500), i).includes("SheetJS v" + VERSAO),
     "o comentário do index.html não anuncia a versão " + VERSAO);
+});
+
+test("o integrity (SRI) do carregador é o do ficheiro", () => {
+  /* Sem isto, actualizar o ficheiro e esquecer o XLSX_SRI faria o browser
+     recusar o SheetJS — e a importação e a exportação de Excel deixariam de
+     funcionar sem que nenhum outro teste desse por isso. */
+  const sri = "sha384-" + crypto.createHash("sha384").update(fs.readFileSync(FICHEIRO)).digest("base64");
+  const m = HTML.match(/const XLSX_SRI="([^"]+)";/);
+  assert.ok(m, "o index.html devia declarar XLSX_SRI");
+  assert.strictEqual(m[1], sri, "XLSX_SRI devia ser " + sri);
+});
+
+test("o SheetJS deixou de vir embutido no index.html", () => {
+  assert.strictEqual(HTML.indexOf(MARCA), -1,
+    "o SheetJS voltou a estar dentro do index.html: é lido a cada arranque");
 });
 
 test("as CVE conhecidas do SheetJS estão fechadas nesta versão", () => {
