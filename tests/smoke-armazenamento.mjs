@@ -80,6 +80,15 @@ const cabe = await pg.evaluate(() => {
 check(cabe === true, "5 000 auditorias deviam caber no armazenamento");
 check((await cru()).audits.length === 5000, "as 5 000 deviam ficar gravadas");
 
+/* 3.15.0: o Histórico desenha 50 de cada vez, e "Mostrar mais" acrescenta 50. */
+await pg.evaluate(() => { Object.keys(histFiltro).forEach(k => { histFiltro[k] = ""; }); });
+await pg.locator("[data-v=history]").click();
+check(await pg.locator("#hist-list [data-rep]").count() === 50, "o Histórico devia desenhar só 50 cartões");
+check(/Mostrar mais \(4950 restantes\)/.test(await pg.locator("#btn-hist-mais").textContent()),
+  "com o botão Mostrar mais e o que falta");
+await pg.locator("#btn-hist-mais").click();
+check(await pg.locator("#hist-list [data-rep]").count() === 100, "Mostrar mais devia acrescentar 50");
+
 /* ---- 3. SheetJS a pedido, também offline. ---- */
 await pg.evaluate(() => { audits = audits.slice(0, 3); save("audits", audits); });
 await pg.reload();

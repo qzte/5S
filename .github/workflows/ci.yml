@@ -151,6 +151,11 @@ jobs:
       - name: Evidência por pergunta e cópia com fotos
         run: node tests/smoke-evidencias.mjs
 
+      # Serve uma cópia do dist/ noutra porta (8767), que o teste altera e
+      # desliga para simular erros do servidor e uma actualização.
+      - name: Offline, servidor em erro e actualização do service worker
+        run: node tests/smoke-offline.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest
