@@ -5,6 +5,14 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.16.1] — 2026-11-06
+
+### Alterado
+
+- O guia de utilização deixa de mostrar o endereço do site: o primeiro passo
+  passa a dizer só para instalar a app a partir do browser. Quem lê o guia já
+  está dentro da app.
+
 ## [3.16.0] — 2026-11-06
 
 O guia de utilização, escrito e dentro da app.
