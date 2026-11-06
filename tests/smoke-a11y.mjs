@@ -44,6 +44,8 @@ for (const modo of ["light", "dark"]) {
     a2.acoes = [{ id: 1, r: "M", texto: "Rever etiquetas", prazo: "", estado: "feita", feitaEm: "2026-03-06", item: null }];
     localStorage.setItem("audits", JSON.stringify([a1, a2]));
     localStorage.setItem("services", JSON.stringify(["Loja A", "Loja B"]));
+    /* Frequências (3.13.0): o cartão dos prazos e o contador entram na verificação. */
+    localStorage.setItem("freqAud", JSON.stringify([{ s: "Loja A", d: 7 }, { s: "Loja B", d: 30 }]));
   });
   await pg.reload();
   await pg.locator("[data-pick='0']").fill("2");

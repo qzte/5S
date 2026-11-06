@@ -2,6 +2,7 @@
    5s.painel.json no formato do painel, e gravar uma auditoria volta a gravá-lo. O browser
    não tem pasta: uma de mentira, em memória, no lugar do showDirectoryPicker. */
 import pw from "playwright";
+import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -14,6 +15,8 @@ pg.on("console", m => {
   if (m.type() === "error" && !BENIGNO.test(m.text())) erros.push(m.text());
 });
 pg.on("dialog", d => d.accept(""));
+/* Avisos e confirmações vêm na caixa da app desde 3.13.0: aceita-os todos. */
+await ligarDialogos(pg, () => undefined);
 await pg.addInitScript(() => {
   const ficheiros = {};
   window.__PASTA = { ficheiros, escritas: 0 };

@@ -103,6 +103,7 @@ await semDialogo(pg);
 check(await pg.locator("#f-note").inputValue() === "corrigida",
   "a edição pelo histórico devia repor a auditoria gravada");
 await pg.locator("#btn-canceledit").click();
+await semDialogo(pg);
 check(await pg.locator("#edit-banner").isHidden(), "cancelar devia esconder o aviso");
 check(await pg.locator("#btn-save").textContent() === "Guardar auditoria",
   "cancelar devia repor o botão de auditoria nova");
@@ -117,16 +118,29 @@ await semDialogo(pg);
 check(await pg.locator("#edit-banner").isHidden(),
   "um código errado não pode abrir o modo de edição");
 
-/* ---- 6. Apagar: confirmado, mas com o código errado, não apaga. ---- */
-await pg.locator("[data-del='0']").click();
-await semDialogo(pg);
-check(await nAudits() === 1, "um código errado não pode apagar a auditoria");
-
-/* ---- 7. Com o código certo, apaga. ---- */
+/* ---- 6. Apagar (3.13.0): sem confirmação nem código, com Desfazer. ---- */
 pinAtual = PIN;
+const pedidosAntes = await pg.evaluate(() => +document.getElementById("dlg").dataset.seq || 0);
 await pg.locator("[data-del='0']").click();
-await semDialogo(pg);
-check(await nAudits() === 0, "com o código certo, apagar devia apagar");
+check(await nAudits() === 0, "apagar devia apagar logo");
+check(await pg.evaluate(() => +document.getElementById("dlg").dataset.seq || 0) === pedidosAntes,
+  "apagar já não abre caixa nenhuma (nem confirmação, nem código)");
+check(!(await pg.locator("#toast").isHidden()) && (await pg.locator("#toast-btn").textContent()) === "Desfazer",
+  "devia aparecer o aviso com Desfazer");
+
+/* ---- 7. Desfazer repõe a auditoria tal como estava. ---- */
+await pg.locator("#toast-btn").click();
+check(await nAudits() === 1, "desfazer devia repor a auditoria");
+check((await audit0()).id === idOriginal && (await audit0()).note === "corrigida",
+  "a auditoria reposta tem de ser a mesma, com o mesmo id e os mesmos dados");
+check(await pg.locator("#toast").isHidden(), "depois de desfazer, o aviso desaparece");
+check(await pg.locator("#hist-list [data-del]").count() === 1, "o histórico devia voltar a mostrá-la");
+
+/* ---- 8. Apagar e deixar passar o prazo: fica apagada. ---- */
+await pg.locator("[data-del='0']").click();
+await pg.evaluate(() => concluirApagar());   /* o mesmo que esperar os 10 s */
+check(await nAudits() === 0, "sem desfazer, fica apagada");
+check(await pg.locator("#toast").isHidden(), "terminado o prazo, o aviso desaparece");
 
 await b.close();
 console.log(erros.length ? "ERROS JS:\n" + erros.join("\n") : "sem erros de JS");

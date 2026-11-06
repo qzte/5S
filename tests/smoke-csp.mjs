@@ -7,6 +7,7 @@
    O servidor de teste não envia o _headers; vale a CSP do <meta>, que
    tests/publicacao.test.js garante ser igual à do cabeçalho. */
 import pw from "playwright";
+import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import { execFileSync, spawn } from "child_process";
 import fs from "fs";
 import path from "path";
@@ -35,6 +36,8 @@ pg.on("console", m => {
   else erros.push(m.text());
 });
 pg.on("dialog", d => d.accept(""));
+/* Avisos e confirmações vêm na caixa da app desde 3.13.0: aceita-os todos. */
+await ligarDialogos(pg, () => undefined);
 await pg.addInitScript(() => {
   window.__violacoes = [];
   document.addEventListener("securitypolicyviolation", e =>
