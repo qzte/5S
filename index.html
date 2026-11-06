@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.8.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.9.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -166,6 +166,21 @@ canvas{width:100%!important}
 /* v3.8.0: avisos (nova versão, cópia de segurança, auditoria por terminar). */
 .aviso{border-color:var(--amber);border-width:2px}
 .aviso-txt{font-size:.78rem;color:var(--muted);margin:6px 0 8px}
+/* v3.9.0: diálogo, variação face à auditoria anterior, legenda da evolução. */
+#dlg{margin:auto;border:0;border-radius:var(--radius);padding:20px;max-width:min(92vw,440px);width:100%;
+  box-shadow:0 12px 40px rgba(0,0,0,.35)}
+#dlg::backdrop{background:rgba(18,33,28,.55)}
+#dlg h3{margin-bottom:8px}
+#dlg-txt{font-size:.85rem;white-space:pre-wrap;margin-bottom:12px}
+#dlg-campo{margin-bottom:10px;font-size:1.2rem;letter-spacing:4px}
+#dlg-erro{color:var(--red);font-size:.8rem;margin-bottom:10px}
+#dlg-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.btn.perigo{border-color:var(--red);color:var(--red)}
+.delta{font-size:.75rem;font-weight:700;margin-left:6px}
+.delta.up{color:var(--green)}.delta.down{color:var(--red)}.delta.eq{color:var(--muted)}
+.prev{font-size:.72rem;color:var(--amber);margin-top:6px}
+.legenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.75rem;margin-top:8px}
+.legenda i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 .ed-item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;background:#fdfcf9}
 .ed-item textarea{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:.95rem;background:#fff;margin-bottom:10px;resize:vertical;min-height:52px}
 .ed-item .hint{font-size:.72rem;color:var(--muted);margin:-6px 0 10px}
@@ -324,12 +339,43 @@ canvas{width:100%!important}
 
 <!-- ============ HISTÓRICO ============ -->
 <section id="view-history" class="hidden">
+  <!-- v3.9.0: filtros do histórico. Só mudam o que se mostra: nada é gravado. -->
+  <div class="card" id="hist-filtros">
+    <div class="row">
+      <div><label for="hf-svc">Serviço</label><select id="hf-svc"></select></div>
+      <div><label for="hf-nota">Nota</label><select id="hf-nota">
+        <option value="">Todas</option>
+        <option value="bad">Crítico (abaixo de 50)</option>
+        <option value="mid">Com oportunidade (50 a 79)</option>
+        <option value="ok">Excelente (80 ou mais)</option></select></div>
+    </div>
+    <div class="row">
+      <div><label for="hf-de">De</label><input type="date" id="hf-de"></div>
+      <div><label for="hf-ate">Até</label><input type="date" id="hf-ate"></div>
+    </div>
+    <div class="stat-row" style="font-size:.78rem;color:var(--muted);font-weight:400">
+      <span id="hf-conta" role="status"></span>
+      <button class="btn small ghost" id="btn-hf-limpar">Limpar filtros</button></div>
+  </div>
   <div id="hist-list"></div>
 </section>
 
 <!-- ============ ANÁLISE ============ -->
 <section id="view-stats" class="hidden">
-  <div class="card"><h3>Evolução da nota</h3><canvas id="ch-evo" height="180"></canvas></div>
+  <!-- v3.9.0: a Análise inteira segue o serviço e o período escolhidos aqui. -->
+  <div class="card">
+    <div class="row">
+      <div><label for="an-svc">Serviço</label><select id="an-svc"></select></div>
+      <div><label for="an-per">Período</label><select id="an-per">
+        <option value="0">Todo o histórico</option>
+        <option value="3">Últimos 3 meses</option>
+        <option value="6">Últimos 6 meses</option>
+        <option value="12">Últimos 12 meses</option></select></div>
+    </div>
+    <div id="an-conta" style="font-size:.78rem;color:var(--muted)" role="status"></div>
+  </div>
+  <div class="card"><h3>Evolução da nota</h3><canvas id="ch-evo" height="180" role="img"></canvas>
+    <div id="ch-leg" class="legenda"></div></div>
   <div class="card"><h3>Comparação entre serviços</h3><div id="cmp-svc"></div></div>
   <div class="card"><h3>Pontos fracos por pilar 5S</h3>
     <div id="rad-pilar"></div><div id="cmp-pilar"></div></div>
@@ -353,9 +399,12 @@ canvas{width:100%!important}
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
       A exportação gera uma cópia de segurança completa: histórico de auditorias, serviços,
       repositores/picking e perguntas. A importação permite <b>fundir</b> com os dados actuais
-      (sem duplicar) ou <b>substituir</b> tudo.</p>
+      (sem duplicar) ou <b>substituir</b> tudo. A exportação para <b>Excel</b> serve para análise
+      noutro programa (uma folha por auditoria e outra por resposta) e não pode ser importada de volta:
+      a cópia de segurança é a JSON.</p>
     <button class="btn small ghost" id="btn-expjson">Exportar histórico (JSON)</button>
     <button class="btn small ghost" id="btn-impjson">Importar histórico (JSON)</button>
+    <button class="btn small ghost" id="btn-expxl">Exportar para Excel</button>
     <input type="file" id="hist-file" accept=".json,application/json" class="hidden">
     <div id="data-stats" style="font-size:.78rem;color:var(--muted);margin-top:12px"></div>
     <div id="data-armaz" style="font-size:.78rem;color:var(--muted);margin-top:6px"></div>
@@ -429,6 +478,18 @@ canvas{width:100%!important}
   </div>
 </section>
 </main>
+<!-- v3.9.0: caixa de diálogo própria, para o código de acesso e para escolher
+     o modo de importação. O prompt() nativo não abre o teclado numérico, mostra
+     o código às claras e obrigava a escrever «F» ou «S» para escolher. -->
+<dialog id="dlg" aria-labelledby="dlg-tit" aria-describedby="dlg-txt">
+  <form id="dlg-form">
+    <h3 id="dlg-tit"></h3>
+    <p id="dlg-txt"></p>
+    <input id="dlg-campo" class="hidden" type="password" inputmode="numeric" autocomplete="off" aria-label="Código de acesso">
+    <p id="dlg-erro" class="hidden" role="alert"></p>
+    <div id="dlg-btns"></div>
+  </form>
+</dialog>
 
 <nav>
   <button class="tab active" data-v="audit">Auditar</button>
@@ -948,7 +1009,7 @@ function avisoBackup(info,n,agora){
 }
 
 
-const APP_VERSION="3.8.0";
+const APP_VERSION="3.9.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1046,6 +1107,7 @@ function renderForm(){
       <div class="hint" data-pctof="${i}" style="margin-top:6px">—</div>`:`
       <input type="number" inputmode="numeric" min="0" max="${esc(it.max)}" placeholder="0"
         style="margin:8px 0 0" data-pick="${i}">`}
+      <div class="prev hidden" data-prev="${i}"></div>
     </div>`);
   });
   box.querySelectorAll("[data-pick]").forEach(el=>el.oninput=()=>pick(+el.dataset.pick,el));
@@ -1085,10 +1147,30 @@ function renderForm(){
      isto que faz sobreviver as respostas a um separador fechado, mas também a
      tudo o que redesenhe o formulário a meio (acrescentar um serviço na
      Configuração, por exemplo, apagava até aqui as respostas já dadas). */
-  if(emEdicao){mostrarRascunho(null);return;}
+  if(emEdicao){mostrarRascunho(null);mostrarAnteriores();return;}
   const rasc=lerRascunhoGuardado();
   if(rasc)aplicarRascunho(rasc);
   mostrarRascunho(rasc&&rasc.savedAt,rasc&&rasc.perdidas);
+  mostrarAnteriores();
+}
+/* v3.9.0: em cada pergunta, o que a última auditoria ao serviço escolhido lhe
+   deu, quando não foi Excelente. É o que fecha o ciclo 5S: quem audita sabe o
+   que ficou por resolver da vez anterior, enquanto está no sítio. Só numa
+   auditoria nova: em edição, a "anterior" seria a própria auditoria. */
+function mostrarAnteriores(){
+  const IT=fitems();
+  const ult=editId==null?ultimaDe(document.getElementById("f-service").value,audits):null;
+  const mapa=new Map();
+  if(ult)itemsOf(ult).forEach((it,j)=>{const k=assinItem(it);if(!mapa.has(k))mapa.set(k,j);});
+  IT.forEach((it,i)=>{
+    const el=document.querySelector("[data-prev='"+i+"']");
+    if(!el)return;
+    const j=ult?mapa.get(assinItem(it)):undefined;
+    const sc=j!=null?ult.scores[j]:null;
+    const vis=sc===0||sc===1;
+    el.classList.toggle("hidden",!vis);
+    el.textContent=vis?"Na auditoria anterior ("+ult.date+"): "+LBL[sc]+" — "+obsOf(ult,itemsOf(ult)[j],j):"";
+  });
 }
 /* Repõe no formulário os valores de uma auditoria gravada. As respostas passam
    por pick(), pelo que são RECLASSIFICADAS pelos limiares da própria auditoria
@@ -1359,6 +1441,104 @@ function byResp(a){const IT=itemsOf(a);return Object.keys(RESP).map(r=>{
 const badge=p=>p>=80?["b-ok","Excelente"]:p>=50?["b-mid","Com oportunidade"]:["b-bad","Crítico"];
 const barCls=p=>p>=80?"":p>=50?"mid":"bad";
 
+/* ---------- Ordem, filtros e auditoria anterior (v3.9.0) ----------
+   Puras, para serem testadas sem DOM. A ordem cronológica desempata pelo id
+   quando há duas auditorias ao mesmo serviço no mesmo dia: o id de uma
+   auditoria nova é o instante em que foi gravada. */
+function ordemCron(a,b){
+  return String(a.date).localeCompare(String(b.date))||(Number(a.id)||0)-(Number(b.id)||0);
+}
+/* Faixa de nota, com os mesmos cortes que badge() e barCls(). */
+function faixaNota(p){return p>=80?"ok":p>=50?"mid":"bad";}
+/* Filtro do Histórico e da Análise. `f`: {svc, de, ate, nota}; um campo vazio
+   não filtra. As datas são AAAA-MM-DD, que se comparam como texto. */
+function filtrarAudits(lista,f){
+  const g=f||{};
+  return (lista||[]).filter(a=>{
+    if(g.svc&&a.service!==g.svc)return false;
+    if(g.de&&a.date<g.de)return false;
+    if(g.ate&&a.date>g.ate)return false;
+    if(g.nota&&faixaNota(total(a))!==g.nota)return false;
+    return true;
+  });
+}
+/* A auditoria imediatamente anterior ao mesmo serviço, ou null. */
+function anteriorDe(a,lista){
+  let ant=null;
+  (lista||[]).forEach(x=>{
+    if(!x||x===a||x.id===a.id||x.service!==a.service)return;
+    if(ordemCron(x,a)<0&&(!ant||ordemCron(x,ant)>0))ant=x;
+  });
+  return ant;
+}
+/* A última auditoria a um serviço (a referência para uma auditoria nova). */
+function ultimaDe(svc,lista){
+  let u=null;
+  (lista||[]).forEach(x=>{if(x&&x.service===svc&&(!u||ordemCron(x,u)>0))u=x;});
+  return u;
+}
+/* Data de início de um período de `meses` meses até `hoje` (AAAA-MM-DD), ou ""
+   para todo o histórico. Em UTC, para não depender do fuso horário. */
+function desdeMeses(meses,hoje){
+  if(!meses)return "";
+  const d=new Date(hoje+"T00:00:00Z");
+  d.setUTCMonth(d.getUTCMonth()-meses);
+  return d.toISOString().slice(0,10);
+}
+/* Uma série por serviço para o gráfico de evolução, em ordem cronológica.
+   Até 3.8.x havia uma só linha com todas as auditorias de todos os serviços:
+   uma auditoria boa num serviço seguida de uma má noutro lia-se como uma queda. */
+function seriesEvolucao(lista){
+  const por=new Map();
+  [...(lista||[])].sort(ordemCron).forEach(a=>{
+    if(!por.has(a.service))por.set(a.service,[]);
+    por.get(a.service).push({date:a.date,pct:total(a)});
+  });
+  return [...por.keys()].sort((x,y)=>x.localeCompare(y)).map(k=>({service:k,pontos:por.get(k)}));
+}
+/* Seguimento face à auditoria anterior: cada pergunta que, numa das duas, não
+   estava Excelente. As perguntas são emparelhadas pela assinatura (número, tipo
+   e enunciado), não pela posição, porque o editor pode tê-las mudado entre as
+   duas auditorias; uma pergunta que só exista numa delas fica de fora. */
+function seguimento(a,ant){
+  if(!a||!ant)return null;
+  const ITp=itemsOf(ant),mapa=new Map();
+  ITp.forEach((it,j)=>{const k=assinItem(it);if(!mapa.has(k))mapa.set(k,j);});
+  const linhas=[];
+  itemsOf(a).forEach((it,i)=>{
+    const j=mapa.get(assinItem(it));
+    if(j==null)return;
+    const antes=ant.scores[j],agora=a.scores[i];
+    if(antes==null||agora==null||(antes===2&&agora===2))return;
+    linhas.push({n:it.n,t:it.t,c:it.c,antes,agora,
+      estado:agora>antes?"melhorou":agora<antes?"piorou":"igual"});
+  });
+  const conta=e=>linhas.filter(l=>l.estado===e).length;
+  return{date:ant.date,pct:total(ant),linhas,
+    melhoraram:conta("melhorou"),pioraram:conta("piorou"),iguais:conta("igual")};
+}
+/* Linhas das duas folhas da exportação para Excel: uma linha por auditoria,
+   com a nota, os pilares e os responsáveis, e uma linha por resposta, que é o
+   formato que uma tabela dinâmica quer. */
+function linhasExcel(lista){
+  const ord=[...(lista||[])].sort(ordemCron);
+  const auditorias=ord.map(a=>{
+    const p=total(a);
+    const o={"ID":a.id,"Serviço":a.service,"Data":a.date,"Nota":p,"Classificação":badge(p)[1],
+      "Picking":a.pick||"","Repositor":a.repo||"","Verificador":a.verif||"","Observação":a.note||""};
+    byPillar(a).forEach(x=>{o["Pilar: "+x.name]=x.n?x.pct:"";});
+    byResp(a).forEach(x=>{o["Resp.: "+x.name]=x.n?x.pct:"";});
+    return o;
+  });
+  const respostas=[];
+  ord.forEach(a=>itemsOf(a).forEach((it,i)=>respostas.push({
+    "ID auditoria":a.id,"Serviço":a.service,"Data":a.date,"Nº":it.n,"Tema":it.t||"","Pergunta":it.c||"",
+    "Pilar":PILLARS[it.p]||"","Responsável":isResp(it.r)?RESP[it.r]:String(it.r||""),
+    "Valor":a.raw&&a.raw[i]!=null?a.raw[i]:"","Auditados":a.tgts&&a.tgts[i]!=null?a.tgts[i]:"",
+    "Classificação":LBL[a.scores[i]]||""})));
+  return{auditorias,respostas};
+}
+
 /* ---------- Recomendações por responsável (v1.7.0) ----------
    Um bloco fixo por chave de RESP (cinco desde 3.2.0). O TEXTO é guardado com a
    auditoria (campo opcional `recs`); a FOTO é efémera e vive apenas em memória
@@ -1465,8 +1645,62 @@ function radarSVG(dados,cor){
    As fotos NUNCA são gravadas. Vivem neste Map enquanto a vista Relatório
    estiver aberta e são descartadas ao sair. O data URI é produzido localmente
    pelo <canvas>, a partir do ficheiro escolhido — nunca de texto externo. */
+/* v3.9.0: as fotos passam a ser guardadas em IndexedDB, por auditoria e por
+   responsável. Até 3.8.x viviam só em memória e perdiam-se ao sair do
+   Relatório — por opção, para não esgotar os ~5 MB do localStorage. O
+   IndexedDB tem uma quota muito maior e está coberto pelo mesmo pedido de
+   armazenamento persistente. Continuam FORA da exportação JSON: um ficheiro
+   de cópia com fotos passaria facilmente as dezenas de MB.
+   REC_FOTOS é a cópia em memória das fotos do relatório aberto. */
 const REC_FOTOS=new Map();
-function clearFotos(){REC_FOTOS.clear();}
+let fotosDe=null; /* id da auditoria a que REC_FOTOS pertence */
+function clearFotos(){REC_FOTOS.clear();fotosDe=null;}
+const FOTOS_DB="auditoria5s-fotos";
+/* Abre a base, corre `fn(store)` numa transacção e resolve com o que `fn`
+   devolver — o resultado do pedido, se for um IDBRequest — quando a transacção
+   termina, que é quando a escrita está de facto feita. */
+function fotosIDB(modo,fn){
+  return new Promise((res,rej)=>{
+    if(typeof indexedDB==="undefined")return rej(new Error("IndexedDB indisponível"));
+    const rq=indexedDB.open(FOTOS_DB,1);
+    rq.onupgradeneeded=()=>rq.result.createObjectStore("fotos");
+    rq.onerror=()=>rej(rq.error);
+    rq.onsuccess=()=>{
+      const db=rq.result,tx=db.transaction("fotos",modo),r=fn(tx.objectStore("fotos"));
+      tx.oncomplete=()=>{db.close();res(r instanceof IDBRequest?r.result:r);};
+      tx.onerror=tx.onabort=()=>{db.close();rej(tx.error);};
+    };
+  });
+}
+/* Chave: "<id da auditoria>|<código do responsável>". O id é um número, sem
+   "|", pelo que o prefixo "<id>|" identifica as fotos de uma auditoria. */
+const fotoChave=(id,k)=>String(id)+"|"+k;
+const fotosIntervalo=id=>IDBKeyRange.bound(String(id)+"|",String(id)+"|\uffff");
+function carregarFotos(id){
+  return fotosIDB("readonly",st=>{
+    const out=new Map(),cur=st.openCursor(fotosIntervalo(id));
+    cur.onsuccess=()=>{const c=cur.result;if(!c)return;
+      if(typeof c.value==="string"&&c.value.startsWith("data:image/"))
+        out.set(String(c.key).slice(String(id).length+1),c.value);
+      c.continue();};
+    return out;
+  });
+}
+const guardarFoto=(id,k,url)=>fotosIDB("readwrite",st=>st.put(url,fotoChave(id,k)));
+const apagarFoto=(id,k)=>fotosIDB("readwrite",st=>st.delete(fotoChave(id,k)));
+const apagarFotosDe=id=>fotosIDB("readwrite",st=>st.delete(fotosIntervalo(id)));
+/* Apaga as fotos de auditorias que já não existem (depois de Substituir na
+   importação). Só é chamada quando a lista nova acabou de ser GRAVADA: nunca
+   no arranque, onde um localStorage ilegível levaria as fotos todas. */
+function apagarFotosOrfas(ids){
+  const vivos=new Set(ids.map(String));
+  return fotosIDB("readwrite",st=>{
+    const cur=st.openKeyCursor?st.openKeyCursor():st.openCursor();
+    cur.onsuccess=()=>{const c=cur.result;if(!c)return;
+      if(!vivos.has(String(c.key).split("|")[0]))st.delete(c.key);
+      c.continue();};
+  });
+}
 /* Reduz a imagem para no máximo 640px de largura e re-codifica em JPEG 0.75,
    para que a renderização de impressão não engasgue com originais de 12 MP. */
 function shrinkImage(file,cb){
@@ -1493,8 +1727,8 @@ function recsHTML(a){
   return`<div class="page page-3">
     <div class="card no-print" style="grid-column:1/-1">
       <h3 style="margin-bottom:4px">Recomendações por responsável</h3>
-      <p style="font-size:.75rem;color:var(--muted)">O texto é guardado com a auditoria.
-        As fotos servem apenas para este PDF e não são guardadas.</p>
+      <p style="font-size:.75rem;color:var(--muted)">O texto e as fotos ficam guardados com a auditoria,
+        neste dispositivo. As fotos não entram na exportação JSON.</p>
     </div>
     ${respKeys().map(k=>{
       const foto=REC_FOTOS.get(k);
@@ -1543,10 +1777,15 @@ function wireRecs(a){
     shrinkImage(f,url=>{
       if(!url){alert("Não foi possível ler a imagem.");return;}
       REC_FOTOS.set(k,url);redrawRecs(a);
+      guardarFoto(a.id,k,url).catch(()=>alert(
+        "A foto aparece neste relatório, mas não foi possível guardá-la no dispositivo: "+
+        "ao sair do relatório perde-se."));
     });
   });
   box.querySelectorAll("[data-rmf]").forEach(b=>b.onclick=()=>{
-    REC_FOTOS.delete(b.dataset.rmf);redrawRecs(a);});
+    const k=b.dataset.rmf;
+    REC_FOTOS.delete(k);redrawRecs(a);
+    apagarFoto(a.id,k).catch(()=>{});});
 }
 /* Redesenha só a página 3, para não perder o scroll nem recalcular os gráficos. */
 function redrawRecs(a){
@@ -1558,8 +1797,30 @@ function redrawRecs(a){
   wireRecs(a);
 }
 
+/* v3.9.0: cartão de seguimento face à auditoria anterior ao mesmo serviço.
+   Fica fora da impressão, como "Itens a melhorar": a folha 2 está medida para
+   caber os 19 itens. */
+const SEG_LBL={melhorou:["▲ Melhorou","var(--green)"],piorou:["▼ Piorou","var(--red)"],igual:["= Mantém-se","var(--amber)"]};
+function seguimentoHTML(a){
+  const sg=seguimento(a,anteriorDe(a,audits));
+  if(!sg)return`<div class="card no-print" id="seguimento"><h3 style="margin-bottom:6px">Seguimento</h3>
+    <p style="font-size:.78rem;color:var(--muted)">É a primeira auditoria a este serviço: não há com que comparar.</p></div>`;
+  const pill=s=>`<span class="pill" style="background:${s===2?"var(--green)":s===1?"var(--amber)":"var(--red)"}">${esc(LBL[s])}</span>`;
+  return`<div class="card no-print" id="seguimento"><h3 style="margin-bottom:4px">Seguimento da auditoria anterior</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Face a ${esc(sg.date)} (${sg.pct}/100):
+      <b>${sg.melhoraram}</b> melhorou(aram), <b>${sg.iguais}</b> mantém(êm)-se por resolver, <b>${sg.pioraram}</b> piorou(aram).</p>
+    ${sg.linhas.length?`<table><tr><th>Nº</th><th>Item</th><th>Antes</th><th>Agora</th><th>Estado</th></tr>${sg.linhas.map(l=>
+      `<tr><td>${esc(l.n)}</td><td>${esc(l.t)}<br><small style="color:var(--muted)">${esc(l.c)}</small></td>
+      <td>${pill(l.antes)}</td><td>${pill(l.agora)}</td>
+      <td style="color:${SEG_LBL[l.estado][1]};font-weight:700">${SEG_LBL[l.estado][0]}</td></tr>`).join("")}</table>`
+      :`<p>Tudo Excelente nas duas auditorias.</p>`}</div>`;
+}
 /* ---------- Relatório / PDF ---------- */
 function openReport(a){
+  /* Limpo ANTES de desenhar: recsHTML() lê REC_FOTOS, e mostraria por instantes
+     as fotos do relatório aberto antes deste. */
+  const outraAuditoria=fotosDe!==a.id;
+  if(outraAuditoria)clearFotos();
   const [bc,bt]=badge(total(a));
   const worst=itemsOf(a).map((it,i)=>({it,s:a.scores[i],raw:obsOf(a,it,i)})).filter(x=>x.s<2);
   document.getElementById("view-report").innerHTML=`
@@ -1613,12 +1874,23 @@ function openReport(a){
       <td>${esc(x.raw)}</td>
       <td><span class="pill" style="background:${x.s===0?'var(--red)':'var(--amber)'}">${esc(LBL[x.s])}</span></td></tr>`).join("")}</table>`
       :`<p>Sem não-conformidades. 🎉</p>`}</div>
+  ${seguimentoHTML(a)}
   </div>
   ${recsHTML(a)}
   <button class="btn no-print" id="btn-print">Gerar PDF</button>
   <button class="btn ghost no-print" id="btn-edit">Editar auditoria</button>
   <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
   wireRecs(a);
+  /* As fotos chegam depois do relatório, que não fica à espera do disco. Se
+     entretanto se abriu outro relatório, as desta auditoria já não interessam. */
+  if(outraAuditoria){
+    fotosDe=a.id;
+    carregarFotos(a.id).then(m=>{
+      if(fotosDe!==a.id||!m.size)return;
+      m.forEach((url,k)=>{if(!REC_FOTOS.has(k))REC_FOTOS.set(k,url);});
+      redrawRecs(a);
+    }).catch(()=>{});
+  }
   document.getElementById("btn-print").onclick=()=>window.print();
   document.getElementById("btn-edit").onclick=()=>editAudit(a);
   document.getElementById("btn-back").onclick=()=>{clearFotos();document.querySelector('[data-v=history]').click();};
@@ -1628,16 +1900,48 @@ function openReport(a){
 }
 
 /* ---------- Histórico ---------- */
+/* v3.9.0: filtros em memória. Sobrevivem a mudar de separador, não a recarregar. */
+const histFiltro={svc:"",nota:"",de:"",ate:""};
+/* Opções de serviço: os da lista e os que só existem em auditorias gravadas
+   (um serviço removido da lista continua a ter histórico). */
+function servicosComAuditorias(){
+  return [...new Set(services.concat(audits.map(a=>a.service)))].filter(s=>audits.some(a=>a.service===s));
+}
+function opcoesServico(sel,valor,todos){
+  const lista=servicosComAuditorias();
+  if(valor&&!lista.includes(valor))valor="";
+  sel.innerHTML=`<option value="">${esc(todos)}</option>`+
+    lista.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  sel.value=valor;
+  return valor;
+}
 function renderHist(){
   const box=document.getElementById("hist-list");
+  document.getElementById("hist-filtros").classList.toggle("hidden",!audits.length);
   if(!audits.length){box.innerHTML=`<p class="empty">Ainda sem auditorias guardadas.</p>`;return;}
+  histFiltro.svc=opcoesServico(document.getElementById("hf-svc"),histFiltro.svc,"Todos os serviços");
+  document.getElementById("hf-nota").value=histFiltro.nota;
+  document.getElementById("hf-de").value=histFiltro.de;
+  document.getElementById("hf-ate").value=histFiltro.ate;
   /* O objeto da auditoria NUNCA é serializado para dentro de um atributo HTML.
      Guardamos apenas o índice na lista ordenada e ligamos por addEventListener. */
-  const ord=[...audits].sort((a,b)=>b.date.localeCompare(a.date));
+  const ord=filtrarAudits(audits,histFiltro).sort((a,b)=>ordemCron(b,a));
+  document.getElementById("hf-conta").textContent=
+    ord.length===audits.length?audits.length+" auditoria(s)":ord.length+" de "+audits.length+" auditoria(s)";
+  if(!ord.length){box.innerHTML=`<p class="empty">Nenhuma auditoria corresponde aos filtros.</p>`;return;}
   box.innerHTML=ord.map((a,i)=>{
-    const[bc,bt]=badge(total(a));
-    return`<div class="card"><div class="stat-row"><span>${esc(a.service)}</span><span>${total(a)}/100</span></div>
-    <div style="font-size:.78rem;color:var(--muted)">${esc(a.date)} · Verif.: ${esc(a.verif||"—")}</div>
+    const p=total(a),[bc,bt]=badge(p);
+    /* A variação compara com a anterior ao mesmo serviço no histórico INTEIRO,
+       não só entre as que o filtro deixa ver. */
+    const ant=anteriorDe(a,audits);
+    let delta="";
+    if(ant){
+      const d=p-total(ant);
+      delta=`<span class="delta ${d>0?"up":d<0?"down":"eq"}" title="Face à auditoria de ${esc(ant.date)} (${total(ant)}/100)">`+
+        `${d>0?"▲ +"+d:d<0?"▼ "+d:"= 0"}</span>`;
+    }
+    return`<div class="card"><div class="stat-row"><span>${esc(a.service)}</span><span>${p}/100${delta}</span></div>
+    <div style="font-size:.78rem;color:var(--muted)">${esc(a.date)} · Verif.: ${esc(a.verif||"—")}${ant?" · anterior: "+esc(ant.date):""}</div>
     <span class="badge ${bc}">${bt}</span>
     <div style="margin-top:8px"><button class="btn small ghost" data-rep="${i}">Relatório</button>
     <button class="btn small ghost" data-edit="${i}">Editar</button>
@@ -1650,7 +1954,7 @@ function renderHist(){
    Abre o formulário de auditoria com os valores já gravados. As perguntas são
    as da própria auditoria (`a.items`), e não as actuais: só assim o índice de
    cada resposta continua a apontar para a pergunta que a originou. */
-function editAudit(a){
+async function editAudit(a){
   const IT=itemsOf(a);
   /* Auditoria antiga sem perguntas associadas e com um nº de respostas
      diferente do actual: as respostas não têm a que pergunta pertencer, e
@@ -1664,7 +1968,7 @@ function editAudit(a){
   /* Reescrever uma auditoria gravada é uma alteração ao histórico, e passa pelo
      mesmo código do editor de perguntas. A ordem importa: primeiro diz-se se a
      auditoria é sequer editável, para não pedir um código e só depois recusar. */
-  if(!pedirPin("Código de acesso para editar uma auditoria gravada (evita alterações acidentais):"))return;
+  if(!(await pedirPin("Código de acesso para editar uma auditoria gravada (evita alterações acidentais):")))return;
   editId=a.id;
   FORM_ITEMS=IT.map(normItem);
   renderForm();
@@ -1673,15 +1977,16 @@ function editAudit(a){
   document.querySelector('[data-v=audit]').click();
   window.scrollTo(0,0);
 }
-function delAudit(id){
+async function delAudit(id){
   if(!confirm("Apagar esta auditoria?"))return;
   /* Mesmo código da edição e do editor de perguntas (3.3.1): apagar é a mais
      definitiva das alterações ao histórico — não há como anular, e o que se
      perde não está em mais lado nenhum sem uma exportação. A confirmação vem
      primeiro para que um toque acidental se desfaça sem ninguém ter de escrever
      código nenhum. */
-  if(!pedirPin("Código de acesso para apagar uma auditoria (não é possível anular):"))return;
+  if(!(await pedirPin("Código de acesso para apagar uma auditoria (não é possível anular):")))return;
   audits=audits.filter(a=>a.id!==id);save("audits",audits);
+  apagarFotosDe(id).catch(()=>{});
   /* Apagar a auditoria que está aberta no formulário fecha a edição: guardá-la
      depois disso encontraria a lista sem o registo e não teria o que
      substituir. */
@@ -1690,40 +1995,63 @@ function delAudit(id){
 
 /* ---------- Análise ---------- */
 function avg(arr){return arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):0;}
+const anFiltro={svc:"",meses:0};
+/* Cores das linhas da evolução, uma por serviço. A primeira é a da app. */
+const PALETA=["#1f6f50","#e8500a","#2f5d9e","#c98a1b","#7b4fa0","#b03a2e","#3a8f8a","#6d7a72"];
+function hojeISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
 function renderStats(){
-  const evo=[...audits].sort((a,b)=>a.date.localeCompare(b.date));
+  anFiltro.svc=opcoesServico(document.getElementById("an-svc"),anFiltro.svc,"Todos os serviços");
+  document.getElementById("an-per").value=String(anFiltro.meses);
+  const lista=filtrarAudits(audits,{svc:anFiltro.svc,de:desdeMeses(anFiltro.meses,hojeISO())});
+  document.getElementById("an-conta").textContent=audits.length?
+    "Com base em "+lista.length+" de "+audits.length+" auditoria(s).":"Sem auditorias guardadas.";
+  const series=seriesEvolucao(lista);
   const cv=document.getElementById("ch-evo"),ctx=cv.getContext("2d");
   const W=cv.width=cv.clientWidth*2,H=cv.height=360;ctx.clearRect(0,0,W,H);
-  if(evo.length){
+  const leg=document.getElementById("ch-leg");
+  leg.innerHTML="";
+  cv.setAttribute("aria-label",series.length?"Evolução da nota: "+series.map(sr=>
+    sr.service+" "+sr.pontos.map(pt=>pt.date+" "+pt.pct+"%").join(", ")).join("; "):"Sem auditorias no período.");
+  if(series.length){
     ctx.strokeStyle="#d9d3c5";ctx.lineWidth=2;
     [0,25,50,75,100].forEach(v=>{const y=H-30-(v/100)*(H-60);
       ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(W-10,y);ctx.stroke();
       ctx.fillStyle="#6d7a72";ctx.font="20px Archivo";ctx.fillText(v,6,y+6);});
-    ctx.strokeStyle="#1f6f50";ctx.lineWidth=5;ctx.beginPath();
-    evo.forEach((a,i)=>{const x=40+(evo.length===1?.5:i/(evo.length-1))*(W-60);
-      const y=H-30-(total(a)/100)*(H-60);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
-    evo.forEach((a,i)=>{const x=40+(evo.length===1?.5:i/(evo.length-1))*(W-60);
-      const y=H-30-(total(a)/100)*(H-60);
-      ctx.fillStyle="#e8500a";ctx.beginPath();ctx.arc(x,y,8,0,7);ctx.fill();});
+    /* O eixo horizontal é o TEMPO, comum a todas as linhas: com uma linha por
+       serviço, a posição pela ordem da auditoria já não as alinharia. */
+    const dia=d=>Date.parse(d+"T00:00:00Z")/864e5;
+    const dias=lista.map(a=>dia(a.date)).filter(Number.isFinite);
+    const d0=Math.min(...dias),d1=Math.max(...dias);
+    const xOf=d=>40+(d1===d0?.5:(dia(d)-d0)/(d1-d0))*(W-60);
+    const yOf=p=>H-30-(p/100)*(H-60);
+    series.forEach((sr,k)=>{
+      const cor=PALETA[k%PALETA.length];
+      ctx.strokeStyle=cor;ctx.lineWidth=5;ctx.beginPath();
+      sr.pontos.forEach((pt,i)=>i?ctx.lineTo(xOf(pt.date),yOf(pt.pct)):ctx.moveTo(xOf(pt.date),yOf(pt.pct)));
+      ctx.stroke();
+      ctx.fillStyle=cor;
+      sr.pontos.forEach(pt=>{ctx.beginPath();ctx.arc(xOf(pt.date),yOf(pt.pct),8,0,7);ctx.fill();});
+    });
+    if(series.length>1||!anFiltro.svc)
+      leg.innerHTML=series.map((sr,k)=>`<span><i style="background:${PALETA[k%PALETA.length]}"></i>${esc(sr.service)}</span>`).join("");
   }
   const bars=(pairs)=>pairs.map(([n,p])=>`<div class="stat-row"><span>${esc(n)}</span><span>${p}%</span></div>
     <div class="bar"><i class="${barCls(p)}" style="width:${p}%"></i></div>`).join("")||`<p class="empty">Sem dados.</p>`;
   document.getElementById("cmp-svc").innerHTML=bars(
-    services.filter(s=>audits.some(a=>a.service===s))
-    .map(s=>[s,avg(audits.filter(a=>a.service===s).map(total))]));
-  /* Médias de todas as auditorias, nos mesmos eixos do relatório individual. */
-  const medPilar=PILLARS.map((p,i)=>({name:p,pct:avg(audits.map(a=>byPillar(a)[i].pct))}));
+    series.map(sr=>[sr.service,avg(sr.pontos.map(pt=>pt.pct))]));
+  /* Médias das auditorias filtradas, nos mesmos eixos do relatório individual. */
+  const medPilar=PILLARS.map((p,i)=>({name:p,pct:avg(lista.map(a=>byPillar(a)[i].pct))}));
   /* v3.2.0: um responsável sem perguntas atribuídas (o "Picking" acabado de
      criar, enquanto não lhe for atribuída nenhuma) daria pctOf([])=0 e entraria
      no radar como o pior de todos. Zero perguntas não é zero por cento — o eixo
      fica de fora até haver perguntas, tal como já acontece no relatório. */
   const medResp=Object.values(RESP)
-    .map((r,i)=>({name:r,pct:avg(audits.map(a=>byResp(a)[i].pct)),
-      n:audits.reduce((s,a)=>s+byResp(a)[i].n,0)}))
+    .map((r,i)=>({name:r,pct:avg(lista.map(a=>byResp(a)[i].pct)),
+      n:lista.reduce((s,a)=>s+byResp(a)[i].n,0)}))
     .filter(d=>d.n>0);
-  document.getElementById("rad-pilar").innerHTML=audits.length?radarSVG(medPilar,"#1f6f50"):"";
-  document.getElementById("rad-resp").innerHTML=audits.length?radarSVG(medResp,"#e8500a"):"";
-  document.getElementById("cmp-pilar").innerHTML=bars(medPilar.map(d=>[d.name,d.pct]));
+  document.getElementById("rad-pilar").innerHTML=lista.length?radarSVG(medPilar,"#1f6f50"):"";
+  document.getElementById("rad-resp").innerHTML=lista.length?radarSVG(medResp,"#e8500a"):"";
+  document.getElementById("cmp-pilar").innerHTML=lista.length?bars(medPilar.map(d=>[d.name,d.pct])):bars([]);
   document.getElementById("cmp-resp").innerHTML=bars(medResp.map(d=>[d.name,d.pct]));
 }
 
@@ -1812,7 +2140,7 @@ function rmResp(i){
   if(respDraft.length<2){alert("Tem de haver pelo menos um responsável.");return;}
   respDraft.splice(i,1);renderResps();
 }
-function saveResps(){
+async function saveResps(){
   const limpos=sanitizeResps(respDraft);
   if(limpos.length!==respDraft.length){
     alert("Há responsáveis sem código, sem nome ou com o código repetido. Corrija antes de guardar.");return;}
@@ -1824,7 +2152,7 @@ function saveResps(){
   if(perdidos.length){
     alert("Ainda há perguntas ou auditorias atribuídas a: "+perdidos.join(", ")+
       ".\nReatribua-as antes de guardar.");return;}
-  if(!pedirPin("Código de acesso para alterar os responsáveis (evita alterações acidentais):"))return;
+  if(!(await pedirPin("Código de acesso para alterar os responsáveis (evita alterações acidentais):")))return;
   save("resps",limpos);
   loadResps();
   respDraft=respsActuais();
@@ -1982,6 +2310,20 @@ function exportJson(){
   URL.revokeObjectURL(a.href);
   registarExportacao();}
 
+/* v3.9.0: exportação para Excel, com o SheetJS que já estava embutido para a
+   importação. Duas folhas — ver linhasExcel(). Não conta como cópia de
+   segurança: o ficheiro não pode ser importado de volta. */
+function exportExcel(){
+  loadXLSX().then(()=>{
+    const {auditorias,respostas}=linhasExcel(audits);
+    if(!auditorias.length){alert("Ainda não há auditorias para exportar.");return;}
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(auditorias),"Auditorias");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(respostas),"Respostas");
+    XLSX.writeFile(wb,"auditorias5s_"+hojeISO()+".xlsx",{compression:true});
+  }).catch(e=>alert("Não foi possível exportar para Excel: "+e.message));
+}
+
 /* ---------- Importação do histórico ---------- */
 /* Normaliza uma lista de perguntas vinda de ficheiro. Porta ÚNICA de entrada
    para edImport() e para o `itemsCfg` de importJson(): nenhum dos dois pode
@@ -2056,7 +2398,7 @@ function importJson(inp){
   const file=inp.files[0];inp.value="";
   if(!file)return;
   const rd=new FileReader();
-  rd.onload=()=>{
+  rd.onload=async()=>{
     let data;
     try{data=JSON.parse(rd.result);}catch(e){alert("Ficheiro inválido: não é JSON.");return;}
     if(Array.isArray(data))data={audits:data};
@@ -2084,22 +2426,23 @@ function importJson(inp){
     const inPerg=sanitizeItems(data.itemsCfg);
     const temPerg=inPerg.length;
     const origem=data.version?" (v"+data.version+")":"";
-    const modo=prompt(
-      "Ficheiro"+origem+": "+inAudits.length+" auditoria(s), "+inSvc.length+" serviço(s), "+inPpl.length+" pessoa(s)."+
+    /* v3.9.0: dois botões em vez de um prompt() onde se escrevia «F» ou «S». */
+    const m=await caixa({titulo:"Importar histórico",
+      texto:"Ficheiro"+origem+": "+inAudits.length+" auditoria(s), "+inSvc.length+" serviço(s), "+inPpl.length+" pessoa(s)."+
       (descartadas?"\n"+descartadas+" registo(s) inválido(s) serão ignorados.":"")+
       (truncadas?"\nO ficheiro traz mais de "+MAX_AUDITS+" auditorias: as "+truncadas+" últimas são ignoradas.":"")+
       (semItens?"\nAtenção: "+semItens+" auditoria(s) sem as perguntas associadas e com nº de respostas diferente do actual — os relatórios podem ficar desalinhados.":"")+
-      "\n\nEscreva:\n  F = Fundir com os dados actuais (não duplica)\n  S = Substituir tudo","F");
-    if(modo===null){desfazerResps();return;}
-    const m=modo.trim().toUpperCase();
-    if(m!=="F"&&m!=="S"){desfazerResps();alert("Opção inválida. Importação cancelada.");return;}
+      "\n\nFundir junta-as às actuais, sem duplicar. Substituir apaga as "+audits.length+" auditoria(s) actuais.",
+      botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"S",label:"Substituir tudo",cls:"ghost perigo"},
+        {v:"F",label:"Fundir",def:true}]});
+    if(m==null){desfazerResps();return;}
 
     if(m==="S"){
       if(!confirm("Substituir TODOS os dados actuais ("+audits.length+" auditoria(s))? Esta acção não pode ser anulada.")){desfazerResps();return;}
       /* v3.5.1 — o mesmo código de acesso que apagar UMA auditoria pede desde
          3.3.1. Substituir apaga-as a TODAS de uma vez e é igualmente
          irreversível: a porta mais destrutiva era a única que não o pedia. */
-      if(!pedirPin("Código de acesso para substituir todo o histórico (não é possível anular):")){desfazerResps();return;}
+      if(!(await pedirPin("Código de acesso para substituir todo o histórico (não é possível anular):"))){desfazerResps();return;}
       audits=inAudits;
       services=inSvc.length?[...new Set(inSvc)]:services;
       people=[...new Set(inPpl)];
@@ -2116,7 +2459,10 @@ function importJson(inp){
       people=[...new Set(people.concat(inPpl))];
       if(!novas&&!inSvc.length&&!inPpl.length){desfazerResps();alert("Nada de novo a importar: as auditorias já existem.");return;}
     }
-    save("audits",audits);save("services",services);save("people",people);
+    const gravou=save("audits",audits);save("services",services);save("people",people);
+    /* As fotos das auditorias que o ficheiro substituiu já não têm a quem
+       pertencer. Só depois de a lista nova estar gravada. */
+    if(m==="S"&&gravou)apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
     /* Substituir troca a lista pela do ficheiro; fundir acrescenta o que falta e
        mantém os nomes de casa. Em qualquer dos casos fica GRAVADA, para que a
        leitura seguinte não volte a cair no de recurso. */
@@ -2237,15 +2583,51 @@ const ADMIN_PIN="3758";
    em que estão — que justifica o código. Pede-se a cada vez, e não uma vez por
    sessão: um desbloqueio que ficasse de pé até fechar a aplicação deixava de
    travar precisamente o que o PIN existe para travar, o toque distraído. */
+/* v3.9.0: num <dialog> próprio, em vez de prompt(): o campo é de palavra-passe
+   com teclado numérico, e um código errado fica na mesma caixa, com o aviso,
+   para tentar de novo — até aqui fechava tudo e obrigava a recomeçar a acção.
+   Passa a devolver uma Promise; quem pede o código espera por ela. */
 function pedirPin(motivo){
-  const p=prompt(motivo);
-  if(p===null)return false;
-  if(p!==ADMIN_PIN){alert("Código incorreto.");return false;}
-  return true;
+  return caixa({titulo:"Código de acesso",texto:motivo,campo:true,
+    botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"ok",label:"Confirmar",def:true}],
+    validar:(v,c)=>c===ADMIN_PIN?null:"Código incorreto. Tente outra vez, ou cancele."})
+    .then(v=>v==="ok");
+}
+/* Caixa de diálogo genérica. `o`: {titulo, texto, campo, botoes, validar}.
+   Cada botão é {v, label, cls, def}; o de `def` responde também ao Enter, e
+   v:null é cancelar (tal como a tecla Esc). `validar(v, textoDoCampo)` devolve
+   uma mensagem para manter a caixa aberta, ou null para a fechar.
+   Resolve com o `v` do botão escolhido, ou null se cancelada. */
+function caixa(o){
+  const d=document.getElementById("dlg"),f=document.getElementById("dlg-form");
+  const campo=document.getElementById("dlg-campo"),erro=document.getElementById("dlg-erro");
+  const box=document.getElementById("dlg-btns");
+  document.getElementById("dlg-tit").textContent=o.titulo||"";
+  document.getElementById("dlg-txt").textContent=o.texto||"";
+  campo.classList.toggle("hidden",!o.campo);campo.value="";
+  erro.classList.add("hidden");erro.textContent="";
+  box.innerHTML=o.botoes.map((b,i)=>
+    `<button type="button" class="btn small ${esc(b.cls||"")}" data-i="${i}">${esc(b.label)}</button>`).join("");
+  return new Promise(res=>{
+    const fim=v=>{d.removeEventListener("cancel",onCancel);f.onsubmit=null;if(d.open)d.close();res(v);};
+    const escolher=b=>{
+      if(b.v==null)return fim(null);
+      const msg=o.validar?o.validar(b.v,campo.value):null;
+      if(msg){erro.textContent=msg;erro.classList.remove("hidden");campo.value="";campo.focus();return;}
+      fim(b.v);
+    };
+    const onCancel=e=>{e.preventDefault();fim(null);};
+    d.addEventListener("cancel",onCancel);
+    box.querySelectorAll("[data-i]").forEach(el=>el.onclick=()=>escolher(o.botoes[+el.dataset.i]));
+    f.onsubmit=e=>{e.preventDefault();const b=o.botoes.find(x=>x.def);if(b)escolher(b);};
+    d.showModal();
+    const def=o.botoes.findIndex(x=>x.def);
+    (o.campo?campo:box.querySelector('[data-i="'+(def<0?0:def)+'"]')).focus();
+  });
 }
 let edItems=[];
-function askPin(){
-  if(!pedirPin("Código de acesso ao editor (evita alterações acidentais):"))return;
+async function askPin(){
+  if(!(await pedirPin("Código de acesso ao editor (evita alterações acidentais):")))return;
   edItems=ITEMS.map(normItem);
   renderEditor();
   document.getElementById("ed-panel").classList.remove("hidden");
@@ -2603,6 +2985,14 @@ on("btn-canceledit","click",()=>{
 });
 on("btn-addsvc","click",()=>addSvc());
 on("btn-expjson","click",()=>exportJson());
+on("btn-expxl","click",()=>exportExcel());
+/* v3.9.0: filtros do Histórico e da Análise. */
+[["hf-svc","svc"],["hf-nota","nota"],["hf-de","de"],["hf-ate","ate"]].forEach(([id,k])=>
+  on(id,"change",e=>{histFiltro[k]=e.target.value;renderHist();}));
+on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");renderHist();});
+on("an-svc","change",e=>{anFiltro.svc=e.target.value;renderStats();});
+on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
+on("f-service","change",()=>mostrarAnteriores());
 on("btn-impjson","click",()=>document.getElementById("hist-file").click());
 on("hist-file","change",function(){importJson(this);});
 on("btn-impxl","click",()=>document.getElementById("xl-file").click());

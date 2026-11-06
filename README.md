@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.8.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.9.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.8.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.9.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -37,11 +37,11 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 | Vista | O que faz |
 | --- | --- |
-| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. |
-| **Histórico** | Todas as auditorias guardadas, por serviço e data, com edição e remoção (ambas sob PIN). |
-| **Análise** | Evolução da nota, comparação entre serviços, radar por pilar 5S e radar por responsável — em SVG/canvas nativos, sem bibliotecas de gráficos. |
-| **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. |
-| **Configuração** | Serviços, responsáveis, exportação/importação JSON, importação de Excel, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
+| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente. |
+| **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço; edição e remoção (ambas sob PIN). |
+| **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG/canvas nativos, sem bibliotecas de gráficos. |
+| **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. No ecrã, também o seguimento face à auditoria anterior. |
+| **Configuração** | Serviços, responsáveis, exportação/importação JSON, exportação e importação de Excel, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
 
 ## Instalação e utilização
 
@@ -280,9 +280,27 @@ O armazenamento do navegador é finito (~5 MB por origem). Se encher, gravar
 falha com um aviso explícito, o formulário **não** é limpo e nada do que já
 estava guardado se perde; a saída é exportar e apagar auditorias antigas.
 
-As fotografias das recomendações são a única excepção: vivem em memória enquanto
-a vista Relatório está aberta e **nunca** são escritas em `localStorage` nem
-exportadas. Fecha-se a vista, perdem-se — por opção, para não esgotar a quota.
+As fotografias das recomendações são a excepção: desde 3.9.0 ficam no
+**IndexedDB** (base `auditoria5s-fotos`), por auditoria e por responsável,
+reduzidas a 640 px. Não ocupam a quota do `localStorage` e estão cobertas pelo
+pedido de armazenamento persistente, mas **não entram na exportação JSON** — um
+ficheiro de cópia com fotos passaria facilmente as dezenas de MB. Apagar uma
+auditoria apaga as fotos dela; *Substituir* na importação apaga as das
+auditorias que deixaram de existir. Até 3.8.x viviam só em memória e perdiam-se
+ao sair do Relatório.
+
+### Exportação para Excel (3.9.0)
+
+*Configuração → Dados → Exportar para Excel* gera um `.xlsx` com duas folhas,
+com o SheetJS que já estava embutido para a importação:
+
+- **Auditorias** — uma linha por auditoria: serviço, data, nota, classificação,
+  nomes, observação e a percentagem por pilar e por responsável.
+- **Respostas** — uma linha por resposta: pergunta, pilar, responsável, valor,
+  unidades auditadas e classificação. É o formato que uma tabela dinâmica quer.
+
+Serve para análise noutro programa. **Não** é uma cópia de segurança: não pode
+ser importado de volta, e por isso não conta para o lembrete de exportação.
 
 ## Importação de Excel
 
@@ -313,6 +331,7 @@ tests/harness.js   Extrai as funções puras do index.html para teste em Node
 tests/sheetjs.*    Integridade do SheetJS embutido (SHA-256 fixado)
 tests/*.test.js    Testes unitários (node:test)
 tests/smoke*.mjs   Smoke tests de browser (Playwright)
+tests/dialogos.mjs Responde à caixa de diálogo da app nos smoke tests
 ```
 
 `index.html` é deliberadamente um ficheiro único: é o que permite instalar,
@@ -338,6 +357,7 @@ node tests/smoke-edicao.mjs        # edição de auditorias anteriores
 node tests/smoke-responsaveis.mjs  # responsáveis editáveis
 node tests/smoke-painel.mjs        # painel e-ink
 node tests/smoke-rascunho.mjs      # rascunho, cópia de segurança, nova versão
+node tests/smoke-historico.mjs     # filtros, análise, seguimento, fotos, Excel, diálogo
 ```
 
 O ponto crítico coberto é a migração de limiares: as classificações são

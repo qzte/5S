@@ -6,6 +6,7 @@
    responsável de cada pergunta é reatribuível, e a mudança fica só naquela
    auditoria — o checklist em vigor não é tocado. */
 import pw from "playwright";
+import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -19,10 +20,13 @@ const BENIGNO = /frame-ancestors/;
 pg.on("console", m => {
   if (m.type() === "error" && !BENIGNO.test(m.text())) erros.push(m.text());
 });
-/* Nenhum diálogo pode ficar pendurado num teste sem interface. Os prompt()
-   são o código de acesso, exigido para entrar em modo de edição. */
+/* Nenhum diálogo pode ficar pendurado num teste sem interface. As confirmações
+   são nativas; o código de acesso, exigido para editar e apagar, vem na caixa
+   própria da app desde 3.9.0 (ver dialogos.mjs). */
 const PIN = "3758";
-pg.on("dialog", d => d.accept(d.type() === "prompt" ? PIN : ""));
+let pinAtual = PIN;
+pg.on("dialog", d => d.accept(""));
+await ligarDialogos(pg, () => ({ campo: pinAtual, botao: "Confirmar" }));
 await pg.goto(URL);
 
 const falhas = [];
@@ -49,6 +53,7 @@ const idOriginal = (await audit0()).id;
 
 /* ---- 2. Editar a partir do relatório (pede o código de acesso). ---- */
 await pg.locator("#btn-edit").click();
+await semDialogo(pg);
 check(!(await pg.locator("#edit-banner").isHidden()), "o aviso de edição devia estar visível");
 check(await pg.locator("#btn-save").textContent() === "Guardar alterações",
   "o botão devia passar a Guardar alterações");
@@ -91,6 +96,7 @@ check(await pg.locator("#edit-banner").isHidden(),
 await pg.locator("[data-v=history]").click();
 check(await pg.locator("[data-edit]").count() === 1, "o histórico devia ter um botão Editar");
 await pg.locator("[data-edit='0']").click();
+await semDialogo(pg);
 check(await pg.locator("#f-note").inputValue() === "corrigida",
   "a edição pelo histórico devia repor a auditoria gravada");
 await pg.locator("#btn-canceledit").click();
@@ -101,21 +107,22 @@ check(await pg.locator("#f-note").inputValue() === "", "cancelar devia limpar o 
 check(await nAudits() === 1, "cancelar não altera o histórico");
 
 /* ---- 5. Código errado não abre a edição. ---- */
-pg.removeAllListeners("dialog");
-pg.on("dialog", d => d.accept(d.type() === "prompt" ? "0000" : ""));
+pinAtual = "0000";
 await pg.locator("[data-v=history]").click();
 await pg.locator("[data-edit='0']").click();
+await semDialogo(pg);
 check(await pg.locator("#edit-banner").isHidden(),
   "um código errado não pode abrir o modo de edição");
 
 /* ---- 6. Apagar: confirmado, mas com o código errado, não apaga. ---- */
 await pg.locator("[data-del='0']").click();
+await semDialogo(pg);
 check(await nAudits() === 1, "um código errado não pode apagar a auditoria");
 
 /* ---- 7. Com o código certo, apaga. ---- */
-pg.removeAllListeners("dialog");
-pg.on("dialog", d => d.accept(d.type() === "prompt" ? PIN : ""));
+pinAtual = PIN;
 await pg.locator("[data-del='0']").click();
+await semDialogo(pg);
 check(await nAudits() === 0, "com o código certo, apagar devia apagar");
 
 await b.close();

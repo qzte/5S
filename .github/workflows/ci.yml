@@ -102,6 +102,9 @@ jobs:
       - name: Rascunho, cópia de segurança e nova versão
         run: node tests/smoke-rascunho.mjs
 
+      - name: Histórico, análise, seguimento, fotos, Excel e diálogo
+        run: node tests/smoke-historico.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest
