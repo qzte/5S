@@ -93,7 +93,7 @@ test("Excel: uma linha por auditoria e uma por resposta", () => {
   assert.strictEqual(auditorias[0]["Resp.: Manutenção"], "", "responsável sem perguntas fica vazio, não a zero");
   assert.strictEqual(respostas.length, 10);
   assert.deepStrictEqual(Object.keys(respostas[0]),
-    ["ID auditoria", "Serviço", "Data", "Nº", "Tema", "Pergunta", "Pilar", "Responsável", "Valor", "Auditados", "Classificação"]);
+    ["ID auditoria", "Serviço", "Data", "Nº", "Tema", "Pergunta", "Pilar", "Responsável", "Valor", "Auditados", "Classificação", "Nota"]);
   assert.strictEqual(respostas[0]["Responsável"], "Utilizadores");
   assert.strictEqual(respostas[5]["Classificação"], "Mau");
   assert.strictEqual(respostas[0]["Valor"], "", "sem valor bruto gravado, a célula fica vazia");
