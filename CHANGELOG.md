@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Não publicado]
+
+### Documentação
+
+- **`GUIA.md`**, o guia de utilização: fazer uma auditoria (rascunho, evidência,
+  acções em aberto, prazos), ler o relatório, seguir o plano de acção, o
+  Histórico e a Análise, cópias de segurança, configuração, offline e
+  actualizações, e perguntas frequentes. O README continua a ser a
+  documentação técnica, e passa a apontar para o guia.
+- README: a tabela *Funcionalidades* passa a descrever o que entrou de 3.8.0 a
+  3.15.0, e uma tabela nova, *Novidades de 3.8 a 3.15*, resume-o por tema; a
+  estrutura do repositório e a descrição do lint ficam em dia.
+
 ## [3.15.0] — 2026-11-06
 
 Rápida com anos de histórico, e o funcionamento offline e as actualizações

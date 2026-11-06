@@ -16,10 +16,13 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 - **Aplicação:** https://auditoria-5s.pages.dev/ (Cloudflare Pages, desde 3.7.0)
 - **Código:** https://github.com/qzte/5S
+- **Guia de utilização:** [GUIA.md](GUIA.md) — como usar a app no dia-a-dia, para quem audita.
+  Este README é a documentação técnica.
 
 ## Índice
 
 - [Funcionalidades](#funcionalidades)
+- [Novidades de 3.8 a 3.15](#novidades-de-38-a-315)
 - [Instalação e utilização](#instalação-e-utilização)
 - [Modelo de pontuação](#modelo-de-pontuação)
 - [Limiares por pergunta](#limiares-por-pergunta)
@@ -41,15 +44,42 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 | Vista | O que faz |
 | --- | --- |
-| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente. |
+| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra o prazo do serviço e as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. |
 | **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço, e os **prazos** de cada serviço; edição (sob PIN) e remoção (com *Desfazer*). |
-| **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG/canvas nativos, sem bibliotecas de gráficos. |
-| **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Uma quarta, o **plano de acção**, quando há acções. No ecrã, também o seguimento face à auditoria anterior. |
-| **Configuração** | Serviços, responsáveis, exportação/importação JSON, exportação e importação de Excel, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
+| **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. |
+| **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Mais as **Evidências** e o **plano de acção**, cada uma numa folha, quando os há. No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior. |
+| **Configuração** | Serviços e a **frequência** de cada um, responsáveis, cópia de segurança JSON (com ou sem fotos) e importação, exportação e importação de Excel, estado do armazenamento, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
 
 Segue o **modo escuro** do sistema no ecrã (a impressão é sempre clara), e todas
 as vistas passam as regras WCAG 2 AA que o axe-core verifica — contraste,
 rótulos dos campos, títulos — nos dois modos (3.10.0).
+
+## Novidades de 3.8 a 3.15
+
+O que mudou desde a mudança para o Cloudflare Pages (3.7.0), por tema. Cada
+linha aponta para a secção que o explica; o pormenor de cada versão está no
+[CHANGELOG](CHANGELOG.md), e o uso no dia-a-dia no [guia](GUIA.md).
+
+| Tema | Novidade | Versão |
+| --- | --- | --- |
+| **Não perder dados** | Auditoria por terminar gravada a cada alteração; aviso ao sair a meio de uma edição | 3.8.0 |
+| | Pedido de armazenamento persistente; lembrete de cópia de segurança | 3.8.0 |
+| | Fotos das recomendações guardadas (antes perdiam-se ao sair do relatório) | 3.9.0 |
+| | Perguntas gravadas uma vez por conjunto: cabem 5 000 auditorias (enchia por volta das 1 700) | 3.11.0 |
+| | *Desfazer* ao apagar uma auditoria | 3.13.0 |
+| | [Cópia de segurança com fotos](#dados-e-privacidade) | 3.14.0 |
+| **Auditar** | Seguimento da auditoria anterior, no formulário e no relatório | 3.9.0 |
+| | [Plano de acção](#plano-de-acção): acções com responsável, prazo e estado | 3.12.0 |
+| | [Frequência e prazos](#frequência-e-prazos) por serviço | 3.13.0 |
+| | [Evidência por pergunta](#evidência-por-pergunta): nota e foto | 3.14.0 |
+| **Consultar** | Histórico com filtros e variação; Análise por serviço e período; exportação para Excel | 3.9.0 |
+| | Histórico e Análise rápidos com milhares de auditorias | 3.15.0 |
+| **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
+| | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
+| | Aviso de nova versão; arranque ~2,5× mais rápido (SheetJS só quando é preciso) | 3.8.0, 3.11.0 |
+| **Segurança e qualidade** | CSP sem `'unsafe-inline'` na versão publicada (hashes) | 3.10.0 |
+| | SheetJS com verificação de integridade (SRI) | 3.11.0 |
+| | Lint na CI; testes de acessibilidade, de offline e de actualização | 3.10.0, 3.15.0 |
 
 ## Instalação e utilização
 
@@ -58,6 +88,9 @@ Não há passo de compilação nem dependências a instalar.
 1. Abra https://auditoria-5s.pages.dev/ no telemóvel ou no computador.
 2. No telemóvel, use *Adicionar ao ecrã principal* para instalar como aplicação.
 3. Depois da primeira visita funciona sem rede: o service worker guarda a aplicação em cache.
+
+Como fazer uma auditoria, seguir as acções, manter os prazos e fazer cópias de
+segurança está no [guia de utilização](GUIA.md).
 
 Para correr localmente basta servir a pasta por HTTP (o service worker não funciona
 em `file://`):
@@ -436,7 +469,8 @@ scripts/publicar.sh  Prepara dist/ com só os ficheiros da app, para o Cloudflar
 scripts/csp.mjs    Na versão publicada, troca 'unsafe-inline' pelos hashes dos <script>
 tools/lint/        Ferramentas de desenvolvimento (ESLint, axe-core), com lockfile próprio
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
-SECURITY.md        Relatórios das auditorias de segurança (3.1.0, 3.5.0 e 3.6.0)
+SECURITY.md        Revisões de segurança (3.1.0, 3.5.0, 3.6.0) e notas das versões seguintes
+GUIA.md            Guia de utilização, para quem usa a app
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
 tests/sheetjs.*    Integridade do SheetJS (SHA-256 fixado, e o SRI do carregador)
 tests/*.test.js    Testes unitários (node:test)
@@ -491,8 +525,8 @@ npm ci --prefix tools/lint
 node tools/lint/lint.mjs
 ```
 
-O lint tira do `index.html` os `<script>` da app (o SheetJS fica de fora) e
-passa-os ao ESLint com as regras de erro do `eslint:recommended` — variáveis
+O lint tira do `index.html` os `<script>` da app (o SheetJS, em `vendor/`, não
+é lintado: é código de terceiros, fixado pelo SHA-256) e passa-os ao ESLint com as regras de erro do `eslint:recommended` — variáveis
 por declarar, código inalcançável, chaves duplicadas —, nenhuma de estilo. As
 linhas que aponta são as do `index.html`.
 
