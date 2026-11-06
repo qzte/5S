@@ -5,6 +5,7 @@
    este dispositivo não conhece tem de o trazer consigo, senão as perguntas dele
    chegavam atribuídas ao responsável de recurso. */
 import pw from "playwright";
+import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -22,15 +23,13 @@ pg.on("console", m => {
 });
 
 const PIN = "3758";
-/* Os prompt() são de dois tipos: o código de acesso e o modo de importação.
-   Distinguem-se pelo texto, e o último diálogo fica guardado para ser inspeccionado. */
-let modoImport = "F";
+/* Os avisos e as confirmações são nativos, e o último fica guardado para ser
+   inspeccionado. O código de acesso e o modo de importação vêm na caixa própria
+   da app desde 3.9.0 (ver dialogos.mjs): distinguem-se pelo campo. */
+let modoImport = "Fundir";
 let ultimo = "";
-pg.on("dialog", d => {
-  ultimo = d.message();
-  if (d.type() !== "prompt") return d.accept("");
-  d.accept(/Escreva:/.test(d.message()) ? modoImport : PIN);
-});
+pg.on("dialog", d => { ultimo = d.message(); d.accept(""); });
+await ligarDialogos(pg, ({ temCampo }) => temCampo ? { campo: PIN, botao: "Confirmar" } : modoImport);
 await pg.goto(URL);
 
 const falhas = [];
@@ -55,6 +54,7 @@ await pg.locator("#btn-addresp").click();
 check(await pg.locator("[data-respn]").count() === 6, "o rascunho devia ganhar a linha nova");
 check(await resps() === null, "acrescentar ao rascunho não pode gravar nada");
 await pg.locator("#btn-saveresp").click();
+await semDialogo(pg);
 const guardados = await resps();
 check(Array.isArray(guardados) && guardados.length === 6, "guardar devia persistir os seis");
 check(guardados[5].k === "L" && guardados[5].n === "Logística",
@@ -67,6 +67,7 @@ await pg.locator("#btn-save").click();
 check(await pg.locator("[data-rec]").count() === 6,
   "o relatório devia ter um bloco de recomendações por responsável");
 await pg.locator("#btn-edit").click();
+await semDialogo(pg);
 const opcoes = await pg.locator("[data-edresp='0'] option").allTextContents();
 check(opcoes.includes("Logística"), "o selector da edição devia oferecer o responsável novo");
 await pg.locator("[data-edresp='0']").selectOption("L");

@@ -5,6 +5,44 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.9.0] — 2026-11-06
+
+Uso no dia a dia: encontrar auditorias, ler a evolução por serviço, fechar o
+ciclo entre uma auditoria e a seguinte, e tirar os dados para fora da app.
+
+### Adicionado
+
+- **Histórico filtrável** por serviço, intervalo de datas e faixa de nota, com a
+  contagem do que está à vista. Cada auditoria mostra a **variação** face à
+  anterior ao mesmo serviço (▲ +5, ▼ -3), calculada sobre o histórico inteiro e
+  não só sobre o que o filtro deixa ver.
+- **Análise por serviço e período** (todo o histórico, ou os últimos 3, 6 ou 12
+  meses), aplicados a todos os cartões da vista.
+- **Seguimento entre auditorias.** No formulário, cada pergunta que a última
+  auditoria ao serviço escolhido não deu como Excelente mostra o que lhe deu. No
+  relatório, um cartão compara com a auditoria anterior: o que melhorou, o que se
+  mantém por resolver e o que piorou. As perguntas são emparelhadas pelo número,
+  tipo e enunciado, não pela posição.
+- **Exportar para Excel** (`.xlsx`, folhas *Auditorias* e *Respostas*), com o
+  SheetJS já embutido.
+- `tests/historico.test.js`, `tests/smoke-historico.mjs` (também na CI) e
+  `tests/dialogos.mjs`, que responde à caixa de diálogo nos smoke tests.
+
+### Alterado
+
+- O gráfico de **evolução** passa a ter uma linha por serviço, com legenda, e o
+  eixo horizontal passa a ser o tempo. Até aqui era uma só linha com todas as
+  auditorias de todos os serviços pela ordem: uma auditoria boa num serviço
+  seguida de uma má noutro lia-se como uma queda. Ganha também uma descrição
+  acessível (`aria-label`).
+- As **fotos das recomendações** passam a ser guardadas no IndexedDB, por
+  auditoria. Até aqui perdiam-se ao sair do Relatório. Continuam fora da
+  exportação JSON.
+- O **código de acesso** é pedido numa caixa própria, com campo de palavra-passe
+  e teclado numérico; um código errado fica na mesma caixa para tentar de novo.
+- A **importação** escolhe entre *Fundir* e *Substituir tudo* com dois botões,
+  em vez de um `prompt()` onde se escrevia «F» ou «S».
+
 ## [3.8.0] — 2026-11-06
 
 Protecção dos dados no dispositivo: a app é a única cópia das auditorias até
