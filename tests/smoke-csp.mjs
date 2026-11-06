@@ -1,7 +1,8 @@
 /* Smoke test de browser da CSP publicada (3.10.0): a pasta dist/ que o
    scripts/publicar.sh prepara é servida tal como o Cloudflare a serve, e a app
-   tem de arrancar e funcionar sem nenhuma violação da CSP — os três <script>
-   embutidos são autorizados pelo hash. Um <script> injectado depois não corre.
+   tem de arrancar e funcionar sem nenhuma violação da CSP — os <script>
+   embutidos são autorizados pelo hash, e o SheetJS, ficheiro da própria origem,
+   pelo 'self'. Um <script> injectado depois não corre.
 
    O servidor de teste não envia o _headers; vale a CSP do <meta>, que
    tests/publicacao.test.js garante ser igual à do cabeçalho. */
@@ -48,7 +49,12 @@ const csp = await pg.locator('meta[http-equiv="Content-Security-Policy"]').getAt
 check(!/script-src[^;]*unsafe-inline/.test(csp), "a CSP publicada não pode ter 'unsafe-inline' no script-src");
 check(/^v\d+\.\d+\.\d+$/.test(await pg.locator("#app-ver").textContent()), "o script da app devia ter corrido");
 check(await pg.locator("[data-pick]").count() === 19, "o formulário devia ter os 19 itens");
-check(await pg.evaluate(() => typeof XLSX === "object"), "o SheetJS embutido devia ter corrido");
+/* O SheetJS (3.11.0) não carrega no arranque: só quando é preciso, como ficheiro
+   da própria origem (script-src 'self') e com o integrity verificado. */
+check(await pg.evaluate(() => typeof XLSX === "undefined"), "o SheetJS não devia carregar no arranque");
+await pg.evaluate(() => loadXLSX());
+check(await pg.evaluate(() => typeof XLSX === "object" && typeof XLSX.utils === "object"),
+  "o SheetJS devia carregar a pedido, com a CSP publicada e o integrity");
 await pg.locator("[data-v=stats]").click();
 await pg.locator("[data-v=cfg]").click();
 

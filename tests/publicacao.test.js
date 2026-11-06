@@ -83,7 +83,7 @@ test("a versão publicada autoriza cada <script> pelo seu hash, sem 'unsafe-inli
     assert.doesNotMatch(scriptSrc, /unsafe-inline/);
     const esperados = [...html.matchAll(/^<script>([\s\S]*?)<\/script>/gm)]
       .map(m => "'sha256-" + crypto.createHash("sha256").update(m[1], "utf8").digest("base64") + "'");
-    assert.strictEqual(esperados.length, 3, "a guarda de molduras, o SheetJS e a app");
+    assert.strictEqual(esperados.length, 2, "a guarda de molduras e a app (o SheetJS é um ficheiro, desde 3.11.0)");
     assert.deepStrictEqual(scriptSrc.split(" ").filter(x => x.startsWith("'sha256-")), esperados);
     /* O resto da CSP não muda: só o script-src. */
     assert.strictEqual(meta.replace(/script-src [^;]+/, "script-src 'self' 'unsafe-inline'"),

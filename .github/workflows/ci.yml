@@ -139,6 +139,9 @@ jobs:
       - name: Acessibilidade (axe-core, modo claro e escuro)
         run: node tests/smoke-a11y.mjs
 
+      - name: Armazenamento compacto, 5 000 auditorias e Excel offline
+        run: node tests/smoke-armazenamento.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest

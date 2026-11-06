@@ -2,9 +2,9 @@
 
    A app é um ficheiro único e o ESLint não lê HTML sem um plugin. Em vez de
    acrescentar mais uma dependência, este script tira do index.html os blocos
-   <script> que são da app (o SheetJS embutido fica de fora: é código de
-   terceiros, fixado pelo SHA-256 em tests/sheetjs.test.js) e passa-os ao
-   ESLint pela API, cada um como um script clássico do browser.
+   <script> e passa-os ao ESLint pela API, cada um como um script clássico do
+   browser. O SheetJS (vendor/, desde 3.11.0) fica de fora: é código de
+   terceiros, fixado pelo SHA-256 em tests/sheetjs.test.js.
 
    Cada bloco é precedido de tantas linhas em branco quantas as que o separam
    do início do ficheiro: as linhas que o ESLint aponta são as do index.html.
@@ -35,9 +35,9 @@ while ((m = re.exec(html))) {
   const linha = html.slice(0, inicio).split("\n").length - 1;
   blocos.push({ codigo: m[1], linha });
 }
-const daApp = blocos.filter(b => !/^\/\*\s*SheetJS/.test(b.codigo.trimStart()));
-if (daApp.length !== blocos.length - 1) {
-  console.error(`lint: esperava exactamente um bloco do SheetJS entre ${blocos.length} <script>.`);
+const daApp = blocos;
+if (!daApp.length) {
+  console.error("lint: nenhum <script> encontrado no index.html.");
   process.exit(2);
 }
 
