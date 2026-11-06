@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.12.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.13.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.12.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.13.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -25,6 +25,8 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Limiares por pergunta](#limiares-por-pergunta)
 - [Responsáveis](#responsáveis)
 - [Editar auditorias anteriores](#editar-auditorias-anteriores)
+- [Frequência e prazos](#frequência-e-prazos)
+- [Caixas de diálogo](#caixas-de-diálogo)
 - [Plano de acção](#plano-de-acção)
 - [Dados e privacidade](#dados-e-privacidade)
 - [Importação de Excel](#importação-de-excel)
@@ -39,7 +41,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | Vista | O que faz |
 | --- | --- |
 | **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente. |
-| **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço; edição e remoção (ambas sob PIN). |
+| **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço, e os **prazos** de cada serviço; edição (sob PIN) e remoção (com *Desfazer*). |
 | **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG/canvas nativos, sem bibliotecas de gráficos. |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Uma quarta, o **plano de acção**, quando há acções. No ecrã, também o seguimento face à auditoria anterior. |
 | **Configuração** | Serviços, responsáveis, exportação/importação JSON, exportação e importação de Excel, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
@@ -232,9 +234,11 @@ haver o editor de perguntas. As classificações não mexem: muda o eixo do rada
 e o bloco de recomendações a que a pergunta pertence, não o que lhe foi
 respondido.
 
-**Apagar** pede o mesmo código, depois da confirmação (3.3.1). É a alteração
-mais definitiva de todas: não há como anular, e sem uma exportação o que se
-perde não está em mais lado nenhum.
+**Apagar** apaga logo e mostra **Desfazer** durante 10 segundos (3.13.0). Até
+3.12.x pedia confirmação e o código de acesso (3.3.1); a protecção que interessa
+é contra o toque distraído, e desfazer protege melhor: não obriga a escrever
+nada, e um engano não fica sem volta. As fotos da auditoria só saem quando o
+prazo de desfazer acaba, para que desfazer as traga também.
 
 A edição corre sobre as **perguntas gravadas com essa auditoria**, não sobre as
 actuais: se o editor de perguntas mudou entretanto, cada resposta continua a
@@ -245,6 +249,33 @@ responsável mantêm-se.
 Uma auditoria antiga que não tenha guardado as suas perguntas e cujo número de
 respostas não coincida com o das perguntas actuais **não é editável** — não há
 como saber a que pergunta pertence cada resposta.
+
+## Frequência e prazos
+
+Desde 3.13.0, cada serviço pode ter uma **frequência** de auditoria (semanal,
+quinzenal, mensal ou trimestral), escolhida em *Configuração → Frequência das
+auditorias*. Conta a partir da última auditoria ao serviço:
+
+| Estado | Quando |
+| --- | --- |
+| **Em atraso** | Passou o prazo sem nova auditoria |
+| **Nunca auditado** | Tem frequência, mas nenhuma auditoria |
+| **A vencer** | Faltam 2 dias ou menos |
+| **Em dia** | O resto |
+
+O **Histórico** mostra um cartão com os serviços pela urgência, com o botão
+**Auditar**, que abre o formulário já com o serviço escolhido; o separador
+*Histórico* mostra quantos estão em atraso ou nunca foram auditados; e o
+formulário avisa ao escolher o serviço. As frequências vão na exportação JSON
+(`freqAud`): *Substituir* traz as do ficheiro, *Fundir* só acrescenta as dos
+serviços que ainda não tinham.
+
+## Caixas de diálogo
+
+Desde 3.13.0 os avisos e as confirmações vêm na caixa da própria app, e não nas
+janelas nativas do browser (`alert`/`confirm`): seguem o modo escuro, são
+legíveis por leitores de ecrã e têm botões com o nome da acção (*Remover*,
+*Substituir*...). Uma caixa de cada vez, pela ordem em que foram pedidas.
 
 ## Plano de acção
 
@@ -284,6 +315,7 @@ telemetria nem recursos externos.
 | `itemsCfg` | Perguntas e limiares personalizados |
 | `resps` | Responsáveis (código e nome), pela ordem dos eixos do radar |
 | `perguntasAud` | Perguntas com que as auditorias foram feitas, cada conjunto uma vez (3.11.0) |
+| `freqAud` | Frequência das auditorias por serviço, como lista de pares (3.13.0) |
 | `rascunho` | Auditoria nova por terminar (3.8.0) — apagada ao gravar ou descartar |
 | `backup` | Data da última exportação e alterações desde então (3.8.0) |
 
@@ -424,6 +456,7 @@ node tests/smoke-csp.mjs           # versão publicada: CSP por hashes (serve di
 node tests/smoke-a11y.mjs          # acessibilidade com o axe-core, modo claro e escuro
 node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditorias, Excel offline
 node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no terreno, PDF
+node tests/smoke-prazos.mjs        # frequência e prazos; nenhum diálogo nativo
 ```
 
 O lint e o teste de acessibilidade precisam das ferramentas de `tools/lint/`:
@@ -522,8 +555,8 @@ mitigado. Dois pontos a reter:
   e-ink** (3.6.1). Desde 3.7.0 a app tem endereço próprio
   (`auditoria-5s.pages.dev`), e esse isolamento passa a existir.
 
-**O PIN do editor — pedido também para editar e para apagar uma auditoria
-gravada, e para substituir todo o histórico numa importação — não é um controlo
+**O PIN do editor — pedido também para editar uma auditoria gravada, alterar os
+responsáveis e substituir todo o histórico numa importação — não é um controlo
 de segurança.** O código é público num
 ficheiro estático; qualquer pessoa o pode ler. Protege apenas contra alterações
 acidentais.

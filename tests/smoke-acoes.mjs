@@ -3,6 +3,7 @@
    seguinte ao mesmo serviço e marcá-la como feita lá; contagem no Histórico; e o
    PDF — 3 folhas sem plano, 4 com ele, nunca uma folha em branco. */
 import pw from "playwright";
+import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -12,6 +13,8 @@ const erros = [];
 pg.on("pageerror", e => erros.push(String(e)));
 pg.on("console", m => { if (m.type() === "error" && !/frame-ancestors/.test(m.text())) erros.push(m.text()); });
 pg.on("dialog", d => d.accept(""));
+/* Avisos e confirmações vêm na caixa da app desde 3.13.0: aceita-os todos. */
+await ligarDialogos(pg, () => undefined);
 await pg.goto(URL);
 
 const falhas = [];
@@ -50,6 +53,7 @@ await pg.locator("#acao-texto").fill("rever a sinalética");
 await pg.locator("#btn-acao-add").click();
 check((await gravadas())[0].acoes.length === 2, "a segunda acção devia ficar gravada");
 await pg.locator("[data-acao-rm]").nth(1).click();
+await semDialogo(pg);
 check((await gravadas())[0].acoes.length === 1, "remover devia tirá-la do plano");
 
 /* ---- 3. Histórico: contagem. ---- */

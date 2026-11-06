@@ -8,6 +8,7 @@
    - O SheetJS não carrega no arranque; carrega ao exportar para Excel, e
      também sem rede, a partir da cache do service worker. */
 import pw from "playwright";
+import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -21,6 +22,8 @@ pg.on("console", m => {
   if (m.type() === "error" && !BENIGNO.test(m.text())) erros.push(m.text());
 });
 pg.on("dialog", d => d.accept(""));
+/* Avisos e confirmações vêm na caixa da app desde 3.13.0: aceita-os todos. */
+await ligarDialogos(pg, () => undefined);
 await pg.goto(URL);
 
 const falhas = [];

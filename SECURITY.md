@@ -751,6 +751,12 @@ todas as letras: serve contra alterações acidentais, não é um controlo de
 segurança. Concordo com a análise e com a decisão. A única recomendação é
 prática: não reutilizar este PIN em mais lado nenhum, por estar publicado.
 
+*Nota de 3.13.0:* apagar uma auditoria deixou de pedir este código e passou a
+oferecer **Desfazer** durante 10 segundos. Como o código não protege de quem o
+queira usar, o que ele dava era protecção contra o toque distraído, e desfazer
+dá-a melhor (um engano deixa de ser definitivo). Editar uma auditoria, alterar
+os responsáveis e substituir o histórico continuam a pedi-lo.
+
 ## 11. `'unsafe-inline'` em `script-src` (Info)
 
 Inerente à decisão de ficheiro único, e o custo está assumido no README. Vale a

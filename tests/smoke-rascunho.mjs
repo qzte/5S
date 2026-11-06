@@ -5,6 +5,7 @@
    e uma mudança de service worker numa página já controlada mostra o aviso de
    nova versão. */
 import pw from "playwright";
+import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -17,7 +18,9 @@ const BENIGNO = /frame-ancestors/;
 pg.on("console", m => {
   if (m.type() === "error" && !BENIGNO.test(m.text())) erros.push(m.text());
 });
-pg.on("dialog", d => d.accept(d.type() === "prompt" ? "3758" : ""));
+pg.on("dialog", d => d.accept(""));
+/* Avisos e confirmações vêm na caixa da app desde 3.13.0: aceita-os todos. */
+await ligarDialogos(pg, () => undefined);
 await pg.goto(URL);
 
 const falhas = [];
@@ -53,6 +56,7 @@ check(await pg.locator("[data-pick='1']").inputValue() === "2",
 
 /* ---- 4. Descartar limpa o formulário e o rascunho. ---- */
 await pg.locator("#btn-descartar").click();
+await semDialogo(pg);
 check(await rascunho() === null, "descartar devia apagar o rascunho");
 check(await pg.locator("[data-pick='0']").inputValue() === "", "descartar devia limpar as respostas");
 check(!(await visivel("#draft-banner")), "descartar devia esconder o aviso");

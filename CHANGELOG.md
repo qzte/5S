@@ -5,6 +5,38 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.13.0] — 2026-11-06
+
+Saber o que falta auditar, e uma app que fala sempre com a mesma voz.
+
+### Adicionado
+
+- **Frequência das auditorias** por serviço (semanal, quinzenal, mensal,
+  trimestral), em *Configuração*. O **Histórico** ganha o cartão *Prazos das
+  auditorias* — em atraso, nunca auditados, a vencer, em dia —, com o botão
+  **Auditar**; o separador mostra quantos serviços estão por auditar; o
+  formulário avisa ao escolher o serviço. Vai na exportação JSON (`freqAud`).
+- **Desfazer** depois de apagar uma auditoria, durante 10 segundos. As fotos só
+  saem no fim do prazo, para desfazer as trazer também.
+- `tests/prazos.test.js` e `tests/smoke-prazos.mjs` (na CI), que também
+  confirma que nenhum diálogo nativo aparece.
+
+### Alterado
+
+- **Todos os avisos e confirmações** (36 `alert` e 14 `confirm`) passam para a
+  caixa da própria app: modo escuro, leitores de ecrã, botões com o nome da
+  acção. Ficam numa fila, uma de cada vez, pela ordem em que foram pedidas.
+- **Apagar** uma auditoria deixa de pedir confirmação e código de acesso:
+  apaga logo, com *Desfazer*. Editar, alterar os responsáveis e substituir o
+  histórico continuam a pedir o código.
+- Os smoke tests respondem à caixa da app (`tests/dialogos.mjs`, uma resposta
+  por caixa).
+
+### Corrigido
+
+- A indicação "Na auditoria anterior" mostrava um travessão a mais quando a
+  auditoria não tinha o valor gravado.
+
 ## [3.12.0] — 2026-11-06
 
 O ciclo de melhoria fecha-se: do que está mal ao que foi feito.

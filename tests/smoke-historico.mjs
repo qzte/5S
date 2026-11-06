@@ -125,22 +125,34 @@ check(/^auditorias5s_\d{4}-\d{2}-\d{2}\.xlsx$/.test(dl.suggestedFilename()), "o 
 const xl = fs.readFileSync(await dl.path());
 check(xl.length > 1000 && xl.subarray(0, 2).toString() === "PK", "um .xlsx é um zip (começa por PK)");
 
-/* ---- 7. Código de acesso na caixa própria. ---- */
+/* ---- 7. Código de acesso na caixa própria (editar continua a pedi-lo). ---- */
 vistos = [];
 resposta = () => ({ campo: "0000", botao: "Confirmar" });
 await pg.locator("[data-v=history]").click();
-await pg.locator("[data-del='0']").click();
+await pg.locator("[data-edit='0']").click();
 await semDialogo(pg);
-check(vistos.length === 1 && vistos[0].temCampo, "apagar devia pedir o código na caixa própria");
-check(await nAudits() === 3, "um código errado não pode apagar");
+check(vistos.length === 1 && vistos[0].temCampo, "editar devia pedir o código na caixa própria");
+check(await pg.locator("#edit-banner").isHidden(), "um código errado não pode abrir a edição");
 check(await pg.locator("#dlg-campo").getAttribute("type") === "password" &&
   await pg.locator("#dlg-campo").getAttribute("inputmode") === "numeric",
   "o campo do código devia ser de palavra-passe e com teclado numérico");
 resposta = () => ({ campo: PIN, botao: "Confirmar" });
+
+/* Apagar (3.13.0): logo, com Desfazer; as fotos só saem no fim do prazo. */
+await pg.locator("[data-v=history]").click();
 await pg.locator("[data-del='0']").click();
-await semDialogo(pg);
-check(await nAudits() === 2, "com o código certo, apaga");
-check(await fotosSao(0), "apagar uma auditoria devia apagar as fotos dela");
+check(await nAudits() === 2, "apagar devia apagar logo, sem código");
+check(await nFotos() === 1, "durante o prazo de desfazer, as fotos ficam");
+await pg.locator("#toast-btn").click();
+check(await nAudits() === 3, "desfazer devia repor a auditoria");
+await pg.locator("[data-rep='0']").click();
+await pg.waitForSelector("[data-foto='U'] img", { timeout: 5000 }).catch(() => {});
+check(await pg.locator("[data-foto='U'] img").count() === 1, "desfazer devia repor também a foto");
+await pg.locator("#btn-back").click();
+await pg.locator("[data-del='0']").click();
+await pg.evaluate(() => concluirApagar());
+check(await nAudits() === 2, "sem desfazer, fica apagada");
+check(await fotosSao(0), "terminado o prazo, as fotos da auditoria apagada saem também");
 
 /* ---- 8. Importar: a caixa oferece Fundir e Substituir. ---- */
 const ficheiro = path.join(os.tmpdir(), "5s-import-dlg.json");

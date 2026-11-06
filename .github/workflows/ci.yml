@@ -145,6 +145,9 @@ jobs:
       - name: Plano de acção
         run: node tests/smoke-acoes.mjs
 
+      - name: Frequência, prazos e caixas de diálogo
+        run: node tests/smoke-prazos.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest
