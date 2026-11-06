@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.15.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.16.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.15.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.16.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -17,7 +17,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - **Aplicação:** https://auditoria-5s.pages.dev/ (Cloudflare Pages, desde 3.7.0)
 - **Código:** https://github.com/qzte/5S
 - **Guia de utilização:** [GUIA.md](GUIA.md) — como usar a app no dia-a-dia, para quem audita.
-  Este README é a documentação técnica.
+  Também está dentro da app, em *Config → Ajuda* (3.16.0). Este README é a documentação técnica.
 
 ## Índice
 
@@ -471,6 +471,8 @@ tools/lint/        Ferramentas de desenvolvimento (ESLint, axe-core), com lockfi
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
 SECURITY.md        Revisões de segurança (3.1.0, 3.5.0, 3.6.0) e notas das versões seguintes
 GUIA.md            Guia de utilização, para quem usa a app
+guia.html          O guia, publicado com a app (Config → Ajuda) — gerado de GUIA.md
+scripts/guia.mjs   Gera guia.html a partir de GUIA.md (Markdown mínimo, sem dependências)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
 tests/sheetjs.*    Integridade do SheetJS (SHA-256 fixado, e o SRI do carregador)
 tests/*.test.js    Testes unitários (node:test)
@@ -490,6 +492,9 @@ tem dependências, e o Cloudflare Pages instalaria as que lá estivessem em cada
 publicação.
 
 ## Testes
+
+> O guia publicado (`guia.html`) é gerado de `GUIA.md`. Depois de mudar o guia,
+> corra `node scripts/guia.mjs`; `tests/guia.test.js` falha se se esquecer.
 
 `harness.js` localiza cada função pura dentro do `index.html`, avalia-a num
 contexto `vm` isolado e expõe-na ao teste. Os testes exercitam assim o **código
@@ -515,7 +520,7 @@ node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditoria
 node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no terreno, PDF
 node tests/smoke-prazos.mjs        # frequência e prazos; nenhum diálogo nativo
 node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
-node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização
+node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização, guia
 ```
 
 O lint e o teste de acessibilidade precisam das ferramentas de `tools/lint/`:

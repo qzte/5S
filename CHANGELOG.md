@@ -5,7 +5,26 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [Não publicado]
+## [3.16.0] — 2026-11-06
+
+O guia de utilização, escrito e dentro da app.
+
+### Adicionado
+
+- **Config → Ajuda**, com a ligação ao guia de utilização. É uma página da
+  própria app (`guia.html`), gerada do `GUIA.md` por `scripts/guia.mjs` (um
+  conversor de Markdown mínimo, sem dependências), sem scripts, com modo
+  escuro, e em cache para abrir sem rede.
+- `tests/guia.test.js` (o conversor, e `guia.html` em dia com o `GUIA.md`);
+  o `smoke-offline` abre o guia da Config e sem rede, e o `smoke-a11y` passa-o
+  pelo axe-core nos dois modos.
+
+### Corrigido
+
+- O service worker gravava qualquer página permitida na entrada do
+  `index.html`. Com uma só página não se notava; com o guia, abri-lo punha o
+  guia no lugar da app guardada, e sem rede a app abria o guia. Cada página
+  fica agora na sua entrada.
 
 ### Documentação
 

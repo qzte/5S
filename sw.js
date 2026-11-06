@@ -1,6 +1,6 @@
 /*
   Auditoria 5S · Supermercados Kaizen — Service Worker
-  Versão: 3.15.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.16.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Função: cache offline da aplicação. O nome da cache inclui a versão,
           por isso cada nova versão invalida automaticamente a anterior.
   Segurança (v1.4.0): a cache só aceita recursos da própria origem que
@@ -8,10 +8,12 @@
           Desde 3.1.1 a allowlist vale também para as navegações, que antes
           escreviam em ./index.html sem a consultar.
 */
-const APP_VERSION = "3.15.0";
+const APP_VERSION = "3.16.0";
 const CACHE = "auditoria5s-v" + APP_VERSION;
 
-/* v3.11.0: "./vendor/xlsx.full.min.js" é o SheetJS, carregado só ao importar ou
+/* v3.16.0: "./guia.html" é o guia de utilização, gerado de GUIA.md por
+   scripts/guia.mjs e aberto da Configuração; fica em cache para abrir offline.
+   v3.11.0: "./vendor/xlsx.full.min.js" é o SheetJS, carregado só ao importar ou
    exportar Excel. Fica em cache na instalação para funcionar offline como até
    aqui, quando vinha embutido no index.html. (Sem comentários DENTRO da lista:
    tests/publicacao.test.js lê-a como JSON.) */
@@ -22,7 +24,8 @@ const ASSETS = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-512-maskable.png",
-  "./vendor/xlsx.full.min.js"
+  "./vendor/xlsx.full.min.js",
+  "./guia.html"
 ];
 
 /* Conjunto de URLs absolutos permitidos em cache. Qualquer resposta cujo URL
@@ -68,6 +71,13 @@ self.addEventListener("fetch", e => {
        é servido offline. A query string é ignorada na comparação porque não
        muda o documento devolvido. */
     const semQuery = url.origin + url.pathname;
+    /* v3.16.0: cada página da allowlist fica na SUA entrada da cache. Até aqui
+       havia uma só página (a raiz e ./index.html são a mesma), e toda a
+       navegação permitida era escrita em ./index.html; com o guia, abri-lo
+       escreveria o guia por cima da app guardada — e offline a app abria o
+       guia. A raiz continua a ir para ./index.html. */
+    const INDEX = new URL("./index.html", self.registration.scope).href;
+    const chave = ALLOWED.has(semQuery) && semQuery !== self.registration.scope ? semQuery : INDEX;
     /* v3.7.0: um ERRO do servidor (404, 5xx) passa a cair na cópia em cache,
        como já caía a falta de rede. Até aqui só a falta de rede caía: quando o
        GitHub Pages deixou de publicar a app, o service worker entregava o 404
@@ -79,14 +89,14 @@ self.addEventListener("fetch", e => {
         .then(r => {
           if (r && r.status === 200 && r.type === "basic" && ALLOWED.has(semQuery)) {
             const copy = r.clone();
-            caches.open(CACHE).then(c => c.put("./index.html", copy));
+            caches.open(CACHE).then(c => c.put(chave, copy));
             return r;
           }
           if (r && r.status >= 400)
-            return caches.match("./index.html").then(hit => hit || r);
+            return caches.match(chave).then(hit => hit || r);
           return r;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(() => caches.match(chave).then(hit => hit || caches.match(INDEX)))
     );
     return;
   }

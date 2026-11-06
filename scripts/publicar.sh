@@ -14,7 +14,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 rm -rf dist
 mkdir -p dist/icons dist/vendor
-cp index.html sw.js manifest.json _headers dist/
+cp index.html sw.js manifest.json _headers guia.html dist/
 cp icons/icon-192.png icons/icon-512.png icons/icon-512-maskable.png dist/icons/
 cp vendor/xlsx.full.min.js dist/vendor/
 # 3.10.0: na versão publicada, a CSP autoriza cada <script> pelo seu hash e

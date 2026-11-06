@@ -2,14 +2,16 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.15.0. É documentação: não muda com a versão do código
+  Escrito para a versão 3.16.0. Publicado com a app como guia.html, gerado
+  por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
 
 # Guia de utilização
 
 Como usar a app no dia-a-dia: fazer uma auditoria, ler o relatório, seguir as
-acções, manter os prazos e não perder dados. Para os pormenores técnicos, ver o
+acções, manter os prazos e não perder dados. Este guia também está dentro da
+app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver o
 [README](README.md); para o que mudou em cada versão, o [CHANGELOG](CHANGELOG.md).
 
 - [Antes de começar](#antes-de-começar)

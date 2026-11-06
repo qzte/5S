@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.15.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.16.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -181,6 +181,8 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
   cursor:pointer;margin-top:8px}
 .btn.ghost{background:transparent;color:var(--green-ink);border:2px solid var(--green-ink)}
 .btn.small{padding:9px;font-size:.75rem;width:auto;display:inline-block}
+/* v3.16.0: ligações com aspecto de botão (o guia, na Config). */
+a.btn{text-decoration:none;text-align:center}
 .score-hero{background:var(--green-dk);color:#f4f1ea;text-align:center;border:0}
 .score-hero .big{font-family:var(--f-sans);font-weight:900;font-size:3.6rem;line-height:1}
 .score-hero .lbl{font-family:var(--f-sans);font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:#9db8a9}
@@ -477,6 +479,14 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 <!-- ============ CONFIG ============ -->
 <section id="view-cfg" class="hidden">
   <h2 class="sr-only">Configuração</h2>
+  <!-- v3.16.0: o guia de utilização (guia.html, gerado de GUIA.md). Página da
+       própria app, em cache: abre também sem rede. -->
+  <div class="card" id="card-ajuda">
+    <h3 style="margin-bottom:4px">Ajuda</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Como fazer uma auditoria, seguir as
+      acções, manter os prazos e fazer cópias de segurança. Também sem rede.</p>
+    <a class="btn small ghost" href="./guia.html" id="lnk-guia">Abrir o guia de utilização</a>
+  </div>
   <div class="card">
     <h3 style="margin-bottom:10px">Serviços</h3>
     <div id="svc-list"></div>
@@ -1172,7 +1182,7 @@ function avisoBackup(info,n,agora){
 }
 
 
-const APP_VERSION="3.15.0";
+const APP_VERSION="3.16.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem

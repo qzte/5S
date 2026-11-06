@@ -7,6 +7,7 @@
    1. a instalação guarda em cache todos os ficheiros de ASSETS;
    2. sem rede, a app abre, grava uma auditoria e mostra o relatório;
    3. com o servidor a dar 404, ou desligado, abre a cópia em cache (3.7.0);
+   2b. o guia abre da Config e sem rede, e não toma o lugar da app guardada;
    4. uma actualização a sério — sw.js e index.html mudados no servidor —
       mostra o aviso "Nova versão", e Recarregar passa para a versão nova sem
       perder a auditoria por terminar; a cache antiga é apagada;
@@ -79,6 +80,22 @@ await pg.locator("#btn-save").click();
 check(!(await pg.locator("#view-report").isHidden()), "sem rede, gravar devia abrir o relatório");
 check(await pg.evaluate(() => audits.length) === 1, "e a auditoria devia ficar gravada");
 await ctx.setOffline(false);
+
+/* ---- 2b. O guia (3.16.0): abre da Config, volta à app; sem rede, cada página
+   é a sua — abrir o guia não pode pôr o guia no lugar da app guardada. ---- */
+await pg.locator("[data-v=cfg]").click();
+await Promise.all([pg.waitForNavigation(), pg.locator("#lnk-guia").click()]);
+check(/^Guia de utilização/.test(await pg.title()) && await pg.locator("h1").textContent() === "Guia de utilização",
+  "a ligação da Config devia abrir o guia");
+await Promise.all([pg.waitForNavigation(), pg.locator("header a").click()]);
+check(await abriuApp(), "Voltar à aplicação devia abrir a app");
+await ctx.setOffline(true);
+await pg.goto(URL.replace("index.html", "guia.html"));
+check(/^Guia de utilização/.test(await pg.title()), "sem rede, o guia devia abrir a partir da cache");
+await pg.goto(URL.replace("index.html", ""));
+check(await abriuApp(), "sem rede, a raiz tem de abrir a app, e não o guia aberto antes");
+await ctx.setOffline(false);
+await pg.goto(URL);
 
 /* ---- 3. Servidor a dar 404, e servidor desligado: a cópia em cache. ---- */
 fs.renameSync(path.join(PASTA, "index.html"), path.join(PASTA, "index.html.bak"));
