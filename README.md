@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.8.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.7.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.8.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -247,12 +247,34 @@ telemetria nem recursos externos.
 | `people` | Repositores e Picking |
 | `itemsCfg` | Perguntas e limiares personalizados |
 | `resps` | Responsáveis (código e nome), pela ordem dos eixos do radar |
+| `rascunho` | Auditoria nova por terminar (3.8.0) — apagada ao gravar ou descartar |
+| `backup` | Data da última exportação e alterações desde então (3.8.0) |
 
 **Faça exportações regulares.** Limpar os dados do navegador apaga tudo sem
 possibilidade de recuperação. A exportação JSON inclui auditorias, serviços,
 pessoas e perguntas; a importação permite **Fundir** (sem duplicar, por
 `id` ou serviço+data) ou **Substituir** — este último pede o código de acesso,
 por apagar todo o histórico de uma vez (3.5.1).
+
+### Protecção dos dados (3.8.0)
+
+- **Auditoria por terminar.** A auditoria nova é gravada no dispositivo a cada
+  resposta e volta sozinha ao formulário ao reabrir a app — mesmo que o sistema
+  tenha fechado o separador a meio. Um cartão no topo diz quando foi guardada e
+  permite *Descartar e começar de novo*. Se as perguntas mudarem entretanto, cada
+  resposta só volta à mesma pergunta (número, tipo e enunciado). A **edição** de
+  uma auditoria gravada não tem rascunho: o browser avisa antes de fechar a
+  página com alterações por guardar.
+- **Armazenamento persistente.** A app pede `navigator.storage.persist()` assim
+  que há dados a proteger, para que o browser não os apague sozinho quando falta
+  espaço (ou, no Safari, ao fim de 7 dias sem abrir a app). O estado aparece em
+  *Configuração → Dados*, com o espaço ocupado e a data da última cópia.
+- **Lembrete de cópia de segurança.** Um aviso no topo pede a exportação se
+  nunca houve nenhuma, ou se há auditorias gravadas ou editadas por exportar há
+  7 dias ou mais, ou 5 ou mais. *Lembrar amanhã* adia-o por um dia.
+- **Nova versão.** Quando o service worker de uma versão nova passa a controlar a
+  página, aparece *Nova versão disponível* com o botão *Recarregar agora*. A
+  auditoria por terminar sobrevive ao recarregar.
 
 O armazenamento do navegador é finito (~5 MB por origem). Se encher, gravar
 falha com um aviso explícito, o formulário **não** é limpo e nada do que já
@@ -314,6 +336,8 @@ Os smoke tests de browser correm à parte, com a aplicação servida por HTTP
 node tests/smoke.mjs               # perguntas de amostra
 node tests/smoke-edicao.mjs        # edição de auditorias anteriores
 node tests/smoke-responsaveis.mjs  # responsáveis editáveis
+node tests/smoke-painel.mjs        # painel e-ink
+node tests/smoke-rascunho.mjs      # rascunho, cópia de segurança, nova versão
 ```
 
 O ponto crítico coberto é a migração de limiares: as classificações são
@@ -332,7 +356,7 @@ request, com três verificações independentes:
 | Verificação | O que corre |
 | --- | --- |
 | Testes unitários | `node --test tests/*.test.js` |
-| Smoke tests de browser | `tests/smoke.mjs` e `tests/smoke-edicao.mjs`, com a aplicação servida em `127.0.0.1:8765` |
+| Smoke tests de browser | Todos os `tests/smoke*.mjs`, com a aplicação servida em `127.0.0.1:8765` |
 | Coerência da versão | A versão de `manifest.json`, `index.html`, `sw.js` e `README.md` tem de ser a mesma |
 
 O Playwright está fixo em `1.56.0`: a versão do pacote e a do Chromium que
