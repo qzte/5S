@@ -2,6 +2,7 @@
 
 Três revisões, por ordem inversa:
 
+- **[Nota de 3.14.0](#nota-de-3140-2026-11-06-fotos-na-cópia-de-segurança)** — as fotos passam a entrar e a sair em ficheiros de cópia de segurança.
 - **[Nota de 3.11.0](#nota-de-3110-2026-11-06-sheetjs-em-ficheiro-próprio)** — o SheetJS sai do `index.html` e passa a ser carregado com SRI.
 - **[Nota de 3.10.0](#nota-de-3100-2026-11-06-csp-por-hashes)** — a versão publicada deixa de ter `'unsafe-inline'` no `script-src` (ponto 11).
 - **[Nota de 3.9.0](#nota-de-390-2026-11-06-fotos-em-indexeddb)** — as fotos das recomendações passam a ser guardadas.
@@ -12,6 +13,22 @@ Três revisões, por ordem inversa:
 
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+## Nota de 3.14.0 (2026-11-06): fotos na cópia de segurança
+
+Até aqui, nenhuma foto entrava na app a partir de um ficheiro. Desde 3.14.0, a
+*Importação* aceita as de uma cópia "com fotos" — e uma foto vai parar ao `src`
+de um `<img>`, pelo que cada uma passa por `fotosParaImportar()`:
+
+- o valor tem de ser `data:image/jpeg|png|webp;base64,` seguido só de base64 —
+  nada de `javascript:`, nem de SVG (que pode trazer script);
+- no máximo 3 M caracteres por foto e 5 000 fotos por ficheiro;
+- a chave tem de ser `<id>|<responsável>` ou `<id>#<nº da pergunta>`, e o id
+  tem de ser o de uma auditoria que o ficheiro trouxe e que entrou de facto —
+  uma foto não consegue ir parar a uma auditoria que já estava em casa;
+- as fotos só são gravadas depois de as auditorias estarem gravadas.
+
+A leitura continua a só aceitar texto começado por `data:image/` (3.9.0).
 
 ## Nota de 3.11.0 (2026-11-06): SheetJS em ficheiro próprio
 

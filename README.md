@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.13.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.14.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.13.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.14.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -27,6 +27,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Editar auditorias anteriores](#editar-auditorias-anteriores)
 - [Frequência e prazos](#frequência-e-prazos)
 - [Caixas de diálogo](#caixas-de-diálogo)
+- [Evidência por pergunta](#evidência-por-pergunta)
 - [Plano de acção](#plano-de-acção)
 - [Dados e privacidade](#dados-e-privacidade)
 - [Importação de Excel](#importação-de-excel)
@@ -277,6 +278,18 @@ janelas nativas do browser (`alert`/`confirm`): seguem o modo escuro, são
 legíveis por leitores de ecrã e têm botões com o nome da acção (*Remover*,
 *Substituir*...). Uma caixa de cada vez, pela ordem em que foram pedidas.
 
+## Evidência por pergunta
+
+Desde 3.14.0, cada pergunta classificada **Mau** ou **Oportunidade** ganha, no
+formulário, um campo de **nota** e o botão **Foto** — é no terreno que se vê. A
+nota fica com a auditoria (`notas`, alinhada com as respostas); a foto, no
+IndexedDB. As duas fazem parte do rascunho, e sobrevivem a um separador fechado
+como as respostas. Na edição, a foto pode ser trocada ou removida.
+
+O relatório ganha a folha **Evidências** (só quando há alguma), com a foto, a
+pergunta, a classificação e a nota de cada uma. A nota vai também para a folha
+*Respostas* da exportação para Excel.
+
 ## Plano de acção
 
 Desde 3.12.0, cada auditoria pode ter um **plano de acção**: passos concretos,
@@ -360,14 +373,16 @@ auditorias gravadas por versões anteriores são convertidas no primeiro arranqu
 Em memória e na exportação JSON nada muda: cada auditoria continua a trazer as
 suas perguntas, e os ficheiros de cópia lêem-se em qualquer versão.
 
-As fotografias das recomendações são a excepção: desde 3.9.0 ficam no
-**IndexedDB** (base `auditoria5s-fotos`), por auditoria e por responsável,
-reduzidas a 640 px. Não ocupam a quota do `localStorage` e estão cobertas pelo
-pedido de armazenamento persistente, mas **não entram na exportação JSON** — um
-ficheiro de cópia com fotos passaria facilmente as dezenas de MB. Apagar uma
-auditoria apaga as fotos dela; *Substituir* na importação apaga as das
-auditorias que deixaram de existir. Até 3.8.x viviam só em memória e perdiam-se
-ao sair do Relatório.
+As fotografias são a excepção: desde 3.9.0 ficam no **IndexedDB** (base
+`auditoria5s-fotos`), reduzidas a 640 px — as das recomendações (`<id>|<responsável>`)
+e, desde 3.14.0, as de evidência de cada pergunta (`<id>#<pergunta>`). Não
+ocupam a quota do `localStorage` e estão cobertas pelo pedido de armazenamento
+persistente. A exportação JSON normal deixa-as de fora, para o ficheiro ficar
+leve; **Exportar com fotos** (3.14.0) leva-as todas, e importar esse ficheiro
+repõe-nas (validadas uma a uma: só imagens JPEG, PNG ou WebP em `data:`, e cada
+uma acompanha a auditoria a que pertence, mesmo que esta mude de id ao fundir).
+Apagar uma auditoria apaga as fotos dela no fim do prazo de *Desfazer*;
+*Substituir* na importação apaga as das auditorias que deixaram de existir.
 
 ### Exportação para Excel (3.9.0)
 
@@ -457,6 +472,7 @@ node tests/smoke-a11y.mjs          # acessibilidade com o axe-core, modo claro e
 node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditorias, Excel offline
 node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no terreno, PDF
 node tests/smoke-prazos.mjs        # frequência e prazos; nenhum diálogo nativo
+node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
 ```
 
 O lint e o teste de acessibilidade precisam das ferramentas de `tools/lint/`:

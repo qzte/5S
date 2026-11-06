@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.13.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.14.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -229,6 +229,18 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .acao-linha:first-of-type{border-top:0}
 .acao-form{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
 #plano .ed-del{background:none;color:var(--red-ink);padding:2px 0;margin-top:4px;text-decoration:underline}
+/* v3.14.0: evidência por pergunta. */
+.evid{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.evid input{margin-bottom:6px}
+.evid-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.evid-acts .btn{margin:0}
+.evid-foto img{display:block;width:88px;height:66px;object-fit:cover;border-radius:6px}
+.evid-grelha{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.evid-item{display:flex;gap:8px;align-items:flex-start;font-size:.8rem;border:1px solid var(--line);
+  border-radius:8px;padding:8px;break-inside:avoid}
+.evid-item img{flex:0 0 42%;width:42%;height:120px;object-fit:cover;border-radius:6px}
+.evid-item p{margin-top:4px}
+@media (max-width:560px){.evid-grelha{grid-template-columns:1fr}}
 /* v3.13.0: frequência e prazos. */
 .freq-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .freq-row label{flex:1 1 auto;margin:0;text-transform:none;letter-spacing:0;font-size:.85rem;color:var(--ink)}
@@ -299,6 +311,10 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   #view-report .page:last-of-type{break-after:auto;page-break-after:auto}
   /* v3.12.0: o plano de acção é um <section>, numa folha própria. */
   #view-report #plano.page{break-before:page;page-break-before:always;break-after:auto}
+  /* v3.14.0: as evidências, também numa folha própria. */
+  #view-report #evid.page{break-before:page;page-break-before:always;break-after:auto}
+  #view-report #evid .evid-grelha{grid-template-columns:1fr 1fr}
+  #view-report #evid .evid-item{font-size:.68rem}
   #view-report #plano table{font-size:.7rem}
 
   /* Página 1: os dois blocos de radar lado a lado. */
@@ -483,6 +499,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
       noutro programa (uma folha por auditoria e outra por resposta) e não pode ser importada de volta:
       a cópia de segurança é a JSON.</p>
     <button class="btn small ghost" id="btn-expjson">Exportar histórico (JSON)</button>
+    <button class="btn small ghost" id="btn-expfotos">Exportar com fotos (JSON)</button>
     <button class="btn small ghost" id="btn-impjson">Importar histórico (JSON)</button>
     <button class="btn small ghost" id="btn-expxl">Exportar para Excel</button>
     <input type="file" id="hist-file" accept=".json,application/json" class="hidden">
@@ -1084,15 +1101,17 @@ function inteiroOuNull(v,min){
    há nada que valha a pena guardar — nenhuma resposta e nenhum nome ou
    observação escritos (o serviço e a data vêm sempre preenchidos de origem e
    não contam). */
-function montarRascunho(campos,IT,raw,tgts,agora){
+function montarRascunho(campos,IT,raw,tgts,agora,notas){
   const c=campos||{};
   const r=IT.map((_,i)=>inteiroOuNull(raw&&raw[i],0));
   const t=IT.map((_,i)=>inteiroOuNull(tgts&&tgts[i],1));
+  /* v3.14.0: a nota de evidência de cada pergunta. */
+  const n=IT.map((_,i)=>clean(notas&&notas[i],300));
   const cab={pick:clean(c.pick,120),repo:clean(c.repo,120),verif:clean(c.verif,120),note:clean(c.note,200)};
-  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&r.every(v=>v==null))return null;
+  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&r.every(v=>v==null)&&n.every(v=>!v))return null;
   return Object.assign({v:1,savedAt:agora,service:clean(c.service,200),
     date:/^\d{4}-\d{2}-\d{2}$/.test(c.date)?c.date:""},cab,
-    {sig:IT.map(assinItem),raw:r,tgts:t});
+    {sig:IT.map(assinItem),raw:r,tgts:t,notas:n});
 }
 /* Lê um rascunho guardado e alinha-o com as perguntas `IT` actuais. O que vem
    do localStorage é validado na forma, como o resto (ver loadArr). `perdidas`
@@ -1101,7 +1120,8 @@ function lerRascunho(x,IT){
   if(!x||typeof x!=="object"||Array.isArray(x)||x.v!==1)return null;
   if(!Array.isArray(x.sig)||!Array.isArray(x.raw)||!Array.isArray(x.tgts))return null;
   const usados=new Set();
-  const raw=[],tgts=[];
+  const raw=[],tgts=[],notas=[];
+  const ns=Array.isArray(x.notas)?x.notas:[];
   IT.forEach((it,i)=>{
     const s=assinItem(it);
     let j=-1;
@@ -1109,6 +1129,7 @@ function lerRascunho(x,IT){
     if(j>=0)usados.add(j);
     raw[i]=j>=0?inteiroOuNull(x.raw[j],0):null;
     tgts[i]=j>=0?inteiroOuNull(x.tgts[j],1):null;
+    notas[i]=j>=0?clean(ns[j],300):"";
   });
   let perdidas=0;
   x.raw.forEach((v,k)=>{if(!usados.has(k)&&inteiroOuNull(v,0)!=null)perdidas++;});
@@ -1116,7 +1137,7 @@ function lerRascunho(x,IT){
     service:clean(x.service,200),
     date:typeof x.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)?x.date:"",
     pick:clean(x.pick,120),repo:clean(x.repo,120),verif:clean(x.verif,120),note:clean(x.note,200),
-    raw,tgts,perdidas};
+    raw,tgts,notas,perdidas};
 }
 
 /* ---------- Lembrete de cópia de segurança (v3.8.0) ----------
@@ -1151,7 +1172,7 @@ function avisoBackup(info,n,agora){
 }
 
 
-const APP_VERSION="3.13.0";
+const APP_VERSION="3.14.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1277,6 +1298,15 @@ function renderForm(){
       <input type="number" inputmode="numeric" min="0" max="${esc(it.max)}" placeholder="0"
         style="margin:8px 0 0" data-pick="${i}" aria-label="Pergunta ${esc(it.n)}: resposta (0 a ${esc(it.max)})">`}
       <div class="prev hidden" data-prev="${i}"></div>
+      <div class="evid hidden" data-evid="${i}">
+        <input data-nota="${i}" maxlength="300" placeholder="Nota: o que se viu (opcional)" aria-label="Pergunta ${esc(it.n)}: nota de evidência">
+        <div class="evid-acts">
+          <span class="evid-foto" data-efoto="${i}"></span>
+          <input type="file" accept="image/*" capture="environment" data-efile="${i}" hidden>
+          <button type="button" class="btn small ghost" data-eadd="${i}" aria-label="Pergunta ${esc(it.n)}: foto de evidência">Foto</button>
+          <button type="button" class="btn small ghost perigo hidden" data-erm="${i}" aria-label="Pergunta ${esc(it.n)}: remover a foto">Remover foto</button>
+        </div>
+      </div>
     </div>`);
   });
   box.querySelectorAll("[data-pick]").forEach(el=>el.oninput=()=>pick(+el.dataset.pick,el));
@@ -1294,6 +1324,18 @@ function renderForm(){
      Guardar — e só àquela auditoria: as perguntas em vigor, em `itemsCfg`, não
      são tocadas. É o que permite reatribuir o passado depois de acrescentar um
      responsável, sem reescrever as auditorias todas nem o checklist actual. */
+  /* v3.14.0: evidência por pergunta — nota e foto. */
+  box.querySelectorAll("[data-nota]").forEach(el=>el.oninput=()=>{notaVals[+el.dataset.nota]=el.value;});
+  box.querySelectorAll("[data-eadd]").forEach(b=>b.onclick=()=>
+    box.querySelector("[data-efile='"+b.dataset.eadd+"']").click());
+  box.querySelectorAll("[data-efile]").forEach(inp=>inp.onchange=()=>{
+    const i=+inp.dataset.efile,f=inp.files[0];inp.value="";
+    if(f)shrinkImage(f,url=>{
+      if(!url){aviso("Não foi possível ler a imagem.");return;}
+      definirFotoForm(i,url);
+    });
+  });
+  box.querySelectorAll("[data-erm]").forEach(b=>b.onclick=()=>definirFotoForm(+b.dataset.erm,null));
   box.querySelectorAll("[data-edresp]").forEach(el=>el.onchange=()=>{
     if(isResp(el.value))fitems()[+el.dataset.edresp].r=el.value;
   });
@@ -1317,9 +1359,12 @@ function renderForm(){
      tudo o que redesenhe o formulário a meio (acrescentar um serviço na
      Configuração, por exemplo, apagava até aqui as respostas já dadas). */
   ligarRotulos(document.getElementById("view-audit"));
-  if(emEdicao){mostrarRascunho(null);mostrarAnteriores();return;}
+  if(emEdicao){mostrarRascunho(null);mostrarAnteriores();carregarEvidForm(emEdicao.id);return;}
   const rasc=lerRascunhoGuardado();
   if(rasc)aplicarRascunho(rasc);
+  /* v3.14.0: as fotos de evidência do rascunho; sem rascunho, as que tenham
+     ficado no disco já não pertencem a nada. */
+  if(rasc)carregarEvidForm(null);else limparFotosRascunho();
   mostrarRascunho(rasc&&rasc.savedAt,rasc&&rasc.perdidas);
   mostrarAnteriores();
 }
@@ -1386,6 +1431,14 @@ function preencherForm(a){
   document.getElementById("f-verif").value=a.verif||"";
   document.getElementById("f-note").value=a.note||"";
   answers={};rawVals={};tgtVals={};
+  /* v3.14.0: as notas de evidência gravadas com a auditoria. */
+  notaVals={};
+  (Array.isArray(a.notas)?a.notas:[]).forEach((t,i)=>{
+    if(!t)return;
+    notaVals[i]=t;
+    const el=document.querySelector("[data-nota='"+i+"']");
+    if(el)el.value=t;
+  });
   fitems().forEach((it,i)=>{
     const tEl=document.querySelector("[data-tgt='"+i+"']");
     const tgt=a.tgts&&a.tgts[i]!=null?a.tgts[i]:null;
@@ -1421,6 +1474,78 @@ function tgtOf(i){
   return Number.isFinite(v)&&v>0?v:null;
 }
 let rawVals={};let tgtVals={};
+/* v3.14.0: evidência por pergunta, enquanto o formulário está aberto.
+   `notaVals`: i → texto. `fotosForm`: i → data URL das fotos à vista.
+   `fotosRemovidas`: as que o utilizador tirou. `evidCarga`: a leitura das que
+   já estavam no disco (as do rascunho, ou as da auditoria em edição), que é
+   assíncrona — a gravação espera por ela e junta tudo, para que gravar logo a
+   seguir a abrir não apague o que ainda estava a chegar. */
+let notaVals={},fotosForm=new Map(),fotosRemovidas=new Set(),evidCarga=null;
+const RASC_FOTO="rascunho#";
+function mostrarEvid(i){
+  const box=document.querySelector("[data-evid='"+i+"']");
+  if(!box)return;
+  box.classList.toggle("hidden",!(answers[i]===0||answers[i]===1));
+  const url=fotosForm.get(i);
+  box.querySelector("[data-efoto]").innerHTML=url?`<img src="${url}" alt="Foto de evidência">`:"";
+  box.querySelector("[data-eadd]").textContent=url?"Trocar foto":"Foto";
+  box.querySelector("[data-erm]").classList.toggle("hidden",!url);
+}
+/* Põe (url) ou tira (null) a foto da pergunta i. Numa auditoria nova, vai
+   também para o rascunho no disco, pela assinatura da pergunta, para
+   sobreviver a um separador fechado como as respostas. */
+function definirFotoForm(i,url){
+  if(url){fotosForm.set(i,url);fotosRemovidas.delete(i);}
+  else{fotosForm.delete(i);fotosRemovidas.add(i);}
+  mostrarEvid(i);
+  if(editId!=null)return;
+  const k=RASC_FOTO+assinItem(fitems()[i]);
+  (url?fotosIDB("readwrite",st=>st.put(url,k)):fotosIDB("readwrite",st=>st.delete(k))).catch(()=>{});
+  guardarRascunho();
+}
+const rascFotoIntervalo=()=>IDBKeyRange.bound(RASC_FOTO,RASC_FOTO+"\uffff");
+function limparFotosRascunho(){fotosIDB("readwrite",st=>st.delete(rascFotoIntervalo())).catch(()=>{});}
+/* Lê as fotos do disco para o formulário: as do rascunho (por assinatura) numa
+   auditoria nova, ou as de evidência da auditoria `id` em edição. Junta-as ao
+   que o utilizador já tenha mudado entretanto, sem o pisar. */
+function carregarEvidForm(id){
+  const IT=fitems(),token=++evidToken;
+  const ler=id!=null
+    ?fotosIDB("readonly",st=>{const out=new Map(),cur=st.openCursor(evidIntervalo(id));
+        cur.onsuccess=()=>{const c=cur.result;if(!c)return;
+          const i=parseInt(String(c.key).split("#")[1],10);
+          if(i>=0&&i<IT.length&&typeof c.value==="string"&&c.value.startsWith("data:image/"))out.set(i,c.value);
+          c.continue();};
+        return out;})
+    :fotosIDB("readonly",st=>{const out=new Map(),cur=st.openCursor(rascFotoIntervalo());
+        cur.onsuccess=()=>{const c=cur.result;if(!c)return;
+          const sig=String(c.key).slice(RASC_FOTO.length),i=IT.findIndex(it=>assinItem(it)===sig);
+          if(i>=0&&typeof c.value==="string"&&c.value.startsWith("data:image/"))out.set(i,c.value);
+          c.continue();};
+        return out;});
+  evidCarga=ler.catch(()=>new Map());
+  evidCarga.then(m=>{
+    if(token!==evidToken)return;
+    m.forEach((url,i)=>{if(!fotosForm.has(i)&&!fotosRemovidas.has(i)){fotosForm.set(i,url);mostrarEvid(i);}});
+  });
+}
+let evidToken=0;
+/* Grava as fotos de evidência da auditoria `id`: o que estava no disco, menos
+   o que foi removido, mais o que foi posto. Só das perguntas que ficaram Mau
+   ou Oportunidade. Substitui as anteriores numa só transacção. */
+/* A última gravação de evidências: o relatório, que abre logo a seguir a gravar,
+   espera por ela antes de ler as fotos (senão lia o disco ainda por escrever). */
+let evidEscrita=Promise.resolve();
+function gravarEvidencias(id,scores){
+  const snap=new Map(fotosForm),rem=new Set(fotosRemovidas),carga=evidCarga||Promise.resolve(new Map());
+  return evidEscrita=carga.then(base=>{
+    const fin=new Map(base);rem.forEach(i=>fin.delete(i));snap.forEach((u,i)=>fin.set(i,u));
+    return fotosIDB("readwrite",st=>{
+      st.delete(evidIntervalo(id));
+      fin.forEach((u,i)=>{if(scores[i]===0||scores[i]===1)st.put(u,String(id)+"#"+i);});
+    });
+  }).catch(()=>aviso("A auditoria foi gravada, mas não foi possível gravar as fotos de evidência neste dispositivo."));
+}
 function pick(i,el){
   const alvo=tgtOf(i);
   tgtVals[i]=alvo;
@@ -1435,6 +1560,7 @@ function pick(i,el){
   if(pc)pc.textContent=(rawVals[i]!=null&&alvo)
     ?rawVals[i]+" / "+alvo+" = "+Math.round(rawVals[i]/alvo*1000)/10+"%"
     :(alvo?"—":"Indique quantas unidades foram auditadas.");
+  mostrarEvid(i);
   atualizarLive();
 }
 /* Nota em directo: ponderada (0/2/5,25) sobre os itens JÁ respondidos, para
@@ -1451,6 +1577,7 @@ function endEdit(){editId=null;FORM_ITEMS=null;editSujo=false;}
    depois deixaria um travessão sobre um formulário cheio. */
 function refreshForm(){
   answers={};rawVals={};tgtVals={};
+  notaVals={};fotosForm=new Map();fotosRemovidas=new Set();evidCarga=null;evidToken++;
   document.getElementById("f-live").value="—";
   /* Os campos do cabeçalho também são limpos (v3.3.0): até aqui sobreviviam à
      gravação, e a observação da auditoria anterior aparecia já escrita na
@@ -1481,7 +1608,10 @@ function colherFormulario(){
     /* v3.1.0: alvo efectivo de cada item, para o relatório poder mostrar a
        fracção e não apenas a contagem. Null nos tipos sem amostra. */
     tgts:IT.map((_,i)=>tgtVals[i]!=null?tgtVals[i]:null),
-    items:IT.map(x=>Object.assign({},x))};
+    items:IT.map(x=>Object.assign({},x)),
+    /* v3.14.0: nota de evidência, só nas perguntas que ficaram Mau ou
+       Oportunidade (alinhada com scores, como raw e tgts). */
+    notas:IT.map((_,i)=>answers[i]===0||answers[i]===1?clean(notaVals[i],300):"")};
 }
 /* Substitui a auditoria `id` pela versão editada. Pura, para ser testável sem
    DOM: devolve uma lista nova, ou null se o id já não existir (apagado noutro
@@ -1513,7 +1643,8 @@ function guardarRascunho(){
   const raw=IT.map((_,i)=>{const el=document.querySelector("[data-pick='"+i+"']");return el?el.value:null;});
   const d=montarRascunho({service:val("f-service"),date:val("f-date"),pick:val("f-pick"),
     repo:val("f-repo"),verif:val("f-verif"),note:val("f-note")},IT,raw,IT.map((_,i)=>tgtOf(i)),
-    new Date().toISOString());
+    new Date().toISOString(),IT.map((_,i)=>notaVals[i]||""));
+  if(!d&&fotosForm.size)limparFotosRascunho();
   try{
     if(d)localStorage.setItem(RASCUNHO_KEY,JSON.stringify(d));
     else localStorage.removeItem(RASCUNHO_KEY);
@@ -1523,6 +1654,7 @@ function guardarRascunho(){
 }
 function apagarRascunho(){
   try{localStorage.removeItem(RASCUNHO_KEY);}catch(e){}
+  limparFotosRascunho();
   rascunhoFalhou=false;mostrarRascunho(null);
 }
 function quando(iso){
@@ -1554,7 +1686,13 @@ function aplicarRascunho(d){
   document.getElementById("f-repo").value=d.repo;
   document.getElementById("f-verif").value=d.verif;
   document.getElementById("f-note").value=d.note;
+  notaVals={};
   fitems().forEach((_,i)=>{
+    if(d.notas&&d.notas[i]){
+      notaVals[i]=d.notas[i];
+      const n=document.querySelector("[data-nota='"+i+"']");
+      if(n)n.value=d.notas[i];
+    }
     const tEl=document.querySelector("[data-tgt='"+i+"']");
     if(tEl&&d.tgts[i]!=null)tEl.value=d.tgts[i];
     const el=document.querySelector("[data-pick='"+i+"']");
@@ -1587,6 +1725,9 @@ document.getElementById("btn-save").onclick=()=>{
        disco não tem. */
     if(!save("audits",audits)){audits=anterior;return;}
     registarAlteracao();
+    /* v3.14.0: as fotos de evidência (a fotografia do formulário é tirada já,
+       antes de resetForm() o limpar). */
+    gravarEvidencias(editId,dados.scores);
     const a=audits.find(x=>x.id===editId);
     resetForm();
     openReport(a);
@@ -1597,6 +1738,7 @@ document.getElementById("btn-save").onclick=()=>{
   if(!save("audits",audits)){audits.pop();return;}
   /* O rascunho sai ANTES de resetForm(): de outro modo renderForm() voltava a
      pô-lo no formulário, e a auditoria acabada de gravar aparecia por terminar. */
+  gravarEvidencias(a.id,a.scores);
   apagarRascunho();
   registarAlteracao();
   pedirPersistencia();
@@ -1778,6 +1920,39 @@ function contaAcoes(au,hoje){
   return{abertas:ab.length,atrasadas:ab.filter(ac=>estadoAcao(ac,hoje)==="atrasada").length};
 }
 
+/* ---------- Fotos: chaves e importação (v3.14.0) ----------
+   No IndexedDB das fotos há três tipos de chave:
+     "<id>|<responsável>"   foto da recomendação ao responsável (3.9.0)
+     "<id>#<n>"             foto de evidência da pergunta n (posição) (3.14.0)
+     "rascunho#<pergunta>"  evidência de uma auditoria ainda por gravar
+   O id é um número; os códigos de responsável são texto do utilizador, que
+   pode conter "#", mas a chave de uma recomendação tem sempre "|" logo a
+   seguir aos dígitos do id, e a de uma evidência tem "#": os dois intervalos
+   nunca se cruzam. As de rascunho não começam por um número. */
+const FOTOS_MAX=5000,FOTO_MAX_CHARS=3e6;
+const RE_FOTO_URL=/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/;
+/* O id da auditoria a que uma chave pertence, ou null (rascunho, ou lixo). */
+function idDaChave(k){const m=/^(\d+)[|#]/.exec(String(k));return m?Number(m[1]):null;}
+/* Fotos de um ficheiro de cópia de segurança, validadas uma a uma, com o id de
+   cada auditoria trocado pelo que ela ficou a ter depois de importada (`mapa`:
+   id no ficheiro → id em casa). Uma foto de uma auditoria que não entrou (já
+   existia, ao fundir) fica de fora. Só passam imagens em data: URL base64 —
+   é o que vai parar ao src de um <img>. */
+function fotosParaImportar(lista,mapa){
+  if(!Array.isArray(lista))return [];
+  const out=[];
+  lista.slice(0,FOTOS_MAX).forEach(f=>{
+    if(!f||typeof f!=="object"||Array.isArray(f))return;
+    const m=/^(\d{1,16})([|#])(.{1,40})$/.exec(typeof f.k==="string"?f.k:"");
+    if(!m||typeof f.v!=="string"||f.v.length>FOTO_MAX_CHARS||!RE_FOTO_URL.test(f.v))return;
+    if(m[2]==="#"&&!/^\d{1,3}$/.test(m[3]))return;
+    const novo=mapa.get(Number(m[1]));
+    if(novo==null)return;
+    out.push({k:String(novo)+m[2]+m[3],v:f.v});
+  });
+  return out;
+}
+
 /* ---------- Frequência das auditorias (v3.13.0) ----------
    Cada serviço pode ter uma frequência (de quantos em quantos dias deve ser
    auditado). Daí sai o estado de cada um: em dia, a vencer, em atraso, ou nunca
@@ -1845,7 +2020,8 @@ function linhasExcel(lista){
     "ID auditoria":a.id,"Serviço":a.service,"Data":a.date,"Nº":it.n,"Tema":it.t||"","Pergunta":it.c||"",
     "Pilar":PILLARS[it.p]||"","Responsável":isResp(it.r)?RESP[it.r]:String(it.r||""),
     "Valor":a.raw&&a.raw[i]!=null?a.raw[i]:"","Auditados":a.tgts&&a.tgts[i]!=null?a.tgts[i]:"",
-    "Classificação":LBL[a.scores[i]]||""})));
+    "Classificação":LBL[a.scores[i]]||"",
+    "Nota":Array.isArray(a.notas)&&a.notas[i]||""})));
   /* v3.12.0: terceira folha, uma linha por acção do plano. */
   const acoes=[];
   ord.forEach(a=>(Array.isArray(a.acoes)?a.acoes:[]).forEach(ac=>acoes.push({
@@ -2004,7 +2180,23 @@ function carregarFotos(id){
 }
 const guardarFoto=(id,k,url)=>fotosIDB("readwrite",st=>st.put(url,fotoChave(id,k)));
 const apagarFoto=(id,k)=>fotosIDB("readwrite",st=>st.delete(fotoChave(id,k)));
-const apagarFotosDe=id=>fotosIDB("readwrite",st=>st.delete(fotosIntervalo(id)));
+/* v3.14.0: as fotos de evidência (por pergunta) vivem em "<id>#<n>". */
+const evidIntervalo=id=>IDBKeyRange.bound(String(id)+"#",String(id)+"#\uffff");
+const apagarFotosDe=id=>fotosIDB("readwrite",st=>{st.delete(fotosIntervalo(id));st.delete(evidIntervalo(id));});
+/* Todas as fotos de auditorias que existem, para a cópia de segurança. */
+function todasAsFotos(ids){
+  const vivos=new Set(ids.map(String));
+  return fotosIDB("readonly",st=>{
+    const out=[],cur=st.openCursor();
+    cur.onsuccess=()=>{const c=cur.result;if(!c)return;
+      const id=idDaChave(c.key);
+      if(id!=null&&vivos.has(String(id))&&typeof c.value==="string"&&c.value.startsWith("data:image/"))
+        out.push({k:String(c.key),v:c.value});
+      c.continue();};
+    return out;
+  });
+}
+const gravarFotos=lista=>fotosIDB("readwrite",st=>{lista.forEach(f=>st.put(f.v,f.k));});
 /* Apaga as fotos de auditorias que já não existem (depois de Substituir na
    importação). Só é chamada quando a lista nova acabou de ser GRAVADA: nunca
    no arranque, onde um localStorage ilegível levaria as fotos todas. */
@@ -2013,7 +2205,10 @@ function apagarFotosOrfas(ids){
   return fotosIDB("readwrite",st=>{
     const cur=st.openKeyCursor?st.openKeyCursor():st.openCursor();
     cur.onsuccess=()=>{const c=cur.result;if(!c)return;
-      if(!vivos.has(String(c.key).split("|")[0]))st.delete(c.key);
+      /* v3.14.0: pelo id no início da chave ("|" ou "#"); as de rascunho
+         não pertencem a auditoria nenhuma e ficam. */
+      const id=idDaChave(c.key);
+      if(id!=null&&!vivos.has(String(id)))st.delete(c.key);
       c.continue();};
   });
 }
@@ -2131,6 +2326,33 @@ function seguimentoHTML(a){
       <td style="color:${SEG_LBL[l.estado][1]};font-weight:700">${SEG_LBL[l.estado][0]}</td></tr>`).join("")}</table>`
       :`<p>Tudo Excelente nas duas auditorias.</p>`}</div>`;
 }
+/* ---------- Evidências: relatório (v3.14.0) ----------
+   As perguntas que ficaram Mau ou Oportunidade e têm nota ou foto de
+   evidência, cada uma com o que se viu. Folha própria, impressa só quando há
+   alguma — um <section>, pela mesma razão do plano de acção. */
+function carregarEvidAudit(id){
+  return evidEscrita.catch(()=>{}).then(()=>fotosIDB("readonly",st=>{const out=new Map(),cur=st.openCursor(evidIntervalo(id));
+    cur.onsuccess=()=>{const c=cur.result;if(!c)return;
+      const i=parseInt(String(c.key).split("#")[1],10);
+      if(i>=0&&typeof c.value==="string"&&c.value.startsWith("data:image/"))out.set(i,c.value);
+      c.continue();};
+    return out;}));
+}
+function evidHTML(a,fotos){
+  const IT=itemsOf(a),notas=Array.isArray(a.notas)?a.notas:[];
+  const lista=IT.map((it,i)=>({it,i,s:a.scores[i],nota:notas[i]||"",foto:fotos.get(i)}))
+    .filter(x=>(x.s===0||x.s===1)&&(x.nota||x.foto));
+  if(!lista.length)return`<section id="evid" class="hidden"></section>`;
+  return`<section id="evid" class="page page-evid"><div class="card">
+    <h3 style="margin-bottom:8px">Evidências · ${esc(a.service)} · ${esc(a.date)}</h3>
+    <div class="evid-grelha">${lista.map(x=>`<div class="evid-item">
+      ${x.foto?`<img src="${x.foto}" alt="Evidência da pergunta ${esc(x.it.n)}">`:""}
+      <div><b>Nº ${esc(x.it.n)} · ${esc(x.it.t)}</b>
+        <span class="pill" style="background:${x.s===0?"var(--red)":"var(--amber-bg)"}">${esc(LBL[x.s])}</span>
+        <br><small style="color:var(--muted)">${esc(x.it.c)}</small>
+        ${x.nota?`<p>${esc(x.nota)}</p>`:""}</div></div>`).join("")}</div></div></section>`;
+}
+
 /* ---------- Plano de acção: relatório (v3.12.0) ----------
    Folha própria (a 4.ª), impressa só quando há acções — desta auditoria ou em
    aberto de auditorias anteriores ao serviço. É um <section> e não um <div>:
@@ -2236,7 +2458,9 @@ function wirePlano(a){
 }
 
 /* ---------- Relatório / PDF ---------- */
+let relatorioId=null;
 function openReport(a){
+  relatorioId=a.id;
   /* Limpo ANTES de desenhar: recsHTML() lê REC_FOTOS, e mostraria por instantes
      as fotos do relatório aberto antes deste. */
   const outraAuditoria=fotosDe!==a.id;
@@ -2299,6 +2523,7 @@ function openReport(a){
   ${seguimentoHTML(a)}
   </div>
   ${recsHTML(a)}
+  ${evidHTML(a,new Map())}
   ${planoHTML(a)}
   <button class="btn no-print" id="btn-print">Gerar PDF</button>
   <button class="btn ghost no-print" id="btn-edit">Editar auditoria</button>
@@ -2315,6 +2540,13 @@ function openReport(a){
     }).catch(()=>{});
   }
   wirePlano(a);
+  /* v3.14.0: as fotos de evidência chegam depois, como as das recomendações. */
+  carregarEvidAudit(a.id).then(m=>{
+    /* Entretanto pode ter sido aberto o relatório de outra auditoria. */
+    if(!document.getElementById("evid")||relatorioId!==a.id)return;
+    const tmp=document.createElement("div");tmp.innerHTML=evidHTML(a,m);
+    document.getElementById("evid").replaceWith(tmp.firstElementChild);
+  }).catch(()=>{});
   document.querySelectorAll("#view-report [data-acao-worst]").forEach(b=>b.onclick=()=>{
     const x=worst[+b.dataset.acaoWorst];
     novaAcaoPara(x.it);
@@ -2861,7 +3093,15 @@ function addSvc(){const v=clean(document.getElementById("svc-new").value,200);
   if(!v)return;services.push(v);save("services",services);
   document.getElementById("svc-new").value="";renderCfg();renderForm();}
 function rmSvc(i){services.splice(i,1);save("services",services);renderCfg();renderForm();}
-function exportJson(){
+/* v3.14.0: com `comFotos`, o ficheiro leva também as fotos (das recomendações
+   e das evidências), para uma cópia de segurança completa. Sem elas, o ficheiro
+   fica leve, como até aqui. */
+async function exportJson(comFotos){
+  let fotos=null;
+  if(comFotos){
+    try{fotos=await todasAsFotos(audits.map(a=>a.id));}
+    catch(e){aviso("Não foi possível ler as fotos deste dispositivo. Exporte sem fotos.");return;}
+  }
   const payload={
     app:"auditoria5s",
     version:APP_VERSION,
@@ -2879,9 +3119,12 @@ function exportJson(){
     /* v3.13.0: a frequência das auditorias por serviço. */
     freqAud:freqs
   };
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  if(fotos)payload.fotos=fotos;
+  /* Com fotos, sem indentação: são centenas de KB de base64 que não ganham nada
+     com ela. */
+  const blob=new Blob([fotos?JSON.stringify(payload):JSON.stringify(payload,null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  a.download="auditorias5s_"+new Date().toISOString().slice(0,10)+".json";a.click();
+  a.download="auditorias5s_"+new Date().toISOString().slice(0,10)+(fotos?"_com_fotos":"")+".json";a.click();
   URL.revokeObjectURL(a.href);
   registarExportacao();}
 
@@ -2969,6 +3212,8 @@ function sanitizeAudit(x){
     recs:recsOf(x),
     /* v3.12.0: o plano de acções viaja com a auditoria, pela mesma porta. */
     acoes:sanitizeAcoes(x.acoes),
+    /* v3.14.0: notas de evidência, alinhadas com scores. */
+    notas:Array.isArray(x.notas)?scores.map((_,i)=>clean(x.notas[i],300)):undefined,
     items:items||undefined
   };
 }
@@ -3015,6 +3260,9 @@ function importJson(inp){
         {v:"F",label:"Fundir",def:true}]});
     if(m==null){desfazerResps();return;}
 
+    /* v3.14.0: id no ficheiro → id em casa, para as fotos acompanharem cada
+       auditoria importada (ao fundir, um id já ocupado passa ao seguinte). */
+    const mapaIds=new Map();
     if(m==="S"){
       if(!(await confirmar("Substituir TODOS os dados actuais ("+audits.length+" auditoria(s))? Esta acção não pode ser anulada.",{sim:"Substituir",perigo:true}))){desfazerResps();return;}
       /* v3.5.1 — o mesmo código de acesso que apagar UMA auditoria pede desde
@@ -3022,6 +3270,7 @@ function importJson(inp){
          irreversível: a porta mais destrutiva era a única que não o pedia. */
       if(!(await pedirPin("Código de acesso para substituir todo o histórico (não é possível anular):"))){desfazerResps();return;}
       audits=inAudits;
+      inAudits.forEach(a=>mapaIds.set(a.id,a.id));
       services=inSvc.length?[...new Set(inSvc)]:services;
       /* v3.13.0: as frequências do ficheiro, se as trouxer; senão ficam as de casa. */
       if(Array.isArray(data.freqAud))freqs=sanitizeFreqs(data.freqAud);
@@ -3032,7 +3281,9 @@ function importJson(inp){
       let novas=0;
       inAudits.forEach(a=>{
         if(chaves.has(a.id+"|"+a.service+"|"+a.date)||chavesSD.has(a.service+"|"+a.date))return;
+        const orig=a.id;
         while(audits.some(x=>x.id===a.id))a.id++;
+        mapaIds.set(orig,a.id);
         audits.push(a);chaves.add(a.id+"|"+a.service+"|"+a.date);chavesSD.add(a.service+"|"+a.date);novas++;
       });
       services=[...new Set(services.concat(inSvc))];
@@ -3044,7 +3295,15 @@ function importJson(inp){
     const gravou=save("audits",audits);save("services",services);save("people",people);save("freqAud",freqs);
     /* As fotos das auditorias que o ficheiro substituiu já não têm a quem
        pertencer. Só depois de a lista nova estar gravada. */
-    if(m==="S"&&gravou)apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
+    if(m==="S"&&gravou)await apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
+    /* v3.14.0: as fotos do ficheiro (uma cópia "com fotos"), depois de as
+       auditorias estarem gravadas e as órfãs limpas. */
+    const fotosIn=gravou?fotosParaImportar(data.fotos,mapaIds):[];
+    let fotosOk=0;
+    if(fotosIn.length){
+      try{await gravarFotos(fotosIn);fotosOk=fotosIn.length;}
+      catch(e){aviso("As auditorias foram importadas, mas não foi possível gravar as fotos neste dispositivo.");}
+    }
     /* Substituir troca a lista pela do ficheiro; fundir acrescenta o que falta e
        mantém os nomes de casa. Em qualquer dos casos fica GRAVADA, para que a
        leitura seguinte não volte a cair no de recurso. */
@@ -3058,7 +3317,8 @@ function importJson(inp){
       loadItems();
     }
     refreshForm();renderCfg();renderHist();
-    aviso("Importação concluída: "+audits.length+" auditoria(s) no histórico.");
+    aviso("Importação concluída: "+audits.length+" auditoria(s) no histórico"+
+      (fotosOk?", "+fotosOk+" foto(s) importada(s)":"")+".");
   };
   rd.readAsText(file);
 }
@@ -3591,7 +3851,8 @@ on("btn-canceledit","click",async()=>{
   resetForm();
 });
 on("btn-addsvc","click",()=>addSvc());
-on("btn-expjson","click",()=>exportJson());
+on("btn-expjson","click",()=>exportJson(false));
+on("btn-expfotos","click",()=>exportJson(true));
 on("btn-expxl","click",()=>exportExcel());
 /* v3.9.0: filtros do Histórico e da Análise. */
 [["hf-svc","svc"],["hf-nota","nota"],["hf-de","de"],["hf-ate","ate"]].forEach(([id,k])=>
@@ -3679,7 +3940,7 @@ function mostrarAvisoBackup(){
   if(t)document.getElementById("aviso-backup-txt").textContent=t;
   mostrarArmaz();
 }
-on("btn-backup-exp","click",()=>exportJson());
+on("btn-backup-exp","click",()=>exportJson(false));
 on("btn-backup-adiar","click",()=>{
   const b=backupInfo();b.adiar=new Date(Date.now()+864e5).toISOString();gravarBackupInfo(b);
 });

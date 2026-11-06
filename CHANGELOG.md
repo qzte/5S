@@ -5,6 +5,33 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.14.0] — 2026-11-06
+
+A prova do que se viu, e uma cópia de segurança que não deixa nada para trás.
+
+### Adicionado
+
+- **Evidência por pergunta.** No formulário, cada pergunta classificada Mau ou
+  Oportunidade ganha uma **nota** e uma **foto**. Fazem parte do rascunho
+  (sobrevivem a um separador fechado) e podem ser trocadas ou removidas na
+  edição. O relatório ganha a folha **Evidências** (só quando há alguma); a
+  nota vai também para a exportação para Excel.
+- **Exportar com fotos (JSON).** Uma cópia de segurança completa, com as fotos
+  das recomendações e das evidências. Importá-la repõe as fotos, validadas uma a
+  uma e com cada uma a acompanhar a sua auditoria (também ao fundir, quando o id
+  muda). A exportação normal continua leve, sem fotos.
+- `tests/evidencias.test.js` e `tests/smoke-evidencias.mjs` (na CI): nota e
+  foto no formulário, rascunho, relatório e PDF, edição, e a ida e volta de uma
+  cópia com fotos num dispositivo vazio.
+
+### Alterado
+
+- Apagar uma auditoria apaga também as suas fotos de evidência, e a limpeza de
+  fotos órfãs (ao substituir o histórico) passa a conhecer as chaves novas e a
+  deixar em paz as do rascunho.
+- O relatório espera que as fotos de evidência acabadas de gravar estejam no
+  disco antes de as ler.
+
 ## [3.13.0] — 2026-11-06
 
 Saber o que falta auditar, e uma app que fala sempre com a mesma voz.

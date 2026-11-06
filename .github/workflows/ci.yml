@@ -148,6 +148,9 @@ jobs:
       - name: Frequência, prazos e caixas de diálogo
         run: node tests/smoke-prazos.mjs
 
+      - name: Evidência por pergunta e cópia com fotos
+        run: node tests/smoke-evidencias.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest
