@@ -1,4 +1,5 @@
-# Cabeçalhos HTTP para o Cloudflare Pages (3.7.0).
+# Cabeçalhos HTTP para o Cloudflare Pages (3.7.0) — alternativa preparada.
+# A app está publicada no GitHub Pages, que IGNORA este ficheiro.
 #
 # O GitHub Pages não deixava definir cabeçalhos, e por isso a CSP vivia só no
 # <meta> do index.html — onde os browsers IGNORAM frame-ancestors (SECURITY.md,

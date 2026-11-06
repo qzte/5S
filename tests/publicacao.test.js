@@ -1,4 +1,4 @@
-/* Publicação no Cloudflare Pages (3.7.0).
+/* Publicação no Cloudflare Pages (3.7.0), alternativa preparada ao GitHub Pages.
 
    Três coisas que têm de andar juntas e que nada mais obriga a andar:
    - a CSP do _headers (cabeçalho HTTP) e a do <meta> do index.html;

@@ -2,7 +2,7 @@
 
 Três revisões, por ordem inversa:
 
-- **[Nota de 3.7.0](#nota-de-370-2026-11-06-cloudflare-pages)** — a mudança para o Cloudflare Pages fecha os pontos 4, 9 e 21.
+- **[Nota de 3.7.0 e 3.7.1](#nota-de-370-e-371-2026-11-06-alojamento)** — a app continua no GitHub Pages; o Cloudflare Pages fica preparado e fecharia os pontos 4, 9 e 21.
 - **[Revisão de 3.6.0](#revisão-de-360-2026-11-06)** — correcções em 3.6.1.
 - **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em 3.5.1 e 3.5.2.
 - **[Revisão de 3.1.0](#revisão-de-310-2026-07-31)** — correcções em 3.1.1 e 3.1.2.
@@ -10,35 +10,35 @@ Três revisões, por ordem inversa:
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
 
-## Nota de 3.7.0 (2026-11-06): Cloudflare Pages
+## Nota de 3.7.0 e 3.7.1 (2026-11-06): alojamento
 
-O GitHub Pages deixou de publicar a app quando o repositório passou a privado,
-e a 3.7.0 passa a publicá-la no Cloudflare Pages, em endereço próprio
-(`auditoria-5s.pages.dev`). Três pontos das revisões anteriores, todos
-aceites ou só mitigados por falta de controlo sobre o alojamento, mudam de
-estado:
+O GitHub Pages deixou de publicar a app quando o repositório passou a privado.
+A 3.7.0 preparou a mudança para o **Cloudflare Pages**; o repositório voltou
+depois a público e, em 3.7.1, a app **continua no GitHub Pages**
+(`qzte.github.io/5S/`). O que ficou da 3.7.0:
 
-| # | Ponto | Antes | Em 3.7.0 |
-| --- | --- | --- | --- |
-| 4 | `frame-ancestors` em `<meta>` não é aplicado | Mitigado por uma guarda em JS | **Fechado**: CSP e `X-Frame-Options: DENY` em cabeçalho HTTP (`_headers`). Verificado no Chromium: dentro de uma moldura o browser recusa carregar a página. |
-| 9 | `localStorage` partilhado por toda a origem | Aceite | **Fechado**: a origem é só desta app. |
-| 21 | A licença da pasta do painel é da origem | Documentado | **Fechado** pela mesma razão. A recomendação de usar uma pasta só para o painel mantém-se. |
-
-E dois controlos novos:
-
-- **`scripts/publicar.sh`** publica só os ficheiros da app. Sem ele o
-  Cloudflare publicaria o repositório inteiro, testes e documentação incluídos.
-  `tests/publicacao.test.js` verifica que a lista é a da cache do service
-  worker, e que a CSP do `_headers` é igual à do `<meta>`.
 - **O service worker cai na cópia em cache quando o servidor responde com
   erro**, e não só quando falta a rede. Foi o que faltou quando o site
   desapareceu: com rede, o 404 do GitHub tapava a cópia guardada, e com ela o
   botão de exportar os dados. Verificado no Chromium com um servidor que deixa
   de servir o `index.html`: o service worker novo abre a app, o anterior mostra
-  o 404.
+  o 404. Vale em qualquer alojamento.
+- **`_headers` e `scripts/publicar.sh`**, prontos para o Cloudflare Pages e
+  ignorados pelo GitHub Pages. `tests/publicacao.test.js` mantém a CSP do
+  `_headers` igual à do `<meta>`, e o que se publica igual ao que o service
+  worker guarda em cache.
 
-O `'unsafe-inline'` em `script-src` (ponto 11) não muda: continua a ser o custo
-do ficheiro único.
+Os pontos que dependem do alojamento **ficam como estavam no GitHub Pages**, e
+fecham-se só se a app passar para o Cloudflare Pages:
+
+| # | Ponto | No GitHub Pages | No Cloudflare Pages (preparado) |
+| --- | --- | --- | --- |
+| 4 | `frame-ancestors` em `<meta>` não é aplicado | Mitigado pela guarda em JS | Fechado: CSP e `X-Frame-Options: DENY` em cabeçalho. Verificado no Chromium com os cabeçalhos do `_headers`: o browser recusa a página dentro de uma moldura. |
+| 9 | `localStorage` partilhado por toda a origem | Aceite | Fechado: endereço próprio. |
+| 21 | A licença da pasta do painel é da origem | Documentado | Fechado pela mesma razão. |
+
+Com o repositório público, também o **histórico do git** é público, incluindo
+os nomes e o código de serviço reais que a 3.6.2 retirou dos ficheiros actuais.
 
 ---
 

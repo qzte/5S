@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Prepara a pasta que o Cloudflare Pages publica (3.7.0).
+# Prepara a pasta que o Cloudflare Pages publica (3.7.0) — alternativa
+# preparada; a app está publicada no GitHub Pages, que não usa este script.
 #
 # Copia para dist/ SÓ os ficheiros da aplicação. Sem isto, o Cloudflare
 # publicaria o repositório inteiro — testes, CHANGELOG, SECURITY.md, a CI —,

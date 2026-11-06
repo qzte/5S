@@ -5,6 +5,23 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.7.1] — 2026-11-06
+
+A app **continua no GitHub Pages** (`qzte.github.io/5S/`): o repositório voltou
+a público, e o Cloudflare Pages preparado na 3.7.0 fica como alternativa.
+
+### Alterado
+
+- README, SECURITY.md e comentários do código voltam a descrever o GitHub Pages
+  como alojamento: o endereço, a configuração (*Settings → Pages*, ramo `main`,
+  pasta raiz) e as suas limitações — sem cabeçalhos HTTP, origem partilhada com
+  os outros projectos da conta, repositório inteiro publicado.
+- Os pontos 4, 9 e 21 do SECURITY.md ficam como estavam no GitHub Pages; a
+  tabela da 3.7.0 passa a dizer o que fecharia no Cloudflare Pages, em vez de os
+  dar por fechados.
+- `_headers` e `scripts/publicar.sh` ficam, documentados como alternativa
+  preparada. A correcção do service worker da 3.7.0 vale em qualquer alojamento.
+
 ## [3.7.0] — 2026-11-06
 
 A app muda-se para o **Cloudflare Pages**. O GitHub Pages deixou de a publicar

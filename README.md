@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.7.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,19 +8,20 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.7.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.7.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
 Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do dispositivo**.
 
-- **Aplicação:** https://auditoria-5s.pages.dev/ (Cloudflare Pages, desde 3.7.0)
+- **Aplicação:** https://qzte.github.io/5S/ (GitHub Pages)
 - **Código:** https://github.com/qzte/5S
 
 ## Índice
 
 - [Funcionalidades](#funcionalidades)
 - [Instalação e utilização](#instalação-e-utilização)
+- [Publicação (GitHub Pages)](#publicação-github-pages)
 - [Modelo de pontuação](#modelo-de-pontuação)
 - [Limiares por pergunta](#limiares-por-pergunta)
 - [Responsáveis](#responsáveis)
@@ -47,7 +48,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 Não há passo de compilação nem dependências a instalar.
 
-1. Abra https://auditoria-5s.pages.dev/ no telemóvel ou no computador.
+1. Abra https://qzte.github.io/5S/ no telemóvel ou no computador.
 2. No telemóvel, use *Adicionar ao ecrã principal* para instalar como aplicação.
 3. Depois da primeira visita funciona sem rede: o service worker guarda a aplicação em cache.
 
@@ -59,57 +60,52 @@ python3 -m http.server 8000
 # abrir http://localhost:8000
 ```
 
-## Publicação (Cloudflare Pages)
+## Publicação (GitHub Pages)
 
-Até 3.6.x a app vivia em `https://qzte.github.io/5S/`. O GitHub Pages deixou de a
-publicar quando o repositório passou a privado (no plano gratuito só publica
-repositórios públicos), e desde 3.7.0 é publicada no **Cloudflare Pages**, que
-publica a partir de um repositório privado. Configuração, feita uma vez em
-*Workers & Pages → Create → Pages → Connect to Git*:
+A app é publicada pelo **GitHub Pages** a partir do ramo `main`, pasta `/ (root)`
+(*Settings → Pages → Deploy from a branch*). Cada push para `main` publica
+sozinho em https://qzte.github.io/5S/.
+
+No plano gratuito o GitHub Pages **só publica repositórios públicos**. Se o
+repositório passar a privado, o GitHub retira o site (dá 404) e **não o volta a
+ligar sozinho** quando o repositório volta a público: é preciso repetir a
+configuração acima. Foi o que aconteceu entre a 3.6.0 e a 3.7.0.
+
+Limitações do GitHub Pages, aceites e documentadas em [SECURITY.md](SECURITY.md):
+
+- **Sem cabeçalhos HTTP próprios.** A CSP só vai no `<meta>`, onde os browsers
+  ignoram `frame-ancestors`; contra molduras vale a guarda em JS do `<head>`
+  (ponto 4).
+- **Origem partilhada.** `qzte.github.io` é de todos os projectos da conta: o
+  `localStorage`, o IndexedDB e a licença da pasta do painel e-ink ficam ao
+  alcance de qualquer outra página publicada nela (pontos 9 e 21).
+- **Publica o repositório inteiro.** Testes, documentação e CI ficam acessíveis
+  pelo endereço da app. Não têm nada de sensível, mas são públicos.
+
+### Alternativa preparada: Cloudflare Pages
+
+O repositório traz o que é preciso para publicar no **Cloudflare Pages**, que
+resolve as três limitações acima (endereço próprio, cabeçalhos HTTP, só os
+ficheiros da app) e também publica a partir de um repositório privado. Não está
+em uso; para o activar, em *Workers & Pages → Create → Pages → Connect to Git*:
 
 | Campo | Valor |
 | --- | --- |
 | Repositório | `qzte/5S` |
-| Nome do projecto | `auditoria-5s` (dá o endereço `auditoria-5s.pages.dev`) |
 | Ramo de produção | `main` |
 | Comando de build | `bash scripts/publicar.sh` |
 | Pasta de saída | `dist` |
 
-A partir daí, cada push para `main` publica sozinho. `scripts/publicar.sh` copia
-para `dist/` **só** os ficheiros da aplicação — sem ele, o repositório inteiro
-(testes, documentação, CI) ficaria acessível pelo endereço da app. O ficheiro
-`_headers` diz ao Cloudflare que cabeçalhos HTTP enviar, entre eles a CSP; os
-dois são verificados por `tests/publicacao.test.js`.
+`scripts/publicar.sh` copia para `dist/` só os ficheiros da aplicação, e
+`_headers` diz ao Cloudflare que cabeçalhos HTTP enviar, entre eles a CSP. O
+GitHub Pages ignora os dois. `tests/publicacao.test.js` verifica que a CSP do
+`_headers` é igual à do `<meta>` e que o que se publica é o que o service worker
+guarda em cache.
 
-Ganhos de segurança face ao GitHub Pages:
-
-- **Endereço próprio.** O `localStorage`, o IndexedDB e a licença da pasta do
-  painel deixam de ser partilhados com os outros projectos de `qzte.github.io`
-  ([SECURITY.md](SECURITY.md), pontos 9 e 21).
-- **Cabeçalhos HTTP.** A CSP vai em cabeçalho, onde `frame-ancestors` vale; com
-  `X-Frame-Options: DENY`, o browser recusa mostrar a app dentro de uma moldura
-  (ponto 4).
-
-### Passar os dados do endereço antigo
-
-O `localStorage` é de cada endereço: as auditorias gravadas em
-`qzte.github.io/5S/` **não aparecem sozinhas** no endereço novo. Em cada
-dispositivo que tenha dados:
-
-1. Ponha o dispositivo **sem rede** (modo de avião).
-2. Abra `https://qzte.github.io/5S/`. Sem rede, o service worker serve a cópia
-   da app que tem guardada, com os dados.
-3. **Configuração → Exportar histórico (JSON)**.
-4. Volte a ligar a rede, abra o endereço novo e use **Importar histórico**.
-
-Tem de ser sem rede: o service worker instalado nesse endereço é anterior a
-3.7.0 e, com rede, entrega o 404 do GitHub em vez da cópia guardada. A 3.7.0
-corrige isso para o futuro — um erro do servidor passa a abrir a cópia em
-cache, como a falta de rede —, mas a correcção só chega a quem já está no
-endereço novo.
-
-A pasta do painel e-ink também tem de ser escolhida outra vez no endereço novo:
-a licença do browser é do endereço.
+Mudar de endereço muda a origem: as auditorias guardadas no endereço antigo
+**não passam sozinhas**. Em cada dispositivo, exportar o histórico (JSON) no
+endereço antigo e importá-lo no novo; a pasta do painel e-ink tem de ser
+escolhida outra vez.
 
 ## Modelo de pontuação
 
@@ -283,8 +279,8 @@ deteção pelas colunas.
 index.html         Aplicação completa: HTML, CSS, JS e SheetJS embutido
 manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
-_headers           Cabeçalhos HTTP do Cloudflare Pages (CSP, molduras, cache do SW)
-scripts/publicar.sh  Prepara dist/ com só os ficheiros da app, para o Cloudflare Pages
+_headers           Cabeçalhos HTTP para o Cloudflare Pages (alternativa; o GitHub Pages ignora-o)
+scripts/publicar.sh  Prepara dist/ com só os ficheiros da app (alternativa Cloudflare Pages)
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
 SECURITY.md        Relatórios das auditorias de segurança (3.1.0, 3.5.0 e 3.6.0)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
@@ -384,15 +380,15 @@ Revisão completa em [SECURITY.md](SECURITY.md), incluindo o que **não** está
 mitigado. Dois pontos a reter:
 
 - `frame-ancestors` numa CSP em `<meta>` é **ignorado pelos browsers**: só
-  funciona em cabeçalho HTTP, que o GitHub Pages não permitia definir. Desde
-  3.7.0, no Cloudflare Pages, a CSP vai também em cabeçalho (`_headers`) e o
-  browser recusa a moldura; a guarda em JS no `<head>` (3.1.2) fica para quem
-  sirva a app de outro lado.
-- O `localStorage` pertence à **origem**, não ao caminho. Em
-  `qzte.github.io`, qualquer outra página publicada na mesma conta lia e
-  escrevia os dados desta aplicação, e herdava a licença da **pasta do painel
-  e-ink** (3.6.1). Desde 3.7.0 a app tem endereço próprio
-  (`auditoria-5s.pages.dev`), e esse isolamento passa a existir.
+  funciona em cabeçalho HTTP, que o GitHub Pages não permite definir. A
+  directiva fica na CSP e em `_headers`, para quando a app for servida com
+  cabeçalhos (Cloudflare Pages); no GitHub Pages, uma guarda em JS no `<head>`
+  recusa mostrar a aplicação dentro de uma moldura (3.1.2).
+- O `localStorage` pertence à **origem**, não ao caminho: em
+  `qzte.github.io`, qualquer outra página publicada na mesma conta lê e escreve
+  os dados desta aplicação, e herda a licença da **pasta do painel e-ink**
+  (3.6.1). Para isolamento real é preciso um endereço próprio — por exemplo o
+  Cloudflare Pages, já preparado (ver *Publicação*).
 
 **O PIN do editor — pedido também para editar e para apagar uma auditoria
 gravada, e para substituir todo o histórico numa importação — não é um controlo
