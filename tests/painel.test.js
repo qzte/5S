@@ -28,26 +28,26 @@ test("sem auditorias: zeros e listas vazias, média e última a null", () => {
 
 test("a última auditoria de cada serviço, com a % da anterior para a tendência", () => {
   const d = plain(dadosPainel5s([
-    aud(1, "UCIP", "2026-09-01", [2, 2, 2, 2, 2]),   // 100 %
-    aud(2, "UCIP", "2026-10-02", [1, 1, 1, 1, 1]),   // 38 %
-    aud(3, "Pediatria", "2026-09-20", [2, 2, 2, 2, 0]),
+    aud(1, "Serviço A", "2026-09-01", [2, 2, 2, 2, 2]),   // 100 %
+    aud(2, "Serviço A", "2026-10-02", [1, 1, 1, 1, 1]),   // 38 %
+    aud(3, "Serviço B", "2026-09-20", [2, 2, 2, 2, 0]),
   ]));
   assert.strictEqual(d.total, 3);
   assert.strictEqual(d.ultima, "2026-10-02");
-  const ucip = d.servicos.find(s => s.nome === "UCIP");
-  assert.deepStrictEqual(ucip, { nome: "UCIP", pct: 38, data: "2026-10-02", anterior: 100, n: 2 });
-  const ped = d.servicos.find(s => s.nome === "Pediatria");
+  const ucip = d.servicos.find(s => s.nome === "Serviço A");
+  assert.deepStrictEqual(ucip, { nome: "Serviço A", pct: 38, data: "2026-10-02", anterior: 100, n: 2 });
+  const ped = d.servicos.find(s => s.nome === "Serviço B");
   assert.strictEqual(ped.anterior, null);
   assert.strictEqual(ped.n, 1);
   /* Do mais recente para o mais antigo. */
-  assert.deepStrictEqual(d.servicos.map(s => s.nome), ["UCIP", "Pediatria"]);
+  assert.deepStrictEqual(d.servicos.map(s => s.nome), ["Serviço A", "Serviço B"]);
 });
 
 test("a ordem de gravação não importa: conta a data (e, no mesmo dia, o id)", () => {
   const d = plain(dadosPainel5s([
-    aud(9, "UCIP", "2026-10-02", [0, 0, 0, 0, 0]),
-    aud(1, "UCIP", "2026-09-01", [2, 2, 2, 2, 2]),
-    aud(5, "UCIP", "2026-10-02", [2, 2, 2, 2, 2]),
+    aud(9, "Serviço A", "2026-10-02", [0, 0, 0, 0, 0]),
+    aud(1, "Serviço A", "2026-09-01", [2, 2, 2, 2, 2]),
+    aud(5, "Serviço A", "2026-10-02", [2, 2, 2, 2, 2]),
   ]));
   assert.strictEqual(d.servicos[0].pct, 0);         // id 9 é a última do dia 2
   assert.strictEqual(d.servicos[0].anterior, 100);  // a anterior é a id 5, do mesmo dia

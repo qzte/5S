@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.6.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.6.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -315,7 +315,7 @@ canvas{width:100%!important}
   <div class="card">
     <h3 style="margin-bottom:10px">Serviços</h3>
     <div id="svc-list"></div>
-    <div class="row"><input id="svc-new" placeholder="Novo serviço (ex.: UCIP 11120)">
+    <div class="row"><input id="svc-new" placeholder="Novo serviço (ex.: Serviço A 00001)">
     <button class="btn small ghost" id="btn-addsvc">Adicionar</button></div>
   </div>
   <div class="card">
@@ -723,7 +723,7 @@ function ruleOf(it){
 }
 
 /* ---------- Ponderação (v1.5.0) ----------
-   Reproduz as fórmulas da folha Auditoria_Cir_B__11B_.xlsx:
+   Reproduz as fórmulas da folha de cálculo original:
      F23 = SUM(F4:F22)*0        → Mau               = 0 pontos
      G23 = COUNTA(G4:G22)*2     → Com oportunidade  = 2 pontos
      H23 = COUNTA(H4:H22)*5.25  → Excelente         = 5,25 pontos
@@ -828,7 +828,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F\u061C\u200B\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,"").trim().slice(0,max||200);
 
 
-const APP_VERSION="3.6.1";
+const APP_VERSION="3.6.2";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -836,7 +836,7 @@ document.getElementById("app-ver").textContent="v"+APP_VERSION;
    a Análise ficavam em branco e o 5s.painel.json deixava de ser gravado, sem
    aviso. Ver auditUsavel(). */
 let audits=loadArr("audits",[]).filter(auditUsavel);
-let services=loadArr("services",["UCIP (11120)"]);
+let services=loadArr("services",["Serviço A (00001)"]);
 let people=loadArr("people",[]); /* repositores / picking */
 let answers={};
 /* v3.3.0 — edição de auditorias anteriores.

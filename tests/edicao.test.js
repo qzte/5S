@@ -13,8 +13,8 @@ const ctx = buildContext(["aplicarEdicao"], []);
 const { aplicarEdicao } = ctx;
 
 const A = {
-  id: 100, service: "UCIP (11120)", date: "2026-01-10",
-  pick: "Ana", repo: "Rui", verif: "Zé", note: "primeira",
+  id: 100, service: "Serviço A (00001)", date: "2026-01-10",
+  pick: "Fulano", repo: "Beltrano", verif: "Sicrano", note: "primeira",
   scores: [2, 1], raw: [0, 3], tgts: [null, null],
   recs: { U: "arrumar", M: "", R: "", "U+R": "", P: "" },
   items: [{ n: 1 }, { n: 2 }]
@@ -22,8 +22,8 @@ const A = {
 const B = { id: 200, service: "Outro", date: "2026-02-10", scores: [0], raw: [9] };
 
 const DADOS = {
-  service: "UCIP (11120)", date: "2026-01-11",
-  pick: "Ana", repo: "Rui", verif: "Maria", note: "corrigida",
+  service: "Serviço A (00001)", date: "2026-01-11",
+  pick: "Fulano", repo: "Beltrano", verif: "Ciclano", note: "corrigida",
   scores: [2, 2], raw: [0, 0], tgts: [null, null], items: [{ n: 1 }, { n: 2 }]
 };
 
@@ -31,7 +31,7 @@ test("substitui a auditoria com o id indicado e deixa as outras intactas", () =>
   const out = aplicarEdicao([A, B], 100, DADOS);
   assert.strictEqual(out.length, 2);
   assert.strictEqual(out[0].note, "corrigida");
-  assert.strictEqual(out[0].verif, "Maria");
+  assert.strictEqual(out[0].verif, "Ciclano");
   assert.deepStrictEqual(out[0].scores, [2, 2]);
   assert.strictEqual(out[1], B, "a outra auditoria não é sequer copiada");
 });

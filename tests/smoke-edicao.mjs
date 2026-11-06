@@ -33,7 +33,7 @@ const audit0 = () => pg.evaluate(() => JSON.parse(localStorage.getItem("audits")
 /* ---- 1. Gravar uma auditoria com todas as respostas a zero. ---- */
 check(await pg.locator("[data-edresp]").count() === 0,
   "fora da edição, o responsável não é alterável no formulário");
-await pg.locator("#f-verif").fill("Zé");
+await pg.locator("#f-verif").fill("Sicrano");
 await pg.locator("#f-note").fill("primeira");
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
 await pg.locator("#btn-save").click();
@@ -52,7 +52,7 @@ await pg.locator("#btn-edit").click();
 check(!(await pg.locator("#edit-banner").isHidden()), "o aviso de edição devia estar visível");
 check(await pg.locator("#btn-save").textContent() === "Guardar alterações",
   "o botão devia passar a Guardar alterações");
-check(await pg.locator("#f-verif").inputValue() === "Zé", "o verificador devia vir preenchido");
+check(await pg.locator("#f-verif").inputValue() === "Sicrano", "o verificador devia vir preenchido");
 check(await pg.locator("#f-note").inputValue() === "primeira", "a observação devia vir preenchida");
 check(await pg.locator("[data-pick='0']").inputValue() === "0", "a resposta devia vir preenchida");
 check(await pg.locator("[data-edresp]").count() === 19,

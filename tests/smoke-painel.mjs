@@ -54,7 +54,7 @@ check((await pg.locator("#painel-estado").textContent()).includes("partilhada"),
 
 /* ---- 3. Gravar uma auditoria volta a gravar o ficheiro (~2 s depois). ---- */
 await pg.locator("[data-v=audit]").click();
-await pg.locator("#f-verif").fill("Zé");
+await pg.locator("#f-verif").fill("Sicrano");
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
 await pg.locator("#btn-save").click();
 await pg.waitForFunction(() => {
