@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.8.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -163,6 +163,9 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 canvas{width:100%!important}
 .empty{text-align:center;color:var(--muted);padding:30px 10px;font-style:italic}
 .hidden{display:none}
+/* v3.8.0: avisos (nova versão, cópia de segurança, auditoria por terminar). */
+.aviso{border-color:var(--amber);border-width:2px}
+.aviso-txt{font-size:.78rem;color:var(--muted);margin:6px 0 8px}
 .ed-item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;background:#fdfcf9}
 .ed-item textarea{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:.95rem;background:#fff;margin-bottom:10px;resize:vertical;min-height:52px}
 .ed-item .hint{font-size:.72rem;color:var(--muted);margin:-6px 0 10px}
@@ -264,8 +267,32 @@ canvas{width:100%!important}
 </header>
 
 <main>
+<!-- v3.8.0: avisos que valem para todas as vistas. Ficam fora das secções para
+     aparecerem onde quer que o utilizador esteja, e nunca vão para o papel
+     (.no-print): o relatório é impresso a partir da mesma página. -->
+<div id="avisos" class="no-print">
+  <div class="card aviso hidden" id="aviso-versao" role="status">
+    <div class="stat-row"><span>Nova versão disponível</span></div>
+    <p class="aviso-txt">A aplicação foi actualizada. Recarregue para passar a usar a versão nova;
+      uma auditoria por terminar fica guardada e volta a aparecer.</p>
+    <button class="btn small" id="btn-recarregar">Recarregar agora</button>
+  </div>
+  <div class="card aviso hidden" id="aviso-backup" role="status">
+    <div class="stat-row"><span>Cópia de segurança</span></div>
+    <p class="aviso-txt" id="aviso-backup-txt"></p>
+    <button class="btn small" id="btn-backup-exp">Exportar agora</button>
+    <button class="btn small ghost" id="btn-backup-adiar">Lembrar amanhã</button>
+  </div>
+</div>
 <!-- ============ NOVA AUDITORIA ============ -->
 <section id="view-audit">
+  <!-- v3.8.0: só visível quando há uma auditoria nova por terminar guardada no
+       dispositivo (ver guardarRascunho). Nunca em modo de edição. -->
+  <div class="card hidden" id="draft-banner">
+    <div class="stat-row"><span>Auditoria por terminar</span></div>
+    <p class="aviso-txt" id="draft-info"></p>
+    <button class="btn small ghost" style="border-color:var(--red);color:var(--red)" id="btn-descartar">Descartar e começar de novo</button>
+  </div>
   <!-- Só visível em modo de edição (ver editAudit). O formulário é o mesmo da
        auditoria nova; muda o destino do Guardar e as perguntas usadas, que
        passam a ser as gravadas COM a auditoria e não as actuais. -->
@@ -331,6 +358,7 @@ canvas{width:100%!important}
     <button class="btn small ghost" id="btn-impjson">Importar histórico (JSON)</button>
     <input type="file" id="hist-file" accept=".json,application/json" class="hidden">
     <div id="data-stats" style="font-size:.78rem;color:var(--muted);margin-top:12px"></div>
+    <div id="data-armaz" style="font-size:.78rem;color:var(--muted);margin-top:6px"></div>
     <p style="font-size:.78rem;color:var(--muted);margin-top:10px">Os dados ficam guardados apenas neste dispositivo. Faça exportações regulares como cópia de segurança.</p>
   </div>
   <div class="card" id="card-painel">
@@ -830,8 +858,97 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
    direcção acima é que o permitem, e essas não têm uso legítimo aqui. */
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F\u061C\u200B\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,"").trim().slice(0,max||200);
 
+/* ---------- Rascunho da auditoria em curso (v3.8.0) ----------
+   Até 3.7.x o formulário vivia só em memória: um separador fechado pelo
+   sistema a meio da auditoria (no telemóvel acontece ao atender uma chamada ou
+   ao mudar de app) levava todas as respostas. A auditoria NOVA passa a ser
+   gravada em `rascunho` a cada alteração e é reposta sozinha ao reabrir.
+   A edição de uma auditoria gravada não tem rascunho: o registo original
+   continua no histórico, e perder a edição é perder só as alterações.
 
-const APP_VERSION="3.7.0";
+   As respostas são guardadas pela ASSINATURA da pergunta (número, tipo e
+   enunciado) e não só pela posição: se o editor de perguntas mudar entretanto,
+   uma resposta só volta ao sítio se a pergunta for a mesma — nunca a outra
+   pergunta que tenha ficado com o mesmo índice. */
+const RASCUNHO_KEY="rascunho";
+function assinItem(it){return [it&&it.n,it&&it.tp,it&&it.c].join("|");}
+/* Inteiro em [min, 1e6], ou null. Aceita o texto de um <input> ("" é null). */
+function inteiroOuNull(v,min){
+  const n=typeof v==="number"?v:(typeof v==="string"&&/^\s*\d+\s*$/.test(v)?parseInt(v,10):NaN);
+  return Number.isInteger(n)&&n>=min&&n<=1e6?n:null;
+}
+/* Monta o rascunho a partir do que está no formulário. Devolve null quando não
+   há nada que valha a pena guardar — nenhuma resposta e nenhum nome ou
+   observação escritos (o serviço e a data vêm sempre preenchidos de origem e
+   não contam). */
+function montarRascunho(campos,IT,raw,tgts,agora){
+  const c=campos||{};
+  const r=IT.map((_,i)=>inteiroOuNull(raw&&raw[i],0));
+  const t=IT.map((_,i)=>inteiroOuNull(tgts&&tgts[i],1));
+  const cab={pick:clean(c.pick,120),repo:clean(c.repo,120),verif:clean(c.verif,120),note:clean(c.note,200)};
+  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&r.every(v=>v==null))return null;
+  return Object.assign({v:1,savedAt:agora,service:clean(c.service,200),
+    date:/^\d{4}-\d{2}-\d{2}$/.test(c.date)?c.date:""},cab,
+    {sig:IT.map(assinItem),raw:r,tgts:t});
+}
+/* Lê um rascunho guardado e alinha-o com as perguntas `IT` actuais. O que vem
+   do localStorage é validado na forma, como o resto (ver loadArr). `perdidas`
+   conta as respostas que não foi possível repor por a pergunta já não existir. */
+function lerRascunho(x,IT){
+  if(!x||typeof x!=="object"||Array.isArray(x)||x.v!==1)return null;
+  if(!Array.isArray(x.sig)||!Array.isArray(x.raw)||!Array.isArray(x.tgts))return null;
+  const usados=new Set();
+  const raw=[],tgts=[];
+  IT.forEach((it,i)=>{
+    const s=assinItem(it);
+    let j=-1;
+    for(let k=0;k<x.sig.length;k++)if(x.sig[k]===s&&!usados.has(k)){j=k;break;}
+    if(j>=0)usados.add(j);
+    raw[i]=j>=0?inteiroOuNull(x.raw[j],0):null;
+    tgts[i]=j>=0?inteiroOuNull(x.tgts[j],1):null;
+  });
+  let perdidas=0;
+  x.raw.forEach((v,k)=>{if(!usados.has(k)&&inteiroOuNull(v,0)!=null)perdidas++;});
+  return{savedAt:typeof x.savedAt==="string"&&!isNaN(Date.parse(x.savedAt))?x.savedAt:null,
+    service:clean(x.service,200),
+    date:typeof x.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)?x.date:"",
+    pick:clean(x.pick,120),repo:clean(x.repo,120),verif:clean(x.verif,120),note:clean(x.note,200),
+    raw,tgts,perdidas};
+}
+
+/* ---------- Lembrete de cópia de segurança (v3.8.0) ----------
+   Os dados existem só neste dispositivo, e o README pede exportações
+   regulares — mas a app nunca o lembrava. `backup` guarda a data da última
+   exportação (`at`), quantas auditorias foram gravadas ou editadas desde então
+   (`pend`) e até quando o utilizador adiou o aviso (`adiar`). O aviso aparece
+   se nunca houve exportação, ou se há alterações por exportar e já passaram
+   BACKUP_DIAS dias ou se juntaram BACKUP_PEND alterações. */
+const BACKUP_KEY="backup";
+const BACKUP_DIAS=7;
+const BACKUP_PEND=5;
+function avisoBackup(info,n,agora){
+  if(!n)return null;
+  const b=info&&typeof info==="object"&&!Array.isArray(info)?info:{};
+  const adiar=Date.parse(b.adiar);
+  if(Number.isFinite(adiar)&&agora<adiar)return null;
+  const at=Date.parse(b.at);
+  if(!Number.isFinite(at))
+    return "Ainda não há nenhuma cópia de segurança: "+
+      (n===1?"a auditoria gravada existe só neste dispositivo, e limpar os dados do navegador apaga-a"
+            :"as "+n+" auditorias gravadas existem só neste dispositivo, e limpar os dados do navegador apaga-as")+
+      " sem volta. Exporte o histórico e guarde o ficheiro noutro sítio.";
+  const pend=Number.isInteger(b.pend)&&b.pend>0?b.pend:0;
+  if(!pend)return null;
+  const dias=Math.max(0,Math.floor((agora-at)/864e5));
+  if(pend<BACKUP_PEND&&dias<BACKUP_DIAS)return null;
+  return (pend===1?"1 auditoria gravada ou alterada":pend+" auditorias gravadas ou alteradas")+
+    " desde a última cópia de segurança, "+
+    (dias===0?"feita hoje":dias===1?"feita há 1 dia":"feita há "+dias+" dias")+
+    ". Exporte o histórico para não as perder.";
+}
+
+
+const APP_VERSION="3.8.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -964,6 +1081,14 @@ function renderForm(){
       "só nesta auditoria.";
     preencherForm(emEdicao);
   }
+  /* v3.8.0: numa auditoria nova, o rascunho guardado volta ao formulário. É
+     isto que faz sobreviver as respostas a um separador fechado, mas também a
+     tudo o que redesenhe o formulário a meio (acrescentar um serviço na
+     Configuração, por exemplo, apagava até aqui as respostas já dadas). */
+  if(emEdicao){mostrarRascunho(null);return;}
+  const rasc=lerRascunhoGuardado();
+  if(rasc)aplicarRascunho(rasc);
+  mostrarRascunho(rasc&&rasc.savedAt,rasc&&rasc.perdidas);
 }
 /* Repõe no formulário os valores de uma auditoria gravada. As respostas passam
    por pick(), pelo que são RECLASSIFICADAS pelos limiares da própria auditoria
@@ -1041,7 +1166,7 @@ function atualizarLive(){
     pctOf(resp)+" / 100  ("+resp.length+"/"+fitems().length+" itens)":"—";
 }
 /* Sai do modo de edição e devolve o formulário ao estado de auditoria nova. */
-function endEdit(){editId=null;FORM_ITEMS=null;}
+function endEdit(){editId=null;FORM_ITEMS=null;editSujo=false;}
 /* Limpa as respostas e redesenha. A nota em directo é reposta ANTES do render:
    em modo de edição renderForm() repovoa o formulário e recalcula-a, e apagá-la
    depois deixaria um travessão sobre um formulário cheio. */
@@ -1094,6 +1219,72 @@ function aplicarEdicao(lista,id,dados){
   out[i]=Object.assign({},lista[i],dados,{id:lista[i].id});
   return out;
 }
+/* ---------- Rascunho: ligação ao formulário (v3.8.0) ---------- */
+/* `editSujo`: a edição de uma auditoria gravada tem alterações por guardar.
+   `rascunhoFalhou`: a última gravação do rascunho falhou (armazenamento cheio),
+   e fechar a página perderia o que está no formulário. Os dois armam o aviso
+   do browser ao sair da página (beforeunload). */
+let editSujo=false,rascunhoFalhou=false;
+function lerRascunhoGuardado(){return lerRascunho(load(RASCUNHO_KEY,null),ITEMS);}
+/* Gravado a cada alteração, sem atraso: são poucos KB, e um temporizador
+   deixaria por gravar a última resposta antes de o sistema fechar o separador. */
+function guardarRascunho(){
+  if(editId!=null)return;
+  const IT=fitems(),val=id=>document.getElementById(id).value;
+  const raw=IT.map((_,i)=>{const el=document.querySelector("[data-pick='"+i+"']");return el?el.value:null;});
+  const d=montarRascunho({service:val("f-service"),date:val("f-date"),pick:val("f-pick"),
+    repo:val("f-repo"),verif:val("f-verif"),note:val("f-note")},IT,raw,IT.map((_,i)=>tgtOf(i)),
+    new Date().toISOString());
+  try{
+    if(d)localStorage.setItem(RASCUNHO_KEY,JSON.stringify(d));
+    else localStorage.removeItem(RASCUNHO_KEY);
+    rascunhoFalhou=false;
+  }catch(e){rascunhoFalhou=true;}
+  mostrarRascunho(d&&d.savedAt);
+}
+function apagarRascunho(){
+  try{localStorage.removeItem(RASCUNHO_KEY);}catch(e){}
+  rascunhoFalhou=false;mostrarRascunho(null);
+}
+function quando(iso){
+  const d=new Date(iso),hoje=d.toDateString()===new Date().toDateString();
+  return (hoje?"hoje":"a "+d.toLocaleDateString("pt-PT"))+" às "+
+    d.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
+}
+function mostrarRascunho(savedAt,perdidas){
+  const b=document.getElementById("draft-banner");if(!b)return;
+  const vis=editId==null&&!!savedAt;
+  b.classList.toggle("hidden",!vis);
+  if(!vis)return;
+  document.getElementById("draft-info").textContent=
+    "Guardada automaticamente neste dispositivo "+quando(savedAt)+". Pode fechar a aplicação: "+
+    "ao voltar, as respostas continuam aqui. Só entra no histórico ao carregar em Guardar auditoria."+
+    (perdidas?" "+perdidas+" resposta(s) não foram repostas porque as perguntas mudaram entretanto.":"");
+}
+/* Repõe o rascunho num formulário acabado de desenhar. Como em preencherForm(),
+   as respostas passam por pick() e são classificadas pelas perguntas actuais. */
+function aplicarRascunho(d){
+  const sel=document.getElementById("f-service");
+  if(d.service){
+    if(!services.includes(d.service))
+      sel.insertAdjacentHTML("afterbegin",`<option>${esc(d.service)}</option>`);
+    sel.value=d.service;
+  }
+  if(d.date)document.getElementById("f-date").value=d.date;
+  document.getElementById("f-pick").value=d.pick;
+  document.getElementById("f-repo").value=d.repo;
+  document.getElementById("f-verif").value=d.verif;
+  document.getElementById("f-note").value=d.note;
+  fitems().forEach((_,i)=>{
+    const tEl=document.querySelector("[data-tgt='"+i+"']");
+    if(tEl&&d.tgts[i]!=null)tEl.value=d.tgts[i];
+    const el=document.querySelector("[data-pick='"+i+"']");
+    if(!el)return;
+    if(tEl&&d.tgts[i]!=null)el.max=d.tgts[i];
+    if(d.raw[i]!=null){el.value=d.raw[i];pick(i,el);}
+  });
+  atualizarLive();
+}
 document.getElementById("btn-save").onclick=()=>{
   const IT=fitems();
   if(Object.keys(answers).length<IT.length){alert("Faltam "+(IT.length-Object.keys(answers).length)+" itens por avaliar.");return;}
@@ -1116,6 +1307,7 @@ document.getElementById("btn-save").onclick=()=>{
        memória volta atrás para não mostrar no histórico uma alteração que o
        disco não tem. */
     if(!save("audits",audits)){audits=anterior;return;}
+    registarAlteracao();
     const a=audits.find(x=>x.id===editId);
     resetForm();
     openReport(a);
@@ -1124,6 +1316,11 @@ document.getElementById("btn-save").onclick=()=>{
   const a=Object.assign({id:Date.now()},dados);
   audits.push(a);
   if(!save("audits",audits)){audits.pop();return;}
+  /* O rascunho sai ANTES de resetForm(): de outro modo renderForm() voltava a
+     pô-lo no formulário, e a auditoria acabada de gravar aparecia por terminar. */
+  apagarRascunho();
+  registarAlteracao();
+  pedirPersistencia();
   resetForm();
   openReport(a);
 };
@@ -1471,6 +1668,7 @@ function editAudit(a){
   editId=a.id;
   FORM_ITEMS=IT.map(normItem);
   renderForm();
+  editSujo=false;
   clearFotos();
   document.querySelector('[data-v=audit]').click();
   window.scrollTo(0,0);
@@ -1548,6 +1746,7 @@ function renderCfg(){
       `<b>${audits.length}</b> auditoria(s) · <b>${services.length}</b> serviço(s) · <b>${people.length}</b> pessoa(s)<br>Período: ${esc(datas[0])} a ${esc(datas[datas.length-1])}`:
       `Sem auditorias guardadas.`;
   }
+  mostrarArmaz();
   /* Cartão da migração: visível só enquanto houver perguntas por converter.
      Desaparece sozinho depois de aplicada. */
   const mc=document.getElementById("migr-card");
@@ -1780,7 +1979,8 @@ function exportJson(){
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
   a.download="auditorias5s_"+new Date().toISOString().slice(0,10)+".json";a.click();
-  URL.revokeObjectURL(a.href);}
+  URL.revokeObjectURL(a.href);
+  registarExportacao();}
 
 /* ---------- Importação do histórico ---------- */
 /* Normaliza uma lista de perguntas vinda de ficheiro. Porta ÚNICA de entrada
@@ -2427,11 +2627,123 @@ on("btn-painel","click",()=>{
   (e==="licenca"?painel.darAcesso():painel.escolher()).then(()=>painel.escrever(dadosPainel5s(audits)));
 });
 
+/* ---------- Armazenamento persistente (v3.8.0) ----------
+   Sem pedido, o localStorage é armazenamento de "melhor esforço": o browser
+   pode apagá-lo quando falta espaço no dispositivo, e o Safari apaga-o ao fim
+   de 7 dias sem abrir o site, se a app não estiver instalada no ecrã principal.
+   Com navigator.storage.persist() concedido, só o utilizador o apaga. O pedido
+   só é feito quando já há alguma coisa a proteger: no Firefox abre uma
+   pergunta, e numa primeira visita vazia não faz sentido. */
+let armazPersistente=null; /* null: por saber ou não suportado */
+function pedirPersistencia(){
+  const st=navigator.storage;
+  if(!st||typeof st.persist!=="function"||typeof st.persisted!=="function"){mostrarArmaz();return Promise.resolve(null);}
+  return st.persisted()
+    .then(p=>p||(audits.length||lerRascunhoGuardado()?st.persist():false))
+    .then(p=>{armazPersistente=!!p;mostrarArmaz();return armazPersistente;})
+    .catch(()=>null);
+}
+/* Ocupação do localStorage, em caracteres (é nessa unidade que os browsers
+   medem o limite de ~5 M por origem), com as chaves incluídas. */
+function ocupacaoLocal(){
+  let n=0;
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);n+=k.length+(localStorage.getItem(k)||"").length;}}
+  catch(e){}
+  return n;
+}
+function mostrarArmaz(){
+  const el=document.getElementById("data-armaz");if(!el)return;
+  const pct=Math.min(100,Math.ceil(ocupacaoLocal()/(5*1024*1024)*100));
+  const prot=armazPersistente===true?"activa — o navegador não apaga estes dados por iniciativa própria"
+    :armazPersistente===false?"não concedida — o navegador pode apagar estes dados se faltar espaço "+
+      "(e o Safari, ao fim de 7 dias sem abrir a app). Instalar a app no ecrã principal costuma bastar para a obter"
+    :"não suportada por este navegador";
+  const b=backupInfo(),at=Date.parse(b.at);
+  el.innerHTML=`Espaço ocupado: cerca de <b>${pct}%</b> do disponível para esta app.<br>`+
+    `Protecção contra limpeza automática: ${esc(prot)}.<br>`+
+    `Última cópia de segurança: <b>${Number.isFinite(at)?esc(quando(b.at)):"nunca"}</b>.`;
+}
+
+/* ---------- Cópia de segurança: estado e aviso (v3.8.0) ---------- */
+function backupInfo(){const b=load(BACKUP_KEY,null);return b&&typeof b==="object"&&!Array.isArray(b)?b:{};}
+function gravarBackupInfo(b){try{localStorage.setItem(BACKUP_KEY,JSON.stringify(b));}catch(e){}mostrarAvisoBackup();}
+function registarAlteracao(){
+  const b=backupInfo();
+  b.pend=(Number.isInteger(b.pend)&&b.pend>0?b.pend:0)+1;
+  gravarBackupInfo(b);
+}
+/* Chamada depois do clique no download: o browser não diz se o ficheiro chegou
+   a ser gravado, pelo que se assume que sim — é o mesmo que o utilizador vê. */
+function registarExportacao(){gravarBackupInfo({at:new Date().toISOString(),pend:0});}
+function mostrarAvisoBackup(){
+  const el=document.getElementById("aviso-backup");if(!el)return;
+  const t=avisoBackup(backupInfo(),audits.length,Date.now());
+  el.classList.toggle("hidden",!t);
+  if(t)document.getElementById("aviso-backup-txt").textContent=t;
+  mostrarArmaz();
+}
+on("btn-backup-exp","click",()=>exportJson());
+on("btn-backup-adiar","click",()=>{
+  const b=backupInfo();b.adiar=new Date(Date.now()+864e5).toISOString();gravarBackupInfo(b);
+});
+
+/* ---------- Rascunho: eventos (v3.8.0) ----------
+   Um só ouvinte na secção apanha todos os campos, incluindo os que renderForm()
+   recria. Corre DEPOIS do oninput de cada resposta (a fase de bolha vem depois),
+   pelo que pick() já actualizou o estado quando o rascunho é gravado. */
+["input","change"].forEach(ev=>on("view-audit",ev,e=>{
+  if(!e.target.closest("#items,#view-audit>.card:not(#draft-banner):not(#edit-banner)"))return;
+  if(editId!=null){editSujo=true;return;}
+  guardarRascunho();
+}));
+on("btn-descartar","click",()=>{
+  if(!confirm("Descartar a auditoria por terminar? As respostas dadas perdem-se."))return;
+  apagarRascunho();resetForm();
+});
+window.addEventListener("beforeunload",e=>{
+  if((editId!=null&&editSujo)||rascunhoFalhou){e.preventDefault();e.returnValue="";}
+});
+
 renderForm();
+mostrarAvisoBackup();
+pedirPersistencia();
 /* Depois do primeiro render: a proposta é uma caixa de diálogo e não deve
    aparecer sobre uma página ainda em branco. */
 proporMigracaoAmostra();
-if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+
+/* ---------- Nova versão (v3.8.0) ----------
+   O sw.js faz skipWaiting() e clients.claim(): uma versão nova passa a
+   controlar as páginas abertas assim que é instalada, e o evento
+   controllerchange chega aqui. Até 3.7.x ninguém o ouvia, e quem tivesse a app
+   aberta (no telemóvel fica dias em memória) continuava na versão antiga sem o
+   saber. A PRIMEIRA mudança de controlador de uma página que não tinha nenhum é
+   a instalação inicial, não uma actualização, e não gera aviso. */
+if("serviceWorker" in navigator){
+  const sw=navigator.serviceWorker;
+  let controlador=sw.controller;
+  sw.addEventListener("controllerchange",()=>{
+    const antes=controlador;controlador=sw.controller;
+    if(antes)document.getElementById("aviso-versao").classList.remove("hidden");
+  });
+  sw.register("./sw.js").then(reg=>{
+    /* Uma app instalada pode ficar aberta dias sem navegar, e o browser só
+       procura um sw.js novo nas navegações. Ao voltar a ela, procura-se —
+       no máximo uma vez a cada 30 minutos. */
+    let ultima=Date.now();
+    document.addEventListener("visibilitychange",()=>{
+      if(document.visibilityState!=="visible"||Date.now()-ultima<30*60*1000)return;
+      ultima=Date.now();reg.update().catch(()=>{});
+    });
+  }).catch(()=>{});
+}
+on("btn-recarregar","click",()=>{
+  /* A auditoria nova está no rascunho e volta depois de recarregar; a edição de
+     uma gravada não tem rascunho, e perde-se. */
+  if(editId!=null&&editSujo&&
+     !confirm("Está a meio da edição de uma auditoria gravada, e essas alterações não são guardadas automaticamente. Recarregar mesmo assim?"))return;
+  editSujo=false;rascunhoFalhou=false;
+  location.reload();
+});
 </script>
 </body>
 </html>

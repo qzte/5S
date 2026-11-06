@@ -99,6 +99,9 @@ jobs:
       - name: Painel e-ink (5s.painel.json)
         run: node tests/smoke-painel.mjs
 
+      - name: Rascunho, cópia de segurança e nova versão
+        run: node tests/smoke-rascunho.mjs
+
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest
