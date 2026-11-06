@@ -64,6 +64,21 @@ await pg.waitForFunction(() => {
 f = await feed();
 check(f.dados.total === 1 && f.dados.servicos.length === 1, "a auditoria gravada devia chegar ao ficheiro do painel");
 
+/* ---- 4. «Deixar de gravar» (3.6.1) larga a pasta: nada mais é gravado. ---- */
+await pg.locator("[data-v=cfg]").click();
+check(await pg.locator("#btn-painel-off").isVisible(), "com pasta escolhida devia haver «Deixar de gravar»");
+await pg.locator("#btn-painel-off").click();
+await pg.waitForFunction(() => document.getElementById("painel-estado").textContent.includes("Nenhuma pasta"), null, { timeout: 5000 }).catch(() => {});
+check((await pg.locator("#painel-estado").textContent()).includes("Nenhuma pasta"), "depois de largar, o cartão devia dizer que não há pasta");
+check(!(await pg.locator("#btn-painel-off").isVisible()), "sem pasta, «Deixar de gravar» devia desaparecer");
+const antes = await pg.evaluate(() => window.__PASTA.escritas);
+await pg.locator("[data-v=audit]").click();
+for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
+await pg.locator("#f-date").fill("2026-01-02");
+await pg.locator("#btn-save").click();
+await pg.waitForTimeout(2600);
+check(await pg.evaluate(() => window.__PASTA.escritas) === antes, "depois de largar a pasta não devia gravar mais");
+
 await b.close();
 console.log(erros.length ? "ERROS JS:\n" + erros.join("\n") : "sem erros de JS");
 console.log(falhas.length ? "FALHAS:\n" + falhas.join("\n") : "smoke do painel OK");

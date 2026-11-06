@@ -5,6 +5,34 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.6.1] — 2026-11-06
+
+Correcções da terceira auditoria de segurança, à 3.6.0. Nenhum dos pontos é
+explorável sem controlar outra página de `qzte.github.io`; três são de
+integridade dos dados. Relatório em [SECURITY.md](SECURITY.md#revisão-de-360-2026-11-06).
+
+### Adicionado
+
+- **Deixar de gravar**, no cartão do painel e-ink: larga a pasta escolhida e
+  esquece-a. Até aqui havia forma de escolher a pasta e nenhuma de a largar.
+
+### Segurança
+
+- **A licença da pasta do painel é da origem, não desta app** (documentado):
+  qualquer página em `qzte.github.io` lê o *handle* guardado em IndexedDB e
+  herda a licença de leitura e escrita sobre a pasta inteira. Recomenda-se uma
+  pasta só com os ficheiros do painel.
+
+### Corrigido
+
+- **Exportar** já não falha em silêncio quando `itemsCfg` está estragado no
+  armazenamento — o caso em que a cópia de segurança mais falta faz.
+- **Guardar** exige a data. Uma auditoria sem data era gravada, aparecia no
+  histórico e era descartada ao reimportar a cópia de segurança.
+- Uma auditoria com forma errada no armazenamento já não deixa o Histórico e a
+  Análise em branco nem pára a actualização do `5s.painel.json`: é descartada ao
+  arrancar (`auditUsavel()`, testada em `tests/forma.test.js`).
+
 ## [3.6.0] — 2026-10-08
 
 ### Adicionado
