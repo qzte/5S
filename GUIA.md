@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.16.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.16.1. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -27,10 +27,9 @@ app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver
 
 ## Antes de começar
 
-1. Abra **https://auditoria-5s.pages.dev/** no telemóvel e escolha
-   *Adicionar ao ecrã principal*. Instalada, a app abre como as outras, funciona
-   sem rede e o browser protege melhor os dados (ver
-   [Cópias de segurança](#cópias-de-segurança)).
+1. No telemóvel, com a app aberta no browser, escolha *Adicionar ao ecrã
+   principal*. Instalada, a app abre como as outras, funciona sem rede e o
+   browser protege melhor os dados (ver [Cópias de segurança](#cópias-de-segurança)).
 2. Em **Config → Serviços**, acrescente os supermercados a auditar (ou importe-os
    de um Excel em *Importar Excel*).
 3. Em **Config → Frequência das auditorias**, diga de quanto em quanto tempo cada
