@@ -16,4 +16,9 @@ rm -rf dist
 mkdir -p dist/icons
 cp index.html sw.js manifest.json _headers dist/
 cp icons/icon-192.png icons/icon-512.png icons/icon-512-maskable.png dist/icons/
+# 3.10.0: na versão publicada, a CSP autoriza cada <script> pelo seu hash e
+# deixa de ter 'unsafe-inline' (ver scripts/csp.mjs). Precisa de Node, que a
+# imagem de build do Cloudflare Pages traz. Sem ele, a publicação falha aqui e
+# fica no ar a versão anterior — nunca uma sem a CSP apertada.
+node scripts/csp.mjs dist
 echo "dist/ pronta:"; (cd dist && find . -type f | sort)

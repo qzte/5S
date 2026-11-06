@@ -5,6 +5,42 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.10.0] — 2026-11-06
+
+Acessibilidade, modo escuro, CSP sem `'unsafe-inline'` na versão publicada, e
+lint na CI.
+
+### Adicionado
+
+- **Modo escuro**, a seguir o do sistema (`prefers-color-scheme`), só no ecrã: a
+  impressão continua clara.
+- **CSP por hashes na versão publicada.** `scripts/csp.mjs`, chamado por
+  `scripts/publicar.sh`, troca o `'unsafe-inline'` do `script-src` pelo SHA-256
+  de cada `<script>` embutido. Um `<script>` injectado na página já não corre.
+- **Lint** do JavaScript embutido (`tools/lint/lint.mjs`, ESLint com as regras
+  de erro do `eslint:recommended`), na CI. Vive em `tools/lint/`, com
+  `package.json` e lockfile próprios: a app continua sem dependências.
+- `tests/smoke-csp.mjs` (a versão publicada arranca sem violações da CSP e
+  bloqueia um `<script>` injectado) e `tests/smoke-a11y.mjs` (axe-core em todas
+  as vistas, nos dois modos), ambos na CI.
+
+### Alterado
+
+- **Contraste (WCAG AA).** O cinzento do texto secundário passa de `#6d7a72`
+  (4,49:1 sobre branco) a `#5f6b64`; o âmbar com texto e os botões laranja
+  passam a tons que chegam a 4,5:1. As cores de marca ficam nas barras, bordas
+  e linhas.
+- O gráfico de **evolução** passa de `<canvas>` a SVG, como os outros: imprime
+  nítido e acompanha o modo escuro.
+- **Rótulos ligados aos campos**: cada `<label>` passa a nomear o campo que
+  rotula (`ligarRotulos()`), também no formulário e no editor gerados pelo JS.
+  As respostas, os botões de remover serviços e pessoas, e as secções (títulos
+  `h2` para leitores de ecrã) ganham nome.
+
+### Removido
+
+- Código morto apontado pelo lint: a variável `MAX` e a função `hasRecs()`.
+
 ## [3.9.0] — 2026-11-06
 
 Uso no dia a dia: encontrar auditorias, ler a evolução por serviço, fechar o

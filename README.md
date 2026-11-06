@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.9.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.10.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.9.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.10.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -42,6 +42,10 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG/canvas nativos, sem bibliotecas de gráficos. |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. No ecrã, também o seguimento face à auditoria anterior. |
 | **Configuração** | Serviços, responsáveis, exportação/importação JSON, exportação e importação de Excel, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
+
+Segue o **modo escuro** do sistema no ecrã (a impressão é sempre clara), e todas
+as vistas passam as regras WCAG 2 AA que o axe-core verifica — contraste,
+rótulos dos campos, títulos — nos dois modos (3.10.0).
 
 ## Instalação e utilização
 
@@ -80,6 +84,12 @@ para `dist/` **só** os ficheiros da aplicação — sem ele, o repositório int
 (testes, documentação, CI) ficaria acessível pelo endereço da app. O ficheiro
 `_headers` diz ao Cloudflare que cabeçalhos HTTP enviar, entre eles a CSP; os
 dois são verificados por `tests/publicacao.test.js`.
+
+Desde 3.10.0, `publicar.sh` corre também `node scripts/csp.mjs dist`, que troca
+o `'unsafe-inline'` do `script-src` pelo **hash SHA-256 de cada `<script>`**
+embutido, no `<meta>` e no `_headers` publicados (ver [Segurança](#segurança)).
+Precisa de Node, que a imagem de build do Cloudflare Pages traz; sem ele, a
+publicação falha e fica no ar a versão anterior.
 
 Ganhos de segurança face ao GitHub Pages:
 
@@ -325,6 +335,8 @@ manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
 _headers           Cabeçalhos HTTP do Cloudflare Pages (CSP, molduras, cache do SW)
 scripts/publicar.sh  Prepara dist/ com só os ficheiros da app, para o Cloudflare Pages
+scripts/csp.mjs    Na versão publicada, troca 'unsafe-inline' pelos hashes dos <script>
+tools/lint/        Ferramentas de desenvolvimento (ESLint, axe-core), com lockfile próprio
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
 SECURITY.md        Relatórios das auditorias de segurança (3.1.0, 3.5.0 e 3.6.0)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
@@ -335,8 +347,15 @@ tests/dialogos.mjs Responde à caixa de diálogo da app nos smoke tests
 ```
 
 `index.html` é deliberadamente um ficheiro único: é o que permite instalar,
-copiar e usar a aplicação sem infraestrutura. O custo é um ficheiro grande e o
-`'unsafe-inline'` em `script-src` da CSP.
+copiar e usar a aplicação sem infraestrutura. O custo é um ficheiro grande. O
+`'unsafe-inline'` em `script-src`, que era o outro custo, só existe no
+repositório desde 3.10.0: a versão publicada autoriza cada `<script>` pelo seu
+hash.
+
+As ferramentas de desenvolvimento (ESLint e axe-core) vivem em `tools/lint/`,
+com o seu `package.json` e lockfile. Na raiz não há `package.json`: a app não
+tem dependências, e o Cloudflare Pages instalaria as que lá estivessem em cada
+publicação.
 
 ## Testes
 
@@ -358,7 +377,21 @@ node tests/smoke-responsaveis.mjs  # responsáveis editáveis
 node tests/smoke-painel.mjs        # painel e-ink
 node tests/smoke-rascunho.mjs      # rascunho, cópia de segurança, nova versão
 node tests/smoke-historico.mjs     # filtros, análise, seguimento, fotos, Excel, diálogo
+node tests/smoke-csp.mjs           # versão publicada: CSP por hashes (serve dist/ na 8766)
+node tests/smoke-a11y.mjs          # acessibilidade com o axe-core, modo claro e escuro
 ```
+
+O lint e o teste de acessibilidade precisam das ferramentas de `tools/lint/`:
+
+```bash
+npm ci --prefix tools/lint
+node tools/lint/lint.mjs
+```
+
+O lint tira do `index.html` os `<script>` da app (o SheetJS fica de fora) e
+passa-os ao ESLint com as regras de erro do `eslint:recommended` — variáveis
+por declarar, código inalcançável, chaves duplicadas —, nenhuma de estilo. As
+linhas que aponta são as do `index.html`.
 
 O ponto crítico coberto é a migração de limiares: as classificações são
 verificadas valor a valor sobre a totalidade das combinações pergunta × resposta
@@ -371,11 +404,12 @@ do modelo base, nos três formatos (1.x, 2.0.0, 3.0.0).
 ### Integração contínua
 
 `.github/workflows/ci.yml` corre em cada push para `main` e em cada pull
-request, com três verificações independentes:
+request, com quatro verificações independentes:
 
 | Verificação | O que corre |
 | --- | --- |
 | Testes unitários | `node --test tests/*.test.js` |
+| Lint | `node tools/lint/lint.mjs`, com o ESLint de `tools/lint/` |
 | Smoke tests de browser | Todos os `tests/smoke*.mjs`, com a aplicação servida em `127.0.0.1:8765` |
 | Coerência da versão | A versão de `manifest.json`, `index.html`, `sw.js` e `README.md` tem de ser a mesma |
 
@@ -394,7 +428,10 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
 - Zero handlers inline (`onclick` e afins); apenas `addEventListener` com
   `data-attributes`.
 - CSP com `object-src 'none'`, `base-uri 'none'`, `frame-ancestors 'none'`,
-  `connect-src 'self'`.
+  `connect-src 'self'`. Na versão publicada, desde 3.10.0, o `script-src` não
+  tem `'unsafe-inline'`: autoriza só os três `<script>` embutidos, pelo hash
+  SHA-256 de cada um (`scripts/csp.mjs`). Um `<script>` injectado na página não
+  corre. `tests/smoke-csp.mjs` verifica-o num browser.
 - Service worker limitado a uma allowlist da própria origem, contra
   envenenamento da cache.
 - Sem CDN: `referrer` não é enviado e a aplicação é offline de facto.

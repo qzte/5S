@@ -2,6 +2,7 @@
 
 Três revisões, por ordem inversa:
 
+- **[Nota de 3.10.0](#nota-de-3100-2026-11-06-csp-por-hashes)** — a versão publicada deixa de ter `'unsafe-inline'` no `script-src` (ponto 11).
 - **[Nota de 3.9.0](#nota-de-390-2026-11-06-fotos-em-indexeddb)** — as fotos das recomendações passam a ser guardadas.
 - **[Nota de 3.7.0](#nota-de-370-2026-11-06-cloudflare-pages)** — a mudança para o Cloudflare Pages fecha os pontos 4, 9 e 21.
 - **[Revisão de 3.6.0](#revisão-de-360-2026-11-06)** — correcções em 3.6.1.
@@ -10,6 +11,27 @@ Três revisões, por ordem inversa:
 
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+## Nota de 3.10.0 (2026-11-06): CSP por hashes
+
+O ponto 11 das revisões (`'unsafe-inline'` em `script-src`, aceite por a app
+ser um ficheiro único) fica **resolvido na versão publicada**:
+
+- `scripts/publicar.sh` corre `scripts/csp.mjs`, que calcula o SHA-256 de cada
+  `<script>` embutido (a guarda contra molduras, o SheetJS e a app) e põe esses
+  hashes no lugar de `'unsafe-inline'`, no `<meta>` e no `_headers` do `dist/`.
+- O browser executa só esses três blocos, exactamente como estão. Um `<script>`
+  que uma falha de escape deixasse entrar na página já não corre: deixa de
+  bastar um XSS para executar código.
+- Se algum `<script>` ficasse sem hash (com atributos, ou aberto a meio de uma
+  linha), a publicação falha em vez de pôr no ar uma app que não arranca.
+- `tests/publicacao.test.js` confirma os hashes e que o resto da CSP não muda;
+  `tests/smoke-csp.mjs` serve o `dist/` e confirma, num browser, que a app
+  funciona sem violações e que um `<script>` injectado é bloqueado.
+
+No repositório o `'unsafe-inline'` mantém-se, para a app poder ser editada e
+servida localmente sem passo nenhum. O `style-src` mantém `'unsafe-inline'`
+(atributos `style` em todo o HTML gerado); estilos não executam código.
 
 ## Nota de 3.9.0 (2026-11-06): fotos em IndexedDB
 
