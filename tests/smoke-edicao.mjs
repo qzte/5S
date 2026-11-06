@@ -32,7 +32,10 @@ await pg.goto(URL);
 const falhas = [];
 const check = (ok, msg) => { if (!ok) falhas.push(msg); };
 const nAudits = () => pg.evaluate(() => JSON.parse(localStorage.getItem("audits") || "[]").length);
-const audit0 = () => pg.evaluate(() => JSON.parse(localStorage.getItem("audits") || "[]")[0]);
+/* Desde 3.11.0 as perguntas de cada auditoria gravam-se à parte (perguntasAud):
+   lê-se o que está GRAVADO, expandido pela mesma função que a app usa. */
+const audit0 = () => pg.evaluate(() => expandirAudits(JSON.parse(localStorage.getItem("audits") || "[]"),
+  JSON.parse(localStorage.getItem("perguntasAud") || "{}"))[0]);
 
 /* ---- 1. Gravar uma auditoria com todas as respostas a zero. ---- */
 check(await pg.locator("[data-edresp]").count() === 0,
