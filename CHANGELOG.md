@@ -5,6 +5,36 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.8.0] — 2026-11-06
+
+Protecção dos dados no dispositivo: a app é a única cópia das auditorias até
+serem exportadas, e havia quatro formas de as perder sem aviso.
+
+### Adicionado
+
+- **Auditoria por terminar.** A auditoria nova é gravada em `rascunho` a cada
+  alteração e reposta sozinha ao reabrir a app, com um cartão que diz quando foi
+  guardada e permite descartá-la. As respostas são reconhecidas pela pergunta
+  (número, tipo e enunciado), não só pela posição: se o editor mudar
+  entretanto, nenhuma resposta passa para outra pergunta.
+- Aviso do browser ao sair da página com a **edição** de uma auditoria gravada
+  por guardar, ou quando o rascunho não pôde ser gravado (armazenamento cheio).
+- **Armazenamento persistente:** pedido de `navigator.storage.persist()` quando
+  há dados a proteger. *Configuração → Dados* mostra o estado, o espaço ocupado e
+  a data da última cópia de segurança.
+- **Lembrete de cópia de segurança** no topo da app: se nunca houve exportação,
+  ou se há auditorias gravadas ou editadas por exportar há 7 dias ou mais, ou 5
+  ou mais. Com *Exportar agora* e *Lembrar amanhã*.
+- **Aviso de nova versão** quando um service worker novo passa a controlar a
+  página, com *Recarregar agora*. Ao voltar à app, procura-se uma versão nova
+  no máximo a cada 30 minutos.
+- `tests/rascunho.test.js` e `tests/smoke-rascunho.mjs` (este também na CI).
+
+### Corrigido
+
+- Acrescentar ou remover um serviço ou uma pessoa na Configuração redesenhava o
+  formulário e apagava as respostas já dadas à auditoria em curso.
+
 ## [3.7.0] — 2026-11-06
 
 A app muda-se para o **Cloudflare Pages**. O GitHub Pages deixou de a publicar
