@@ -13,6 +13,12 @@
 #
 # Para actualizar: `git ls-remote --tags https://github.com/actions/<nome>`,
 # escolher a versão e trocar o SHA e o comentário no mesmo gesto.
+#
+# 3.7.0: checkout v7.0.1 e setup-node v7.1.0, que correm em Node 24 (as v4
+# eram de Node 20, descontinuado nos runners). Confirmar no action.yml da
+# versão escolhida (`runs.using`) antes de trocar. O checkout leva
+# `persist-credentials: false`: nenhum job faz push, e assim o token não
+# fica gravado na configuração git do runner.
 name: CI
 
 on:
@@ -35,9 +41,11 @@ jobs:
     name: Testes unitários (node:test)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
 
@@ -50,9 +58,11 @@ jobs:
     name: Smoke tests de browser (Playwright)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
 
@@ -93,7 +103,9 @@ jobs:
     name: Coerência da versão
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # A versão está repetida em quatro sítios (index.html, sw.js,
       # manifest.json, README.md) e o sw.js usa-a como nome da cache: uma
