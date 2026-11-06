@@ -43,22 +43,6 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. |
 | **Configuração** | Serviços, responsáveis, exportação/importação JSON, importação de Excel, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
 
-### Painel e-ink
-
-O painel e-ink de 7.5″ (a app `painel.html` do repositório [qzte/e-ink_panel](https://github.com/qzte/e-ink_panel))
-mostra uma página com as auditorias 5S: o nº de auditorias, a média, a média por pilar e a última auditoria de cada
-serviço (do pior para o melhor, com a tendência face à anterior). Em **Configuração → Painel e-ink** escolhe-se uma
-**pasta partilhada** — a mesma das outras apps e do `painel.html` —, uma vez; a app grava lá `5s.painel.json` sempre
-que uma auditoria é gravada, editada ou apagada (e quando as perguntas ou os responsáveis mudam). Ao reabrir a app o
-browser pode pedir licença outra vez: «Dar acesso à pasta». Só no Chrome ou no Edge de computador; o resto da app
-funciona igual em qualquer browser. O formato está em `docs/09-formato-feed.md` do qzte/e-ink_panel; os números são
-calculados aqui, com as mesmas funções do relatório (`dadosPainel5s`, testado em `tests/painel.test.js`).
-
-**Escolha uma pasta só para o painel.** A licença que o browser dá é da *origem* (`qzte.github.io`), não desta
-app: qualquer página publicada na mesma conta pode ler, alterar e apagar o que estiver nessa pasta. O botão
-**Deixar de gravar** larga a pasta; a licença em si retira-se nas definições do site, no browser
-(ver [SECURITY.md](SECURITY.md), ponto 21).
-
 ## Instalação e utilização
 
 Não há passo de compilação nem dependências a instalar.
