@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.14.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.15.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1172,7 +1172,7 @@ function avisoBackup(info,n,agora){
 }
 
 
-const APP_VERSION="3.14.0";
+const APP_VERSION="3.15.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1777,6 +1777,20 @@ function byPillar(a){const IT=itemsOf(a);return PILLARS.map((p,pi)=>{
 function byResp(a){const IT=itemsOf(a);return Object.keys(RESP).map(r=>{
   const sc=IT.map((it,i)=>it.r===r?a.scores[i]:null).filter(s=>s!=null);
   return{name:RESP[r],pct:pctOf(sc),n:sc.length};});}
+/* v3.15.0: as métricas de cada auditoria (por pilar e por responsável),
+   calculadas UMA vez e guardadas junto dela. A Análise e o painel pediam-nas
+   várias vezes por auditoria (uma por eixo). A memória é por objecto
+   (WeakMap): uma auditoria editada é um objecto novo e recalcula. Fica
+   inválida se mudar a lista de responsáveis ou as perguntas em vigor (que as
+   auditorias sem `items` próprios usam). */
+const memoMetricas=new WeakMap();
+function metricas(a){
+  const rk=Object.keys(RESP).join("\u0001"),m=memoMetricas.get(a);
+  if(m&&m.rk===rk&&m.it===ITEMS)return m;
+  const n={rk,it:ITEMS,pilar:byPillar(a),resp:byResp(a)};
+  memoMetricas.set(a,n);
+  return n;
+}
 const badge=p=>p>=80?["b-ok","Excelente"]:p>=50?["b-mid","Com oportunidade"]:["b-bad","Crítico"];
 const barCls=p=>p>=80?"":p>=50?"mid":"bad";
 
@@ -1809,6 +1823,18 @@ function anteriorDe(a,lista){
     if(ordemCron(x,a)<0&&(!ant||ordemCron(x,ant)>0))ant=x;
   });
   return ant;
+}
+/* v3.15.0: a anterior de TODAS as auditorias de uma vez — Map(id → anterior).
+   O Histórico chamava anteriorDe() para cada cartão, percorrendo a lista
+   inteira de cada vez: com 5 000 auditorias eram 25 milhões de comparações e
+   ~2,6 s num telemóvel médio. Uma ordenação e uma passagem dão o mesmo. */
+function anterioresPorId(lista){
+  const out=new Map(),ultima=new Map();
+  [...(lista||[])].filter(Boolean).sort(ordemCron).forEach(a=>{
+    out.set(a.id,ultima.get(a.service)||null);
+    ultima.set(a.service,a);
+  });
+  return out;
 }
 /* A última auditoria a um serviço (a referência para uma auditoria nova). */
 function ultimaDe(svc,lista){
@@ -2575,6 +2601,10 @@ function opcoesServico(sel,valor,todos){
   sel.value=valor;
   return valor;
 }
+/* v3.15.0: o Histórico desenha HIST_PAGINA cartões de cada vez, com "Mostrar
+   mais". Milhares de cartões de uma vez eram a outra metade dos 2,6 s. */
+const HIST_PAGINA=50;
+let histMostrar=HIST_PAGINA;
 function renderHist(){
   const box=document.getElementById("hist-list");
   document.getElementById("hist-filtros").classList.toggle("hidden",!audits.length);
@@ -2589,11 +2619,13 @@ function renderHist(){
   document.getElementById("hf-conta").textContent=
     ord.length===audits.length?audits.length+" auditoria(s)":ord.length+" de "+audits.length+" auditoria(s)";
   if(!ord.length){box.innerHTML=`<p class="empty">Nenhuma auditoria corresponde aos filtros.</p>`;return;}
-  box.innerHTML=ord.map((a,i)=>{
+  /* A variação compara com a anterior ao mesmo serviço no histórico INTEIRO,
+     não só entre as que o filtro deixa ver. */
+  const anteriores=anterioresPorId(audits),hoje=hojeISO();
+  const vis=ord.slice(0,histMostrar);
+  box.innerHTML=vis.map((a,i)=>{
     const p=total(a),[bc,bt]=badge(p);
-    /* A variação compara com a anterior ao mesmo serviço no histórico INTEIRO,
-       não só entre as que o filtro deixa ver. */
-    const ant=anteriorDe(a,audits);
+    const ant=anteriores.get(a.id)||null;
     let delta="";
     if(ant){
       const d=p-total(ant);
@@ -2602,12 +2634,15 @@ function renderHist(){
     }
     return`<div class="card"><div class="stat-row"><span>${esc(a.service)}</span><span>${p}/100${delta}</span></div>
     <div style="font-size:.78rem;color:var(--muted)">${esc(a.date)} · Verif.: ${esc(a.verif||"—")}${ant?" · anterior: "+esc(ant.date):""}${(()=>{
-      const c=contaAcoes(a,hojeISO());
+      const c=contaAcoes(a,hoje);
       return c.abertas?` · <span style="color:${c.atrasadas?"var(--red-ink)":"var(--amber-ink)"}">${c.abertas} acç${c.abertas>1?"ões":"ão"} em aberto${c.atrasadas?` (${c.atrasadas} em atraso)`:""}</span>`:"";})()}</div>
     <span class="badge ${bc}">${bt}</span>
     <div style="margin-top:8px"><button class="btn small ghost" data-rep="${i}">Relatório</button>
     <button class="btn small ghost" data-edit="${i}">Editar</button>
-    <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" data-del="${i}">Apagar</button></div></div>`;}).join("");
+    <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" data-del="${i}">Apagar</button></div></div>`;}).join("")+
+    (ord.length>vis.length?`<button class="btn ghost" id="btn-hist-mais">Mostrar mais (${ord.length-vis.length} restantes)</button>`:"");
+  const mais=document.getElementById("btn-hist-mais");
+  if(mais)mais.onclick=()=>{histMostrar+=HIST_PAGINA;renderHist();};
   box.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>openReport(ord[+b.dataset.rep]));
   box.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editAudit(ord[+b.dataset.edit]));
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>delAudit(ord[+b.dataset.del].id));
@@ -2703,6 +2738,22 @@ const PALETA=[0,1,2,3,4,5,6,7].map(k=>"var(--s"+k+")");
 /* Gráfico de evolução: uma linha por serviço, com o TEMPO no eixo horizontal,
    comum a todas as linhas. A descrição acessível fica no contentor (role=img),
    pelo que o SVG em si é decorativo para os leitores de ecrã. */
+/* v3.15.0: acima de PONTOS_MAX pontos, o gráfico fica só com as linhas, e a
+   descrição acessível resume cada série em vez de ditar todas as datas — com
+   5 000 auditorias eram 5 000 círculos com legenda e uma descrição de centenas
+   de KB, que eram o que restava dos ~0,6 s da Análise. */
+const PONTOS_MAX=120;
+function descricaoEvolucao(series){
+  if(!series.length)return "Sem auditorias no período.";
+  const n=series.reduce((t,sr)=>t+sr.pontos.length,0);
+  return "Evolução da nota: "+series.map(sr=>{
+    const p=sr.pontos;
+    if(n<=PONTOS_MAX)return sr.service+" "+p.map(pt=>pt.date+" "+pt.pct+"%").join(", ");
+    const v=p.map(pt=>pt.pct);
+    return sr.service+": "+p.length+" auditorias, de "+p[0].date+" a "+p[p.length-1].date+
+      ", entre "+Math.min(...v)+"% e "+Math.max(...v)+"%, a última com "+v[v.length-1]+"%";
+  }).join("; ");
+}
 function evolucaoSVG(series,lista){
   if(!series.length)return`<p class="empty">Sem auditorias no período.</p>`;
   const W=640,H=230,L=34,R=12,T=12,B=26,AW=W-L-R,AH=H-T-B;
@@ -2718,11 +2769,12 @@ function evolucaoSVG(series,lista){
   const fmt=d=>d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(2,4);
   const datas=d1===d0?[lista[0].date]:[new Date(d0*864e5).toISOString().slice(0,10),new Date(d1*864e5).toISOString().slice(0,10)];
   const eixo=datas.map((d,k)=>`<text x="${xOf(d).toFixed(1)}" y="${H-8}" text-anchor="${datas.length===1?"middle":k?"end":"start"}" ${txt}>${esc(fmt(d))}</text>`).join("");
+  const muitos=series.reduce((t,sr)=>t+sr.pontos.length,0)>PONTOS_MAX;
   const linhas=series.map((sr,k)=>{
     const cor=PALETA[k%PALETA.length];
     const pts=sr.pontos.map(pt=>xOf(pt.date).toFixed(1)+","+yOf(pt.pct).toFixed(1));
     return(pts.length>1?`<polyline points="${pts.join(" ")}" fill="none" style="stroke:${cor}" stroke-width="3" stroke-linejoin="round"/>`:"")+
-      sr.pontos.map((pt,i)=>`<circle cx="${pts[i].split(",")[0]}" cy="${pts[i].split(",")[1]}" r="4.5" style="fill:${cor}"><title>${esc(sr.service+" · "+pt.date+" · "+pt.pct+"%")}</title></circle>`).join("");
+      (muitos?"":sr.pontos.map((pt,i)=>`<circle cx="${pts[i].split(",")[0]}" cy="${pts[i].split(",")[1]}" r="4.5" style="fill:${cor}"><title>${esc(sr.service+" · "+pt.date+" · "+pt.pct+"%")}</title></circle>`).join(""));
   }).join("");
   return`<svg viewBox="0 0 ${W} ${H}" width="100%" aria-hidden="true" style="display:block">${grelha}${eixo}${linhas}</svg>`;
 }
@@ -2738,8 +2790,7 @@ function renderStats(){
      acompanha o modo escuro e o texto do gráfico existe para quem lê o ecrã. */
   const ch=document.getElementById("ch-evo");
   ch.innerHTML=evolucaoSVG(series,lista);
-  ch.setAttribute("aria-label",series.length?"Evolução da nota: "+series.map(sr=>
-    sr.service+" "+sr.pontos.map(pt=>pt.date+" "+pt.pct+"%").join(", ")).join("; "):"Sem auditorias no período.");
+  ch.setAttribute("aria-label",descricaoEvolucao(series));
   const leg=document.getElementById("ch-leg");
   leg.innerHTML=series.length&&(series.length>1||!anFiltro.svc)?
     series.map((sr,k)=>`<span><i style="background:${PALETA[k%PALETA.length]}"></i>${esc(sr.service)}</span>`).join(""):"";
@@ -2748,14 +2799,16 @@ function renderStats(){
   document.getElementById("cmp-svc").innerHTML=bars(
     series.map(sr=>[sr.service,avg(sr.pontos.map(pt=>pt.pct))]));
   /* Médias das auditorias filtradas, nos mesmos eixos do relatório individual. */
-  const medPilar=PILLARS.map((p,i)=>({name:p,pct:avg(lista.map(a=>byPillar(a)[i].pct))}));
+  /* As métricas de cada auditoria, uma vez por desenho (ver metricas()). */
+  const ms=lista.map(metricas);
+  const medPilar=PILLARS.map((p,i)=>({name:p,pct:avg(ms.map(m=>m.pilar[i].pct))}));
   /* v3.2.0: um responsável sem perguntas atribuídas (o "Picking" acabado de
      criar, enquanto não lhe for atribuída nenhuma) daria pctOf([])=0 e entraria
      no radar como o pior de todos. Zero perguntas não é zero por cento — o eixo
      fica de fora até haver perguntas, tal como já acontece no relatório. */
   const medResp=Object.values(RESP)
-    .map((r,i)=>({name:r,pct:avg(lista.map(a=>byResp(a)[i].pct)),
-      n:lista.reduce((s,a)=>s+byResp(a)[i].n,0)}))
+    .map((r,i)=>({name:r,pct:avg(ms.map(m=>m.resp[i].pct)),
+      n:ms.reduce((s,m)=>s+m.resp[i].n,0)}))
     .filter(d=>d.n>0);
   document.getElementById("rad-pilar").innerHTML=lista.length?radarSVG(medPilar,"#1f6f50"):"";
   document.getElementById("rad-resp").innerHTML=lista.length?radarSVG(medResp,"#e8500a"):"";
@@ -3809,7 +3862,7 @@ function dadosPainel5s(lista){
     total:todas.length,
     media:todas.length?avg(todas.map(total)):null,
     ultima:todas.length?todas[todas.length-1].date:null,
-    pilares:PILLARS.map((p,i)=>({nome:p,pct:todas.length?avg(todas.map(a=>byPillar(a)[i].pct)):null})),
+    pilares:PILLARS.map((p,i)=>({nome:p,pct:todas.length?avg(todas.map(a=>(typeof metricas==="function"?metricas(a).pilar:byPillar(a))[i].pct)):null})),
     servicos
   };
 }
@@ -3856,8 +3909,8 @@ on("btn-expfotos","click",()=>exportJson(true));
 on("btn-expxl","click",()=>exportExcel());
 /* v3.9.0: filtros do Histórico e da Análise. */
 [["hf-svc","svc"],["hf-nota","nota"],["hf-de","de"],["hf-ate","ate"]].forEach(([id,k])=>
-  on(id,"change",e=>{histFiltro[k]=e.target.value;renderHist();}));
-on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");renderHist();});
+  on(id,"change",e=>{histFiltro[k]=e.target.value;histMostrar=HIST_PAGINA;renderHist();}));
+on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");histMostrar=HIST_PAGINA;renderHist();});
 on("an-svc","change",e=>{anFiltro.svc=e.target.value;renderStats();});
 on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
 on("f-service","change",()=>mostrarAnteriores());
