@@ -28,8 +28,14 @@ const PIN = "3758";
    da app desde 3.9.0 (ver dialogos.mjs): distinguem-se pelo campo. */
 let modoImport = "Fundir";
 let ultimo = "";
-pg.on("dialog", d => { ultimo = d.message(); d.accept(""); });
-await ligarDialogos(pg, ({ temCampo }) => temCampo ? { campo: PIN, botao: "Confirmar" } : modoImport);
+pg.on("dialog", d => d.accept(""));
+/* Desde 3.13.0 os avisos também vêm na caixa da app: o último texto fica
+   guardado para ser inspeccionado, como antes com o alert() nativo. */
+await ligarDialogos(pg, ({ titulo, texto, temCampo }) => {
+  if (temCampo) return { campo: PIN, botao: "Confirmar" };
+  if (titulo === "Importar histórico") return modoImport;
+  ultimo = texto;
+});
 await pg.goto(URL);
 
 const falhas = [];
@@ -43,6 +49,7 @@ check(await pg.locator("[data-respn]").count() === 5,
 
 /* ---- 2. Um responsável em uso não pode ser removido. ---- */
 await pg.locator("[data-resprm='0']").click();
+await semDialogo(pg);
 check(/não pode ser removido/.test(ultimo) && /pergunta/.test(ultimo),
   "remover um responsável em uso tem de ser recusado, dizendo onde está o uso");
 check(await pg.locator("[data-respn]").count() === 5, "a lista não pode encolher");
@@ -83,6 +90,7 @@ check((await pg.locator("#view-report .page-1 .card").nth(1).textContent()).incl
 /* ---- 5. Agora está em uso numa auditoria: também não sai. ---- */
 await pg.locator("[data-v=cfg]").click();
 await pg.locator("[data-resprm='5']").click();
+await semDialogo(pg);
 check(/não pode ser removido/.test(ultimo) && /auditoria/.test(ultimo),
   "um responsável usado por uma auditoria gravada não pode ser removido");
 
