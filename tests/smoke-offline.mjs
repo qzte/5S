@@ -116,15 +116,37 @@ fs.writeFileSync(sw, fs.readFileSync(sw, "utf8").replace(/const APP_VERSION = "[
 /* Muda-se o <title>, fora dos <script>: mexer num script invalidava o hash da CSP. */
 fs.writeFileSync(html, fs.readFileSync(html, "utf8").replace(/<title>([^<]*)<\/title>/, "<title>$1 (nova)</title>"));
 check(await pg.locator("#aviso-versao").isHidden(), "antes de haver versão nova, não há aviso");
-await pg.evaluate(() => navigator.serviceWorker.getRegistration().then(r => r.update()));
-await pg.waitForSelector("#aviso-versao:not(.hidden)", { timeout: 15000 }).catch(() => {});
-check(!(await pg.locator("#aviso-versao").isHidden()), "uma versão nova no servidor devia mostrar o aviso");
+/* Pede-se a verificação até o aviso aparecer (até 15 s), em vez de uma só vez:
+   um update() pedido enquanto o browser ainda tem uma verificação sua em curso
+   pode juntar-se a ela, que leu o sw.js de antes da mudança. Na CI isto deixou
+   o teste à espera do aviso uma vez. Um browser real volta a verificar sozinho. */
+const actualizou = await pg.evaluate(async () => {
+  const visivel = () => !document.getElementById("aviso-versao").classList.contains("hidden");
+  const r = await navigator.serviceWorker.getRegistration();
+  for (let i = 0; i < 30 && !visivel(); i++) {
+    await r.update().catch(() => {});
+    await new Promise(res => setTimeout(res, 500));
+  }
+  return visivel();
+});
+if (!actualizou) {
+  /* Para a falha dizer porquê, e não só que esperou. */
+  const estado = await pg.evaluate(async () => {
+    const r = await navigator.serviceWorker.getRegistration();
+    const sw = await (await fetch("./sw.js", { cache: "no-store" })).text();
+    return { active: r.active && r.active.state, waiting: !!r.waiting, installing: r.installing && r.installing.state,
+      caches: await caches.keys(), servido: (sw.match(/APP_VERSION = "[^"]+"/) || [""])[0] };
+  });
+  falhas.push("uma versão nova no servidor devia mostrar o aviso; estado: " + JSON.stringify(estado));
+} else {
 await Promise.all([pg.waitForNavigation(), pg.locator("#btn-recarregar").click()]);
 check((await pg.title()).endsWith("(nova)"), "Recarregar devia abrir a versão nova: " + await pg.title());
 check(await pg.locator("[data-pick='0']").inputValue() === "3", "a auditoria por terminar devia sobreviver à actualização");
 const depois = await pg.evaluate(() => caches.keys());
 check(JSON.stringify(depois) === JSON.stringify(["auditoria5s-v9.9.9-teste"]),
   `a cache antiga devia ser apagada: ${JSON.stringify(versaoAntes)} → ${JSON.stringify(depois)}`);
+
+}
 
 /* ---- 5. Sem rede, depois de actualizada: a versão nova. ---- */
 await ctx.setOffline(true);
