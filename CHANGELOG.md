@@ -29,6 +29,11 @@ repositórios públicos —, e o endereço antigo dava 404.
   **erro** (404, 5xx), e não só quando falta a rede. Era o que impedia, com o
   site em 404, de abrir a app e exportar os dados.
 
+- CI: `actions/checkout` v7.0.1 e `actions/setup-node` v7.1.0, fixadas por
+  SHA como antes. As v4 corriam em Node 20, descontinuado nos runners do
+  GitHub, e cada execução avisava disso. O checkout passa a
+  `persist-credentials: false`, porque nenhum job precisa do token depois.
+
 ### Segurança
 
 - Endereço próprio: o `localStorage` e a licença da pasta do painel deixam de
