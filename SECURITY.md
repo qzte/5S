@@ -252,7 +252,7 @@ caso do valor que **não faz parse**. Ficou de fora o valor que faz parse e tem 
 **forma** errada:
 
 ```js
-let services=load("services",["UCIP (11120)"]);   // "\"xpto\"" -> uma string
+let services=load("services",["Serviço A (00001)"]);   // "\"xpto\"" -> uma string
 ```
 
 `services.map` deixa de existir e a excepção sobe antes do primeiro render.

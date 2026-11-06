@@ -9,7 +9,7 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const { auditUsavel } = buildContext(["auditUsavel"]);
-const boa = { id: 1, service: "UCIP", date: "2026-10-01", scores: [2, 1, 0] };
+const boa = { id: 1, service: "Serviço A", date: "2026-10-01", scores: [2, 1, 0] };
 
 test("uma auditoria normal passa, com ou sem perguntas próprias", () => {
   assert.strictEqual(auditUsavel(boa), true);

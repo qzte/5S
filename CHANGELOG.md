@@ -5,6 +5,21 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.6.2] — 2026-11-06
+
+Retira do repositório os dados que identificavam pessoas e a unidade onde a app
+é usada.
+
+### Alterado
+
+- O serviço sugerido numa instalação nova passa a ser `Serviço A (00001)`, um
+  exemplo neutro, em vez do nome e do código de um serviço real; o mesmo no
+  texto de exemplo do campo «Novo serviço». Quem já tem serviços gravados não vê
+  diferença: o valor por omissão só se usa quando não há nenhum guardado.
+- Os testes usam nomes de pessoas e de serviços fictícios em vez de nomes reais.
+- Saem da documentação e dos comentários do código o nome da folha de cálculo
+  original e o resultado de uma auditoria real que servia de exemplo.
+
 ## [3.6.1] — 2026-11-06
 
 Correcções da terceira auditoria de segurança, à 3.6.0. Nenhum dos pontos é
@@ -365,7 +380,7 @@ das correcções abaixo.
 - **`findCols()` tomava uma linha de título por cabeçalho.** Num ficheiro com
   `Relatório de serviços` antes da linha de rótulos, a palavra "serviços" casava
   com `/servic/` e a importação trazia a coluna dos **códigos** como se fossem
-  nomes de serviço — ficavam na lista `11120`, `22450` em vez das descrições.
+  nomes de serviço — ficavam na lista `00001`, `00002` em vez das descrições.
 
   Duas regras novas: ganha a linha que identifica **mais** colunas, e não a
   primeira que identifica alguma; e os padrões passam a estar ancorados no
@@ -809,7 +824,7 @@ relatório.
 
 ## [1.5.0] — 2026-07-23
 
-Paridade com a folha de cálculo original (`Auditoria_Cir_B__11B_.xlsx`).
+Paridade com a folha de cálculo original.
 
 ### Adicionado
 
@@ -836,8 +851,8 @@ Paridade com a folha de cálculo original (`Auditoria_Cir_B__11B_.xlsx`).
 ### Notas
 
 - Diferença conhecida face ao Excel: a folha divide por `100` fixo, mas o máximo
-  real são 99,75 pontos. Os dados da Cirurgia B (11B) dão 81,5 % no Excel e 82 %
-  na aplicação. Ver a secção *Modelo de pontuação* do README.
+  real são 99,75 pontos. Por isso a mesma auditoria pode dar meio ponto
+  percentual a menos no Excel do que na aplicação. Ver a secção *Modelo de pontuação* do README.
 - Compatibilidade retroactiva: auditorias gravadas na v1.4.0 e anteriores
   continuam a abrir, com a nota recalculada a partir dos níveis 0/1/2 guardados.
 

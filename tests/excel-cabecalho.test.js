@@ -13,7 +13,7 @@ const { findCols } = ctx;
 /* Os valores vêm de sheet_to_json(..., {header:1, defval:""}): matriz de
    linhas, com as células vazias como string vazia. */
 const CAB = ["Código", "Descrição"];
-const DADOS = [["11120", "UCIP"], ["22450", "Talho"]];
+const DADOS = [["00001", "Unidade A"], ["00002", "Unidade B"]];
 
 test("cabeçalho na primeira linha", () => {
   const c = findCols([CAB].concat(DADOS));
@@ -30,7 +30,7 @@ test("linha de título com a palavra 'serviços' não é tomada por cabeçalho",
 });
 
 test("título de repositores também não engana", () => {
-  const c = findCols([["Lista de repositores 2026"], ["Código", "Nome"], ["A17", "Ana Prata"]]);
+  const c = findCols([["Lista de repositores 2026"], ["Código", "Nome"], ["A17", "Fulano de Tal"]]);
   assert.strictEqual(c.head, 1);
   assert.strictEqual(c.nome, 1);
 });
@@ -40,7 +40,7 @@ test("ganha a linha que identifica mais colunas", () => {
   const c = findCols([
     ["Serviços do mês"], [""],
     ["Código", "Designação", "Nome do responsável"],
-    ["11120", "UCIP", "Ana"]
+    ["00001", "Unidade A", "Fulano"]
   ]);
   assert.strictEqual(c.head, 2);
   assert.strictEqual(c.cod, 0);
@@ -49,7 +49,7 @@ test("ganha a linha que identifica mais colunas", () => {
 });
 
 test("uma só coluna continua a ser reconhecida", () => {
-  const c = findCols([["Nome"], ["Ana Prata"], ["Rui Melo"]]);
+  const c = findCols([["Nome"], ["Fulano de Tal"], ["Beltrano de Tal"]]);
   assert.strictEqual(c.head, 0);
   assert.strictEqual(c.nome, 0);
   assert.strictEqual(c.cod, -1);
@@ -70,7 +70,7 @@ test("folha sem nada de reconhecível devolve null", () => {
 
 test("linhas em falta ou irregulares não rebentam", () => {
   /* Folhas reais trazem linhas curtas e buracos. */
-  const c = findCols([undefined, [], CAB, ["11120"]]);
+  const c = findCols([undefined, [], CAB, ["00001"]]);
   assert.strictEqual(c.head, 2);
 });
 
@@ -83,7 +83,7 @@ test("procura para lá das primeiras linhas de preâmbulo", () => {
 test("sem âncora só como reserva: um cabeçalho invulgar continua a ser lido", () => {
   /* "Nº/Código" não começa por 'cod', e nenhuma outra linha casa ancorada:
      a segunda passagem, sem âncora, salva o ficheiro. */
-  const c = findCols([["Nº/Código", "Designação"], ["11120", "UCIP"]]);
+  const c = findCols([["Nº/Código", "Designação"], ["00001", "Unidade A"]]);
   assert.strictEqual(c.head, 0);
   assert.strictEqual(c.cod, 0, "encontrado na passagem sem âncora");
   assert.strictEqual(c.desc, 1);
@@ -96,7 +96,7 @@ test("mesmo sem âncora, o título perde para o cabeçalho verdadeiro", () => {
   const c = findCols([
     ["Mapa de serviços"],
     ["Nº/Código", "Sua designação"],
-    ["11120", "UCIP"]
+    ["00001", "Unidade A"]
   ]);
   assert.strictEqual(c.head, 1);
   assert.strictEqual(c.cod, 0);
