@@ -36,7 +36,13 @@ for (const modo of ["light", "dark"]) {
     const it = ITEMS.map(x => Object.assign({}, x));
     const mk = (id, date, f) => ({ id, service: "Loja A", date, verif: "V",
       scores: it.map((_, i) => f(i)), raw: it.map(() => null), tgts: it.map(() => null), items: it });
-    localStorage.setItem("audits", JSON.stringify([mk(1, "2026-01-10", () => 2), mk(2, "2026-03-05", i => i % 3)]));
+    /* Com plano de acções (3.12.0): uma em atraso e uma feita, para o cartão do
+       formulário e a folha do relatório serem verificados também. */
+    const a1 = mk(1, "2026-01-10", () => 2);
+    a1.acoes = [{ id: 1, r: "U", texto: "Retirar caixas", prazo: "2020-01-01", estado: "aberta", feitaEm: "", item: 1 }];
+    const a2 = mk(2, "2026-03-05", i => i % 3);
+    a2.acoes = [{ id: 1, r: "M", texto: "Rever etiquetas", prazo: "", estado: "feita", feitaEm: "2026-03-06", item: null }];
+    localStorage.setItem("audits", JSON.stringify([a1, a2]));
     localStorage.setItem("services", JSON.stringify(["Loja A", "Loja B"]));
   });
   await pg.reload();
