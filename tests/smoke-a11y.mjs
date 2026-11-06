@@ -68,6 +68,20 @@ for (const modo of ["light", "dark"]) {
       x.nodes.slice(0, 3).map(n => n.target.join(" ")).join(" | ")));
     v.forEach(x => falhas.push(`[${modo}] ${nome}: ${x}`));
   }
+  /* 3.16.0: o guia de utilização, página própria publicada com a app. A CSP
+     dele proíbe scripts (script-src 'none'), e por isso também o axe que o teste
+     injecta: só para o teste, num contexto que a ignora. */
+  const cg = await b.newContext({ bypassCSP: true, colorScheme: modo, viewport: { width: 420, height: 900 } });
+  const pgg = await cg.newPage();
+  await pgg.goto(URL.replace("index.html", "guia.html"));
+  await pgg.addScriptTag({ content: axe });
+  const vg = await pgg.evaluate(async () => (await axe.run(document, {
+    runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "best-practice"] },
+    resultTypes: ["violations"]
+  })).violations.map(x => x.id + " (" + x.nodes.length + "): " +
+    x.nodes.slice(0, 3).map(n => n.target.join(" ")).join(" | ")));
+  vg.forEach(x => falhas.push(`[${modo}] Guia: ${x}`));
+  await cg.close();
   await pg.close();
 }
 
