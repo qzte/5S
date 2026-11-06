@@ -66,3 +66,29 @@ test("publicar.sh publica exactamente os ficheiros da cache do service worker, o
     fs.rmSync(dist, { recursive: true, force: true });
   }
 });
+
+/* 3.10.0: na versão publicada, scripts/csp.mjs troca o 'unsafe-inline' do
+   script-src pelo hash de cada <script> embutido. */
+test("a versão publicada autoriza cada <script> pelo seu hash, sem 'unsafe-inline'", () => {
+  const crypto = require("crypto");
+  const dist = path.join(RAIZ, "dist");
+  try {
+    execFileSync("bash", [path.join(RAIZ, "scripts", "publicar.sh")], { stdio: "pipe" });
+    const html = fs.readFileSync(path.join(dist, "index.html"), "utf8");
+    const headers = fs.readFileSync(path.join(dist, "_headers"), "utf8");
+    const meta = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/)[1];
+    const cab = headers.match(/Content-Security-Policy: (.*)/)[1];
+    assert.strictEqual(cab, meta, "a CSP publicada tem de ser a mesma no cabeçalho e no <meta>");
+    const scriptSrc = meta.match(/script-src ([^;]+)/)[1];
+    assert.doesNotMatch(scriptSrc, /unsafe-inline/);
+    const esperados = [...html.matchAll(/^<script>([\s\S]*?)<\/script>/gm)]
+      .map(m => "'sha256-" + crypto.createHash("sha256").update(m[1], "utf8").digest("base64") + "'");
+    assert.strictEqual(esperados.length, 3, "a guarda de molduras, o SheetJS e a app");
+    assert.deepStrictEqual(scriptSrc.split(" ").filter(x => x.startsWith("'sha256-")), esperados);
+    /* O resto da CSP não muda: só o script-src. */
+    assert.strictEqual(meta.replace(/script-src [^;]+/, "script-src 'self' 'unsafe-inline'"),
+      ler("index.html").match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/)[1]);
+  } finally {
+    fs.rmSync(dist, { recursive: true, force: true });
+  }
+});
