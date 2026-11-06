@@ -2,6 +2,7 @@
 
 Três revisões, por ordem inversa:
 
+- **[Nota de 3.9.0](#nota-de-390-2026-11-06-fotos-em-indexeddb)** — as fotos das recomendações passam a ser guardadas.
 - **[Nota de 3.7.0](#nota-de-370-2026-11-06-cloudflare-pages)** — a mudança para o Cloudflare Pages fecha os pontos 4, 9 e 21.
 - **[Revisão de 3.6.0](#revisão-de-360-2026-11-06)** — correcções em 3.6.1.
 - **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em 3.5.1 e 3.5.2.
@@ -9,6 +10,25 @@ Três revisões, por ordem inversa:
 
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+## Nota de 3.9.0 (2026-11-06): fotos em IndexedDB
+
+As revisões abaixo registam que as fotografias das recomendações viviam só em
+memória. Desde 3.9.0 são guardadas no IndexedDB da origem (base
+`auditoria5s-fotos`), com a chave `<id da auditoria>|<responsável>`:
+
+- Continuam **fora da exportação JSON** e do `localStorage`.
+- O que se lê do IndexedDB só chega ao `src` de uma imagem se for texto
+  começado por `data:image/` (`carregarFotos()`): outra página da mesma origem
+  que lá escrevesse outra coisa não consegue pôr um URL arbitrário no relatório.
+  Desde 3.7.0 a origem é só desta app (`auditoria-5s.pages.dev`).
+- Apagar uma auditoria apaga as fotos dela. *Substituir* na importação apaga as
+  das auditorias que deixaram de existir, mas só depois de a lista nova estar
+  gravada; no arranque nada é apagado, para que um `localStorage` ilegível não
+  leve as fotos consigo.
+
+O código de acesso passa a ser pedido numa caixa `<dialog>` própria, com campo
+de palavra-passe. Continua a **não** ser um controlo de segurança (ponto 10).
 
 ## Nota de 3.7.0 (2026-11-06): Cloudflare Pages
 
