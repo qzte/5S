@@ -5,6 +5,33 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.12.0] — 2026-11-06
+
+O ciclo de melhoria fecha-se: do que está mal ao que foi feito.
+
+### Adicionado
+
+- **Plano de acção** em cada auditoria: acções com responsável, prazo e estado
+  (aberta, em atraso, feita, com a data de conclusão), opcionalmente ligadas a
+  uma pergunta. Criam-se no relatório, ou com **+ Acção** em cada item a
+  melhorar, que já traz o responsável e o número da pergunta.
+- O **formulário** de uma auditoria nova mostra as acções em aberto das
+  auditorias anteriores ao mesmo serviço, para serem verificadas no terreno e
+  marcadas como feitas.
+- O **relatório** ganha uma 4.ª folha, *Plano de acção*, com as acções da
+  auditoria e as que vinham em aberto de antes. Sem acções, continua com 3.
+- O **Histórico** mostra quantas acções cada auditoria tem em aberto, e quantas
+  em atraso.
+- A **exportação para Excel** ganha a folha *Acções*.
+- `tests/acoes.test.js` e `tests/smoke-acoes.mjs` (na CI, com contagem das
+  folhas do PDF); o teste de acessibilidade passa a cobrir o plano.
+
+### Alterado
+
+- A importação traz o plano de cada auditoria, validado por `sanitizeAcoes()`.
+- Um responsável com acções atribuídas deixa de poder ser removido.
+- Os rótulos de estado (`.pill`) deixam de se partir em duas linhas.
+
 ## [3.11.0] — 2026-11-06
 
 Espaço para o histórico inteiro, e arranque mais rápido.
