@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.14.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.15.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.14.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.15.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -362,6 +362,14 @@ O armazenamento do navegador é finito (~5 MB por origem). Se encher, gravar
 falha com um aviso explícito, o formulário **não** é limpo e nada do que já
 estava guardado se perde; a saída é exportar e apagar auditorias antigas.
 
+**Desempenho com muito histórico (3.15.0).** Medido num telemóvel médio
+simulado (processador a ¼), com 5 000 auditorias: o Histórico abria em ~2,9 s e
+a Análise em ~0,8 s; agora abrem em ~15 ms e ~50 ms. O Histórico desenha 50
+cartões de cada vez (*Mostrar mais*) e encontra a auditoria anterior de todas
+numa só passagem; as métricas de cada auditoria (pilares e responsáveis)
+calculam-se uma vez e ficam em memória; o gráfico de evolução, com mais de 120
+pontos, fica só com as linhas e uma descrição resumida.
+
 **Desde 3.11.0, cada conjunto de perguntas é gravado uma vez.** Cada auditoria
 guarda as perguntas com que foi feita, para o relatório e a edição de uma
 auditoria antiga usarem as perguntas daquela altura. Até 3.10.x cada uma
@@ -473,6 +481,7 @@ node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditoria
 node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no terreno, PDF
 node tests/smoke-prazos.mjs        # frequência e prazos; nenhum diálogo nativo
 node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
+node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização
 ```
 
 O lint e o teste de acessibilidade precisam das ferramentas de `tools/lint/`:

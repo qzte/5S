@@ -5,6 +5,35 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.15.0] — 2026-11-06
+
+Rápida com anos de histórico, e o funcionamento offline e as actualizações
+testados a sério.
+
+### Alterado
+
+- **Histórico** com 5 000 auditorias: de ~2,9 s para ~15 ms (telemóvel médio
+  simulado). Desenha 50 cartões de cada vez, com *Mostrar mais*, e encontra a
+  auditoria anterior de todas numa só passagem (`anterioresPorId`), em vez de
+  percorrer a lista inteira para cada cartão.
+- **Análise** com 5 000 auditorias: de ~0,8 s para ~50 ms. As métricas de cada
+  auditoria (pilares e responsáveis) calculam-se uma vez e ficam em memória
+  (`metricas`), recalculadas se a auditoria, os responsáveis ou as perguntas
+  mudarem; o gráfico de evolução, acima de 120 pontos, fica só com as linhas e
+  com uma descrição acessível resumida por serviço.
+
+### Adicionado
+
+- `tests/smoke-offline.mjs` (na CI), sobre a versão publicada: ficheiros em
+  cache na instalação; sem rede, a app abre, grava e mostra o relatório; com o
+  servidor a dar 404, ou desligado, abre a cópia em cache; uma actualização a
+  sério (sw.js e index.html mudados no servidor) mostra o aviso, Recarregar
+  passa para a versão nova sem perder a auditoria por terminar, a cache antiga
+  é apagada, e sem rede abre a versão nova.
+- `tests/desempenho.test.js`: a passagem única dá o mesmo que `anteriorDe()`
+  para todas as auditorias, a descrição resume, a memória das métricas
+  recalcula quando deve.
+
 ## [3.14.0] — 2026-11-06
 
 A prova do que se viu, e uma cópia de segurança que não deixa nada para trás.
