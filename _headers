@@ -1,0 +1,20 @@
+# Cabeçalhos HTTP para o Cloudflare Pages (3.7.0).
+#
+# O GitHub Pages não deixava definir cabeçalhos, e por isso a CSP vivia só no
+# <meta> do index.html — onde os browsers IGNORAM frame-ancestors (SECURITY.md,
+# ponto 4). Aqui vai em cabeçalho HTTP, onde vale toda.
+#
+# A CSP TEM de ser igual à do <meta>: tests/publicacao.test.js falha se
+# divergirem. Ao mudar uma, mude a outra no mesmo commit.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000
+
+# O service worker nunca fica em cache HTTP: é ele que decide quando a app muda
+# de versão, e uma cópia velha atrasaria todas as actualizações seguintes.
+/sw.js
+  Cache-Control: no-cache
