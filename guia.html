@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!-- Gerado por scripts/guia.mjs a partir de GUIA.md. Não editar à mão. -->
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12211c">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'unsafe-inline'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Guia de utilização · Auditoria 5S</title>
+<link rel="icon" href="./icons/icon-192.png" type="image/png">
+<style>
+:root{--bg:#f4f1ea;--ink:#1d2a24;--panel:#fff;--line:#d9d3c5;--muted:#5f6b64;--green:#1f6f50;--green-dk:#12211c;--accent:#e8500a;--link:#1f6f50;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#101815;--ink:#e3e9e5;--panel:#18231e;--line:#33433b;--muted:#a3b0a8;--link:#7dd3ab;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Iowan Old Style",Georgia,"Times New Roman",serif}
+header{background:var(--green-dk);color:#f4f1ea;padding:14px 20px;border-bottom:4px solid var(--accent);position:sticky;top:0}
+header a{color:#f4f1ea;font:700 .8rem/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;text-decoration:none}
+main{max-width:760px;margin:0 auto;padding:18px 16px 60px}
+h1,h2,h3,h4,th{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+h1,h2,h3,h4{scroll-margin-top:64px}
+h1{font-size:1.6rem;margin:.4em 0}h2{font-size:1.25rem;margin-top:1.8em;padding-top:.6em;border-top:1px solid var(--line)}
+a{color:var(--link)}
+table{width:100%;border-collapse:collapse;margin:1em 0;font-size:.9rem;background:var(--panel)}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{font-size:.75rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+code{font-size:.9em;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+li{margin:.25em 0}
+@media print{header{display:none}}
+</style>
+</head>
+<body>
+<header><a href="./">← Voltar à aplicação</a></header>
+<main>
+<h1 id="guia-de-utilização">Guia de utilização</h1>
+<p>Como usar a app no dia-a-dia: fazer uma auditoria, ler o relatório, seguir as acções, manter os prazos e não perder dados. Este guia também está dentro da app, em <strong>Config → Ajuda</strong>, e abre sem rede. Para os pormenores técnicos, ver o README; para o que mudou em cada versão, o CHANGELOG.</p>
+<ul><li><a href="#antes-de-começar">Antes de começar</a></li><li><a href="#fazer-uma-auditoria">Fazer uma auditoria</a></li><li><a href="#o-relatório">O relatório</a></li><li><a href="#plano-de-acção">Plano de acção</a></li><li><a href="#histórico-e-prazos">Histórico e prazos</a></li><li><a href="#análise">Análise</a></li><li><a href="#cópias-de-segurança">Cópias de segurança</a></li><li><a href="#configuração">Configuração</a></li><li><a href="#sem-rede-e-actualizações">Sem rede e actualizações</a></li><li><a href="#perguntas-frequentes">Perguntas frequentes</a></li></ul>
+<h2 id="antes-de-começar">Antes de começar</h2>
+<ol><li>Abra <strong><a href="https://auditoria-5s.pages.dev/" rel="noopener noreferrer">https://auditoria-5s.pages.dev/</a></strong> no telemóvel e escolha <em>Adicionar ao ecrã principal</em>. Instalada, a app abre como as outras, funciona sem rede e o browser protege melhor os dados (ver <a href="#cópias-de-segurança">Cópias de segurança</a>).</li><li>Em <strong>Config → Serviços</strong>, acrescente os supermercados a auditar (ou importe-os de um Excel em <em>Importar Excel</em>).</li><li>Em <strong>Config → Frequência das auditorias</strong>, diga de quanto em quanto tempo cada serviço deve ser auditado (semanal, quinzenal, mensal ou trimestral). É o que permite à app avisar das auditorias em atraso.</li></ol>
+<p>Os dados ficam <strong>só neste dispositivo</strong>. Não há conta nem servidor: quem tiver o telemóvel tem as auditorias, e quem o perder perde-as — a menos que tenha uma <a href="#cópias-de-segurança">cópia de segurança</a>.</p>
+<h2 id="fazer-uma-auditoria">Fazer uma auditoria</h2>
+<p>No separador <strong>Auditar</strong>:</p>
+<ol><li><strong>Escolha o serviço.</strong> Por baixo aparece a frequência, a última auditoria e o estado — por exemplo <em>Semanal · última auditoria a 25/10/26 · Em atraso há 5 dias</em>.</li><li><strong>Acções em aberto neste serviço.</strong> Se auditorias anteriores deixaram acções por fazer, aparecem num cartão no topo. Verifique no local e marque <strong>Feita</strong> nas que ficaram resolvidas (ver <a href="#plano-de-acção">Plano de acção</a>).</li><li><strong>Responda às 19 perguntas.</strong> A nota vai sendo calculada em <em>Nota (auto)</em>. Em cada pergunta que a última auditoria ao serviço não deu como Excelente, aparece o que lhe deu, para saber o que procurar.</li><li><strong>Evidência.</strong> Numa pergunta classificada <strong>Mau</strong> ou <strong>Oportunidade</strong> aparecem um campo de nota e o botão <strong>Foto</strong>: escreva o que viu e fotografe. <em>Trocar foto</em> e <em>Remover foto</em> fazem o que dizem.</li><li>Carregue em <strong>Guardar auditoria</strong>. Abre o relatório.</li></ol>
+<p><strong>Pode fechar a app a meio.</strong> A auditoria por terminar — respostas, nomes, notas e fotos — fica guardada no dispositivo a cada alteração, e volta ao reabrir. O cartão <em>Auditoria por terminar</em> diz quando foi guardada; <strong>Descartar e começar de novo</strong> apaga-a. Só entra no Histórico ao carregar em <em>Guardar auditoria</em>.</p>
+<h2 id="o-relatório">O relatório</h2>
+<p>Abre ao gravar, ou em <strong>Histórico → Relatório</strong>. <strong>Gerar PDF</strong> imprime-o:</p>
+<table><thead><tr><th>Folha</th><th>Conteúdo</th></tr></thead><tbody><tr><td>1</td><td>Nota, radares por pilar 5S e por responsável, histórico das últimas auditorias ao serviço</td></tr><tr><td>2</td><td>Pontuação e grelha completa das 19 perguntas</td></tr><tr><td>3</td><td>Recomendações por responsável, com texto e foto</td></tr><tr><td>Evidências</td><td>As perguntas Mau ou Oportunidade com nota ou foto — só quando há</td></tr><tr><td>Plano de acção</td><td>As acções desta auditoria e as que vinham em aberto — só quando há</td></tr></tbody></table>
+<p>No ecrã (não vão para o PDF) há ainda:</p>
+<ul><li><strong>Itens a melhorar</strong> — as perguntas que não ficaram Excelentes, cada uma com o botão <strong>+ Acção</strong>.</li><li><strong>Seguimento da auditoria anterior</strong> — o que melhorou, o que se mantém por resolver e o que piorou face à auditoria anterior ao mesmo serviço.</li></ul>
+<p>O texto e as fotos das <strong>recomendações</strong> escrevem-se aqui e ficam gravados com a auditoria. <strong>Editar auditoria</strong> reabre-a no formulário (pede o código de acesso).</p>
+<h2 id="plano-de-acção">Plano de acção</h2>
+<p>As recomendações dizem o que melhorar; uma <strong>acção</strong> é um passo concreto, com <strong>responsável</strong>, <strong>prazo</strong> e <strong>estado</strong>, que se segue até estar feito.</p>
+<ul><li><strong>Criar.</strong> No relatório, carregue em <strong>+ Acção</strong> num dos <em>Itens a melhorar</em> — o responsável e o número da pergunta vêm preenchidos — ou escreva-a directamente em <em>Plano de acção</em>, com responsável e prazo, e carregue em <strong>Acrescentar acção</strong>.</li><li><strong>Seguir.</strong> A acção fica <strong>Aberta</strong> até ser marcada como feita. Passado o prazo, passa a <strong>Em atraso</strong>, a vermelho. O Histórico mostra quantas acções cada auditoria tem em aberto.</li><li><strong>Fechar.</strong> Marque <strong>Feita</strong> — no relatório, ou, melhor, no formulário da auditoria seguinte ao mesmo serviço, quando estiver no local a confirmar. Fica registada a data.</li></ul>
+<h2 id="histórico-e-prazos">Histórico e prazos</h2>
+<p>O separador <strong>Histórico</strong> mostra um número a vermelho quando há serviços por auditar (em atraso ou nunca auditados).</p>
+<ul><li><strong>Prazos das auditorias</strong> — os serviços com frequência, pela urgência: <em>Em atraso</em>, <em>Nunca auditado</em>, <em>A vencer</em> (faltam 2 dias ou menos), <em>Em dia</em>. <strong>Auditar</strong> abre o formulário já com o serviço escolhido.</li><li><strong>Filtros</strong> — por serviço, intervalo de datas e faixa de nota (Crítico, Com oportunidade, Excelente). <em>Limpar filtros</em> repõe tudo.</li><li><strong>Cada auditoria</strong> mostra a nota e a variação face à anterior ao mesmo serviço (▲ subiu, ▼ desceu). Aparecem 50 de cada vez: <strong>Mostrar mais</strong> traz as seguintes.</li><li><strong>Apagar</strong> apaga logo, e mostra <strong>Desfazer</strong> no fundo do ecrã durante 10 segundos. Passado esse tempo, a auditoria e as suas fotos saem de vez.</li></ul>
+<h2 id="análise">Análise</h2>
+<p>Escolha o <strong>serviço</strong> (ou todos) e o <strong>período</strong> (todo o histórico, ou os últimos 3, 6 ou 12 meses). Tudo na vista segue essa escolha:</p>
+<ul><li><strong>Evolução da nota</strong> — uma linha por serviço, ao longo do tempo;</li><li><strong>Comparação entre serviços</strong> — a média de cada um;</li><li><strong>Pontos fracos por pilar 5S</strong> e <strong>Desempenho por responsável</strong> — radares e barras com as médias.</li></ul>
+<h2 id="cópias-de-segurança">Cópias de segurança</h2>
+<p>Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-as <strong>noutro sítio</strong> (computador, Drive, email).</p>
+<table><thead><tr><th>Botão (em Config → Dados)</th><th>O que gera</th><th>Para quê</th></tr></thead><tbody><tr><td><strong>Exportar histórico (JSON)</strong></td><td>Auditorias, serviços, pessoas, perguntas, responsáveis, frequências, acções e notas — <strong>sem fotos</strong></td><td>Cópia leve, para fazer muitas vezes</td></tr><tr><td><strong>Exportar com fotos (JSON)</strong></td><td>O mesmo, <strong>com todas as fotos</strong></td><td>Cópia completa: a que permite recuperar tudo</td></tr><tr><td><strong>Exportar para Excel</strong></td><td>Folhas <em>Auditorias</em>, <em>Respostas</em> e <em>Acções</em></td><td>Análise noutro programa. <strong>Não</strong> é uma cópia: não se importa de volta</td></tr></tbody></table>
+<ul><li><strong>Lembrete.</strong> A app avisa no topo quando nunca foi feita uma cópia, ou quando há auditorias por copiar há uma semana ou mais (ou cinco ou mais). <em>Lembrar amanhã</em> adia o aviso.</li><li><strong>Recuperar.</strong> <em>Importar histórico (JSON)</em> lê um destes ficheiros e pergunta: <strong>Fundir</strong> junta-o ao que existe, sem duplicar; <strong>Substituir tudo</strong> troca o histórico do dispositivo pelo do ficheiro (pede o código de acesso). As fotos de uma cópia <em>com fotos</em> vêm junto.</li><li><strong>Config → Dados</strong> mostra também o espaço ocupado e se o browser protege os dados contra limpeza automática. Se disser <em>não concedida</em>, instale a app no ecrã principal.</li></ul>
+<h2 id="configuração">Configuração</h2>
+<ul><li><strong>Serviços</strong> e <strong>Frequência das auditorias</strong> — ver <a href="#antes-de-começar">Antes de começar</a>.</li><li><strong>Responsáveis</strong> — quem responde por cada pergunta; são os eixos do radar e os blocos de recomendações. Um responsável com perguntas, recomendações ou acções atribuídas não pode ser removido.</li><li><strong>Editor de perguntas</strong> — enunciados, pilares, responsáveis e limiares (pede o código de acesso). As auditorias já feitas mantêm as perguntas com que foram feitas.</li><li><strong>Painel e-ink</strong> — escolha a pasta partilhada onde a app grava o <code>5s.painel.json</code> (só no Chrome ou Edge de computador).</li></ul>
+<p>O <strong>código de acesso</strong> é pedido para editar auditorias, alterar os responsáveis, abrir o editor de perguntas e substituir o histórico. Protege contra alterações por engano — não é uma palavra-passe secreta.</p>
+<h2 id="sem-rede-e-actualizações">Sem rede e actualizações</h2>
+<ul><li><strong>Sem rede</strong>, a app abre e funciona por inteiro, incluindo a exportação e a importação de Excel, desde que tenha sido aberta uma vez com rede.</li><li><strong>Quando há uma versão nova</strong>, aparece <em>Nova versão disponível</em>. Carregue em <strong>Recarregar agora</strong>: a auditoria por terminar não se perde. (Se estiver a meio de editar uma auditoria já gravada, guarde-a antes.)</li><li>A versão aparece no cabeçalho, ao lado de <em>Lista de verificação 5S</em>.</li></ul>
+<h2 id="perguntas-frequentes">Perguntas frequentes</h2>
+<p><strong>Apaguei uma auditoria por engano.</strong> Carregue em <strong>Desfazer</strong> no aviso do fundo do ecrã, nos 10 segundos seguintes. Depois disso, só uma cópia de segurança a recupera.</p>
+<p><strong>Mudei de telemóvel.</strong> No antigo, <em>Exportar com fotos (JSON)</em>. No novo, abra a app, <em>Importar histórico (JSON)</em> e escolha <em>Substituir tudo</em>.</p>
+<p><strong>O telemóvel fechou a app a meio da auditoria.</strong> Abra-a outra vez: as respostas estão lá (cartão <em>Auditoria por terminar</em>).</p>
+<p><strong>Não vejo o campo de nota e foto numa pergunta.</strong> Só aparece quando a resposta a classifica como Mau ou Oportunidade.</p>
+<p><strong>Uma auditoria aparece em atraso, mas foi feita.</strong> O prazo conta a partir da última auditoria <strong>gravada</strong> a esse serviço. Confirme no Histórico que foi gravada com o serviço e a data certos.</p>
+<p><strong>O que significam as cores das notas?</strong> Excelente a partir de 80, Com oportunidade de 50 a 79, Crítico abaixo de 50.</p>
+</main>
+</body>
+</html>
