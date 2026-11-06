@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.6.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.6.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.6.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.6.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -53,6 +53,11 @@ que uma auditoria é gravada, editada ou apagada (e quando as perguntas ou os re
 browser pode pedir licença outra vez: «Dar acesso à pasta». Só no Chrome ou no Edge de computador; o resto da app
 funciona igual em qualquer browser. O formato está em `docs/09-formato-feed.md` do qzte/e-ink_panel; os números são
 calculados aqui, com as mesmas funções do relatório (`dadosPainel5s`, testado em `tests/painel.test.js`).
+
+**Escolha uma pasta só para o painel.** A licença que o browser dá é da *origem* (`qzte.github.io`), não desta
+app: qualquer página publicada na mesma conta pode ler, alterar e apagar o que estiver nessa pasta. O botão
+**Deixar de gravar** larga a pasta; a licença em si retira-se nas definições do site, no browser
+(ver [SECURITY.md](SECURITY.md), ponto 21).
 
 ## Instalação e utilização
 
@@ -333,6 +338,9 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
   emoji (3.5.2).
 - As *actions* da CI estão fixadas por **SHA de commit**, não por etiqueta
   móvel; o `ci.yml` documenta como actualizar (3.5.2).
+- Cada auditoria lida do `localStorage` é verificada na forma (`auditUsavel()`),
+  a exportação lê as perguntas pela mesma porta segura que o resto da app, e
+  gravar uma auditoria exige a data que a importação exige (3.6.1).
 
 Revisão completa em [SECURITY.md](SECURITY.md), incluindo o que **não** está
 mitigado. Dois pontos a reter:
@@ -345,7 +353,8 @@ mitigado. Dois pontos a reter:
 - O `localStorage` pertence à **origem**, não ao caminho: em
   `qzte.github.io`, qualquer outra página publicada na mesma conta lê e escreve
   os dados desta aplicação. Para isolamento real seria preciso um domínio
-  próprio.
+  próprio. O mesmo vale para a **pasta do painel e-ink**: a licença de escrita
+  é da origem, e não só desta aplicação (3.6.1).
 
 **O PIN do editor — pedido também para editar e para apagar uma auditoria
 gravada, e para substituir todo o histórico numa importação — não é um controlo
