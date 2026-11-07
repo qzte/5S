@@ -36,10 +36,18 @@ concurrency:
 permissions:
   contents: read
 
+# TEMPOS MÁXIMOS. Sem eles, um job encravado fica 6 horas à espera
+# (o limite do GitHub) a ocupar o runner: já aconteceu, ao instalar o
+# Chromium. Cada job tem um tempo máximo folgado — várias vezes o que demora
+# normalmente — e os passos que dependem da rede ou do browser têm também o
+# seu, para que a falha diga qual foi. Normalmente: testes e lint em segundos,
+# smoke tests em ~2 minutos.
+
 jobs:
   testes:
     name: Testes unitários (node:test)
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -61,6 +69,7 @@ jobs:
   lint:
     name: Lint (ESLint)
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -71,6 +80,7 @@ jobs:
           node-version: '22'
 
       - name: Instala o ESLint (versões do lockfile)
+        timeout-minutes: 5
         run: npm ci --prefix tools/lint --no-audit --no-fund
 
       - name: node tools/lint/lint.mjs
@@ -79,6 +89,7 @@ jobs:
   smoke:
     name: Smoke tests de browser (Playwright)
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -92,9 +103,11 @@ jobs:
       # uma actualização silenciosa do browser é a forma mais comum de um
       # smoke test passar a falhar sem que o index.html tenha mudado.
       - name: Instala o Playwright
+        timeout-minutes: 5
         run: npm install --no-save --no-audit --no-fund playwright@1.56.0
 
       - name: Instala o Chromium
+        timeout-minutes: 10
         run: npx playwright install --with-deps chromium
 
       # A aplicação é servida por HTTP porque o service worker e o fetch de
@@ -110,64 +123,82 @@ jobs:
           exit 1
 
       - name: Perguntas de amostra
+        timeout-minutes: 4
         run: node tests/smoke.mjs
 
       - name: Edição de auditorias anteriores
+        timeout-minutes: 4
         run: node tests/smoke-edicao.mjs
 
       - name: Responsáveis editáveis
+        timeout-minutes: 4
         run: node tests/smoke-responsaveis.mjs
 
       - name: Painel e-ink (5s.painel.json)
+        timeout-minutes: 4
         run: node tests/smoke-painel.mjs
 
       - name: Rascunho, cópia de segurança e nova versão
+        timeout-minutes: 4
         run: node tests/smoke-rascunho.mjs
 
       - name: Histórico, análise, seguimento, fotos, Excel e diálogo
+        timeout-minutes: 4
         run: node tests/smoke-historico.mjs
 
       # Prepara o dist/ com scripts/publicar.sh e serve-o noutra porta: é a
       # versão publicada, com a CSP por hashes.
       - name: CSP publicada (hashes, sem 'unsafe-inline')
+        timeout-minutes: 4
         run: node tests/smoke-csp.mjs
 
       # O axe-core vem de tools/lint, com a versão do lockfile.
       - name: Instala o axe-core
+        timeout-minutes: 5
         run: npm ci --prefix tools/lint --no-audit --no-fund
 
       - name: Acessibilidade (axe-core, modo claro e escuro)
+        timeout-minutes: 4
         run: node tests/smoke-a11y.mjs
 
       - name: Armazenamento compacto, 5 000 auditorias e Excel offline
+        timeout-minutes: 4
         run: node tests/smoke-armazenamento.mjs
 
       - name: Plano de acção
+        timeout-minutes: 4
         run: node tests/smoke-acoes.mjs
 
       - name: Frequência, prazos e caixas de diálogo
+        timeout-minutes: 4
         run: node tests/smoke-prazos.mjs
 
       - name: Evidência por pergunta e cópia com fotos
+        timeout-minutes: 4
         run: node tests/smoke-evidencias.mjs
 
       - name: Lembrete das fotos por copiar e Desfazer ao remover
+        timeout-minutes: 4
         run: node tests/smoke-copias.mjs
 
       - name: Código de acesso próprio e espaço ocupado
+        timeout-minutes: 4
         run: node tests/smoke-acesso.mjs
 
       - name: Relatório mensal e partilha da cópia
+        timeout-minutes: 4
         run: node tests/smoke-mensal.mjs
 
       # Serve uma cópia do dist/ noutra porta (8767), que o teste altera e
       # desliga para simular erros do servidor e uma actualização.
       - name: Offline, servidor em erro e actualização do service worker
+        timeout-minutes: 4
         run: node tests/smoke-offline.mjs
 
   versao:
     name: Coerência da versão
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
