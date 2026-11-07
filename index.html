@@ -2837,6 +2837,8 @@ function renderAcoes(){
     `${l.length>vis.length?`<button class="btn small ghost" id="btn-ac-mais">Mostrar mais (${l.length-vis.length})</button>`:""}</div>`;
   box.querySelectorAll("[data-ac-feita]").forEach(c=>c.onchange=()=>{
     if(!marcarAcao(c.dataset.acFeita,c.checked)){c.checked=!c.checked;return;}
+    /* Já, e não só no setTimeout de save(): o número muda com o toque. */
+    atualizarBadgeAcoes();
     renderAcoes();
   });
   box.querySelectorAll("[data-ac-rep]").forEach(b=>b.onclick=()=>{
