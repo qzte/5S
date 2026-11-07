@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.18.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.19.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -149,9 +149,9 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
   **Fundir** junta-o ao que existe, sem duplicar; **Substituir tudo** troca o
   histórico do dispositivo pelo do ficheiro (pede o código de acesso). As fotos
   de uma cópia *com fotos* vêm junto.
-- **Config → Dados** mostra também o espaço ocupado e se o browser protege os
-  dados contra limpeza automática. Se disser *não concedida*, instale a app no
-  ecrã principal.
+- **Config → Dados** mostra também o espaço ocupado — o das auditorias e o
+  total da app, com as fotos — e se o browser protege os dados contra limpeza
+  automática. Se disser *não concedida*, instale a app no ecrã principal.
 
 ## Configuração
 
@@ -170,6 +170,12 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 O **código de acesso** é pedido para editar auditorias, alterar os responsáveis,
 abrir o editor de perguntas e substituir o histórico. Protege contra alterações
 por engano — não é uma palavra-passe secreta.
+
+O código de origem é o mesmo em todas as instalações e lê-se no código da app.
+Em **Config → Código de acesso**, **Mudar código** troca-o por um só deste
+dispositivo, de 4 a 8 algarismos: pede o actual e o novo duas vezes. O código
+fica só no dispositivo — as cópias de segurança não o levam. **Voltar ao código
+de origem** desfaz a escolha.
 
 ## Sem rede e actualizações
 
@@ -198,6 +204,11 @@ a classifica como Mau ou Oportunidade.
 **Uma auditoria aparece em atraso, mas foi feita.** O prazo conta a partir da
 última auditoria **gravada** a esse serviço. Confirme no Histórico que foi
 gravada com o serviço e a data certos.
+
+**Esqueci-me do código de acesso.** Em *Config → Dados*, *Exportar com fotos
+(JSON)* (não pede código). Depois limpe os dados do site nas definições do
+browser, abra a app e importe o ficheiro com *Fundir*. O código volta a ser o de
+origem.
 
 **O que significam as cores das notas?** Excelente a partir de 80, Com
 oportunidade de 50 a 79, Crítico abaixo de 50.
