@@ -5,6 +5,23 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.19.0] — 2026-11-07
+
+### Adicionado
+
+- **Código de acesso próprio do dispositivo** (*Configuração → Código de
+  acesso*). O de origem é o mesmo em todas as instalações e lê-se no código-fonte; com um próprio, de 4
+  a 8 algarismos, só quem o sabe abre a edição de auditorias, os responsáveis,
+  o editor de perguntas e o «Substituir tudo». Mudar pede o código actual e o
+  novo duas vezes; recusa o de origem, um algarismo repetido e as sequências.
+  Guarda-se só um resumo com sal, fora das cópias de segurança. *Voltar ao
+  código de origem* desfaz a escolha.
+- **Espaço ocupado com as fotos.** *Configuração → Dados* mostrava só o
+  `localStorage`; passa a mostrar também o total da app
+  (`navigator.storage.estimate()`: fotos, cache offline) face à quota do
+  browser, com aviso a partir de 80%.
+- Testes: `tests/acesso.test.js` e `tests/smoke-acesso.mjs`.
+
 ## [3.18.0] — 2026-11-07
 
 ### Adicionado

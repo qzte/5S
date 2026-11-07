@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.18.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.19.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.18.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.19.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -69,6 +69,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | *Desfazer* ao apagar uma auditoria | 3.13.0 |
 | | [Cópia de segurança com fotos](#dados-e-privacidade) | 3.14.0 |
 | | Lembrete das fotos por copiar; *Desfazer* ao remover um serviço ou uma pessoa | 3.18.0 |
+| | Código de acesso próprio do dispositivo; espaço ocupado com as fotos | 3.19.0 |
 | **Auditar** | Seguimento da auditoria anterior, no formulário e no relatório | 3.9.0 |
 | | [Plano de acção](#plano-de-acção): acções com responsável, prazo e estado | 3.12.0 |
 | | [Frequência e prazos](#frequência-e-prazos) por serviço | 3.13.0 |
@@ -384,7 +385,11 @@ por apagar todo o histórico de uma vez (3.5.1).
 - **Armazenamento persistente.** A app pede `navigator.storage.persist()` assim
   que há dados a proteger, para que o browser não os apague sozinho quando falta
   espaço (ou, no Safari, ao fim de 7 dias sem abrir a app). O estado aparece em
-  *Configuração → Dados*, com o espaço ocupado e a data da última cópia.
+  *Configuração → Dados*, com o espaço ocupado e a data da última cópia. Desde
+  3.19.0 o espaço tem duas linhas: o `localStorage` (auditorias e
+  configuração, que tem limite próprio de ~5 MB) e o total da app segundo
+  `navigator.storage.estimate()` — fotos, cache offline e tudo o resto — face à
+  quota que o browser lhe dá. Cada uma avisa a partir de 80%.
 - **Lembrete de cópia de segurança.** Um aviso no topo pede a exportação se
   nunca houve nenhuma, ou se há auditorias gravadas ou editadas por exportar há
   7 dias ou mais, ou 5 ou mais. *Lembrar amanhã* adia-o por um dia. Desde
@@ -526,6 +531,7 @@ node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no
 node tests/smoke-prazos.mjs        # frequência e prazos; nenhum diálogo nativo
 node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
 node tests/smoke-copias.mjs        # lembrete das fotos por copiar; Desfazer ao remover
+node tests/smoke-acesso.mjs        # código de acesso próprio; espaço ocupado com as fotos
 node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização, guia
 ```
 
@@ -627,9 +633,19 @@ mitigado. Dois pontos a reter:
 
 **O PIN do editor — pedido também para editar uma auditoria gravada, alterar os
 responsáveis e substituir todo o histórico numa importação — não é um controlo
-de segurança.** O código é público num
+de segurança.** O código de origem é público num
 ficheiro estático; qualquer pessoa o pode ler. Protege apenas contra alterações
 acidentais.
+
+Desde 3.19.0 cada dispositivo pode ter um **código próprio** (*Configuração →
+Código de acesso*), de 4 a 8 algarismos, que substitui o de origem: quem leu o
+código-fonte deixa de conseguir abrir as áreas protegidas. Guarda-se só um resumo com
+sal (`pinAcesso`), fora das cópias de segurança, e o «Substituir tudo» não lhe
+toca. Continua a não ser uma palavra-passe: um resumo de tão poucos algarismos
+adivinha-se por tentativas, e quem tem o dispositivo nas mãos pode limpar os
+dados do site. Quem se esquecer do código recupera assim: exportar uma cópia
+(não pede código), limpar os dados do site no browser, abrir a app e importar a
+cópia com *Fundir*.
 
 ## Versionamento
 
