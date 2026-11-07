@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.19.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.20.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.19.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.20.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -33,6 +33,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Evidência por pergunta](#evidência-por-pergunta)
 - [Plano de acção](#plano-de-acção)
 - [Dados e privacidade](#dados-e-privacidade)
+- [Relatório mensal](#relatório-mensal-3200)
 - [Importação de Excel](#importação-de-excel)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Testes](#testes)
@@ -46,7 +47,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | --- | --- |
 | **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra o prazo do serviço e as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. |
 | **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço, e os **prazos** de cada serviço; edição (sob PIN) e remoção (com *Desfazer*). |
-| **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. |
+| **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. E o **relatório mensal**, de todos os serviços, para imprimir em PDF (3.20.0). |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Mais as **Evidências** e o **plano de acção**, cada uma numa folha, quando os há. No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior. |
 | **Configuração** | Serviços e a **frequência** de cada um, responsáveis, cópia de segurança JSON (com ou sem fotos) e importação, exportação e importação de Excel, estado do armazenamento, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
 
@@ -70,11 +71,13 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | [Cópia de segurança com fotos](#dados-e-privacidade) | 3.14.0 |
 | | Lembrete das fotos por copiar; *Desfazer* ao remover um serviço ou uma pessoa | 3.18.0 |
 | | Código de acesso próprio do dispositivo; espaço ocupado com as fotos | 3.19.0 |
+| | Partilhar a cópia com fotos pelo menu de partilha do telemóvel | 3.20.0 |
 | **Auditar** | Seguimento da auditoria anterior, no formulário e no relatório | 3.9.0 |
 | | [Plano de acção](#plano-de-acção): acções com responsável, prazo e estado | 3.12.0 |
 | | [Frequência e prazos](#frequência-e-prazos) por serviço | 3.13.0 |
 | | [Evidência por pergunta](#evidência-por-pergunta): nota e foto | 3.14.0 |
 | **Consultar** | Histórico com filtros e variação; Análise por serviço e período; exportação para Excel | 3.9.0 |
+| | [Relatório mensal](#relatório-mensal-3200) para a direcção | 3.20.0 |
 | | Histórico e Análise rápidos com milhares de auditorias | 3.15.0 |
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
@@ -435,6 +438,19 @@ uma acompanha a auditoria a que pertence, mesmo que esta mude de id ao fundir).
 Apagar uma auditoria apaga as fotos dela no fim do prazo de *Desfazer*;
 *Substituir* na importação apaga as das auditorias que deixaram de existir.
 
+### Partilhar a cópia (3.20.0)
+
+*Configuração → Dados → Partilhar cópia com fotos* faz a mesma cópia que
+*Exportar com fotos* e entrega-a ao menu de partilha do sistema (Web Share),
+para a mandar para a Drive, o email ou outra app sem passar pelas
+Transferências. Só aparece onde o browser partilha ficheiros (Android, iOS,
+alguns desktops). O Chrome só partilha extensões de uma lista onde `.json` não
+está: nele o ficheiro vai como `.txt`, com o mesmo conteúdo, e a importação
+aceita-o — o que se verifica é o conteúdo. Uma partilha concluída conta como
+cópia com fotos; fechar o menu não conta. Se ler as fotos demorar mais do que o
+browser deixa entre o toque e a partilha, a app pede um segundo toque, já com o
+ficheiro pronto.
+
 ### Exportação para Excel (3.9.0)
 
 *Configuração → Dados → Exportar para Excel* gera um `.xlsx` com duas folhas,
@@ -449,6 +465,28 @@ com o SheetJS que já servia para a importação:
 
 Serve para análise noutro programa. **Não** é uma cópia de segurança: não pode
 ser importado de volta, e por isso não conta para o lembrete de exportação.
+
+## Relatório mensal (3.20.0)
+
+Na **Análise**, *Relatório mensal* resume um mês de todos os serviços, para a
+direcção. Escolhe-se o mês (o actual e os que têm auditorias; por omissão, o
+mais recente com auditorias) e *Gerar PDF* imprime-o em duas folhas
+(`resumoMensal()`):
+
+- **Cabeçalho** — a média do mês e a sua faixa, as auditorias e os serviços
+  auditados, a média do mês anterior e a diferença, e as auditorias por faixa.
+- **Por serviço** — os da lista e os que tiveram auditoria, do pior para o
+  melhor: auditorias, média, última nota e a variação face ao mês anterior. Os
+  que não tiveram auditoria aparecem no fim.
+- **Por pilar 5S** (radar e barras, com a variação) e **por responsável**.
+- **Perguntas que mais falharam** — as cinco com maior proporção de respostas
+  sem Excelente, com os Mau e os serviços.
+- **Plano de acção** — as acções novas (das auditorias do mês), as concluídas
+  no mês, e as em aberto e em atraso no fim do mês.
+- **Prazos das auditorias** no fim do mês, com os serviços em atraso ou nunca
+  auditados.
+
+No mês em curso, as acções e os prazos contam até hoje, não até ao fim do mês.
 
 ## Importação de Excel
 
@@ -532,6 +570,7 @@ node tests/smoke-prazos.mjs        # frequência e prazos; nenhum diálogo nativ
 node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
 node tests/smoke-copias.mjs        # lembrete das fotos por copiar; Desfazer ao remover
 node tests/smoke-acesso.mjs        # código de acesso próprio; espaço ocupado com as fotos
+node tests/smoke-mensal.mjs        # relatório mensal; partilhar a cópia (Web Share simulado)
 node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização, guia
 ```
 
