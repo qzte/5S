@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.16.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.17.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -520,10 +520,11 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   <div class="card" id="card-painel">
     <h3 style="margin-bottom:10px">Painel e-ink</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
-      O painel e-ink (a app <b>painel.html</b>, do repositório qzte/e-ink_panel) mostra uma página com as auditorias 5S:
-      a média por pilar e a última auditoria de cada serviço. Esta app grava o ficheiro <b>5s.painel.json</b> numa
+      O painel e-ink (a app <b>painel.html</b>, do repositório qzte/e-ink_panel) mostra uma página com os KPIs da 5S:
+      a média dos últimos 30 dias, a evolução mensal, os prazos dos serviços, as acções do plano e a média por
+      responsável. Esta app grava o ficheiro <b>5s.painel.json</b> numa
       <b>pasta partilhada</b> — a mesma das outras apps e do painel.html —, escolhida uma vez. Volta a gravá-lo
-      sempre que uma auditoria é gravada, editada ou apagada. Só no Chrome ou no Edge de computador.</p>
+      sempre que uma auditoria, um serviço ou uma frequência muda, e de hora a hora. Só no Chrome ou no Edge de computador.</p>
     <button class="btn small ghost" id="btn-painel">Escolher pasta</button>
     <button class="btn small ghost" style="display:none;border-color:var(--red-ink);color:var(--red-ink)" id="btn-painel-off">Deixar de gravar</button>
     <div id="painel-estado" role="status" style="font-size:.78rem;color:var(--muted);margin-top:10px"></div>
@@ -1039,7 +1040,8 @@ const save=(k,v)=>{
     if(k==="audits")gravarAudits(v);
     else localStorage.setItem(k,JSON.stringify(v));
     /* v3.6.0: o que entra no painel e-ink mudou — volta a gravar o 5s.painel.json. */
-    if(k==="audits"||k==="itemsCfg"||k==="resps")agendarPainel();
+    /* v3.17.0: e os serviços e as frequências, por causa dos prazos na página de KPIs. */
+    if(k==="audits"||k==="itemsCfg"||k==="resps"||k==="services"||k==="freqAud")agendarPainel();
     /* v3.13.0: os prazos dependem das auditorias, dos serviços e das frequências. */
     if(k==="audits"||k==="services"||k==="freqAud")setTimeout(atualizarPrazos,0);
     return true;}
@@ -1182,7 +1184,7 @@ function avisoBackup(info,n,agora){
 }
 
 
-const APP_VERSION="3.16.1";
+const APP_VERSION="3.17.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -3860,7 +3862,54 @@ function criarEscritorPainel({ app, titulo, versaoApp = '' }) {
 
 /* Os `dados` do 5s.painel.json: nº de auditorias, média, a mais recente, a média por pilar
    e a última auditoria de cada serviço (com a % da penúltima, para a seta de tendência). */
-function dadosPainel5s(lista){
+/* v3.17.0: os KPIs da página do painel (que substitui a página das auditorias).
+   `hoje` em AAAA-MM-DD; `svcs` e `fq`: a lista de serviços e as frequências.
+     media30/n30: média e nº das auditorias dos últimos 30 dias (hoje incluído);
+     media30Ant/n30Ant: o mesmo nos 30 dias antes desses;
+     porMes: os 12 meses até ao corrente, {mes, media (null sem auditorias), n};
+     prazos: serviços com frequência por estado; urgentes: em atraso e nunca
+       auditados, pela urgência ({nome, dias: dias de atraso, ou null se nunca});
+     acoes: abertas (atrasadas incluídas), atrasadas, feitas30 (concluídas nos
+       últimos 30 dias);
+     responsaveis: média de cada um (só os que têm perguntas);
+     faixas: os serviços pela nota da sua última auditoria. */
+function kpisPainel5s(lista,svcs,fq,hoje){
+  const todas=[...(lista||[])].sort(ordemCron);
+  const d30=somarDias(hoje,-29),d60=somarDias(hoje,-59);
+  const ult=todas.filter(a=>a.date>=d30&&a.date<=hoje),ant=todas.filter(a=>a.date>=d60&&a.date<d30);
+  const porMes=[];
+  const m0=new Date(hoje.slice(0,7)+"-01T00:00:00Z");
+  for(let k=11;k>=0;k--){
+    const d=new Date(m0);d.setUTCMonth(d.getUTCMonth()-k);
+    const mes=d.toISOString().slice(0,7),l=todas.filter(a=>String(a.date).slice(0,7)===mes);
+    porMes.push({mes,media:l.length?avg(l.map(total)):null,n:l.length});
+  }
+  const estados=prazosServicos(svcs,todas,fq,hoje);
+  const conta=e=>estados.filter(x=>x.estado===e).length;
+  const urgentes=estados.filter(x=>x.estado==="atrasado"||x.estado==="nunca")
+    .map(x=>({nome:x.svc,dias:x.estado==="atrasado"?-x.falta:null}));
+  const acoes={abertas:0,atrasadas:0,feitas30:0};
+  todas.forEach(a=>(Array.isArray(a.acoes)?a.acoes:[]).forEach(ac=>{
+    if(!ac)return;
+    const e=estadoAcao(ac,hoje);
+    if(e==="feita"){if(ac.feitaEm&&ac.feitaEm>=d30&&ac.feitaEm<=hoje)acoes.feitas30++;}
+    else{acoes.abertas++;if(e==="atrasada")acoes.atrasadas++;}
+  }));
+  const ms=todas.map(a=>typeof metricas==="function"?metricas(a).resp:byResp(a));
+  const responsaveis=Object.values(RESP).map((nome,i)=>({nome,pct:avg(ms.map(m=>m[i].pct)),
+    n:ms.reduce((s,m)=>s+m[i].n,0)})).filter(r=>r.n>0).map(r=>({nome:r.nome,pct:r.pct}));
+  const ultimas=new Map();todas.forEach(a=>ultimas.set(a.service,total(a)));
+  const faixas={excelente:0,oportunidade:0,critico:0};
+  ultimas.forEach(p=>{faixas[p>=80?"excelente":p>=50?"oportunidade":"critico"]++;});
+  return{hoje,
+    media30:ult.length?avg(ult.map(total)):null,n30:ult.length,
+    media30Ant:ant.length?avg(ant.map(total)):null,n30Ant:ant.length,
+    porMes,
+    prazos:{emDia:conta("em-dia"),aVencer:conta("a-vencer"),atrasados:conta("atrasado"),nunca:conta("nunca")},
+    urgentes:urgentes.slice(0,20),acoes,responsaveis,faixas};
+}
+/* `extra` ({servicos, freqs, hoje}): com ele, os KPIs vão em `kpis` (v3.17.0). */
+function dadosPainel5s(lista,extra){
   const todas=[...lista].sort((a,b)=>a.date.localeCompare(b.date)||(Number(a.id)||0)-(Number(b.id)||0));
   const porSvc=new Map();
   for(const a of todas){if(!porSvc.has(a.service))porSvc.set(a.service,[]);porSvc.get(a.service).push(a);}
@@ -3873,14 +3922,19 @@ function dadosPainel5s(lista){
     media:todas.length?avg(todas.map(total)):null,
     ultima:todas.length?todas[todas.length-1].date:null,
     pilares:PILLARS.map((p,i)=>({nome:p,pct:todas.length?avg(todas.map(a=>(typeof metricas==="function"?metricas(a).pilar:byPillar(a))[i].pct)):null})),
-    servicos
+    servicos,
+    kpis:extra&&extra.hoje?kpisPainel5s(lista,extra.servicos,extra.freqs,extra.hoje):undefined
   };
 }
 
 const painel=criarEscritorPainel({app:"5s",titulo:"Auditoria 5S",versaoApp:APP_VERSION});
 let painelTimer=null;
 /* Agrupa gravações seguidas (a importação grava várias chaves de uma vez). */
-function agendarPainel(){clearTimeout(painelTimer);painelTimer=setTimeout(()=>painel.escrever(dadosPainel5s(audits)),2000);}
+const dadosDoPainel=()=>dadosPainel5s(audits,{servicos:services,freqs,hoje:hojeISO()});
+function agendarPainel(){clearTimeout(painelTimer);painelTimer=setTimeout(()=>painel.escrever(dadosDoPainel()),2000);}
+/* v3.17.0: os prazos e os «últimos 30 dias» mudam com o dia, sem mudar os dados.
+   De hora a hora volta a calcular; o escritor só grava se algo mudou. */
+setInterval(()=>painel.escrever(dadosDoPainel()),36e5);
 function mostrarPainel(i){
   const btn=document.getElementById("btn-painel"),txt=document.getElementById("painel-estado");
   if(!btn||!txt)return;
@@ -3903,7 +3957,7 @@ function mostrarPainel(i){
   }[i.estado]||"";
 }
 painel.subscrever(mostrarPainel);
-painel.iniciar().then(()=>painel.escrever(dadosPainel5s(audits)));
+painel.iniciar().then(()=>painel.escrever(dadosDoPainel()));
 
 /* ---------- Ligação dos controlos estáticos ----------
    Nenhum handler inline no HTML: permite endurecer a CSP e elimina
@@ -3945,7 +3999,7 @@ on("btn-painel-off","click",async()=>{
 });
 on("btn-painel","click",()=>{
   const e=painel.info().estado;
-  (e==="licenca"?painel.darAcesso():painel.escolher()).then(()=>painel.escrever(dadosPainel5s(audits)));
+  (e==="licenca"?painel.darAcesso():painel.escolher()).then(()=>painel.escrever(dadosDoPainel()));
 });
 
 /* ---------- Armazenamento persistente (v3.8.0) ----------

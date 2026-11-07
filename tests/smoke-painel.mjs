@@ -53,6 +53,9 @@ await pg.waitForFunction(() => !!window.__PASTA.ficheiros["5s.painel.json"], nul
 let f = await feed();
 check(f.formato === "painel-feed" && f.versao === 1 && f.app === "5s", "formato do ficheiro errado");
 check(f.dados.total === 0 && f.dados.pilares.length === 5, "sem auditorias, o resumo devia estar vazio");
+/* v3.17.0: os KPIs da página do painel, com o dia da app e os 12 meses. */
+check(f.dados.kpis && /^\d{4}-\d{2}-\d{2}$/.test(f.dados.kpis.hoje) && f.dados.kpis.porMes.length === 12 &&
+  f.dados.kpis.media30 === null, "o ficheiro devia levar os KPIs (vazios)");
 check((await pg.locator("#painel-estado").textContent()).includes("partilhada"), "o cartão devia dizer a pasta");
 
 /* ---- 3. Gravar uma auditoria volta a gravar o ficheiro (~2 s depois). ---- */
@@ -66,6 +69,7 @@ await pg.waitForFunction(() => {
 }, null, { timeout: 10000 }).catch(() => {});
 f = await feed();
 check(f.dados.total === 1 && f.dados.servicos.length === 1, "a auditoria gravada devia chegar ao ficheiro do painel");
+check(f.dados.kpis && f.dados.kpis.porMes.reduce((t, m) => t + m.n, 0) === 1, "a auditoria gravada devia contar nos KPIs");
 
 /* ---- 4. «Deixar de gravar» (3.6.1) larga a pasta: nada mais é gravado. ---- */
 await pg.locator("[data-v=cfg]").click();
