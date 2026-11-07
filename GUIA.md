@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.19.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.20.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -127,6 +127,19 @@ Escolha o **serviço** (ou todos) e o **período** (todo o histórico, ou os
 - **Pontos fracos por pilar 5S** e **Desempenho por responsável** — radares e
   barras com as médias.
 
+**Relatório mensal.** Para a reunião com a direcção: escolha o **mês** e
+carregue em **Abrir relatório mensal**. Mostra, para todos os serviços:
+
+- a média do mês e a diferença face ao mês anterior;
+- cada serviço, do pior para o melhor, com os que ficaram por auditar no fim;
+- os pilares 5S e os responsáveis;
+- as cinco perguntas que mais falharam, e em que serviços;
+- o plano de acção (acções novas, concluídas, em aberto e em atraso);
+- os serviços com a auditoria em atraso.
+
+**Gerar PDF** imprime-o em duas folhas. No mês em curso, as acções e os prazos
+contam até hoje.
+
 ## Cópias de segurança
 
 Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-as
@@ -136,6 +149,7 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 | --- | --- | --- |
 | **Exportar histórico (JSON)** | Auditorias, serviços, pessoas, perguntas, responsáveis, frequências, acções e notas — **sem fotos** | Cópia leve, para fazer muitas vezes |
 | **Exportar com fotos (JSON)** | O mesmo, **com todas as fotos** | Cópia completa: a que permite recuperar tudo |
+| **Partilhar cópia com fotos** | A cópia completa, enviada pelo menu de partilha do telemóvel | Mandá-la logo para a Drive ou o email. Só aparece onde o browser o permite |
 | **Exportar para Excel** | Folhas *Auditorias*, *Respostas* e *Acções* | Análise noutro programa. **Não** é uma cópia: não se importa de volta |
 
 - **Lembrete.** A app avisa no topo quando nunca foi feita uma cópia, ou quando
@@ -191,6 +205,9 @@ de origem** desfaz a escolha.
 **Apaguei uma auditoria por engano.** Carregue em **Desfazer** no aviso do fundo
 do ecrã, nos 10 segundos seguintes. Depois disso, só uma cópia de segurança a
 recupera.
+
+**Partilhei a cópia e o ficheiro acaba em .txt.** É o Chrome, que não partilha
+ficheiros .json. O conteúdo é o mesmo: importe-o tal como está.
 
 **Mudei de telemóvel.** No antigo, *Exportar com fotos (JSON)*. No novo, abra a
 app, *Importar histórico (JSON)* e escolha *Substituir tudo*.

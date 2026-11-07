@@ -5,6 +5,23 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.20.0] — 2026-11-07
+
+### Adicionado
+
+- **Relatório mensal** na Análise: escolhe-se o mês e abre um resumo de todos
+  os serviços, pronto a imprimir em PDF em duas folhas — média do mês face ao
+  anterior, auditorias por faixa, cada serviço (do pior para o melhor, com os
+  não auditados no fim), pilares 5S e responsáveis, as cinco perguntas que mais
+  falharam, o plano de acção (novas, concluídas, em aberto e em atraso no fim
+  do mês) e os prazos das auditorias. No mês em curso, conta até hoje.
+- **Partilhar cópia com fotos** em *Configuração → Dados*: a cópia com fotos
+  vai para o menu de partilha do telemóvel (Web Share), para a Drive, o email
+  ou outra app. Só aparece onde o browser partilha ficheiros. No Chrome vai
+  como `.txt` (o Chrome não partilha `.json`), e a importação passa a aceitar
+  `.txt`. Uma partilha concluída conta como cópia com fotos.
+- Testes: `tests/mensal.test.js` e `tests/smoke-mensal.mjs`.
+
 ## [3.19.0] — 2026-11-07
 
 ### Adicionado

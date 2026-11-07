@@ -157,6 +157,9 @@ jobs:
       - name: Código de acesso próprio e espaço ocupado
         run: node tests/smoke-acesso.mjs
 
+      - name: Relatório mensal e partilha da cópia
+        run: node tests/smoke-mensal.mjs
+
       # Serve uma cópia do dist/ noutra porta (8767), que o teste altera e
       # desliga para simular erros do servidor e uma actualização.
       - name: Offline, servidor em erro e actualização do service worker
