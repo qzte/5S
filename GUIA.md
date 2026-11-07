@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.16.1. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.18.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -141,6 +141,10 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 - **Lembrete.** A app avisa no topo quando nunca foi feita uma cópia, ou quando
   há auditorias por copiar há uma semana ou mais (ou cinco ou mais).
   *Lembrar amanhã* adia o aviso.
+- **Fotos por copiar.** A cópia normal não leva fotos, por isso a app conta à
+  parte as fotos novas ou trocadas desde a última cópia *com fotos*. Quando
+  são cinco ou mais, ou passou uma semana, o aviso traz o botão **Exportar com
+  fotos**. Uma cópia sem fotos não o faz desaparecer.
 - **Recuperar.** *Importar histórico (JSON)* lê um destes ficheiros e pergunta:
   **Fundir** junta-o ao que existe, sem duplicar; **Substituir tudo** troca o
   histórico do dispositivo pelo do ficheiro (pede o código de acesso). As fotos
@@ -152,7 +156,8 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 ## Configuração
 
 - **Serviços** e **Frequência das auditorias** — ver
-  [Antes de começar](#antes-de-começar).
+  [Antes de começar](#antes-de-começar). Remover um serviço ou uma pessoa
+  mostra **Desfazer** no fundo do ecrã durante 10 segundos.
 - **Responsáveis** — quem responde por cada pergunta; são os eixos do radar e
   os blocos de recomendações. Um responsável com perguntas, recomendações ou
   acções atribuídas não pode ser removido.

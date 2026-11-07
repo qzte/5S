@@ -5,6 +5,30 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.18.0] — 2026-11-07
+
+### Adicionado
+
+- O **lembrete de cópia de segurança conta as fotos.** As fotos de evidência e
+  das recomendações novas ou trocadas desde a última cópia *com fotos* ficam
+  por copiar (`pendFotos`, `atFotos` na chave `backup`); a exportação normal,
+  que não as leva, já não apaga esse aviso. O aviso aparece se nunca houve uma
+  cópia com fotos, ou com 5 ou mais fotos por copiar, ou passados 7 dias, e o
+  botão do aviso passa a ser *Exportar com fotos*. Na primeira abertura desta
+  versão, as fotos já guardadas contam como por copiar. *Configuração → Dados*
+  mostra também a data da última cópia com fotos.
+- **Desfazer ao remover um serviço ou uma pessoa** na Configuração: a remoção é
+  imediata e o aviso do fundo do ecrã oferece *Desfazer* durante 10 segundos,
+  que repõe o nome no mesmo lugar da lista. A frequência de um serviço só sai
+  quando o prazo acaba. Uma nova remoção (ou apagar uma auditoria) confirma a
+  anterior.
+- Testes: `tests/copias.test.js` e `tests/smoke-copias.mjs`.
+
+### Alterado
+
+- O *Desfazer* de apagar uma auditoria passa a usar o mesmo mecanismo genérico
+  (`oferecerDesfazer`).
+
 ## [3.17.0] — 2026-11-07
 
 A página da 5S no painel e-ink passa a ser a dos KPIs.

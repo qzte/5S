@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.17.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.18.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.17.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.18.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -68,6 +68,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | Perguntas gravadas uma vez por conjunto: cabem 5 000 auditorias (enchia por volta das 1 700) | 3.11.0 |
 | | *Desfazer* ao apagar uma auditoria | 3.13.0 |
 | | [Cópia de segurança com fotos](#dados-e-privacidade) | 3.14.0 |
+| | Lembrete das fotos por copiar; *Desfazer* ao remover um serviço ou uma pessoa | 3.18.0 |
 | **Auditar** | Seguimento da auditoria anterior, no formulário e no relatório | 3.9.0 |
 | | [Plano de acção](#plano-de-acção): acções com responsável, prazo e estado | 3.12.0 |
 | | [Frequência e prazos](#frequência-e-prazos) por serviço | 3.13.0 |
@@ -386,7 +387,11 @@ por apagar todo o histórico de uma vez (3.5.1).
   *Configuração → Dados*, com o espaço ocupado e a data da última cópia.
 - **Lembrete de cópia de segurança.** Um aviso no topo pede a exportação se
   nunca houve nenhuma, ou se há auditorias gravadas ou editadas por exportar há
-  7 dias ou mais, ou 5 ou mais. *Lembrar amanhã* adia-o por um dia.
+  7 dias ou mais, ou 5 ou mais. *Lembrar amanhã* adia-o por um dia. Desde
+  3.18.0 conta também as **fotos** (evidências e recomendações) novas ou
+  trocadas desde a última cópia *com fotos*: a cópia normal não as leva e já
+  não tira esse aviso, que traz o botão *Exportar com fotos*. Na primeira
+  abertura da 3.18.0, as fotos que já existiam contam como por copiar.
 - **Nova versão.** Quando o service worker de uma versão nova passa a controlar a
   página, aparece *Nova versão disponível* com o botão *Recarregar agora*. A
   auditoria por terminar sobrevive ao recarregar.
@@ -520,6 +525,7 @@ node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditoria
 node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no terreno, PDF
 node tests/smoke-prazos.mjs        # frequência e prazos; nenhum diálogo nativo
 node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
+node tests/smoke-copias.mjs        # lembrete das fotos por copiar; Desfazer ao remover
 node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização, guia
 ```
 

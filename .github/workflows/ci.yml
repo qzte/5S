@@ -151,6 +151,9 @@ jobs:
       - name: Evidência por pergunta e cópia com fotos
         run: node tests/smoke-evidencias.mjs
 
+      - name: Lembrete das fotos por copiar e Desfazer ao remover
+        run: node tests/smoke-copias.mjs
+
       # Serve uma cópia do dist/ noutra porta (8767), que o teste altera e
       # desliga para simular erros do servidor e uma actualização.
       - name: Offline, servidor em erro e actualização do service worker

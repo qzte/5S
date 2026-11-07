@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.17.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.18.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1182,9 +1182,33 @@ function avisoBackup(info,n,agora){
     (dias===0?"feita hoje":dias===1?"feita há 1 dia":"feita há "+dias+" dias")+
     ". Exporte o histórico para não as perder.";
 }
+/* v3.18.0: o mesmo, para as FOTOS. A cópia normal não as leva, e até aqui
+   contava como cópia feita: o aviso sumia com as fotos ainda só no telemóvel.
+   `backup` guarda agora também a última cópia COM fotos (`atFotos`) e quantas
+   fotos foram postas ou trocadas desde então (`pendFotos`). Avisa se há fotos
+   que nunca entraram numa cópia, ou se as que há por copiar já são BACKUP_PEND
+   ou esperam há BACKUP_DIAS dias. O "Lembrar amanhã" vale para os dois. */
+function avisoFotos(info,agora){
+  const b=info&&typeof info==="object"&&!Array.isArray(info)?info:{};
+  const adiar=Date.parse(b.adiar);
+  if(Number.isFinite(adiar)&&agora<adiar)return null;
+  const pend=Number.isInteger(b.pendFotos)&&b.pendFotos>0?b.pendFotos:0;
+  if(!pend)return null;
+  const at=Date.parse(b.atFotos);
+  if(!Number.isFinite(at))
+    return (pend===1?"Há 1 foto":"Há "+pend+" fotos")+" (evidências e recomendações) que nunca "+
+      (pend===1?"entrou":"entraram")+" numa cópia de segurança: a cópia normal não leva fotos. "+
+      "Exporte com fotos e guarde o ficheiro noutro sítio.";
+  const dias=Math.max(0,Math.floor((agora-at)/864e5));
+  if(pend<BACKUP_PEND&&dias<BACKUP_DIAS)return null;
+  return (pend===1?"1 foto nova ou trocada":pend+" fotos novas ou trocadas")+
+    " desde a última cópia com fotos, "+
+    (dias===0?"feita hoje":dias===1?"feita há 1 dia":"feita há "+dias+" dias")+
+    ". Exporte com fotos para não as perder.";
+}
 
 
-const APP_VERSION="3.17.0";
+const APP_VERSION="3.18.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1548,14 +1572,18 @@ let evidToken=0;
 /* A última gravação de evidências: o relatório, que abre logo a seguir a gravar,
    espera por ela antes de ler as fotos (senão lia o disco ainda por escrever). */
 let evidEscrita=Promise.resolve();
-function gravarEvidencias(id,scores){
+function gravarEvidencias(id,scores,nova){
   const snap=new Map(fotosForm),rem=new Set(fotosRemovidas),carga=evidCarga||Promise.resolve(new Map());
   return evidEscrita=carga.then(base=>{
     const fin=new Map(base);rem.forEach(i=>fin.delete(i));snap.forEach((u,i)=>fin.set(i,u));
+    /* v3.18.0: as fotos novas ou trocadas contam para o aviso de cópia. Numa
+       auditoria nova, todas: as do rascunho também nunca foram copiadas. */
+    let novas=0;
+    fin.forEach((u,i)=>{if((scores[i]===0||scores[i]===1)&&(nova||base.get(i)!==u))novas++;});
     return fotosIDB("readwrite",st=>{
       st.delete(evidIntervalo(id));
       fin.forEach((u,i)=>{if(scores[i]===0||scores[i]===1)st.put(u,String(id)+"#"+i);});
-    });
+    }).then(()=>registarFotos(novas));
   }).catch(()=>aviso("A auditoria foi gravada, mas não foi possível gravar as fotos de evidência neste dispositivo."));
 }
 function pick(i,el){
@@ -1750,7 +1778,7 @@ document.getElementById("btn-save").onclick=()=>{
   if(!save("audits",audits)){audits.pop();return;}
   /* O rascunho sai ANTES de resetForm(): de outro modo renderForm() voltava a
      pô-lo no formulário, e a auditoria acabada de gravar aparecia por terminar. */
-  gravarEvidencias(a.id,a.scores);
+  gravarEvidencias(a.id,a.scores,true);
   apagarRascunho();
   registarAlteracao();
   pedirPersistencia();
@@ -2326,7 +2354,7 @@ function wireRecs(a){
     shrinkImage(f,url=>{
       if(!url){aviso("Não foi possível ler a imagem.");return;}
       REC_FOTOS.set(k,url);redrawRecs(a);
-      guardarFoto(a.id,k,url).catch(()=>aviso(
+      guardarFoto(a.id,k,url).then(()=>registarFotos(1)).catch(()=>aviso(
         "A foto aparece neste relatório, mas não foi possível guardá-la no dispositivo: "+
         "ao sair do relatório perde-se."));
     });
@@ -2693,7 +2721,30 @@ async function editAudit(a){
    As fotos da auditoria só são apagadas quando o prazo de desfazer acaba, para
    que desfazer as traga de volta também. */
 const DESFAZER_MS=10000;
-let apagada=null; /* {a, idx, timer}: a última auditoria apagada, ainda por confirmar */
+/* v3.18.0: Desfazer genérico — auditorias (3.13.0), serviços e pessoas.
+   Um de cada vez: uma remoção nova confirma a anterior. `desfazer` repõe;
+   `concluir` (opcional) é o que só se faz quando o prazo acaba (apagar as
+   fotos de uma auditoria, por exemplo). */
+let desfazivel=null;
+function oferecerDesfazer(texto,desfazer,concluir){
+  concluirApagar();
+  const d={desfazer,concluir:concluir||null,timer:null};
+  d.timer=setTimeout(()=>{if(desfazivel===d)concluirApagar();},DESFAZER_MS);
+  desfazivel=d;
+  mostrarToast(texto,"Desfazer",()=>{
+    if(desfazivel!==d)return;
+    clearTimeout(d.timer);desfazivel=null;esconderToast();
+    d.desfazer();
+  });
+}
+/* Fim do prazo (ou outra remoção): o que estava removido fica removido. O nome
+   vem de 3.13.0, quando só as auditorias tinham Desfazer. */
+function concluirApagar(){
+  const d=desfazivel;
+  if(!d)return;
+  clearTimeout(d.timer);desfazivel=null;esconderToast();
+  if(d.concluir)d.concluir();
+}
 function delAudit(id){
   const idx=audits.findIndex(a=>a.id===id);
   if(idx<0)return;
@@ -2706,30 +2757,14 @@ function delAudit(id){
      substituir. */
   if(editId===id)resetForm();
   renderHist();
-  apagada={a,idx,timer:setTimeout(concluirApagar,DESFAZER_MS)};
-  mostrarToast("Auditoria apagada: "+a.service+" · "+a.date+".","Desfazer",desfazerApagar);
-}
-/* Fim do prazo (ou outra auditoria apagada): o que estava apagado fica apagado. */
-function concluirApagar(){
-  if(!apagada)return;
-  clearTimeout(apagada.timer);
-  const id=apagada.a.id;
-  apagada=null;
-  esconderToast();
-  apagarFotosDe(id).catch(()=>{});
-}
-function desfazerApagar(){
-  if(!apagada)return;
-  clearTimeout(apagada.timer);
-  const {a,idx}=apagada;
-  apagada=null;
-  esconderToast();
-  if(audits.some(x=>x.id===a.id))return;
-  const antes=audits,nova=audits.slice();
-  nova.splice(Math.min(idx,nova.length),0,a);
-  audits=nova;
-  if(!save("audits",audits)){audits=antes;return;}
-  renderHist();
+  oferecerDesfazer("Auditoria apagada: "+a.service+" · "+a.date+".",()=>{
+    if(audits.some(x=>x.id===a.id))return;
+    const ant=audits,nova=audits.slice();
+    nova.splice(Math.min(idx,nova.length),0,a);
+    audits=nova;
+    if(!save("audits",audits)){audits=ant;return;}
+    renderHist();
+  },()=>apagarFotosDe(a.id).catch(()=>{}));
 }
 /* Aviso discreto no fundo do ecrã, com um botão. Um de cada vez. */
 function mostrarToast(texto,botao,fn){
@@ -2928,7 +2963,19 @@ function mostrarPrazoServico(){
   el.textContent=nomeFreq(e.freq)+(e.ultima?" · última auditoria a "+dataCurta(e.ultima):"")+" · "+textoPrazo(e)+".";
   el.style.color=e.estado==="atrasado"||e.estado==="nunca"?"var(--red-ink)":e.estado==="a-vencer"?"var(--amber-ink)":"var(--muted)";
 }
-function rmPerson(i){people.splice(i,1);save("people",people);renderCfg();renderForm();}
+/* v3.18.0: remover uma pessoa ou um serviço tem Desfazer, como apagar uma
+   auditoria: até aqui o × apagava logo, sem confirmação nem volta. */
+function rmPerson(i){
+  const p=people[i];
+  if(p==null)return;
+  concluirApagar();
+  people.splice(i,1);save("people",people);renderCfg();renderForm();
+  oferecerDesfazer("Pessoa removida: "+p+".",()=>{
+    if(people.includes(p))return;
+    people.splice(Math.min(i,people.length),0,p);
+    save("people",people);renderCfg();renderForm();
+  });
+}
 
 /* ---------- Responsáveis (v3.5.0) ----------
    Rascunho à parte, como no editor de perguntas: mexer na lista não muda nada
@@ -3157,7 +3204,22 @@ function importExcel(inp){
 function addSvc(){const v=clean(document.getElementById("svc-new").value,200);
   if(!v)return;services.push(v);save("services",services);
   document.getElementById("svc-new").value="";renderCfg();renderForm();}
-function rmSvc(i){services.splice(i,1);save("services",services);renderCfg();renderForm();}
+/* A frequência do serviço só sai quando a remoção fica (fim do prazo), para que
+   desfazer a traga de volta. As auditorias ao serviço não são tocadas. */
+function rmSvc(i){
+  const sv=services[i];
+  if(sv==null)return;
+  concluirApagar();
+  services.splice(i,1);save("services",services);renderCfg();renderForm();
+  oferecerDesfazer("Serviço removido: "+sv+".",()=>{
+    if(services.includes(sv))return;
+    services.splice(Math.min(i,services.length),0,sv);
+    save("services",services);renderCfg();renderForm();
+  },()=>{
+    if(services.includes(sv)||!freqs.some(f=>f.s===sv))return;
+    freqs=freqs.filter(f=>f.s!==sv);save("freqAud",freqs);
+  });
+}
 /* v3.14.0: com `comFotos`, o ficheiro leva também as fotos (das recomendações
    e das evidências), para uma cópia de segurança completa. Sem elas, o ficheiro
    fica leve, como até aqui. */
@@ -3191,7 +3253,7 @@ async function exportJson(comFotos){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
   a.download="auditorias5s_"+new Date().toISOString().slice(0,10)+(fotos?"_com_fotos":"")+".json";a.click();
   URL.revokeObjectURL(a.href);
-  registarExportacao();}
+  registarExportacao(!!fotos);}
 
 /* v3.9.0: exportação para Excel, com o SheetJS que já servia para a
    importação. Duas folhas — ver linhasExcel(). Não conta como cópia de
@@ -4036,7 +4098,8 @@ function mostrarArmaz(){
   const b=backupInfo(),at=Date.parse(b.at);
   el.innerHTML=`Espaço ocupado: cerca de <b>${pct}%</b> do disponível para esta app.<br>`+
     `Protecção contra limpeza automática: ${esc(prot)}.<br>`+
-    `Última cópia de segurança: <b>${Number.isFinite(at)?esc(quando(b.at)):"nunca"}</b>.`;
+    `Última cópia de segurança: <b>${Number.isFinite(at)?esc(quando(b.at)):"nunca"}</b>; `+
+    `com fotos: <b>${Number.isFinite(Date.parse(b.atFotos))?esc(quando(b.atFotos)):"nunca"}</b>.`;
 }
 
 /* ---------- Cópia de segurança: estado e aviso (v3.8.0) ---------- */
@@ -4047,17 +4110,55 @@ function registarAlteracao(){
   b.pend=(Number.isInteger(b.pend)&&b.pend>0?b.pend:0)+1;
   gravarBackupInfo(b);
 }
+/* v3.18.0: fotos postas ou trocadas desde a última cópia com fotos. */
+function registarFotos(n){
+  if(!(n>0))return;
+  const b=backupInfo();
+  b.pendFotos=(Number.isInteger(b.pendFotos)&&b.pendFotos>0?b.pendFotos:0)+n;
+  gravarBackupInfo(b);
+}
 /* Chamada depois do clique no download: o browser não diz se o ficheiro chegou
-   a ser gravado, pelo que se assume que sim — é o mesmo que o utilizador vê. */
-function registarExportacao(){gravarBackupInfo({at:new Date().toISOString(),pend:0});}
+   a ser gravado, pelo que se assume que sim — é o mesmo que o utilizador vê.
+   v3.18.0: uma cópia sem fotos não conta para as fotos. */
+function registarExportacao(comFotos){
+  const b=backupInfo(),agora=new Date().toISOString();
+  gravarBackupInfo(comFotos?{at:agora,pend:0,atFotos:agora,pendFotos:0}
+    :{at:agora,pend:0,atFotos:b.atFotos,pendFotos:b.pendFotos});
+}
 function mostrarAvisoBackup(){
   const el=document.getElementById("aviso-backup");if(!el)return;
-  const t=avisoBackup(backupInfo(),audits.length,Date.now());
+  const info=backupInfo(),agora=Date.now();
+  const tAud=avisoBackup(info,audits.length,agora),tFot=avisoFotos(info,agora);
+  const t=tAud||tFot;
   el.classList.toggle("hidden",!t);
-  if(t)document.getElementById("aviso-backup-txt").textContent=t;
+  if(t){
+    document.getElementById("aviso-backup-txt").textContent=t;
+    /* Com fotos por copiar, a cópia proposta é a com fotos: cobre as duas. */
+    const bt=document.getElementById("btn-backup-exp");
+    bt.dataset.fotos=tFot?"1":"";
+    bt.textContent=tFot?"Exportar com fotos":"Exportar agora";
+  }
   mostrarArmaz();
 }
-on("btn-backup-exp","click",()=>exportJson(false));
+/* v3.18.0: quem já tinha fotos antes desta versão nunca as copiou com a app a
+   contar. Conta-as uma vez, no primeiro arranque, para o aviso as cobrir. */
+function iniciarContagemFotos(){
+  const b=backupInfo();
+  if(Number.isInteger(b.pendFotos)||b.atFotos)return;
+  const vivos=new Set(audits.map(a=>String(a.id)));
+  fotosIDB("readonly",st=>{
+    const out={n:0},cur=st.openKeyCursor?st.openKeyCursor():st.openCursor();
+    cur.onsuccess=()=>{const c=cur.result;if(!c)return;
+      const id=idDaChave(c.key);if(id!=null&&vivos.has(String(id)))out.n++;
+      c.continue();};
+    return out;
+  }).then(o=>{
+    const b2=backupInfo();
+    if(Number.isInteger(b2.pendFotos)||b2.atFotos)return;
+    b2.pendFotos=o.n;gravarBackupInfo(b2);
+  }).catch(()=>{});
+}
+on("btn-backup-exp","click",e=>exportJson(e.currentTarget.dataset.fotos==="1"));
 on("btn-backup-adiar","click",()=>{
   const b=backupInfo();b.adiar=new Date(Date.now()+864e5).toISOString();gravarBackupInfo(b);
 });
@@ -4083,6 +4184,7 @@ renderForm();
 ligarRotulos();
 atualizarPrazos();
 mostrarAvisoBackup();
+iniciarContagemFotos();
 pedirPersistencia();
 /* Depois do primeiro render: a proposta é uma caixa de diálogo e não deve
    aparecer sobre uma página ainda em branco. */
