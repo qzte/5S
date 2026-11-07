@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.20.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.21.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -251,6 +251,15 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .prazo-row:first-of-type{border-top:0}
 .prazo-row>div{flex:1 1 auto;min-width:0;font-size:.85rem}
 .prazo-row .btn{margin:0}
+/* v3.21.0: separador Acções, um bloco por acção. */
+.ac-item{padding:10px 0;border-top:1px solid var(--line)}
+.ac-item:first-child{border-top:0;padding-top:0}
+.ac-topo{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.85rem}
+.ac-topo b{margin-left:auto;font-family:var(--f-sans);font-size:.8rem}
+.ac-texto{margin:6px 0 2px;font-size:.95rem}
+.ac-meta{color:var(--muted)}
+.ac-ctl{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
+.ac-ctl .btn{margin:0}
 .tab-badge{display:inline-block;min-width:18px;padding:1px 5px;margin-left:5px;border-radius:99px;
   background:var(--red);color:#fff;font-size:.65rem;line-height:1.4;letter-spacing:0;vertical-align:1px}
 .legenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.75rem;margin-top:8px}
@@ -494,6 +503,26 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <div id="rad-resp"></div><div id="cmp-resp"></div></div>
 </section>
 
+<!-- ============ ACÇÕES (v3.21.0) ============ -->
+<section id="view-acoes" class="hidden">
+  <h2 class="sr-only">Acções</h2>
+  <div class="card">
+    <h3 style="margin-bottom:6px">Plano de acção de todos os serviços</h3>
+    <p id="ac-resumo" style="font-size:.78rem;color:var(--muted);margin-bottom:10px"></p>
+    <div class="row">
+      <div><label for="ac-estado">Estado</label><select id="ac-estado">
+        <option value="">Em aberto</option>
+        <option value="atrasadas">Em atraso</option>
+        <option value="feitas">Feitas</option>
+        <option value="todas">Todas</option></select></div>
+      <div><label for="ac-r">Responsável</label><select id="ac-r"></select></div>
+    </div>
+    <label for="ac-svc">Serviço</label><select id="ac-svc"></select>
+    <div id="ac-conta" style="font-size:.78rem;color:var(--muted)" role="status"></div>
+  </div>
+  <div id="ac-lista"></div>
+</section>
+
 <!-- ============ RELATÓRIO ============ -->
 <section id="view-report" class="hidden"></section>
 
@@ -636,6 +665,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   <button class="tab active" data-v="audit">Auditar</button>
   <button class="tab" data-v="history">Histórico</button>
   <button class="tab" data-v="stats">Análise</button>
+  <button class="tab" data-v="acoes">Acções</button>
   <button class="tab" data-v="cfg">Config</button>
 </nav>
 
@@ -1237,7 +1267,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.20.0";
+const APP_VERSION="3.21.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1283,10 +1313,11 @@ loadItems();
 /* ---------- Navegação ---------- */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===t));
-  ["audit","history","stats","report","cfg"].forEach(v=>
+  ["audit","history","stats","acoes","report","cfg"].forEach(v=>
     document.getElementById("view-"+v).classList.toggle("hidden",v!==t.dataset.v));
   if(t.dataset.v==="history")renderHist();
   if(t.dataset.v==="stats")renderStats();
+  if(t.dataset.v==="acoes")renderAcoes();
   if(t.dataset.v==="cfg")renderCfg();
 });
 
@@ -2009,6 +2040,38 @@ function acoesPendentes(lista,svc,hoje,antesDe){
   return out.sort((x,y)=>(y.estado==="atrasada")-(x.estado==="atrasada")||
     pz(x).localeCompare(pz(y))||String(x.date).localeCompare(String(y.date))||x.acao.id-y.acao.id);
 }
+/* v3.21.0: as acções de todas as auditorias, para o separador Acções. `f`:
+   {estado, r, svc}; estado "" = em aberto (abertas e atrasadas), "atrasadas",
+   "feitas" ou "todas". As atrasadas primeiro, depois as abertas pelo prazo
+   (sem prazo no fim), e as feitas da mais recente para a mais antiga. */
+const ORDEM_ACAO={atrasada:0,aberta:1,feita:2};
+function listaAcoes(lista,f,hoje){
+  const g=f||{},out=[];
+  (lista||[]).forEach(au=>{
+    if(!au||!Array.isArray(au.acoes)||(g.svc&&au.service!==g.svc))return;
+    au.acoes.forEach(ac=>{
+      if(!ac||(g.r&&ac.r!==g.r))return;
+      const e=estadoAcao(ac,hoje);
+      const ok=g.estado==="todas"?true:g.estado==="feitas"?e==="feita":g.estado==="atrasadas"?e==="atrasada":e!=="feita";
+      if(ok)out.push({auditId:au.id,service:au.service,date:au.date,acao:ac,estado:e});
+    });
+  });
+  const pz=x=>x.acao.prazo||"9999-99-99";
+  return out.sort((x,y)=>ORDEM_ACAO[x.estado]-ORDEM_ACAO[y.estado]||
+    (x.estado==="feita"?String(y.acao.feitaEm||"").localeCompare(String(x.acao.feitaEm||"")):pz(x).localeCompare(pz(y)))||
+    String(x.date).localeCompare(String(y.date))||x.service.localeCompare(y.service)||x.acao.id-y.acao.id);
+}
+/* Contagens para o resumo e para o número no separador. */
+function resumoAcoes(lista,hoje){
+  const r={abertas:0,atrasadas:0,feitas30:0},d30=somarDias(hoje,-29);
+  (lista||[]).forEach(au=>(au&&Array.isArray(au.acoes)?au.acoes:[]).forEach(ac=>{
+    if(!ac)return;
+    const e=estadoAcao(ac,hoje);
+    if(e==="feita"){if(ac.feitaEm&&ac.feitaEm>=d30&&ac.feitaEm<=hoje)r.feitas30++;}
+    else{r.abertas++;if(e==="atrasada")r.atrasadas++;}
+  }));
+  return r;
+}
 /* Quantas acções de uma auditoria estão em aberto, e quantas destas atrasadas. */
 function contaAcoes(au,hoje){
   const ab=(Array.isArray(au&&au.acoes)?au.acoes:[]).filter(ac=>ac&&ac.estado!=="feita");
@@ -2721,10 +2784,77 @@ function openReport(a){
   });
   document.getElementById("btn-print").onclick=()=>window.print();
   document.getElementById("btn-edit").onclick=()=>editAudit(a);
-  document.getElementById("btn-back").onclick=()=>{clearFotos();document.querySelector('[data-v=history]').click();};
-  ["audit","history","stats","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
+  /* v3.21.0: aberto do separador Acções, «Voltar» volta para lá. */
+  const voltar=(document.querySelector(".tab.active")||{dataset:{}}).dataset.v==="acoes"?"acoes":"history";
+  document.getElementById("btn-back").onclick=()=>{clearFotos();document.querySelector('[data-v='+voltar+']').click();};
+  ["audit","history","stats","acoes","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
   document.getElementById("view-report").classList.remove("hidden");
   window.scrollTo(0,0);
+}
+
+/* ---------- Acções (v3.21.0) ----------
+   Todas as acções do plano, de todos os serviços: o que está em atraso, de
+   quem, e onde. Marca-se como feita aqui mesmo; «Relatório» abre a auditoria
+   de onde a acção veio. Filtros em memória, como os do Histórico. */
+const acFiltro={estado:"",r:"",svc:""};
+const AC_PAGINA=100;
+let acMostrar=AC_PAGINA;
+function renderAcoes(){
+  const hoje=hojeISO();
+  const rs=document.getElementById("ac-r");
+  const respsUsados=new Set();audits.forEach(a=>(Array.isArray(a.acoes)?a.acoes:[]).forEach(ac=>ac&&respsUsados.add(ac.r)));
+  const opR=[...new Set([...Object.keys(RESP),...respsUsados])];
+  if(!opR.includes(acFiltro.r))acFiltro.r="";
+  rs.innerHTML=`<option value="">Todos os responsáveis</option>`+opR.map(k=>`<option value="${esc(k)}">${esc(isResp(k)?RESP[k]:k)}</option>`).join("");
+  rs.value=acFiltro.r;
+  const svcs=[...new Set(audits.filter(a=>Array.isArray(a.acoes)&&a.acoes.length).map(a=>a.service))].sort((x,y)=>x.localeCompare(y));
+  if(!svcs.includes(acFiltro.svc))acFiltro.svc="";
+  const ss=document.getElementById("ac-svc");
+  ss.innerHTML=`<option value="">Todos os serviços</option>`+svcs.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  ss.value=acFiltro.svc;
+  document.getElementById("ac-estado").value=acFiltro.estado;
+  const r=resumoAcoes(audits,hoje),todas=listaAcoes(audits,{estado:"todas"},hoje).length;
+  document.getElementById("ac-resumo").innerHTML=todas?
+    `<b>${r.abertas}</b> em aberto · <b style="color:${r.atrasadas?"var(--red-ink)":"inherit"}">${r.atrasadas}</b> em atraso · <b>${r.feitas30}</b> feita(s) nos últimos 30 dias`:
+    "Ainda não há acções. Criam-se no relatório de uma auditoria, em <i>Plano de acção</i> ou com <i>+ Acção</i> nos itens a melhorar.";
+  const l=listaAcoes(audits,acFiltro,hoje);
+  document.getElementById("ac-conta").textContent=todas?l.length+" de "+todas+" acção(ões).":"";
+  const box=document.getElementById("ac-lista");
+  if(!l.length){box.innerHTML=todas?`<div class="card"><p class="empty">Nenhuma acção com estes filtros.</p></div>`:"";return;}
+  const vis=l.slice(0,acMostrar);
+  /* Um bloco por acção, e não uma tabela: seis colunas não cabem num telemóvel. */
+  box.innerHTML=`<div class="card" id="ac-tabela">`+
+    vis.map((x,k)=>{const ac=x.acao,[rot,cor]=ESTADO_ACAO[x.estado];
+      return`<div class="ac-item">
+      <div class="ac-topo"><span class="pill" style="background:${cor}">${rot}</span>
+        <small>${x.estado==="feita"?(ac.feitaEm?"feita a "+esc(dataCurta(ac.feitaEm)):""):(ac.prazo?"prazo "+esc(dataCurta(ac.prazo)):"sem prazo")}</small>
+        <b>${esc(x.service)}</b></div>
+      <div class="ac-texto">${esc(ac.texto)}</div>
+      <small class="ac-meta">${esc(isResp(ac.r)?RESP[ac.r]:ac.r)}${ac.item?" · pergunta nº "+esc(ac.item):""} · auditoria de ${esc(dataCurta(x.date))}</small>
+      <div class="ac-ctl"><label class="chk"><input type="checkbox" data-ac-feita="${x.auditId}:${ac.id}"${x.estado==="feita"?" checked":""}> Feita</label>
+        <button class="btn small ghost" data-ac-rep="${k}" aria-label="Abrir o relatório da auditoria de ${esc(x.service)} de ${esc(x.date)}">Relatório</button></div>
+      </div>`;}).join("")+
+    `${l.length>vis.length?`<button class="btn small ghost" id="btn-ac-mais">Mostrar mais (${l.length-vis.length})</button>`:""}</div>`;
+  box.querySelectorAll("[data-ac-feita]").forEach(c=>c.onchange=()=>{
+    if(!marcarAcao(c.dataset.acFeita,c.checked)){c.checked=!c.checked;return;}
+    renderAcoes();
+  });
+  box.querySelectorAll("[data-ac-rep]").forEach(b=>b.onclick=()=>{
+    const a=audits.find(x=>x.id===vis[+b.dataset.acRep].auditId);if(a)openReport(a);
+  });
+  const mais=document.getElementById("btn-ac-mais");
+  if(mais)mais.onclick=()=>{acMostrar+=AC_PAGINA;renderAcoes();};
+}
+/* O número no separador: as acções em atraso. */
+function atualizarBadgeAcoes(){
+  const tab=document.querySelector('.tab[data-v="acoes"]');if(!tab)return;
+  const n=resumoAcoes(audits,hojeISO()).atrasadas;
+  let b=tab.querySelector(".tab-badge");
+  if(n){
+    if(!b){b=document.createElement("span");b.className="tab-badge";tab.appendChild(b);}
+    b.textContent=n;
+    b.setAttribute("aria-label",n+(n>1?" acções em atraso":" acção em atraso"));
+  }else if(b)b.remove();
 }
 
 /* ---------- Relatório mensal (v3.20.0) ----------
@@ -2782,7 +2912,7 @@ function openMensal(mes){
   <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
   document.getElementById("btn-print").onclick=()=>window.print();
   document.getElementById("btn-back").onclick=()=>document.querySelector('[data-v=stats]').click();
-  ["audit","history","stats","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
+  ["audit","history","stats","acoes","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
   document.getElementById("view-report").classList.remove("hidden");
   window.scrollTo(0,0);
 }
@@ -3093,6 +3223,7 @@ function renderFreqs(){
 /* Prazos: o cartão do Histórico, o número no separador e a indicação junto ao
    serviço no formulário. */
 function atualizarPrazos(){
+  atualizarBadgeAcoes();
   const hoje=hojeISO();
   const lista=prazosServicos(services,audits,freqs,hoje);
   const urgentes=lista.filter(e=>e.estado==="atrasado"||e.estado==="nunca").length;
@@ -4339,6 +4470,9 @@ on("btn-expxl","click",()=>exportExcel());
   on(id,"change",e=>{histFiltro[k]=e.target.value;histMostrar=HIST_PAGINA;renderHist();}));
 on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");histMostrar=HIST_PAGINA;renderHist();});
 on("an-svc","change",e=>{anFiltro.svc=e.target.value;renderStats();});
+on("ac-estado","change",e=>{acFiltro.estado=e.target.value;acMostrar=AC_PAGINA;renderAcoes();});
+on("ac-r","change",e=>{acFiltro.r=e.target.value;acMostrar=AC_PAGINA;renderAcoes();});
+on("ac-svc","change",e=>{acFiltro.svc=e.target.value;acMostrar=AC_PAGINA;renderAcoes();});
 on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(m)openMensal(m);});
 on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
 on("f-service","change",()=>mostrarAnteriores());

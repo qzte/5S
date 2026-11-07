@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.20.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.21.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.20.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.21.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -48,6 +48,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra o prazo do serviço e as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. |
 | **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço, e os **prazos** de cada serviço; edição (sob PIN) e remoção (com *Desfazer*). |
 | **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. E o **relatório mensal**, de todos os serviços, para imprimir em PDF (3.20.0). |
+| **Acções** | O plano de acção de todos os serviços: resumo, filtros por estado, responsável e serviço, as em atraso primeiro; marcar como feita e abrir o relatório de origem (3.21.0). |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Mais as **Evidências** e o **plano de acção**, cada uma numa folha, quando os há. No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior. |
 | **Configuração** | Serviços e a **frequência** de cada um, responsáveis, cópia de segurança JSON (com ou sem fotos) e importação, exportação e importação de Excel, estado do armazenamento, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
 
@@ -78,6 +79,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | [Evidência por pergunta](#evidência-por-pergunta): nota e foto | 3.14.0 |
 | **Consultar** | Histórico com filtros e variação; Análise por serviço e período; exportação para Excel | 3.9.0 |
 | | [Relatório mensal](#relatório-mensal-3200) para a direcção | 3.20.0 |
+| | Separador **Acções**: o plano de acção de todos os serviços | 3.21.0 |
 | | Histórico e Análise rápidos com milhares de auditorias | 3.15.0 |
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
@@ -353,6 +355,18 @@ pela mesma porta, `sanitizeAcoes()`), e têm uma folha própria, *Acções*, na
 exportação para Excel. Um responsável com acções atribuídas não pode ser
 removido, tal como um com perguntas ou recomendações.
 
+
+### Separador Acções (3.21.0)
+
+As acções viam-se só por serviço (no formulário) ou por auditoria (no
+relatório). O separador **Acções** junta-as todas (`listaAcoes()`), com um
+resumo — em aberto, em atraso, feitas nos últimos 30 dias — e filtros por
+estado (por omissão, as em aberto), responsável e serviço. As em atraso vêm
+primeiro, as mais antigas à frente; depois as abertas pelo prazo, e as sem
+prazo no fim. Cada acção pode ser marcada como feita ali mesmo, e
+*Relatório* abre a auditoria de onde veio (o *Voltar* desse relatório regressa
+às Acções). O separador mostra a vermelho quantas estão em atraso. Uma acção
+por bloco, e não uma tabela, para caber num telemóvel; 100 de cada vez.
 ## Dados e privacidade
 
 Tudo vive em `localStorage`, apenas no dispositivo. Não há servidor, conta,

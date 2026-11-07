@@ -56,7 +56,11 @@ for (const modo of ["light", "dark"]) {
     ["Análise", async () => pg.locator("[data-v=stats]").click()],
     ["Configuração", async () => pg.locator("[data-v=cfg]").click()],
     ["Editor de perguntas", async () => { await pg.locator("#btn-askpin").click(); await semDialogo(pg); }],
-    ["Relatório", async () => { await pg.locator("[data-v=history]").click(); await pg.locator("[data-rep='0']").click(); }]
+    ["Relatório", async () => { await pg.locator("[data-v=history]").click(); await pg.locator("[data-rep='0']").click(); }],
+    /* 3.21.0: o relatório mensal (3.20.0) e o separador Acções. */
+    ["Relatório mensal", async () => { await pg.locator("[data-v=stats]").click();
+      await pg.locator("#an-mes").selectOption("2026-03"); await pg.locator("#btn-mensal").click(); }],
+    ["Acções", async () => { await pg.locator("[data-v=acoes]").click(); await pg.locator("#ac-estado").selectOption("todas"); }]
   ];
   for (const [nome, abrir] of vistas) {
     await abrir();
