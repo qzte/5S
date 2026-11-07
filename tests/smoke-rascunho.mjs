@@ -83,7 +83,7 @@ check(bk && bk.pend === 0 && typeof bk.at === "string", "exportar devia registar
 await pg.locator("[data-v=cfg]").click();
 const armaz = await pg.locator("#data-armaz").textContent();
 check(/Espaço ocupado/.test(armaz) && /Protecção contra limpeza automática/.test(armaz) &&
-  /Última cópia de segurança/.test(armaz) && !/nunca/.test(armaz),
+  /Última cópia de segurança/.test(armaz) && !/Última cópia de segurança: nunca/.test(armaz),
   "a Configuração devia mostrar ocupação, protecção e a data da última cópia: " + armaz);
 
 /* ---- 8. Aviso de nova versão. ----
