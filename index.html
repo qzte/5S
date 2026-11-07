@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.19.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.20.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -319,6 +319,18 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   #view-report #evid .evid-item{font-size:.68rem}
   #view-report #plano table{font-size:.7rem}
 
+  /* v3.20.0: relatório mensal em duas folhas. Na primeira, a tabela dos
+     serviços em largura total e os pilares e responsáveis lado a lado. As
+     barras e as notas levam a cor mesmo sem «gráficos de fundo» ligados. */
+  #view-report #mensal-1{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+  #view-report #mensal-1>.card{flex:1 1 48%;min-width:0}
+  #view-report #mensal-1>.card:first-child{flex-basis:100%}
+  #view-report #mensal-1 svg{max-width:260px!important;width:100%;height:auto;display:block;margin:0 auto}
+  #view-report #mensal-1 .stat-row{font-size:.72rem}
+  #view-report #mensal-1 .bar{height:7px}
+  #view-report #mensal-1 table,#view-report #mensal-2 table{font-size:.75rem}
+  #view-report [id^="mensal-"] .bar,#view-report [id^="mensal-"] .bar i,#view-report [id^="mensal-"] .pill{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* Página 1: os dois blocos de radar lado a lado. */
   #view-report .page-1{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
   #view-report .page-1>.card{flex:1 1 48%;min-width:0}
@@ -464,6 +476,15 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     </div>
     <div id="an-conta" style="font-size:.78rem;color:var(--muted)" role="status"></div>
   </div>
+  <!-- v3.20.0: o relatório mensal, para a direcção. -->
+  <div class="card" id="card-mensal">
+    <h3 style="margin-bottom:6px">Relatório mensal</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">O resumo de um mês, de todos os serviços, pronto a imprimir em PDF: nota, serviços, pilares, perguntas que mais falharam, plano de acção e prazos.</p>
+    <div class="row">
+      <div><label for="an-mes">Mês</label><select id="an-mes"></select></div>
+      <div style="align-self:end"><button class="btn small" id="btn-mensal">Abrir relatório mensal</button></div>
+    </div>
+  </div>
   <div class="card"><h3>Evolução da nota</h3><div id="ch-evo" role="img"></div>
     <div id="ch-leg" class="legenda"></div></div>
   <div class="card"><h3>Comparação entre serviços</h3><div id="cmp-svc"></div></div>
@@ -510,9 +531,10 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
       a cópia de segurança é a JSON.</p>
     <button class="btn small ghost" id="btn-expjson">Exportar histórico (JSON)</button>
     <button class="btn small ghost" id="btn-expfotos">Exportar com fotos (JSON)</button>
+    <button class="btn small ghost" id="btn-partilhar" style="display:none">Partilhar cópia com fotos</button>
     <button class="btn small ghost" id="btn-impjson">Importar histórico (JSON)</button>
     <button class="btn small ghost" id="btn-expxl">Exportar para Excel</button>
-    <input type="file" id="hist-file" accept=".json,application/json" class="hidden">
+    <input type="file" id="hist-file" accept=".json,.txt,application/json,text/plain" class="hidden">
     <div id="data-stats" style="font-size:.78rem;color:var(--muted);margin-top:12px"></div>
     <div id="data-armaz" style="font-size:.78rem;color:var(--muted);margin-top:6px"></div>
     <p style="font-size:.78rem;color:var(--muted);margin-top:10px">Os dados ficam guardados apenas neste dispositivo. Faça exportações regulares como cópia de segurança.</p>
@@ -1215,7 +1237,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.19.0";
+const APP_VERSION="3.20.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2075,6 +2097,79 @@ function textoPrazo(e){
   return "";
 }
 
+/* ---------- Relatório mensal (v3.20.0) ----------
+   Um resumo do mês para a direcção: a média e as auditorias do mês face ao
+   anterior, cada serviço (os da lista e os que tiveram auditoria), os pilares
+   e os responsáveis, as perguntas que mais falharam, o plano de acção e os
+   prazos. Puro, para ser testado sem DOM. `mes` é AAAA-MM; `hoje` limita o mês
+   em curso (as acções e os prazos contam «até hoje», não até ao fim do mês). */
+const MESES_PT=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+function nomeMes(mes){const [a,m]=String(mes).split("-");return (MESES_PT[+m-1]||"?")+" de "+a;}
+function fimDoMes(mes){const d=new Date(mes+"-01T00:00:00Z");d.setUTCMonth(d.getUTCMonth()+1);d.setUTCDate(0);return d.toISOString().slice(0,10);}
+function mesAnterior(mes){const d=new Date(mes+"-01T00:00:00Z");d.setUTCMonth(d.getUTCMonth()-1);return d.toISOString().slice(0,7);}
+/* Os meses que se podem escolher: o actual e os que têm auditorias, do mais
+   recente para o mais antigo. Nenhum no futuro. */
+function mesesRelatorio(lista,hoje){
+  const atual=String(hoje).slice(0,7),ms=new Set([atual]);
+  (lista||[]).forEach(a=>{const m=a&&typeof a.date==="string"?a.date.slice(0,7):"";if(/^\d{4}-\d{2}$/.test(m)&&m<=atual)ms.add(m);});
+  return [...ms].sort().reverse();
+}
+function resumoMensal(lista,mes,svcs,fq,hoje){
+  const todas=(lista||[]).filter(a=>a&&typeof a.date==="string").sort(ordemCron);
+  const fim=fimDoMes(mes),ref=fim<hoje?fim:hoje,ant=mesAnterior(mes);
+  const doMes=todas.filter(a=>a.date.slice(0,7)===mes),doAnt=todas.filter(a=>a.date.slice(0,7)===ant);
+  const media=l=>l.length?avg(l.map(total)):null;
+  const delta=(x,y)=>x!=null&&y!=null?x-y:null;
+  const nomes=[...new Set([...(svcs||[]),...doMes.map(a=>a.service)])];
+  const porServico=nomes.map(sv=>{
+    const l=doMes.filter(a=>a.service===sv),m=media(l),ma=media(doAnt.filter(a=>a.service===sv));
+    return{service:sv,n:l.length,media:m,ultima:l.length?total(l[l.length-1]):null,mediaAnt:ma,delta:delta(m,ma)};
+  }).sort((x,y)=>(x.media==null)-(y.media==null)||(x.media||0)-(y.media||0)||x.service.localeCompare(y.service));
+  /* Média de cada eixo (pilar ou responsável) nas auditorias que o têm. */
+  const eixos=(l,campo)=>{
+    const ms=l.map(a=>metricas(a)[campo]);
+    if(!ms.length)return [];
+    return ms[0].map((e,i)=>{const com=ms.map(m=>m[i]).filter(x=>x&&x.n>0);
+      return{name:e.name,pct:com.length?avg(com.map(x=>x.pct)):null};}).filter(e=>e.pct!=null);
+  };
+  const pilarAnt=new Map(eixos(doAnt,"pilar").map(e=>[e.name,e.pct]));
+  const pilares=eixos(doMes,"pilar").map(e=>Object.assign(e,{delta:delta(e.pct,pilarAnt.has(e.name)?pilarAnt.get(e.name):null)}));
+  /* Perguntas: quantas vezes não ficaram Excelentes, pela pergunta (nº e tema). */
+  const perg=new Map();
+  doMes.forEach(a=>itemsOf(a).forEach((it,i)=>{
+    const k=it.n+"|"+(it.t||""),s=a.scores[i];
+    const o=perg.get(k)||{n:it.n,t:it.t||"",c:it.c||"",vezes:0,falhas:0,mau:0,servicos:new Set()};
+    o.vezes++;if(s<2){o.falhas++;o.servicos.add(a.service);}if(s===0)o.mau++;
+    perg.set(k,o);
+  }));
+  const piores=[...perg.values()].filter(o=>o.falhas>0)
+    .sort((x,y)=>y.falhas/y.vezes-x.falhas/x.vezes||y.mau-x.mau||x.n-y.n).slice(0,5)
+    .map(o=>({n:o.n,t:o.t,c:o.c,vezes:o.vezes,falhas:o.falhas,mau:o.mau,servicos:[...o.servicos].sort()}));
+  const faixas={excelente:0,oportunidade:0,critico:0};
+  doMes.forEach(a=>{const p=total(a);faixas[p>=80?"excelente":p>=50?"oportunidade":"critico"]++;});
+  /* Plano de acção: as novas (das auditorias do mês), as concluídas no mês e as
+     que estavam em aberto no fim do mês (ou hoje, no mês em curso). */
+  const acoes={novas:0,concluidas:0,abertas:0,atrasadas:0};
+  todas.forEach(a=>(Array.isArray(a.acoes)?a.acoes:[]).forEach(ac=>{
+    if(!ac)return;
+    if(a.date.slice(0,7)===mes)acoes.novas++;
+    const feita=ac.estado==="feita";
+    if(feita&&typeof ac.feitaEm==="string"&&ac.feitaEm.slice(0,7)===mes)acoes.concluidas++;
+    if(a.date>ref)return;
+    if(feita&&!(typeof ac.feitaEm==="string"&&ac.feitaEm>ref))return;
+    acoes.abertas++;
+    if(ac.prazo&&ac.prazo<ref)acoes.atrasadas++;
+  }));
+  const est=prazosServicos(svcs,todas.filter(a=>a.date<=ref),fq,ref);
+  const conta=e=>est.filter(x=>x.estado===e).length;
+  return{mes,fim,ref,emCurso:ref<fim,
+    n:doMes.length,media:media(doMes),nAnt:doAnt.length,mediaAnt:media(doAnt),delta:delta(media(doMes),media(doAnt)),
+    servicosAuditados:new Set(doMes.map(a=>a.service)).size,
+    porServico,pilares,responsaveis:eixos(doMes,"resp"),piores,faixas,acoes,
+    prazos:{emDia:conta("em-dia"),aVencer:conta("a-vencer"),atrasados:conta("atrasado"),nunca:conta("nunca"),
+      urgentes:est.filter(x=>x.estado==="atrasado"||x.estado==="nunca").map(x=>({svc:x.svc,texto:textoPrazo(x)}))}};
+}
+
 /* Linhas das duas folhas da exportação para Excel: uma linha por auditoria,
    com a nota, os pilares e os responsáveis, e uma linha por resposta, que é o
    formato que uma tabela dinâmica quer. */
@@ -2632,6 +2727,74 @@ function openReport(a){
   window.scrollTo(0,0);
 }
 
+/* ---------- Relatório mensal (v3.20.0) ----------
+   Desenhado na mesma secção do relatório de uma auditoria, para herdar a
+   impressão (cada .page uma folha). */
+function deltaHTML(d){
+  if(d==null)return'<span style="color:var(--muted)">—</span>';
+  return d>0?`<span class="delta up">▲ +${d}</span>`:d<0?`<span class="delta down">▼ ${d}</span>`:'<span class="delta eq">= 0</span>';
+}
+function barrasEixo(l){
+  return l.map(p=>`<div class="stat-row"><span>${esc(p.name)}</span><span>${p.pct}%${p.delta!==undefined?" "+deltaHTML(p.delta):""}</span></div>
+    <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("");
+}
+function openMensal(mes){
+  relatorioId=null;clearFotos();
+  const r=resumoMensal(audits,mes,services,freqs,hojeISO());
+  const t=r.media==null?null:badge(r.media);
+  const nome=nomeMes(mes);
+  document.getElementById("view-report").innerHTML=`
+  <h2 class="sr-only">Relatório mensal</h2>
+  <div class="card score-hero" id="mensal-hero"><div class="lbl">Relatório mensal 5S · ${esc(nome)}${r.emCurso?" · mês em curso, até "+esc(dataCurta(r.ref)):""}</div>
+    ${r.n?`<div class="big">${r.media}<span style="font-size:1.2rem">/100</span></div><span class="badge ${t[0]}">${t[1]}</span>`
+      :`<div class="big" style="font-size:1.6rem">Sem auditorias</div>`}
+    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">${r.n} auditoria(s) a ${r.servicosAuditados} serviço(s) ·
+      mês anterior: ${r.mediaAnt==null?"sem auditorias":r.mediaAnt+"/100 em "+r.nAnt+" auditoria(s)"}${r.delta!=null?" · "+(r.delta>0?"+":"")+r.delta+" pontos":""}</div>
+    ${r.n?`<div style="font-size:.78rem;margin-top:6px;color:#9db8a9">Excelente: ${r.faixas.excelente} · Com oportunidade: ${r.faixas.oportunidade} · Crítico: ${r.faixas.critico}</div>`:""}
+  </div>
+  <div class="page" id="mensal-1">
+  <div class="card"><h3 style="margin-bottom:10px">Por serviço</h3>
+    ${r.porServico.length?`<table id="mensal-svc"><tr><th>Serviço</th><th>Auditorias</th><th>Média</th><th>Última</th><th>Face ao mês anterior</th></tr>
+    ${r.porServico.map(x=>`<tr><td>${esc(x.service)}</td><td>${x.n}</td>
+      <td>${x.media==null?'<span style="color:var(--muted)">Sem auditoria</span>':`<span class="pill" style="background:${x.media>=80?"var(--green)":x.media>=50?"var(--amber-bg)":"var(--red)"}">${x.media}</span>`}</td>
+      <td>${x.ultima==null?"—":x.ultima}</td><td>${deltaHTML(x.delta)}</td></tr>`).join("")}</table>`
+    :`<p class="empty">Sem serviços.</p>`}</div>
+  ${r.pilares.length?`<div class="card"><h3 style="margin-bottom:10px">Por pilar 5S <small style="color:var(--muted);font-weight:400">(face ao mês anterior)</small></h3>
+    ${radarSVG(r.pilares,"#1f6f50")}<div style="margin-top:14px">${barrasEixo(r.pilares)}</div></div>`:""}
+  ${r.responsaveis.length?`<div class="card"><h3 style="margin-bottom:10px">Por responsável</h3>${barrasEixo(r.responsaveis)}</div>`:""}
+  </div>
+  <div class="page" id="mensal-2">
+  <div class="card"><h3 style="margin-bottom:10px">Perguntas que mais falharam</h3>
+    ${r.piores.length?`<table id="mensal-piores"><tr><th>Nº</th><th>Pergunta</th><th>Sem Excelente</th><th>Mau</th><th>Serviços</th></tr>
+    ${r.piores.map(x=>`<tr><td>${esc(x.n)}</td><td>${esc(x.t)}<br><small style="color:var(--muted)">${esc(x.c)}</small></td>
+      <td>${x.falhas} de ${x.vezes}</td><td>${x.mau}</td><td><small>${esc(x.servicos.join(", "))}</small></td></tr>`).join("")}</table>`
+    :`<p>${r.n?"Todas as respostas do mês foram Excelente. 🎉":"Sem auditorias neste mês."}</p>`}</div>
+  <div class="card" id="mensal-acoes"><h3 style="margin-bottom:10px">Plano de acção</h3>
+    <table><tr><th>Novas no mês</th><th>Concluídas no mês</th><th>Em aberto ${r.emCurso?"hoje":"no fim do mês"}</th><th>Das quais em atraso</th></tr>
+    <tr><td>${r.acoes.novas}</td><td>${r.acoes.concluidas}</td><td>${r.acoes.abertas}</td><td>${r.acoes.atrasadas}</td></tr></table></div>
+  <div class="card" id="mensal-prazos"><h3 style="margin-bottom:10px">Prazos das auditorias ${r.emCurso?"hoje":"no fim do mês"}</h3>
+    ${r.prazos.emDia+r.prazos.aVencer+r.prazos.atrasados+r.prazos.nunca?
+    `<p style="font-size:.85rem">Em dia: <b>${r.prazos.emDia}</b> · A vencer: <b>${r.prazos.aVencer}</b> · Em atraso: <b>${r.prazos.atrasados}</b> · Nunca auditados: <b>${r.prazos.nunca}</b></p>
+    ${r.prazos.urgentes.length?`<ul style="font-size:.82rem;margin:8px 0 0 18px">${r.prazos.urgentes.map(u=>`<li>${esc(u.svc)} — ${esc(u.texto)}</li>`).join("")}</ul>`:""}`
+    :`<p class="empty">Nenhum serviço tem frequência definida (Configuração → Frequência das auditorias).</p>`}</div>
+  </div>
+  <button class="btn no-print" id="btn-print">Gerar PDF</button>
+  <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
+  document.getElementById("btn-print").onclick=()=>window.print();
+  document.getElementById("btn-back").onclick=()=>document.querySelector('[data-v=stats]').click();
+  ["audit","history","stats","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
+  document.getElementById("view-report").classList.remove("hidden");
+  window.scrollTo(0,0);
+}
+function opcoesMes(){
+  const sel=document.getElementById("an-mes");if(!sel)return;
+  const atual=sel.value,ms=mesesRelatorio(audits,hojeISO());
+  sel.innerHTML=ms.map(m=>`<option value="${esc(m)}">${esc(nomeMes(m))}</option>`).join("");
+  /* Por omissão, o mês mais recente com auditorias. */
+  const comAud=ms.find(m=>audits.some(a=>a&&typeof a.date==="string"&&a.date.slice(0,7)===m));
+  sel.value=ms.includes(atual)?atual:(comAud||ms[0]);
+}
+
 /* ---------- Histórico ---------- */
 /* v3.9.0: filtros em memória. Sobrevivem a mudar de separador, não a recarregar. */
 const histFiltro={svc:"",nota:"",de:"",ate:""};
@@ -2834,6 +2997,7 @@ function evolucaoSVG(series,lista){
 }
 function hojeISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
 function renderStats(){
+  opcoesMes();
   anFiltro.svc=opcoesServico(document.getElementById("an-svc"),anFiltro.svc,"Todos os serviços");
   document.getElementById("an-per").value=String(anFiltro.meses);
   const lista=filtrarAudits(audits,{svc:anFiltro.svc,de:desdeMeses(anFiltro.meses,hojeISO())});
@@ -3232,10 +3396,19 @@ function rmSvc(i){
    e das evidências), para uma cópia de segurança completa. Sem elas, o ficheiro
    fica leve, como até aqui. */
 async function exportJson(comFotos){
+  const c=await ficheiroCopia(comFotos);if(!c)return;
+  const a=document.createElement("a");a.href=URL.createObjectURL(c.blob);
+  a.download=c.nome;a.click();
+  URL.revokeObjectURL(a.href);
+  registarExportacao(c.comFotos);
+}
+/* O ficheiro da cópia de segurança, para descarregar ou partilhar: {blob,
+   nome, comFotos}, ou null se as fotos pedidas não se puderam ler. */
+async function ficheiroCopia(comFotos){
   let fotos=null;
   if(comFotos){
     try{fotos=await todasAsFotos(audits.map(a=>a.id));}
-    catch(e){aviso("Não foi possível ler as fotos deste dispositivo. Exporte sem fotos.");return;}
+    catch(e){aviso("Não foi possível ler as fotos deste dispositivo. Exporte sem fotos.");return null;}
   }
   const payload={
     app:"auditoria5s",
@@ -3258,10 +3431,45 @@ async function exportJson(comFotos){
   /* Com fotos, sem indentação: são centenas de KB de base64 que não ganham nada
      com ela. */
   const blob=new Blob([fotos?JSON.stringify(payload):JSON.stringify(payload,null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  a.download="auditorias5s_"+new Date().toISOString().slice(0,10)+(fotos?"_com_fotos":"")+".json";a.click();
-  URL.revokeObjectURL(a.href);
-  registarExportacao(!!fotos);}
+  return{blob,comFotos:!!fotos,nome:"auditorias5s_"+new Date().toISOString().slice(0,10)+(fotos?"_com_fotos":"")+".json"};
+}
+
+/* v3.20.0: partilhar a cópia com fotos (Web Share), para a mandar do telemóvel
+   para a Drive, o email ou outra app sem passar pelas Transferências. O Chrome
+   só partilha ficheiros de uma lista de extensões, onde .json não está: nesse
+   caso o ficheiro vai como .txt, com o mesmo conteúdo, e a importação aceita-o
+   (o que conta é o conteúdo, que é verificado). O Safari partilha o .json. */
+function ficheiroPartilha(blob,nome){
+  if(!navigator.canShare||typeof File!=="function")return null;
+  const pode=f=>{try{return navigator.canShare({files:[f]});}catch(e){return false;}};
+  const json=new File([blob],nome,{type:"application/json"});
+  if(pode(json))return json;
+  const txt=new File([blob],nome.replace(/\.json$/,".txt"),{type:"text/plain"});
+  return pode(txt)?txt:null;
+}
+function podePartilharFicheiros(){
+  return typeof navigator.share==="function"&&!!ficheiroPartilha(new Blob(["{}"]),"teste.json");
+}
+async function partilharCopia(){
+  const c=await ficheiroCopia(true);if(!c)return;
+  const f=ficheiroPartilha(c.blob,c.nome);
+  if(!f||typeof navigator.share!=="function"){
+    aviso("Este navegador não consegue partilhar ficheiros. Use «Exportar com fotos (JSON)» e envie o ficheiro descarregado.");return;}
+  const dados={files:[f],title:"Cópia de segurança · Auditoria 5S",
+    text:"Cópia de segurança da Auditoria 5S, com fotos ("+audits.length+" auditoria(s)). Para recuperar: Configuração → Dados → Importar histórico."};
+  const partilhar=()=>navigator.share(dados).then(()=>{registarExportacao(true);return true;});
+  try{await partilhar();}
+  catch(e){
+    if(e&&e.name==="AbortError")return;  /* a pessoa fechou o menu de partilha */
+    /* Ler muitas fotos pode demorar mais do que o browser deixa entre o toque e
+       a partilha (NotAllowedError): pede-se outro toque, já com o ficheiro pronto. */
+    if(e&&e.name==="NotAllowedError"&&await confirmar("A cópia está pronta para partilhar.",{titulo:"Partilhar cópia",sim:"Partilhar"})){
+      try{await partilhar();}catch(e2){if(!(e2&&e2.name==="AbortError"))aviso("Não foi possível partilhar a cópia. Use «Exportar com fotos (JSON)».");}
+      return;
+    }
+    aviso("Não foi possível partilhar a cópia. Use «Exportar com fotos (JSON)».");
+  }
+}
 
 /* v3.9.0: exportação para Excel, com o SheetJS que já servia para a
    importação. Duas folhas — ver linhasExcel(). Não conta como cópia de
@@ -4131,6 +4339,7 @@ on("btn-expxl","click",()=>exportExcel());
   on(id,"change",e=>{histFiltro[k]=e.target.value;histMostrar=HIST_PAGINA;renderHist();}));
 on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");histMostrar=HIST_PAGINA;renderHist();});
 on("an-svc","change",e=>{anFiltro.svc=e.target.value;renderStats();});
+on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(m)openMensal(m);});
 on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
 on("f-service","change",()=>mostrarAnteriores());
 on("btn-impjson","click",()=>document.getElementById("hist-file").click());
@@ -4142,6 +4351,9 @@ on("btn-saveresp","click",()=>saveResps());
 on("btn-resetresp","click",()=>resetResps());
 on("btn-askpin","click",()=>askPin());
 on("btn-pinmudar","click",()=>mudarPin());
+on("btn-partilhar","click",()=>partilharCopia());
+/* style e não .hidden: `.btn.small` ganha à .hidden. */
+{const bp=document.getElementById("btn-partilhar");if(bp&&podePartilharFicheiros())bp.style.display="";}
 on("btn-pinrepor","click",()=>reporPin());
 on("btn-migr","click",()=>{const r=pendentesDeAmostra();if(r.convertidas.length)aplicarMigracaoAmostra(r);});
 on("btn-edadd","click",()=>edAdd());
