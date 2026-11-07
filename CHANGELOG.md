@@ -5,6 +5,30 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.17.0] — 2026-11-07
+
+A página da 5S no painel e-ink passa a ser a dos KPIs.
+
+### Adicionado
+
+- O `5s.painel.json` leva os **KPIs** em `dados.kpis` (`kpisPainel5s`): a média
+  e o nº de auditorias dos últimos 30 dias e dos 30 antes, a média de cada um
+  dos últimos 12 meses, os prazos dos serviços com frequência (em dia, a vencer,
+  em atraso, nunca auditados, e a lista dos urgentes), as acções do plano
+  (abertas, atrasadas, concluídas nos últimos 30 dias), a média por responsável
+  e os serviços por faixa da última auditoria. O painel (qzte/e-ink_panel)
+  desenha com eles a página «KPIs 5S», no lugar da página das auditorias; os
+  campos de antes continuam lá.
+- Testes dos KPIs em `tests/painel.test.js`; o `smoke-painel` confere que o
+  ficheiro os leva.
+
+### Alterado
+
+- O ficheiro do painel volta a ser gravado também quando mudam os serviços ou
+  as frequências (os prazos dependem deles), e é recalculado de hora a hora,
+  porque os prazos e os «últimos 30 dias» mudam com o dia. O escritor só grava
+  se os dados mudaram.
+
 ## [3.16.1] — 2026-11-06
 
 ### Alterado
