@@ -84,6 +84,53 @@ await pg.locator("#plano [data-acao-feita]").click();
 check(!/Em aberto de auditorias anteriores/.test(await pg.locator("#plano").textContent()),
   "marcada como feita no relatório, deixa de estar em aberto");
 
+/* ---- 6. Separador Acções (3.21.0): todas, filtros, marcar e voltar. ---- */
+await pg.evaluate(() => {
+  const it = ITEMS.map(x => Object.assign({}, x));
+  const mk = (id, service, date, acoes) => ({ id, service, date, verif: "V", scores: it.map(() => 1),
+    raw: it.map(() => null), tgts: it.map(() => null), items: it, acoes });
+  localStorage.setItem("audits", JSON.stringify([
+    mk(1, "Loja A", "2026-10-01", [
+      { id: 1, r: "U", texto: "Atrasada A", prazo: "2020-01-01", estado: "aberta", feitaEm: "", item: 3 },
+      { id: 2, r: "M", texto: "Aberta A", prazo: "2099-01-01", estado: "aberta", feitaEm: "", item: null }]),
+    mk(2, "Loja B", "2026-10-02", [
+      { id: 1, r: "M", texto: "Atrasada B", prazo: "2021-01-01", estado: "aberta", feitaEm: "", item: null },
+      { id: 2, r: "U", texto: "Feita B", prazo: "", estado: "feita", feitaEm: "2026-10-05", item: null }]),
+    mk(3, "Loja C", "2026-10-03")]));
+});
+await pg.reload();
+const badge = () => pg.locator('.tab[data-v="acoes"] .tab-badge').textContent().catch(() => "");
+check(await badge() === "2", "o separador devia mostrar as 2 acções em atraso: " + await badge());
+await pg.locator("[data-v=acoes]").click();
+const textos = async () => (await pg.locator("#ac-tabela .ac-item").allTextContents()).map(t => t.replace(/\s+/g, " "));
+let t = await textos();
+check(t.length === 3 && /Atrasada A/.test(t[0]) && /Atrasada B/.test(t[1]) && /Aberta A/.test(t[2]),
+  "por omissão, as em aberto, as mais atrasadas primeiro: " + t.join(" | "));
+check(/3 em aberto · 2 em atraso/.test(await pg.locator("#ac-resumo").textContent()) && /3 de 4/.test(await pg.locator("#ac-conta").textContent()),
+  "o resumo e a contagem: " + await pg.locator("#ac-resumo").textContent());
+await pg.locator("#ac-estado").selectOption("feitas");
+t = await textos();
+check(t.length === 1 && /Feita B/.test(t[0]), "o filtro das feitas");
+await pg.locator("#ac-estado").selectOption("");
+await pg.locator("#ac-svc").selectOption("Loja A");
+check((await textos()).length === 2, "o filtro do serviço");
+check(!(await pg.locator("#ac-svc option").allTextContents()).includes("Loja C"), "só os serviços com acções");
+await pg.locator("#ac-svc").selectOption("");
+await pg.locator("#ac-r").selectOption("M");
+check((await textos()).length === 2, "o filtro do responsável");
+await pg.locator("#ac-r").selectOption("");
+/* Marcar como feita aqui mesmo: grava, sai da lista e o número baixa. */
+await pg.locator("#ac-tabela [data-ac-feita]").first().click();   /* a «Atrasada A» */
+let gr = await gravadas();
+check(gr.find(a => a.id === 1).acoes[0].estado === "feita", "marcar na lista devia gravar a acção como feita");
+check((await textos()).length === 2, "a feita sai da lista das em aberto");
+check(await badge() === "1", "o número do separador devia baixar para 1");
+/* Relatório da auditoria de onde veio, e Voltar regressa às Acções. */
+await pg.locator("#ac-tabela [data-ac-rep]").first().click();   /* agora a «Atrasada B» */
+check(/Loja B · 2026-10-02/.test(await pg.locator("#view-report .score-hero").textContent()), "Relatório abre a auditoria da acção");
+await pg.locator("#btn-back").click();
+check(!(await pg.locator("#view-acoes").isHidden()), "Voltar devia regressar às Acções");
+
 await b.close();
 console.log(erros.length ? "ERROS JS:\n" + erros.join("\n") : "sem erros de JS");
 console.log(falhas.length ? "FALHAS:\n" + falhas.join("\n") : "smoke do plano de acções OK");

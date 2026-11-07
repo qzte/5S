@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.20.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.21.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -100,6 +100,11 @@ As recomendações dizem o que melhorar; uma **acção** é um passo concreto, c
 - **Fechar.** Marque **Feita** — no relatório, ou, melhor, no formulário da
   auditoria seguinte ao mesmo serviço, quando estiver no local a confirmar.
   Fica registada a data.
+- **Ver todas.** O separador **Acções** junta as acções de todos os serviços,
+  com as em atraso primeiro. Filtre por estado (em aberto, em atraso, feitas,
+  todas), responsável ou serviço; marque **Feita** ali mesmo, ou abra o
+  **Relatório** da auditoria de onde a acção veio. O número a vermelho no
+  separador diz quantas estão em atraso.
 
 ## Histórico e prazos
 

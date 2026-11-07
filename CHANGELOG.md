@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.21.0] — 2026-11-07
+
+### Adicionado
+
+- **Separador Acções**: o plano de acção de todos os serviços numa lista só.
+  Resumo (em aberto, em atraso, feitas nos últimos 30 dias), filtros por
+  estado, responsável e serviço, as em atraso primeiro. Marca-se como feita
+  ali mesmo, e *Relatório* abre a auditoria de onde a acção veio. O separador
+  mostra quantas acções estão em atraso.
+- O teste de acessibilidade (axe-core, modo claro e escuro) passa também pelo
+  relatório mensal e pelo separador Acções.
+- Testes: `tests/lista-acoes.test.js`, e o `smoke-acoes` cobre o separador.
+
 ## [3.20.0] — 2026-11-07
 
 ### Adicionado
