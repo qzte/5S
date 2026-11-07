@@ -14,6 +14,20 @@ Três revisões, por ordem inversa:
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
 
+## Nota de 3.19.0 (2026-11-07): código de acesso próprio
+
+O código de acesso de origem está no código-fonte, igual em todas as instalações. A 3.19.0 deixa
+cada dispositivo escolher um próprio (4 a 8 algarismos; recusa o de origem, um
+algarismo repetido e as sequências). Guarda-se em `localStorage` (`pinAcesso`)
+só `{s, h}`: um sal aleatório de 96 bits (`crypto.getRandomValues`) e um resumo
+não criptográfico (cyrb53, repetido 64 vezes), síncrono porque a caixa de
+diálogo valida de forma síncrona. Não é, nem pretende ser, resistente a ataque:
+o espaço de códigos é pequeno e quem lê o `localStorage` também o pode apagar.
+O que evita é o código ficar à vista e o de origem continuar a abrir. Não vai
+nas cópias de segurança nem é tocado ao importar. Um registo com a forma errada
+faz voltar ao código de origem, para não trancar a app. Continua a valer o
+ponto 10: **não é um controlo de segurança**.
+
 ## Nota de 3.14.0 (2026-11-06): fotos na cópia de segurança
 
 Até aqui, nenhuma foto entrava na app a partir de um ficheiro. Desde 3.14.0, a

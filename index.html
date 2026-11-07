@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.18.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.19.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -564,6 +564,13 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <button class="btn small ghost" id="btn-addresp">+ Adicionar responsável</button>
     <button class="btn small ghost" id="btn-saveresp">Guardar responsáveis (PIN)</button>
     <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" id="btn-resetresp">Repor originais</button>
+  </div>
+  <div class="card" id="card-pin">
+    <h3 style="margin-bottom:10px">Código de acesso</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Pedido para editar auditorias gravadas, alterar os responsáveis, abrir o editor de perguntas e substituir o histórico. Protege contra alterações por engano — não é uma palavra-passe.</p>
+    <p id="pin-estado" style="font-size:.78rem;margin-bottom:10px"></p>
+    <button class="btn small ghost" id="btn-pinmudar">Mudar código</button>
+    <button class="btn small ghost" id="btn-pinrepor" style="display:none">Voltar ao código de origem</button>
   </div>
   <div class="card">
     <h3 style="margin-bottom:10px">Editor de perguntas</h3>
@@ -1208,7 +1215,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.18.0";
+const APP_VERSION="3.19.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2876,6 +2883,7 @@ function renderCfg(){
   pplBox.querySelectorAll("[data-rmppl]").forEach(b=>b.onclick=()=>rmPerson(+b.dataset.rmppl));
   renderResps();
   renderFreqs();
+  mostrarPinCfg();
   const ds=document.getElementById("data-stats");
   if(ds){
     const datas=audits.map(a=>a.date).sort();
@@ -3559,8 +3567,93 @@ const ADMIN_PIN="3758";
 function pedirPin(motivo){
   return caixa({titulo:"Código de acesso",texto:motivo,campo:true,
     botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"ok",label:"Confirmar",def:true}],
-    validar:(v,c)=>c===ADMIN_PIN?null:"Código incorreto. Tente outra vez, ou cancele."})
+    validar:(v,c)=>pinCerto(c,load(PIN_KEY,null))?null:"Código incorreto. Tente outra vez, ou cancele."})
     .then(v=>v==="ok");
+}
+/* v3.19.0: código de acesso próprio do dispositivo. O de origem (ADMIN_PIN)
+   está no código-fonte público e no README; quem quiser que só a sua equipa o
+   saiba escolhe outro em Configuração → Código de acesso. Guarda-se só um
+   resumo com sal (chave PIN_KEY), para que o código não fique à vista de quem
+   espreite o armazenamento — mas com 4 a 8 algarismos qualquer resumo se
+   adivinha por tentativas: continua a ser uma trava contra o engano, não uma
+   palavra-passe. Fica fora das cópias de segurança (o ficheiro pode ir para
+   outro dispositivo, onde o código seria outro) e o «Substituir tudo» não lhe
+   toca. A comparação é síncrona, como a caixa de diálogo a quer. */
+const PIN_KEY="pinAcesso";
+/* cyrb53: resumo de 53 bits, sem dependências e síncrono (o SubtleCrypto é
+   assíncrono e só existe em contexto seguro). Repetido para não ser imediato. */
+function resumoPin(sal,codigo){
+  let t=String(sal)+":"+String(codigo),h=0;
+  for(let r=0;r<64;r++){
+    let h1=0xdeadbeef^r,h2=0x41c6ce57^r;
+    for(let i=0;i<t.length;i++){const ch=t.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
+    h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+    h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+    h=4294967296*(2097151&h2)+(h1>>>0);
+    t=h.toString(36)+":"+t;
+  }
+  return h.toString(36);
+}
+function pinGuardadoValido(p){
+  return !!p&&typeof p==="object"&&typeof p.s==="string"&&p.s.length>=8&&typeof p.h==="string"&&p.h.length>0;
+}
+/* Sem código próprio (ou com um registo estragado), vale o de origem. */
+function pinCerto(codigo,guardado){
+  const c=String(codigo==null?"":codigo).trim();
+  if(!pinGuardadoValido(guardado))return c===ADMIN_PIN;
+  return resumoPin(guardado.s,c)===guardado.h;
+}
+/* Mensagem de erro de um código novo, ou null se servir. */
+function problemaPinNovo(c){
+  const v=String(c==null?"":c).trim();
+  if(!/^\d{4,8}$/.test(v))return "O código tem de ter de 4 a 8 algarismos.";
+  if(v===ADMIN_PIN)return "Esse é o código de origem, que é público. Escolha outro.";
+  if(/^(\d)\1+$/.test(v))return "Um só algarismo repetido é fácil de adivinhar. Escolha outro.";
+  if("0123456789".includes(v)||"9876543210".includes(v))return "Uma sequência é fácil de adivinhar. Escolha outro.";
+  return null;
+}
+function novoSal(){
+  const a=new Uint8Array(12);
+  if(window.crypto&&crypto.getRandomValues)crypto.getRandomValues(a);
+  else for(let i=0;i<a.length;i++)a[i]=Math.floor(Math.random()*256);
+  return Array.from(a,x=>x.toString(16).padStart(2,"0")).join("");
+}
+function temPinProprio(){return pinGuardadoValido(load(PIN_KEY,null));}
+async function mudarPin(){
+  if(!(await pedirPin("Código de acesso actual, para o mudar:")))return;
+  let novo="";
+  const v1=await caixa({titulo:"Novo código de acesso",
+    texto:"Escreva o novo código, de 4 a 8 algarismos. Fica só neste dispositivo: as cópias de segurança não o levam.",
+    campo:true,botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"ok",label:"Seguinte",def:true}],
+    validar:(v,c)=>{const m=problemaPinNovo(c);if(!m)novo=c.trim();return m;}});
+  if(v1!=="ok")return;
+  const v2=await caixa({titulo:"Novo código de acesso",texto:"Repita o novo código, para confirmar.",
+    campo:true,botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"ok",label:"Guardar código",def:true}],
+    validar:(v,c)=>c.trim()===novo?null:"Não é igual ao que escreveu. Tente outra vez, ou cancele."});
+  if(v2!=="ok")return;
+  const sal=novoSal();
+  try{localStorage.setItem(PIN_KEY,JSON.stringify({s:sal,h:resumoPin(sal,novo),em:new Date().toISOString()}));}
+  catch(e){aviso("Não foi possível guardar o código: o armazenamento do navegador está cheio.");return;}
+  mostrarPinCfg();
+  aviso("A partir de agora, é o novo código que abre as áreas protegidas neste dispositivo.","Código de acesso mudado");
+}
+async function reporPin(){
+  if(!temPinProprio())return;
+  if(!(await pedirPin("Código de acesso actual, para voltar ao de origem:")))return;
+  if(!(await confirmar("O código volta a ser o de origem, que é o mesmo em todas as instalações e está no código da app.",
+    {titulo:"Voltar ao código de origem",sim:"Voltar ao de origem"})))return;
+  try{localStorage.removeItem(PIN_KEY);}catch(e){}
+  mostrarPinCfg();
+  aviso("O código de acesso voltou a ser o de origem.");
+}
+function mostrarPinCfg(){
+  const el=document.getElementById("pin-estado");if(!el)return;
+  const p=load(PIN_KEY,null),proprio=pinGuardadoValido(p);
+  el.innerHTML=proprio
+    ?"Este dispositivo tem um código próprio"+(Number.isFinite(Date.parse(p.em))?", definido "+esc(quando(p.em)):"")+"."
+    :"Este dispositivo usa o <b>código de origem</b>, o mesmo em todas as instalações e legível no código da app. Escolha um código próprio para que só a sua equipa o saiba.";
+  /* style e não .hidden: `.btn.small` ganha à .hidden (ver o botão do painel). */
+  const r=document.getElementById("btn-pinrepor");if(r)r.style.display=proprio?"":"none";
 }
 /* Caixa de diálogo genérica. `o`: {titulo, texto, campo, botoes, validar}.
    Cada botão é {v, label, cls, def}; o de `def` responde também ao Enter, e
@@ -4048,6 +4141,8 @@ on("btn-addresp","click",()=>addResp());
 on("btn-saveresp","click",()=>saveResps());
 on("btn-resetresp","click",()=>resetResps());
 on("btn-askpin","click",()=>askPin());
+on("btn-pinmudar","click",()=>mudarPin());
+on("btn-pinrepor","click",()=>reporPin());
 on("btn-migr","click",()=>{const r=pendentesDeAmostra();if(r.convertidas.length)aplicarMigracaoAmostra(r);});
 on("btn-edadd","click",()=>edAdd());
 on("btn-edexp","click",()=>edExport());
@@ -4088,15 +4183,49 @@ function ocupacaoLocal(){
   catch(e){}
   return n;
 }
-function mostrarArmaz(){
+/* v3.19.0: o espaço ocupado contava só o localStorage (auditorias, ~5 MB), e
+   as fotos, que vivem no IndexedDB e são o que mais pesa, ficavam de fora. O
+   navigator.storage.estimate() dá o total da app (tudo o que a origem guarda:
+   IndexedDB, localStorage, a cache offline) e a quota que o browser lhe dá.
+   Mostram-se as duas medidas, porque cada uma enche à sua maneira: o
+   localStorage tem o seu próprio limite, bem menor que a quota. */
+const LOCAL_MAX=5*1024*1024;
+function fmtBytes(n){
+  if(!Number.isFinite(n)||n<0)return "?";
+  const u=[["GB",1073741824],["MB",1048576],["KB",1024]];
+  for(const [nome,f] of u)if(n>=f){const v=n/f;return (v<10?v.toFixed(1).replace(".",","):String(Math.round(v)))+" "+nome;}
+  return Math.round(n)+" B";
+}
+/* Linhas do espaço ocupado: `local` em bytes, `est` = {usage, quota} ou null. */
+function linhasEspaco(local,est){
+  const pctL=Math.min(100,Math.ceil(local/LOCAL_MAX*100));
+  const l=["Auditorias e configuração: "+fmtBytes(local)+", cerca de "+pctL+"% dos ~5 MB que o navegador reserva para elas"+
+    (pctL>=80?" — a encher: apague auditorias antigas depois de fazer uma cópia":"")];
+  if(est&&Number.isFinite(est.usage)){
+    const temQ=Number.isFinite(est.quota)&&est.quota>0;
+    const pctT=temQ?Math.min(100,Math.ceil(est.usage/est.quota*100)):null;
+    l.push("Total da app, com as fotos: "+fmtBytes(est.usage)+(temQ?" de "+fmtBytes(est.quota)+" disponíveis ("+pctT+"%)":"")+
+      (pctT!=null&&pctT>=80?" — o dispositivo está a ficar sem espaço":""));
+  }
+  return l;
+}
+let armazEst=null,armazEstPedido=false;
+function pedirEstimativa(){
+  const st=navigator.storage;
+  if(armazEstPedido||!st||typeof st.estimate!=="function")return;
+  armazEstPedido=true;
+  st.estimate().then(e=>{armazEst=e&&Number.isFinite(e.usage)?{usage:e.usage,quota:e.quota}:null;})
+    .catch(()=>{}).then(()=>{armazEstPedido=false;mostrarArmaz(true);});
+}
+function mostrarArmaz(semPedir){
   const el=document.getElementById("data-armaz");if(!el)return;
-  const pct=Math.min(100,Math.ceil(ocupacaoLocal()/(5*1024*1024)*100));
+  if(semPedir!==true)pedirEstimativa();
   const prot=armazPersistente===true?"activa — o navegador não apaga estes dados por iniciativa própria"
     :armazPersistente===false?"não concedida — o navegador pode apagar estes dados se faltar espaço "+
       "(e o Safari, ao fim de 7 dias sem abrir a app). Instalar a app no ecrã principal costuma bastar para a obter"
     :"não suportada por este navegador";
   const b=backupInfo(),at=Date.parse(b.at);
-  el.innerHTML=`Espaço ocupado: cerca de <b>${pct}%</b> do disponível para esta app.<br>`+
+  el.innerHTML="Espaço ocupado:<br>"+linhasEspaco(ocupacaoLocal(),armazEst).map(t=>"· "+esc(t)+"<br>").join("")+
     `Protecção contra limpeza automática: ${esc(prot)}.<br>`+
     `Última cópia de segurança: <b>${Number.isFinite(at)?esc(quando(b.at)):"nunca"}</b>; `+
     `com fotos: <b>${Number.isFinite(Date.parse(b.atFotos))?esc(quando(b.atFotos)):"nunca"}</b>.`;
