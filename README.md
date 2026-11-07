@@ -613,6 +613,15 @@ mudado. A verificação da versão existe porque o `sw.js` usa `APP_VERSION` com
 nome da cache — uma divergência faz o browser servir a versão antiga sem
 qualquer aviso.
 
+Cada job tem um **tempo máximo** (`timeout-minutes`), e os passos que dependem
+da rede ou do browser — instalar o Playwright e o Chromium, e cada smoke test —
+têm o seu. Sem eles, um job encravado ficava até 6 horas (o limite do GitHub) a
+ocupar o runner, como já aconteceu ao instalar o Chromium; com eles falha em
+minutos e diz em que passo. Os limites têm folga de várias vezes o tempo normal
+(testes e lint em segundos, smoke tests em ~2 minutos). `tests/ci.test.js`
+falha se um job ou um smoke test novo ficar sem o seu, ou se um smoke test do
+repositório não correr na CI.
+
 ## Segurança
 
 Auditoria OWASP Top 10 aplicada na versão 1.4.0:
