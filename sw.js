@@ -1,6 +1,6 @@
 /*
   Auditoria 5S · Supermercados Kaizen — Service Worker
-  Versão: 3.22.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.23.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Função: cache offline da aplicação. O nome da cache inclui a versão,
           por isso cada nova versão invalida automaticamente a anterior.
   Segurança (v1.4.0): a cache só aceita recursos da própria origem que
@@ -8,11 +8,14 @@
           Desde 3.1.1 a allowlist vale também para as navegações, que antes
           escreviam em ./index.html sem a consultar.
 */
-const APP_VERSION = "3.22.0";
+const APP_VERSION = "3.23.0";
 const CACHE = "auditoria5s-v" + APP_VERSION;
 
 /* v3.16.0: "./guia.html" é o guia de utilização, gerado de GUIA.md por
    scripts/guia.mjs e aberto da Configuração; fica em cache para abrir offline.
+   v3.23.0: "./vendor/html2canvas.min.js" e "./vendor/jspdf.umd.min.js" criam o
+   PDF do relatório, carregados só quando se pede um; em cache, para o PDF sair
+   também sem rede.
    v3.11.0: "./vendor/xlsx.full.min.js" é o SheetJS, carregado só ao importar ou
    exportar Excel. Fica em cache na instalação para funcionar offline como até
    aqui, quando vinha embutido no index.html. (Sem comentários DENTRO da lista:
@@ -25,6 +28,8 @@ const ASSETS = [
   "./icons/icon-512.png",
   "./icons/icon-512-maskable.png",
   "./vendor/xlsx.full.min.js",
+  "./vendor/html2canvas.min.js",
+  "./vendor/jspdf.umd.min.js",
   "./guia.html"
 ];
 
