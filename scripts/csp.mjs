@@ -1,11 +1,12 @@
 /* CSP por hashes na versão publicada (3.10.0).
 
-   No repositório, a CSP do index.html e a do _headers trazem
+   No repositório, a CSP do index.html traz
    script-src 'self' 'unsafe-inline': toda a app vive em <script> embutidos, e
    assim pode ser editada e servida localmente sem passo nenhum.
 
    Na versão publicada, este script troca o 'unsafe-inline' pelo hash SHA-256
-   de cada <script> embutido, no <meta> do dist/index.html e no dist/_headers.
+   de cada <script> embutido, no <meta> do dist/index.html. (Até 3.22.0, também
+   no dist/_headers, que deixou de existir.)
    O browser passa a executar SÓ esses blocos, exactamente como estão: um
    <script> injectado na página (por uma falha de escape, por exemplo) já não
    corre. Os hashes são do conteúdo de cada bloco, pelo que mudar o <meta> não
@@ -21,9 +22,7 @@ import path from "node:path";
 
 const pasta = path.resolve(process.argv[2] || "dist");
 const fHtml = path.join(pasta, "index.html");
-const fHeaders = path.join(pasta, "_headers");
 let html = fs.readFileSync(fHtml, "utf8");
-let headers = fs.readFileSync(fHeaders, "utf8");
 
 /* Todos os <script> embutidos (sem src), abertos no início de uma linha. */
 const hashes = [];
@@ -44,14 +43,10 @@ if (!hashes.length || hashes.length !== total - emComentarios) {
 
 const ANTES = "script-src 'self' 'unsafe-inline'";
 const DEPOIS = "script-src 'self' " + hashes.join(" ");
-for (const [nome, texto] of [["index.html", html], ["_headers", headers]]) {
-  if (texto.split(ANTES).length !== 2) {
-    console.error(`csp: o ${nome} devia ter exactamente uma vez «${ANTES}».`);
-    process.exit(1);
-  }
+if (html.split(ANTES).length !== 2) {
+  console.error(`csp: o index.html devia ter exactamente uma vez «${ANTES}».`);
+  process.exit(1);
 }
 html = html.replace(ANTES, DEPOIS);
-headers = headers.replace(ANTES, DEPOIS);
 fs.writeFileSync(fHtml, html);
-fs.writeFileSync(fHeaders, headers);
 console.log(`csp: ${hashes.length} <script> autorizados por hash; 'unsafe-inline' retirado do script-src.`);

@@ -4,8 +4,7 @@
    embutidos são autorizados pelo hash, e o SheetJS, ficheiro da própria origem,
    pelo 'self'. Um <script> injectado depois não corre.
 
-   O servidor de teste não envia o _headers; vale a CSP do <meta>, que
-   tests/publicacao.test.js garante ser igual à do cabeçalho. */
+   Vale a CSP do <meta>, a única desde que o _headers deixou de existir (3.23.0). */
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import { execFileSync, spawn } from "child_process";
