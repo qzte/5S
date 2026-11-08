@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.23.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.24.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -573,7 +573,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <button class="btn small ghost" id="btn-expjson">Exportar histórico (JSON)</button>
     <button class="btn small ghost" id="btn-expfotos">Exportar com fotos (JSON)</button>
     <button class="btn small ghost" id="btn-partilhar" style="display:none">Partilhar cópia com fotos</button>
-    <button class="btn small ghost" id="btn-impjson">Importar histórico (JSON)</button>
+    <button class="btn small ghost" id="btn-impjson">Importar cópia de segurança (.json ou .txt)</button>
     <button class="btn small ghost" id="btn-expxl">Exportar para Excel</button>
     <input type="file" id="hist-file" accept=".json,.txt,application/json,text/plain" class="hidden">
     <div id="data-stats" style="font-size:.78rem;color:var(--muted);margin-top:12px"></div>
@@ -1279,7 +1279,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.23.0";
+const APP_VERSION="3.24.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -3021,7 +3021,7 @@ function renderPosAuditoria(a){
   box.innerHTML=`<h3 style="margin-bottom:4px">Depois da auditoria</h3>
     <ol class="passos">
       <li class="${st.copia?"feito":""}"><div><b>Cópia de segurança</b><br>
-        <small>${st.copia?ok("Feita "+quando(st.copiaEm)):"Guarde uma cópia com fotos e mande-a para outro sítio (Drive, email)."}</small></div>
+        <small>${st.copia?ok("Feita "+quando(st.copiaEm)):"Uma cópia de tudo, com fotos, para outro sítio: abre o menu de partilha (Drive, OneDrive, email, Teams). Sem menu, descarrega o ficheiro."}</small></div>
         <button class="btn small ${st.copia?"ghost":""}" id="pa-copia">Guardar cópia com fotos</button></li>
       <li class="${st.pdf?"feito":""}"><div><b>PDF do relatório</b><br>
         <small>${st.pdf?ok("Descarregado "+quando(st.pdf)):"O relatório num ficheiro, para guardar ou anexar."}</small></div>
@@ -3039,7 +3039,8 @@ function renderPosAuditoria(a){
     catch(e){aviso(e&&e.message?e.message:"Não foi possível concluir.");}
     finally{estado("");if(document.getElementById("pos-aud")===box)renderPosAuditoria(audits.find(x=>x.id===a.id)||a);}
   };
-  document.getElementById("pa-copia").onclick=e=>ocupado(e.currentTarget,"A preparar a cópia…",()=>exportJson(true));
+  /* v3.24.0: pelo menu de partilha, para a cópia sair logo do telemóvel. */
+  document.getElementById("pa-copia").onclick=e=>ocupado(e.currentTarget,"A preparar a cópia…",()=>partilharCopia(true));
   document.getElementById("pa-pdf").onclick=e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
     const blob=await pdfDoRelatorio();
     descarregar(blob,nomePdf(a));marcarEnvio(a.id,"pdf");
@@ -3861,13 +3862,16 @@ function ficheiroPartilha(blob,nome){
 function podePartilharFicheiros(){
   return typeof navigator.share==="function"&&!!ficheiroPartilha(new Blob(["{}"]),"teste.json");
 }
-async function partilharCopia(){
+/* v3.24.0: com `descarregarSemPartilha` (o passo 1 do «Depois da auditoria»),
+   onde o browser não partilha ficheiros descarrega-se a cópia em vez de avisar. */
+async function partilharCopia(descarregarSemPartilha){
   const c=await ficheiroCopia(true);if(!c)return;
   const f=ficheiroPartilha(c.blob,c.nome);
   if(!f||typeof navigator.share!=="function"){
+    if(descarregarSemPartilha===true){descarregar(c.blob,c.nome);registarExportacao(c.comFotos);return;}
     aviso("Este navegador não consegue partilhar ficheiros. Use «Exportar com fotos (JSON)» e envie o ficheiro descarregado.");return;}
   const dados={files:[f],title:"Cópia de segurança · Auditoria 5S",
-    text:"Cópia de segurança da Auditoria 5S, com fotos ("+audits.length+" auditoria(s)). Para recuperar: Configuração → Dados → Importar histórico."};
+    text:"Cópia de segurança da Auditoria 5S, com fotos ("+audits.length+" auditoria(s)). Para recuperar: Configuração → Dados → Importar cópia de segurança."};
   const partilhar=()=>navigator.share(dados).then(()=>{registarExportacao(true);return true;});
   try{await partilhar();}
   catch(e){
