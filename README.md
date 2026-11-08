@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.23.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.24.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.23.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.24.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -463,7 +463,8 @@ para a mandar para a Drive, o email ou outra app sem passar pelas
 Transferências. Só aparece onde o browser partilha ficheiros (Android, iOS,
 alguns desktops). O Chrome só partilha extensões de uma lista onde `.json` não
 está: nele o ficheiro vai como `.txt`, com o mesmo conteúdo, e a importação
-aceita-o — o que se verifica é o conteúdo. Uma partilha concluída conta como
+aceita-o — o que se verifica é o conteúdo. Desde 3.24.0 o botão chama-se
+*Importar cópia de segurança (.json ou .txt)*. Uma partilha concluída conta como
 cópia com fotos; fechar o menu não conta. Se ler as fotos demorar mais do que o
 browser deixa entre o toque e a partilha, a app pede um segundo toque, já com o
 ficheiro pronto.
@@ -489,7 +490,10 @@ O relatório de cada auditoria abre com o cartão **Depois da auditoria**, com o
 três passos que se seguem a gravar, e diz quais já foram feitos:
 
 1. **Cópia de segurança** — *Guardar cópia com fotos*, a mesma de *Config →
-   Dados*. Fica feita enquanto não houver auditorias nem fotos por copiar.
+   Dados*. Desde 3.24.0 vai pelo menu de partilha (como *Partilhar cópia com
+   fotos*), para sair logo do telemóvel; onde o browser não partilha ficheiros,
+   descarrega-a. Fica feita enquanto não houver auditorias nem fotos por
+   copiar.
 2. **PDF do relatório** — criado pela própria app (`pdfDoRelatorio()`), e não
    pela janela de impressão: cada folha do relatório é desenhada numa imagem
    pelo **html2canvas** e o **jsPDF** junta-as num A4, com o nome

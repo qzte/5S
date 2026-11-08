@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.23.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.24.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -71,8 +71,10 @@ de novo** apaga-a. Só entra no Histórico ao carregar em *Guardar auditoria*.
 Ao gravar, abre o relatório. No topo, o cartão **Depois da auditoria** tem os
 três passos a seguir, e marca com ✓ os que já foram feitos:
 
-1. **Guardar cópia com fotos** — a cópia de segurança completa. Guarde o
-   ficheiro noutro sítio (Drive, email).
+1. **Guardar cópia com fotos** — a cópia de segurança completa, de todas as
+   auditorias. Abre o menu de partilha: mande-a para a Drive, o OneDrive, o
+   email ou o Teams. Onde não há menu de partilha, descarrega o ficheiro —
+   guarde-o noutro sítio.
 2. **Descarregar PDF** — o relatório num ficheiro, com o nome do serviço e da
    data. A app cria-o sozinha; demora um ou dois segundos.
 3. **Enviar por email** ou **Enviar para o Teams** — abre o menu de partilha do
@@ -187,7 +189,7 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
   parte as fotos novas ou trocadas desde a última cópia *com fotos*. Quando
   são cinco ou mais, ou passou uma semana, o aviso traz o botão **Exportar com
   fotos**. Uma cópia sem fotos não o faz desaparecer.
-- **Recuperar.** *Importar histórico (JSON)* lê um destes ficheiros e pergunta:
+- **Recuperar.** *Importar cópia de segurança* lê um destes ficheiros e pergunta:
   **Fundir** junta-o ao que existe, sem duplicar; **Substituir tudo** troca o
   histórico do dispositivo pelo do ficheiro (pede o código de acesso). As fotos
   de uma cópia *com fotos* vêm junto.
@@ -238,7 +240,7 @@ recupera.
 ficheiros .json. O conteúdo é o mesmo: importe-o tal como está.
 
 **Mudei de telemóvel.** No antigo, *Exportar com fotos (JSON)*. No novo, abra a
-app, *Importar histórico (JSON)* e escolha *Substituir tudo*.
+app, *Importar cópia de segurança* e escolha *Substituir tudo*.
 
 **O telemóvel fechou a app a meio da auditoria.** Abra-a outra vez: as respostas
 estão lá (cartão *Auditoria por terminar*).

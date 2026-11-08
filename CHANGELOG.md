@@ -5,6 +5,17 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.24.0] — 2026-11-08
+
+### Alterado
+
+- **O passo 1 do «Depois da auditoria» partilha a cópia.** *Guardar cópia com
+  fotos* passa a abrir o menu de partilha (Drive, OneDrive, email, Teams), para
+  a cópia sair logo do telemóvel; no Chrome vai como `.txt`. Onde o browser não
+  partilha ficheiros, descarrega-a, como até aqui.
+- O botão de importar chama-se *Importar cópia de segurança (.json ou .txt)*:
+  já aceitava o `.txt` desde 3.20.0, mas o nome dizia só JSON.
+
 ## [3.23.0] — 2026-11-08
 
 ### Adicionado
