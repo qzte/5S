@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.21.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.22.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -181,6 +181,9 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
   cursor:pointer;margin-top:8px}
 .btn.ghost{background:transparent;color:var(--green-ink);border:2px solid var(--green-ink)}
 .btn.small{padding:9px;font-size:.75rem;width:auto;display:inline-block}
+/* v3.22.0: `.btn.small` (e outras regras de botão) ganhavam à .hidden, e um botão
+   escondido continuava à vista — o «Remover foto» sem foto. */
+.btn.hidden{display:none!important}
 /* v3.16.0: ligações com aspecto de botão (o guia, na Config). */
 a.btn{text-decoration:none;text-align:center}
 .score-hero{background:var(--green-dk);color:#f4f1ea;text-align:center;border:0}
@@ -1267,7 +1270,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.21.0";
+const APP_VERSION="3.22.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1312,6 +1315,7 @@ loadItems();
 
 /* ---------- Navegação ---------- */
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.title=TITULO_APP;
   document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===t));
   ["audit","history","stats","acoes","report","cfg"].forEach(v=>
     document.getElementById("view-"+v).classList.toggle("hidden",v!==t.dataset.v));
@@ -1364,7 +1368,9 @@ function renderForm(){
      cada item mostra um selector de responsável em vez do nome fixo. */
   const emEdicao=editId!=null?audits.find(x=>x.id===editId):null;
   if(editId!=null&&!emEdicao)endEdit();
-  document.getElementById("f-date").value=new Date().toISOString().slice(0,10);
+  /* v3.22.0: a data LOCAL. Em UTC, no horário de Verão, uma auditoria começada
+     entre a meia-noite e a uma ficava com a data do dia anterior. */
+  document.getElementById("f-date").value=hojeISO();
   const sel=document.getElementById("f-service");
   sel.innerHTML=services.map(s=>`<option>${esc(s)}</option>`).join("");
   document.getElementById("dl-people").innerHTML=people.map(p=>`<option value="${esc(p)}">`).join("");
@@ -1802,7 +1808,12 @@ function aplicarRascunho(d){
   });
   atualizarLive();
 }
-document.getElementById("btn-save").onclick=()=>{
+/* v3.22.0: outra auditoria ao mesmo serviço no mesmo dia (sem contar a que se
+   está a editar). Gravá-la duas vezes por engano baralha a média e o seguimento. */
+function auditoriaRepetida(lista,service,date,exceptoId){
+  return (lista||[]).find(a=>a&&a.service===service&&a.date===date&&a.id!==exceptoId)||null;
+}
+document.getElementById("btn-save").onclick=async()=>{
   const IT=fitems();
   if(Object.keys(answers).length<IT.length){aviso("Faltam "+(IT.length-Object.keys(answers).length)+" itens por avaliar.");return;}
   const dados=colherFormulario();
@@ -1813,6 +1824,10 @@ document.getElementById("btn-save").onclick=()=>{
      guardar. */
   if(!/^\d{4}-\d{2}-\d{2}$/.test(dados.date)){aviso("Indique a data da auditoria.");
     document.getElementById("f-date").focus();return;}
+  const rep=auditoriaRepetida(audits,dados.service,dados.date,editId);
+  if(rep&&!(await confirmar("Já existe uma auditoria a "+dados.service+" em "+dataCurta(dados.date)+" ("+total(rep)+
+    "/100). Gravar esta também? Se é a mesma auditoria, cancele e edite a que já está no Histórico.",
+    {titulo:"Auditoria repetida?",sim:"Gravar também"})))return;
   if(editId!=null){
     const nova=aplicarEdicao(audits,editId,dados);
     if(!nova){aviso("Esta auditoria já não existe no histórico. As alterações não foram guardadas.");resetForm();return;}
@@ -2690,7 +2705,13 @@ function wirePlano(a){
 
 /* ---------- Relatório / PDF ---------- */
 let relatorioId=null;
+/* v3.22.0: o título da página é o nome que o browser propõe para o PDF. Com o
+   relatório aberto, leva o serviço e a data (ou o mês); ao sair, volta ao da app. */
+const TITULO_APP="Auditoria 5S · Supermercados Kaizen";
+function tituloPdf(a){return "Auditoria 5S - "+String(a.service).replace(/[\\/:*?"<>|]+/g,"-")+" - "+a.date;}
+function tituloMensal(mes){return "Relatório mensal 5S - "+nomeMes(mes);}
 function openReport(a){
+  document.title=tituloPdf(a);
   relatorioId=a.id;
   /* Limpo ANTES de desenhar: recsHTML() lê REC_FOTOS, e mostraria por instantes
      as fotos do relatório aberto antes deste. */
@@ -2872,6 +2893,7 @@ function barrasEixo(l){
 }
 function openMensal(mes){
   relatorioId=null;clearFotos();
+  document.title=tituloMensal(mes);
   const r=resumoMensal(audits,mes,services,freqs,hojeISO());
   const t=r.media==null?null:badge(r.media);
   const nome=nomeMes(mes);
@@ -3564,7 +3586,7 @@ async function ficheiroCopia(comFotos){
   /* Com fotos, sem indentação: são centenas de KB de base64 que não ganham nada
      com ela. */
   const blob=new Blob([fotos?JSON.stringify(payload):JSON.stringify(payload,null,2)],{type:"application/json"});
-  return{blob,comFotos:!!fotos,nome:"auditorias5s_"+new Date().toISOString().slice(0,10)+(fotos?"_com_fotos":"")+".json"};
+  return{blob,comFotos:!!fotos,nome:"auditorias5s_"+hojeISO()+(fotos?"_com_fotos":"")+".json"};
 }
 
 /* v3.20.0: partilhar a cópia com fotos (Web Share), para a mandar do telemóvel
@@ -4197,7 +4219,7 @@ function edSave(){
 function edExport(){
   const blob=new Blob([JSON.stringify(edItems,null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  a.download="perguntas5s_"+new Date().toISOString().slice(0,10)+".json";a.click();
+  a.download="perguntas5s_"+hojeISO()+".json";a.click();
 }
 function edImport(inp){
   const file=inp.files[0];inp.value="";

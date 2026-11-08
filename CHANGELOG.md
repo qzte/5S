@@ -5,6 +5,27 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.22.0] — 2026-11-08
+
+### Corrigido
+
+- **Data da auditoria em hora local.** O formulário punha a data de hoje em
+  UTC: em Portugal, no horário de Verão, uma auditoria começada entre a
+  meia-noite e a uma ficava com a data do dia anterior (e contava assim nos
+  prazos e no relatório mensal). O mesmo nos nomes dos ficheiros exportados.
+- **«Remover foto» só aparece com foto.** O estilo dos botões pequenos ganhava
+  à classe que os esconde; passa a valer `.btn.hidden` para todos os botões.
+
+### Adicionado
+
+- **Nome do PDF.** Com um relatório aberto, o título da página — o nome que o
+  browser propõe ao guardar o PDF — passa a ser «Auditoria 5S - <serviço> -
+  <data>» ou «Relatório mensal 5S - <mês>», e volta ao da app ao sair.
+- **Auditoria repetida.** Gravar outra auditoria ao mesmo serviço no mesmo dia
+  pede confirmação, a dizer a nota da que já existe. Cancelar não perde o
+  formulário.
+- Testes: `tests/correcoes.test.js` e `tests/smoke-correcoes.mjs` (no CI).
+
 ## [3.21.0] — 2026-11-07
 
 ### Adicionado
