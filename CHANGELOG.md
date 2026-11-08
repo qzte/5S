@@ -5,6 +5,29 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.23.0] — 2026-11-08
+
+### Adicionado
+
+- **Depois da auditoria**: o relatório abre com os três passos que se seguem a
+  gravar, e diz quais já foram feitos — *Guardar cópia com fotos*,
+  *Descarregar PDF* e *Enviar por email* / *Enviar para o Teams*.
+- **PDF criado pela app** (html2canvas 1.4.1 e jsPDF 4.2.1, MIT, em `vendor/`,
+  com SRI, carregados só no primeiro PDF e guardados na cache offline): igual à
+  impressão, sempre em claro, com o nome «Auditoria 5S - <serviço> - <data>».
+- **Envio por email e para o Teams** pelo menu de partilha do sistema, com o
+  PDF anexado e um resumo da auditoria. Sem partilha de ficheiros, descarrega o
+  PDF e abre o email já escrito, ou copia o resumo para o Teams.
+- O PDF e os envios ficam registados na auditoria (`envios`), também nas
+  cópias de segurança; o Histórico mostra «enviada» ou «por enviar».
+- Testes: `tests/envio.test.js` e `tests/smoke-envio.mjs` (no CI).
+
+### Removido
+
+- O `_headers` (cabeçalhos HTTP do Cloudflare Pages), apagado do repositório:
+  o `publicar.sh`, o `scripts/csp.mjs` e os testes deixam de o usar. A CSP fica
+  só no `<meta>`; a protecção contra molduras volta a ser a guarda em JS.
+
 ## [3.22.0] — 2026-11-08
 
 ### Corrigido

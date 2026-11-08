@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.22.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.23.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.22.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.23.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -33,6 +33,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Evidência por pergunta](#evidência-por-pergunta)
 - [Plano de acção](#plano-de-acção)
 - [Dados e privacidade](#dados-e-privacidade)
+- [Depois da auditoria](#depois-da-auditoria-3230)
 - [Relatório mensal](#relatório-mensal-3200)
 - [Importação de Excel](#importação-de-excel)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -80,6 +81,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | **Consultar** | Histórico com filtros e variação; Análise por serviço e período; exportação para Excel | 3.9.0 |
 | | [Relatório mensal](#relatório-mensal-3200) para a direcção | 3.20.0 |
 | | Separador **Acções**: o plano de acção de todos os serviços | 3.21.0 |
+| | [Depois da auditoria](#depois-da-auditoria-3230): cópia, PDF e envio por email ou Teams | 3.23.0 |
 | | Histórico e Análise rápidos com milhares de auditorias | 3.15.0 |
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
@@ -481,6 +483,37 @@ com o SheetJS que já servia para a importação:
 Serve para análise noutro programa. **Não** é uma cópia de segurança: não pode
 ser importado de volta, e por isso não conta para o lembrete de exportação.
 
+## Depois da auditoria (3.23.0)
+
+O relatório de cada auditoria abre com o cartão **Depois da auditoria**, com os
+três passos que se seguem a gravar, e diz quais já foram feitos:
+
+1. **Cópia de segurança** — *Guardar cópia com fotos*, a mesma de *Config →
+   Dados*. Fica feita enquanto não houver auditorias nem fotos por copiar.
+2. **PDF do relatório** — criado pela própria app (`pdfDoRelatorio()`), e não
+   pela janela de impressão: cada folha do relatório é desenhada numa imagem
+   pelo **html2canvas** e o **jsPDF** junta-as num A4, com o nome
+   «Auditoria 5S - <serviço> - <data>.pdf». Sai como a impressão (as regras de
+   `@media print` passam a valer na cópia que é desenhada) e sempre em claro,
+   mesmo com o modo escuro ligado. Os gráficos SVG são convertidos em imagem
+   com os estilos já resolvidos, porque o html2canvas desenha-os sem o CSS da
+   página. As duas bibliotecas (MIT) estão em `vendor/`, com SRI, e só se
+   carregam no primeiro PDF; ficam na cache offline. Cerca de 1 s e 300 KB por
+   auditoria.
+3. **Enviar por email** / **Enviar para o Teams** — o PDF e um resumo
+   (`resumoEnvio()`: nota e variação, contagens, pilar mais fraco, acções,
+   verificador) vão para o **menu de partilha** do sistema (Web Share), onde se
+   escolhe o Outlook, o Gmail ou o Teams e o destinatário. O email leva o
+   assunto e uma saudação; o Teams, o resumo curto. Sem partilha de ficheiros
+   (alguns browsers de computador), descarrega-se o PDF e abre-se o email já
+   escrito (`mailto:`, sem anexo: a app não pode anexar) ou copia-se o resumo
+   para colar no Teams.
+
+O PDF e os envios ficam registados na auditoria (`envios: {pdf, email,
+teams}`, com a data), e portanto nas cópias de segurança; o Histórico mostra
+«enviada (email, Teams) a …» ou «por enviar». Registar um envio não volta a
+pedir a cópia de segurança. Fechar o menu de partilha sem enviar não conta.
+
 ## Relatório mensal (3.20.0)
 
 Na **Análise**, *Relatório mensal* resume um mês de todos os serviços, para a
@@ -525,6 +558,7 @@ deteção pelas colunas.
 ```
 index.html         Aplicação completa: HTML, CSS e JS
 vendor/xlsx.full.min.js  SheetJS 0.20.3, carregado só para Excel (3.11.0)
+vendor/html2canvas.min.js, vendor/jspdf.umd.min.js  html2canvas 1.4.1 e jsPDF 4.2.1 (MIT), carregados só para criar o PDF (3.23.0)
 manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
 scripts/publicar.sh  Prepara dist/ com só os ficheiros da app, para o Cloudflare Pages
@@ -586,6 +620,7 @@ node tests/smoke-copias.mjs        # lembrete das fotos por copiar; Desfazer ao 
 node tests/smoke-acesso.mjs        # código de acesso próprio; espaço ocupado com as fotos
 node tests/smoke-mensal.mjs        # relatório mensal; partilhar a cópia (Web Share simulado)
 node tests/smoke-correcoes.mjs     # data local, «Remover foto», nome do PDF, auditoria repetida
+node tests/smoke-envio.mjs         # depois da auditoria: cópia, PDF, email e Teams (partilha simulada)
 node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização, guia
 ```
 

@@ -7,7 +7,7 @@ const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
   ["sanitizeAcoes", "estadoAcao", "acoesPendentes", "contaAcoes", "ordemCron", "linhasExcel",
-   "byPillar", "byResp", "respEmUso", "recTexto", "sanitizeAudit", "recsOf", "normItem", "classify", "fixedKey"],
+   "byPillar", "byResp", "respEmUso", "recTexto", "sanitizeAudit", "sanitizeEnvios", "recsOf", "normItem", "classify", "fixedKey"],
   ["ITEMS", "itemsOf", "LBL", "badge", "MAX_ACOES"]);
 const { sanitizeAcoes, estadoAcao, acoesPendentes, contaAcoes, linhasExcel, respEmUso, sanitizeAudit, MAX_ACOES } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));

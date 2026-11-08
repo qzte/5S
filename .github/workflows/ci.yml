@@ -193,6 +193,10 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-correcoes.mjs
 
+      - name: Depois da auditoria (cópia, PDF, email e Teams)
+        timeout-minutes: 4
+        run: node tests/smoke-envio.mjs
+
       # Serve uma cópia do dist/ noutra porta (8767), que o teste altera e
       # desliga para simular erros do servidor e uma actualização.
       - name: Offline, servidor em erro e actualização do service worker

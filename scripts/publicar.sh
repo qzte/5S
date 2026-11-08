@@ -17,7 +17,7 @@ rm -rf dist
 mkdir -p dist/icons dist/vendor
 cp index.html sw.js manifest.json guia.html dist/
 cp icons/icon-192.png icons/icon-512.png icons/icon-512-maskable.png dist/icons/
-cp vendor/xlsx.full.min.js dist/vendor/
+cp vendor/xlsx.full.min.js vendor/html2canvas.min.js vendor/jspdf.umd.min.js dist/vendor/
 # 3.10.0: na versão publicada, a CSP autoriza cada <script> pelo seu hash e
 # deixa de ter 'unsafe-inline' (ver scripts/csp.mjs). Precisa de Node, que a
 # imagem de build do Cloudflare Pages traz. Sem ele, a publicação falha aqui e

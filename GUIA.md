@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.22.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.23.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -16,6 +16,7 @@ app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver
 
 - [Antes de começar](#antes-de-começar)
 - [Fazer uma auditoria](#fazer-uma-auditoria)
+- [Depois da auditoria](#depois-da-auditoria)
 - [O relatório](#o-relatório)
 - [Plano de acção](#plano-de-acção)
 - [Histórico e prazos](#histórico-e-prazos)
@@ -64,6 +65,25 @@ No separador **Auditar**:
 e fotos — fica guardada no dispositivo a cada alteração, e volta ao reabrir. O
 cartão *Auditoria por terminar* diz quando foi guardada; **Descartar e começar
 de novo** apaga-a. Só entra no Histórico ao carregar em *Guardar auditoria*.
+
+## Depois da auditoria
+
+Ao gravar, abre o relatório. No topo, o cartão **Depois da auditoria** tem os
+três passos a seguir, e marca com ✓ os que já foram feitos:
+
+1. **Guardar cópia com fotos** — a cópia de segurança completa. Guarde o
+   ficheiro noutro sítio (Drive, email).
+2. **Descarregar PDF** — o relatório num ficheiro, com o nome do serviço e da
+   data. A app cria-o sozinha; demora um ou dois segundos.
+3. **Enviar por email** ou **Enviar para o Teams** — abre o menu de partilha do
+   telemóvel com o PDF e um resumo da auditoria (nota, comparação com a
+   anterior, pior pilar, acções). Escolha lá o Outlook, o Gmail ou o Teams, e a
+   pessoa, a conversa ou o canal.
+
+No computador, se o browser não tiver menu de partilha, o PDF é descarregado e
+abre-se o email já escrito (anexe o PDF à mão) ou o resumo fica copiado para
+colar no Teams. O Histórico mostra, em cada auditoria, se já foi **enviada** ou
+está **por enviar**.
 
 ## O relatório
 
