@@ -2,6 +2,8 @@
 
 Três revisões, por ordem inversa:
 
+- **[Nota de 3.23.0](#nota-de-3230-2026-11-08-sem-_headers-e-pdf-criado-pela-app)** — sai o `_headers` (o ponto 4 volta a ser só mitigado); entram as bibliotecas do PDF, com SRI.
+- **[Nota de 3.19.0](#nota-de-3190-2026-11-07-código-de-acesso-próprio)** — código de acesso próprio de cada dispositivo.
 - **[Nota de 3.14.0](#nota-de-3140-2026-11-06-fotos-na-cópia-de-segurança)** — as fotos passam a entrar e a sair em ficheiros de cópia de segurança.
 - **[Nota de 3.11.0](#nota-de-3110-2026-11-06-sheetjs-em-ficheiro-próprio)** — o SheetJS sai do `index.html` e passa a ser carregado com SRI.
 - **[Nota de 3.10.0](#nota-de-3100-2026-11-06-csp-por-hashes)** — a versão publicada deixa de ter `'unsafe-inline'` no `script-src` (ponto 11).
@@ -14,7 +16,7 @@ Três revisões, por ordem inversa:
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
 
-## Nota de 3.23.0 (2026-11-08): sem _headers
+## Nota de 3.23.0 (2026-11-08): sem _headers, e PDF criado pela app
 
 O `_headers` (cabeçalhos HTTP do Cloudflare Pages: a CSP, `X-Frame-Options:
 DENY`, `nosniff`, `no-referrer` e o `no-cache` do service worker) foi retirado
@@ -23,6 +25,21 @@ cada `<script>` na versão publicada; o que se perde é o que só um cabeçalho
 consegue dar. O ponto 4 (`frame-ancestors` em `<meta>` não é aplicado) volta a
 estar só **mitigado**, pela guarda em JS do `<head>`. Um alojamento que permita
 cabeçalhos deve voltar a enviá-los.
+
+O PDF do relatório passa a ser criado pela app, com duas bibliotecas de
+terceiros (MIT): **html2canvas 1.4.1** e **jsPDF 4.2.1**. Seguem as regras do
+SheetJS (nota de 3.11.0): ficheiros da própria origem em `vendor/`, carregados
+só quando se pede o primeiro PDF, com `integrity` (SRI) — o browser recusa-os se
+não forem exactamente esses —, e guardados na cache offline pela allowlist do
+service worker. A CSP não muda: `script-src 'self'` cobre-os, e as imagens que o
+html2canvas desenha usam `data:` e `blob:`, que o `img-src` já permitia.
+Verificado na versão publicada (CSP por hashes): o PDF é criado sem erros.
+
+O envio não faz nenhum pedido de rede: o PDF vai pelo menu de partilha do
+sistema (Web Share), ou pelo `mailto:` e pela área de transferência. Não há
+webhook do Teams, e por isso o `connect-src` continua `'self'`. O registo dos
+envios (`envios` em cada auditoria) passa por `sanitizeEnvios()` ao importar:
+só datas ISO nas chaves `pdf`, `email` e `teams`.
 
 ## Nota de 3.19.0 (2026-11-07): código de acesso próprio
 
@@ -121,7 +138,7 @@ estado:
 
 | # | Ponto | Antes | Em 3.7.0 |
 | --- | --- | --- | --- |
-| 4 | `frame-ancestors` em `<meta>` não é aplicado | Mitigado por uma guarda em JS | **Fechado**: CSP e `X-Frame-Options: DENY` em cabeçalho HTTP (`_headers`). Verificado no Chromium: dentro de uma moldura o browser recusa carregar a página. |
+| 4 | `frame-ancestors` em `<meta>` não é aplicado | Mitigado por uma guarda em JS | **Fechado**: CSP e `X-Frame-Options: DENY` em cabeçalho HTTP (`_headers`). Verificado no Chromium: dentro de uma moldura o browser recusa carregar a página. **Reaberto em 3.23.0**, sem o `_headers`: volta a ser só mitigado (ver a nota de 3.23.0). |
 | 9 | `localStorage` partilhado por toda a origem | Aceite | **Fechado**: a origem é só desta app. |
 | 21 | A licença da pasta do painel é da origem | Documentado | **Fechado** pela mesma razão. A recomendação de usar uma pasta só para o painel mantém-se. |
 

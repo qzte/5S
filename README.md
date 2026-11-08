@@ -22,7 +22,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 ## Índice
 
 - [Funcionalidades](#funcionalidades)
-- [Novidades de 3.8 a 3.15](#novidades-de-38-a-315)
+- [Novidades desde 3.8](#novidades-desde-38)
 - [Instalação e utilização](#instalação-e-utilização)
 - [Modelo de pontuação](#modelo-de-pontuação)
 - [Limiares por pergunta](#limiares-por-pergunta)
@@ -46,18 +46,18 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 | Vista | O que faz |
 | --- | --- |
-| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra o prazo do serviço e as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. |
-| **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço, e os **prazos** de cada serviço; edição (sob PIN) e remoção (com *Desfazer*). |
+| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra o prazo do serviço e as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. Data em hora local, e aviso antes de gravar uma segunda auditoria ao mesmo serviço no mesmo dia (3.22.0). |
+| **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço, e os **prazos** de cada serviço; edição (sob PIN) e remoção (com *Desfazer*). Diz se cada auditoria já foi **enviada** ou está **por enviar** (3.23.0). |
 | **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. E o **relatório mensal**, de todos os serviços, para imprimir em PDF (3.20.0). |
 | **Acções** | O plano de acção de todos os serviços: resumo, filtros por estado, responsável e serviço, as em atraso primeiro; marcar como feita e abrir o relatório de origem (3.21.0). |
-| **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Mais as **Evidências** e o **plano de acção**, cada uma numa folha, quando os há. No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior. |
-| **Configuração** | Serviços e a **frequência** de cada um, responsáveis, cópia de segurança JSON (com ou sem fotos) e importação, exportação e importação de Excel, estado do armazenamento, editor de perguntas (PIN) e a pasta do **painel e-ink**. |
+| **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Mais as **Evidências** e o **plano de acção**, cada uma numa folha, quando os há. No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior, e no topo o cartão [Depois da auditoria](#depois-da-auditoria-3230): cópia de segurança pelo menu de partilha, **PDF** criado pela app (com o nome do serviço e da data) e envio **por email ou para o Teams** (3.23.0, 3.24.0). |
+| **Configuração** | Serviços e a **frequência** de cada um, responsáveis, cópia de segurança (com ou sem fotos, descarregada ou partilhada) e importação de `.json` ou `.txt`, exportação e importação de Excel, espaço ocupado e estado do armazenamento, **código de acesso** próprio, editor de perguntas e a pasta do **painel e-ink**. |
 
 Segue o **modo escuro** do sistema no ecrã (a impressão é sempre clara), e todas
 as vistas passam as regras WCAG 2 AA que o axe-core verifica — contraste,
 rótulos dos campos, títulos — nos dois modos (3.10.0).
 
-## Novidades de 3.8 a 3.15
+## Novidades desde 3.8
 
 O que mudou desde a mudança para o Cloudflare Pages (3.7.0), por tema. Cada
 linha aponta para a secção que o explica; o pormenor de cada versão está no
@@ -74,21 +74,29 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | Lembrete das fotos por copiar; *Desfazer* ao remover um serviço ou uma pessoa | 3.18.0 |
 | | Código de acesso próprio do dispositivo; espaço ocupado com as fotos | 3.19.0 |
 | | Partilhar a cópia com fotos pelo menu de partilha do telemóvel | 3.20.0 |
+| | Cópia com fotos pelo menu de partilha no fim de cada auditoria; importar `.json` ou `.txt` | 3.24.0 |
 | **Auditar** | Seguimento da auditoria anterior, no formulário e no relatório | 3.9.0 |
 | | [Plano de acção](#plano-de-acção): acções com responsável, prazo e estado | 3.12.0 |
 | | [Frequência e prazos](#frequência-e-prazos) por serviço | 3.13.0 |
 | | [Evidência por pergunta](#evidência-por-pergunta): nota e foto | 3.14.0 |
+| | Data da auditoria em hora local; aviso de auditoria repetida; «Remover foto» só com foto | 3.22.0 |
 | **Consultar** | Histórico com filtros e variação; Análise por serviço e período; exportação para Excel | 3.9.0 |
+| | Histórico e Análise rápidos com milhares de auditorias | 3.15.0 |
+| | Página de KPIs no painel e-ink | 3.17.0 |
 | | [Relatório mensal](#relatório-mensal-3200) para a direcção | 3.20.0 |
 | | Separador **Acções**: o plano de acção de todos os serviços | 3.21.0 |
-| | [Depois da auditoria](#depois-da-auditoria-3230): cópia, PDF e envio por email ou Teams | 3.23.0 |
-| | Histórico e Análise rápidos com milhares de auditorias | 3.15.0 |
+| | PDF com o nome do serviço e da data | 3.22.0 |
+| | [Depois da auditoria](#depois-da-auditoria-3230): cópia, PDF criado pela app, envio por email ou Teams | 3.23.0 |
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
 | | Aviso de nova versão; arranque ~2,5× mais rápido (SheetJS só quando é preciso) | 3.8.0, 3.11.0 |
 | **Segurança e qualidade** | CSP sem `'unsafe-inline'` na versão publicada (hashes) | 3.10.0 |
 | | SheetJS com verificação de integridade (SRI) | 3.11.0 |
 | | Lint na CI; testes de acessibilidade, de offline e de actualização | 3.10.0, 3.15.0 |
+| | Código de acesso próprio do dispositivo | 3.19.0 |
+| | Bibliotecas do PDF (html2canvas, jsPDF) com SRI, carregadas só quando é preciso | 3.23.0 |
+| | Publicação sem `_headers`: a CSP fica só no `<meta>` | 3.23.0 |
+| | Tempo máximo em cada job e passo da CI | — |
 
 ## Instalação e utilização
 
@@ -635,8 +643,9 @@ npm ci --prefix tools/lint
 node tools/lint/lint.mjs
 ```
 
-O lint tira do `index.html` os `<script>` da app (o SheetJS, em `vendor/`, não
-é lintado: é código de terceiros, fixado pelo SHA-256) e passa-os ao ESLint com as regras de erro do `eslint:recommended` — variáveis
+O lint tira do `index.html` os `<script>` da app (as bibliotecas de `vendor/` —
+SheetJS, html2canvas e jsPDF — não são lintadas: são código de terceiros,
+carregado com SRI) e passa-os ao ESLint com as regras de erro do `eslint:recommended` — variáveis
 por declarar, código inalcançável, chaves duplicadas —, nenhuma de estilo. As
 linhas que aponta são as do `index.html`.
 
