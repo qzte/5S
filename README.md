@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.21.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.22.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.21.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.22.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -585,6 +585,7 @@ node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
 node tests/smoke-copias.mjs        # lembrete das fotos por copiar; Desfazer ao remover
 node tests/smoke-acesso.mjs        # código de acesso próprio; espaço ocupado com as fotos
 node tests/smoke-mensal.mjs        # relatório mensal; partilhar a cópia (Web Share simulado)
+node tests/smoke-correcoes.mjs     # data local, «Remover foto», nome do PDF, auditoria repetida
 node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização, guia
 ```
 
