@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.21.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.22.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -56,7 +56,9 @@ No separador **Auditar**:
 4. **Evidência.** Numa pergunta classificada **Mau** ou **Oportunidade**
    aparecem um campo de nota e o botão **Foto**: escreva o que viu e fotografe.
    *Trocar foto* e *Remover foto* fazem o que dizem.
-5. Carregue em **Guardar auditoria**. Abre o relatório.
+5. Carregue em **Guardar auditoria**. Abre o relatório. Se já houver uma
+   auditoria ao mesmo serviço nesse dia, a app pergunta antes de gravar outra:
+   se é a mesma, cancele e edite a do Histórico.
 
 **Pode fechar a app a meio.** A auditoria por terminar — respostas, nomes, notas
 e fotos — fica guardada no dispositivo a cada alteração, e volta ao reabrir. O
@@ -65,7 +67,8 @@ de novo** apaga-a. Só entra no Histórico ao carregar em *Guardar auditoria*.
 
 ## O relatório
 
-Abre ao gravar, ou em **Histórico → Relatório**. **Gerar PDF** imprime-o:
+Abre ao gravar, ou em **Histórico → Relatório**. **Gerar PDF** imprime-o; ao
+guardar, o ficheiro já vem com o nome do serviço e a data:
 
 | Folha | Conteúdo |
 | --- | --- |
