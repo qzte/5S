@@ -7,7 +7,7 @@ const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
   ["idDaChave", "fotosParaImportar", "montarRascunho", "lerRascunho", "assinItem", "inteiroOuNull",
-   "sanitizeAudit", "sanitizeAcoes", "recsOf", "recTexto", "normItem", "classify", "fixedKey",
+   "sanitizeAudit", "sanitizeEnvios", "sanitizeAcoes", "recsOf", "recTexto", "normItem", "classify", "fixedKey",
    "linhasExcel", "ordemCron", "byPillar", "byResp"],
   ["FOTOS_MAX", "FOTO_MAX_CHARS", "RE_FOTO_URL", "ITEMS", "itemsOf", "LBL", "badge"]);
 const { idDaChave, fotosParaImportar, montarRascunho, lerRascunho, sanitizeAudit, linhasExcel } = ctx;

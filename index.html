@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.22.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.23.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -254,6 +254,15 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .prazo-row:first-of-type{border-top:0}
 .prazo-row>div{flex:1 1 auto;min-width:0;font-size:.85rem}
 .prazo-row .btn{margin:0}
+/* v3.23.0: os passos depois da auditoria. */
+.passos{list-style:none;margin:8px 0 0;padding:0;counter-reset:passo}
+.passos li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 0;border-top:1px solid var(--line);counter-increment:passo}
+.passos li:first-child{border-top:0}
+.passos li>div{flex:1 1 200px;min-width:0;font-size:.88rem}
+.passos li>div b::before{content:counter(passo) ". "}
+.passos .btn{margin:0}
+.passo-btns{display:flex;flex-wrap:wrap;gap:8px}
+.passo-ok{color:var(--green-ink);font-weight:700}
 /* v3.21.0: separador Acções, um bloco por acção. */
 .ac-item{padding:10px 0;border-top:1px solid var(--line)}
 .ac-item:first-child{border-top:0;padding-top:0}
@@ -1270,7 +1279,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.22.0";
+const APP_VERSION="3.23.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2727,6 +2736,7 @@ function openReport(a){
     <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">Picking: ${esc(a.pick||"—")} · Repositor: ${esc(a.repo||"—")} · Verificador: ${esc(a.verif||"—")}</div>
     ${a.note?`<div style="font-size:.78rem;margin-top:6px;color:#9db8a9">Nota: ${esc(a.note)}</div>`:""}
   </div>
+  <div class="card no-print" id="pos-aud"></div>
   <div class="page page-1">
   <div class="card"><h3 style="margin-bottom:10px">Por pilar 5S</h3>
     ${radarSVG(byPillar(a),"#1f6f50")}
@@ -2781,6 +2791,7 @@ function openReport(a){
   <button class="btn ghost no-print" id="btn-edit">Editar auditoria</button>
   <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
   wireRecs(a);
+  renderPosAuditoria(a);
   /* As fotos chegam depois do relatório, que não fica à espera do disco. Se
      entretanto se abriu outro relatório, as desta auditoria já não interessam. */
   if(outraAuditoria){
@@ -2949,6 +2960,115 @@ function opcoesMes(){
   sel.value=ms.includes(atual)?atual:(comAud||ms[0]);
 }
 
+/* ---------- Depois da auditoria (v3.23.0) ----------
+   Os três passos que se seguem a gravar: cópia de segurança, PDF do relatório
+   e envio (email ou Teams, pelo menu de partilha do sistema). Cada passo diz
+   se já foi feito; o PDF e os envios ficam registados na auditoria
+   (`envios`), e por isso também nas cópias de segurança. */
+function descarregar(blob,nome){
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+/* Partilha um ficheiro pelo menu do sistema. "ok", "cancelado" ou "sem" (o
+   browser não partilha ficheiros, ou este tipo). Criar o ficheiro pode demorar
+   mais do que o browser deixa entre o toque e a partilha (NotAllowedError):
+   pede-se então outro toque, já com o ficheiro pronto. */
+async function partilharFicheiro(f,titulo,texto){
+  if(typeof navigator.share!=="function"||!navigator.canShare)return "sem";
+  let pode;try{pode=navigator.canShare({files:[f]});}catch(e){pode=false;}
+  if(!pode)return "sem";
+  const dados={files:[f],title:titulo,text:texto};
+  try{await navigator.share(dados);return "ok";}
+  catch(e){
+    if(e&&e.name==="AbortError")return "cancelado";
+    if(e&&e.name==="NotAllowedError"&&await confirmar("O ficheiro está pronto para enviar.",{titulo:"Enviar",sim:"Partilhar"})){
+      try{await navigator.share(dados);return "ok";}
+      catch(e2){if(e2&&e2.name==="AbortError")return "cancelado";}
+    }
+    throw new Error("Não foi possível abrir o menu de partilha.",{cause:e});
+  }
+}
+/* No Histórico: « · enviada por email a 08/11/26», ou « · por enviar». */
+function textoEnviada(a){
+  const e=a&&a.envios||{};
+  const v=[e.email?["email",e.email]:null,e.teams?["Teams",e.teams]:null].filter(Boolean)
+    .sort((x,y)=>y[1].localeCompare(x[1]));
+  return v.length?` · <span data-enviada style="color:var(--green-ink)">enviada (${v.map(x=>x[0]).join(", ")}) a ${esc(dataCurta(dataLocal(v[0][1])))}</span>`
+    :` · <span data-enviada style="color:var(--muted)">por enviar</span>`;
+}
+/* AAAA-MM-DD local de um instante ISO (os registos guardam-se em UTC). */
+function dataLocal(iso){const d=new Date(iso);return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+/* Abre um endereço (mailto:) como um link tocado. */
+function abrirLink(url){const a=document.createElement("a");a.href=url;a.rel="noopener";a.click();}
+function marcarEnvio(id,via){
+  const a=audits.find(x=>x.id===id);if(!a)return;
+  a.envios=Object.assign({},a.envios||{},{[via]:new Date().toISOString()});
+  /* Sem registarAlteracao(): é um registo, não uma alteração à auditoria, e
+     não deve voltar a pedir a cópia de segurança que acabou de ser feita. */
+  save("audits",audits);
+}
+function estadoPassos(a,b){
+  const at=Date.parse(b&&b.atFotos);
+  const copia=Number.isFinite(at)&&!(b.pend>0)&&!(b.pendFotos>0);
+  const e=a.envios||{};
+  return{copia,copiaEm:copia?b.atFotos:"",pdf:e.pdf||"",email:e.email||"",teams:e.teams||""};
+}
+function renderPosAuditoria(a){
+  const box=document.getElementById("pos-aud");if(!box)return;
+  const st=estadoPassos(a,backupInfo());
+  const ok=t=>`<span class="passo-ok">✓ ${esc(t)}</span>`;
+  const enviado=[st.email?"por email "+quando(st.email):"",st.teams?"para o Teams "+quando(st.teams):""].filter(Boolean).join("; ");
+  box.innerHTML=`<h3 style="margin-bottom:4px">Depois da auditoria</h3>
+    <ol class="passos">
+      <li class="${st.copia?"feito":""}"><div><b>Cópia de segurança</b><br>
+        <small>${st.copia?ok("Feita "+quando(st.copiaEm)):"Guarde uma cópia com fotos e mande-a para outro sítio (Drive, email)."}</small></div>
+        <button class="btn small ${st.copia?"ghost":""}" id="pa-copia">Guardar cópia com fotos</button></li>
+      <li class="${st.pdf?"feito":""}"><div><b>PDF do relatório</b><br>
+        <small>${st.pdf?ok("Descarregado "+quando(st.pdf)):"O relatório num ficheiro, para guardar ou anexar."}</small></div>
+        <button class="btn small ${st.pdf?"ghost":""}" id="pa-pdf">Descarregar PDF</button></li>
+      <li class="${enviado?"feito":""}"><div><b>Enviar</b><br>
+        <small>${enviado?ok("Enviada "+enviado):"O PDF e um resumo da auditoria. Abre o menu de partilha: escolha lá o Outlook, o Gmail ou o Teams."}</small></div>
+        <span class="passo-btns"><button class="btn small ${st.email?"ghost":""}" id="pa-email">Enviar por email</button>
+        <button class="btn small ${st.teams?"ghost":""}" id="pa-teams">Enviar para o Teams</button></span></li>
+    </ol>
+    <p id="pa-estado" class="hidden" role="status" style="font-size:.78rem;color:var(--muted);margin-top:6px"></p>`;
+  const estado=t=>{const el=document.getElementById("pa-estado");if(!el)return;el.textContent=t||"";el.classList.toggle("hidden",!t);};
+  const ocupado=async(btn,texto,fn)=>{
+    const bs=box.querySelectorAll("button");bs.forEach(x=>x.disabled=true);estado(texto);
+    try{await fn();}
+    catch(e){aviso(e&&e.message?e.message:"Não foi possível concluir.");}
+    finally{estado("");if(document.getElementById("pos-aud")===box)renderPosAuditoria(audits.find(x=>x.id===a.id)||a);}
+  };
+  document.getElementById("pa-copia").onclick=e=>ocupado(e.currentTarget,"A preparar a cópia…",()=>exportJson(true));
+  document.getElementById("pa-pdf").onclick=e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
+    const blob=await pdfDoRelatorio();
+    descarregar(blob,nomePdf(a));marcarEnvio(a.id,"pdf");
+  });
+  const enviar=via=>e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
+    const blob=await pdfDoRelatorio();
+    const f=new File([blob],nomePdf(a),{type:"application/pdf"});
+    const titulo=tituloPdf(a),texto=resumoEnvio(a,audits,hojeISO(),via);
+    const r=await partilharFicheiro(f,titulo,texto);
+    if(r==="cancelado")return;
+    if(r==="ok"){marcarEnvio(a.id,via);return;}
+    /* Sem partilha de ficheiros (alguns browsers de computador): descarrega-se
+       o PDF e abre-se o email já escrito, ou copia-se o resumo para o Teams. */
+    descarregar(blob,nomePdf(a));
+    if(via==="email"){
+      abrirLink("mailto:?subject="+encodeURIComponent(titulo)+"&body="+
+        encodeURIComponent(texto+"\n\n(Anexe o PDF que foi descarregado: "+nomePdf(a)+")"));
+    }else{
+      let copiado;
+      try{await navigator.clipboard.writeText(texto);copiado=true;}catch(err){copiado=false;}
+      aviso("O PDF foi descarregado"+(copiado?" e o resumo foi copiado":"")+". No Teams, abra a conversa ou o canal, "+
+        (copiado?"cole o resumo ":"")+"e anexe o ficheiro "+nomePdf(a)+".","Enviar para o Teams");
+    }
+    marcarEnvio(a.id,via);
+  });
+  document.getElementById("pa-email").onclick=enviar("email");
+  document.getElementById("pa-teams").onclick=enviar("teams");
+}
+
 /* ---------- Histórico ---------- */
 /* v3.9.0: filtros em memória. Sobrevivem a mudar de separador, não a recarregar. */
 const histFiltro={svc:"",nota:"",de:"",ate:""};
@@ -2999,7 +3119,9 @@ function renderHist(){
     return`<div class="card"><div class="stat-row"><span>${esc(a.service)}</span><span>${p}/100${delta}</span></div>
     <div style="font-size:.78rem;color:var(--muted)">${esc(a.date)} · Verif.: ${esc(a.verif||"—")}${ant?" · anterior: "+esc(ant.date):""}${(()=>{
       const c=contaAcoes(a,hoje);
-      return c.abertas?` · <span style="color:${c.atrasadas?"var(--red-ink)":"var(--amber-ink)"}">${c.abertas} acç${c.abertas>1?"ões":"ão"} em aberto${c.atrasadas?` (${c.atrasadas} em atraso)`:""}</span>`:"";})()}</div>
+      return c.abertas?` · <span style="color:${c.atrasadas?"var(--red-ink)":"var(--amber-ink)"}">${c.abertas} acç${c.abertas>1?"ões":"ão"} em aberto${c.atrasadas?` (${c.atrasadas} em atraso)`:""}</span>`:"";})()}${
+      /* v3.23.0: se o relatório já foi enviado. */
+      textoEnviada(a)}</div>
     <span class="badge ${bc}">${bt}</span>
     <div style="margin-top:8px"><button class="btn small ghost" data-rep="${i}">Relatório</button>
     <button class="btn small ghost" data-edit="${i}">Editar</button>
@@ -3401,6 +3523,140 @@ async function resetResps(){
 const XLSX_SRC="./vendor/xlsx.full.min.js";
 const XLSX_SRI="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT";
 let xlsxPromessa=null;
+/* v3.23.0: o gerador de PDF — html2canvas desenha cada folha do relatório numa
+   imagem, e o jsPDF junta-as num ficheiro A4. Como o SheetJS: ficheiros da
+   própria origem, carregados só na primeira vez que se pede um PDF, com SRI, e
+   guardados na cache offline. */
+const PDF_LIBS=[
+  {src:"./vendor/html2canvas.min.js",sri:"sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H",glob:"html2canvas"},
+  {src:"./vendor/jspdf.umd.min.js",sri:"sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3",glob:"jspdf"}];
+let pdfPromessa=null;
+function carregarPdf(){
+  if(window.html2canvas&&window.jspdf)return Promise.resolve();
+  if(pdfPromessa)return pdfPromessa;
+  pdfPromessa=Promise.all(PDF_LIBS.map(l=>new Promise((res,rej)=>{
+    if(window[l.glob])return res();
+    const sc=document.createElement("script");
+    sc.src=l.src;sc.integrity=l.sri;sc.async=true;
+    sc.onload=()=>window[l.glob]?res():rej(new Error("Gerador de PDF indisponível."));
+    sc.onerror=()=>{sc.remove();rej(new Error("Não foi possível carregar o gerador de PDF. Se é a primeira vez que o usa neste dispositivo, abra a app uma vez com rede."));};
+    document.head.appendChild(sc);
+  }))).catch(e=>{pdfPromessa=null;throw e;});
+  return pdfPromessa;
+}
+/* Na cópia que o html2canvas desenha, as regras de impressão passam a valer e
+   as do modo escuro deixam de valer: o PDF sai igual ao que a impressão dá. */
+function modoImpressao(doc){
+  for(const sh of doc.styleSheets){
+    let regras;try{regras=sh.cssRules;}catch(e){continue;}
+    for(const r of regras){
+      if(!r.media)continue;
+      const m=r.media.mediaText;
+      if(/prefers-color-scheme:\s*dark/.test(m))r.media.mediaText="not all";
+      else if(/^print$/.test(m.trim()))r.media.mediaText="all";
+    }
+  }
+}
+/* O html2canvas desenha cada SVG como uma imagem à parte, sem o CSS da página:
+   os gráficos saíam deslocados, cortados e com o texto apagado. Na cópia,
+   cada SVG leva o tamanho com que está desenhado e, em cada elemento, os
+   estilos calculados que contam para o desenho. */
+const SVG_ESTILOS=["fill","fill-opacity","stroke","stroke-width","stroke-opacity","stroke-dasharray","stroke-linecap","stroke-linejoin",
+  "opacity","font-family","font-size","font-weight","letter-spacing","text-anchor","dominant-baseline","visibility"];
+function svgParaImagem(doc){
+  const win=doc.defaultView;
+  /* A cópia é do documento inteiro, pela mesma ordem: o SVG k da cópia é o k
+     da página. O html2canvas escreve nos elementos da cópia os estilos
+     calculados na página — com as cores do modo escuro, se estiver ligado —;
+     repõe-se o estilo próprio de cada elemento antes de ler os da cópia. */
+  const originais=[...document.querySelectorAll("svg")];
+  [...doc.querySelectorAll("svg")].forEach((svg,k)=>{
+    const r=svg.getBoundingClientRect();
+    if(!r.width||!r.height)return;
+    const els=[svg,...svg.querySelectorAll("*")];
+    const orig=originais[k]?[originais[k],...originais[k].querySelectorAll("*")]:[];
+    els.forEach((el,i)=>{const o=orig[i];el.setAttribute("style",o&&o.getAttribute("style")||"");});
+    els.forEach(el=>{
+      const cs=win.getComputedStyle(el);
+      el.setAttribute("style",SVG_ESTILOS.map(k2=>k2+":"+cs.getPropertyValue(k2)).join(";"));
+    });
+    const cs=win.getComputedStyle(svg);
+    svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
+    svg.setAttribute("width",String(r.width));
+    svg.setAttribute("height",String(r.height));
+    const img=doc.createElement("img");
+    img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(new win.XMLSerializer().serializeToString(svg));
+    img.alt="";
+    img.style.cssText="display:block;width:"+r.width+"px;height:"+r.height+"px;margin:"+cs.margin;
+    svg.replaceWith(img);
+  });
+}
+/* PDF A4 do relatório aberto (o de uma auditoria ou o mensal). Cada .page
+   começa folha nova, como na impressão; o cabeçalho vai com a primeira. Uma
+   folha um pouco maior que o A4 encolhe para caber; muito maior, continua na
+   seguinte. Devolve um Blob. */
+async function pdfDoRelatorio(){
+  await carregarPdf();
+  const raiz=document.getElementById("view-report");
+  const blocos=[...raiz.querySelectorAll(":scope > .score-hero, :scope > .page")];
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
+  const M=10,W=210-2*M,H=297-2*M;
+  let y=M,vazia=true,primeira=true;
+  for(const el of blocos){
+    const cv=await window.html2canvas(el,{scale:1.6,backgroundColor:"#ffffff",windowWidth:794,logging:false,
+      onclone:d=>{modoImpressao(d);svgParaImagem(d);}});
+    if(!cv.width||!cv.height)continue;
+    let w=W,h=cv.height*W/cv.width;
+    if(h>H&&h<=H*1.3){w=W*H/h;h=H;}
+    /* Cada folha do relatório começa folha nova; só a primeira pode ficar por
+       baixo do cabeçalho, se lá couber. */
+    if(el.classList.contains("page")){
+      if(!vazia&&!(primeira&&h<=M+H-y)){doc.addPage();y=M;}
+      primeira=false;
+    }
+    if(h<=M+H-y){
+      doc.addImage(cv.toDataURL("image/jpeg",0.82),"JPEG",M+(W-w)/2,y,w,h);
+      y+=h+4;vazia=false;continue;
+    }
+    /* Mais alto que uma folha: aos bocados. */
+    const pxPorMm=cv.width/W;let feito=0;
+    while(feito<cv.height){
+      if(!vazia&&y>M){doc.addPage();y=M;}
+      const alt=Math.min(cv.height-feito,Math.floor((M+H-y)*pxPorMm));
+      const parte=document.createElement("canvas");parte.width=cv.width;parte.height=alt;
+      parte.getContext("2d").drawImage(cv,0,feito,cv.width,alt,0,0,cv.width,alt);
+      doc.addImage(parte.toDataURL("image/jpeg",0.82),"JPEG",M,y,W,alt/pxPorMm);
+      feito+=alt;y+=alt/pxPorMm+4;vazia=false;
+    }
+  }
+  return doc.output("blob");
+}
+/* Resumo da auditoria, para o texto do email ou da mensagem do Teams. */
+function resumoEnvio(a,lista,hoje,via){
+  const p=total(a),ant=anteriorDe(a,lista);
+  const t=colTotals(a);
+  const pil=byPillar(a).filter(x=>x.n>0).sort((x,y)=>x.pct-y.pct)[0];
+  const minhas=Array.isArray(a.acoes)?a.acoes.length:0;
+  /* Em atraso: as desta auditoria e as que vinham de trás — não as de
+     auditorias posteriores ao mesmo serviço. */
+  const atras=(Array.isArray(a.acoes)?a.acoes:[]).filter(ac=>ac&&estadoAcao(ac,hoje)==="atrasada").length+
+    acoesPendentes(lista,a.service,hoje,a).filter(x=>x.estado==="atrasada").length;
+  const d=String(a.date).split("-").reverse().join("/");
+  const l=[];
+  if(via==="email")l.push("Segue em anexo o relatório da auditoria 5S.","");
+  l.push("Auditoria 5S · "+a.service+" · "+d);
+  let nota="Nota: "+p+"/100 ("+badge(p)[1]+")";
+  if(ant){const dd=p-total(ant);nota+=" · "+(dd>0?"+"+dd:dd===0?"igual":String(dd))+" face a "+dataCurta(ant.date);}
+  l.push(nota);
+  l.push("Mau: "+t.mau+" · Com oportunidade: "+t.opor+" · Excelente: "+t.exc);
+  if(pil&&pil.pct<100)l.push("Pilar mais fraco: "+pil.name+" ("+pil.pct+"%)");
+  if(minhas||atras)l.push("Acções: "+minhas+" nesta auditoria"+(atras?" · "+atras+" em atraso neste serviço":""));
+  if(a.verif)l.push("Verificador: "+a.verif);
+  if(via==="teams")l.push("","Relatório completo no PDF em anexo.");
+  return l.join("\n");
+}
+function nomePdf(a){return tituloPdf(a)+".pdf";}
 function loadXLSX(){
   if(window.XLSX)return Promise.resolve();
   if(xlsxPromessa)return xlsxPromessa;
@@ -3712,8 +3968,19 @@ function sanitizeAudit(x){
     acoes:sanitizeAcoes(x.acoes),
     /* v3.14.0: notas de evidência, alinhadas com scores. */
     notas:Array.isArray(x.notas)?scores.map((_,i)=>clean(x.notas[i],300)):undefined,
+    /* v3.23.0: quando o PDF foi descarregado e a auditoria enviada. */
+    envios:sanitizeEnvios(x.envios),
     items:items||undefined
   };
+}
+/* {pdf, email, teams}: datas ISO; o resto cai. Vazio, fica de fora. */
+function sanitizeEnvios(e){
+  if(!e||typeof e!=="object"||Array.isArray(e))return undefined;
+  const out={};
+  ["pdf","email","teams"].forEach(k=>{
+    if(typeof e[k]==="string"&&e[k].length<=40&&Number.isFinite(Date.parse(e[k])))out[k]=e[k];
+  });
+  return Object.keys(out).length?out:undefined;
 }
 function importJson(inp){
   const file=inp.files[0];inp.value="";
