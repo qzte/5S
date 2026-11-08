@@ -14,6 +14,16 @@ Três revisões, por ordem inversa:
 Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
 
+## Nota de 3.23.0 (2026-11-08): sem _headers
+
+O `_headers` (cabeçalhos HTTP do Cloudflare Pages: a CSP, `X-Frame-Options:
+DENY`, `nosniff`, `no-referrer` e o `no-cache` do service worker) foi retirado
+do repositório e da publicação. A CSP continua no `<meta>`, com os hashes de
+cada `<script>` na versão publicada; o que se perde é o que só um cabeçalho
+consegue dar. O ponto 4 (`frame-ancestors` em `<meta>` não é aplicado) volta a
+estar só **mitigado**, pela guarda em JS do `<head>`. Um alojamento que permita
+cabeçalhos deve voltar a enviá-los.
+
 ## Nota de 3.19.0 (2026-11-07): código de acesso próprio
 
 O código de acesso de origem está no código-fonte, igual em todas as instalações. A 3.19.0 deixa
