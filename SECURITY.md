@@ -1,7 +1,8 @@
 # Auditoria de segurança · Auditoria 5S
 
-Três revisões, por ordem inversa:
+Quatro revisões, por ordem inversa:
 
+- **[Revisão OWASP de 3.24.0](#revisão-owasp-de-3240-2026-11-08)** — o OWASP Top 10 ponto a ponto; correcções em 3.24.1.
 - **[Nota de 3.23.0](#nota-de-3230-2026-11-08-sem-_headers-e-pdf-criado-pela-app)** — sai o `_headers` (o ponto 4 volta a ser só mitigado); entram as bibliotecas do PDF, com SRI.
 - **[Nota de 3.19.0](#nota-de-3190-2026-11-07-código-de-acesso-próprio)** — código de acesso próprio de cada dispositivo.
 - **[Nota de 3.14.0](#nota-de-3140-2026-11-06-fotos-na-cópia-de-segurança)** — as fotos passam a entrar e a sair em ficheiros de cópia de segurança.
@@ -13,8 +14,121 @@ Três revisões, por ordem inversa:
 - **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em 3.5.1 e 3.5.2.
 - **[Revisão de 3.1.0](#revisão-de-310-2026-07-31)** — correcções em 3.1.1 e 3.1.2.
 
-Âmbito das três: `index.html` (aplicação e SheetJS embutido), `sw.js`,
+Âmbito das revisões: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+# Revisão OWASP de 3.24.0 (2026-11-08)
+
+Quarta revisão, e a primeira organizada pelo **OWASP Top 10 (2021)**. Revisto o
+código acrescentado desde 3.6.1 — fotos de evidência (3.14.0), código de acesso
+próprio (3.19.0), PDF, envio por email e Teams (3.23.0), cópia pelo menu de
+partilha (3.24.0) — e, de novo, todas as interpolações em
+`innerHTML`/`insertAdjacentHTML` (as `${…}` sem `esc()` foram listadas uma a
+uma: são números calculados, índices ou HTML já montado por funções que
+escapam). O modelo de ameaça é o da primeira revisão: app estática, sem
+servidor, origem própria (`auditoria-5s.pages.dev`) desde 3.7.0.
+
+## Resumo
+
+| # | Gravidade | Assunto | Estado |
+| --- | --- | --- | --- |
+| 25 | Baixa | `src` das fotos interpolado sem `esc()`: uma foto com aspas no IndexedDB injectava atributos | **Corrigido em 3.24.1** |
+| 26 | Baixa | `raw` e `id` de auditorias importadas sem validação | **Corrigido em 3.24.1** |
+| 27 | Info | jsPDF 4.2.1: confirmado que é a versão que fecha CVE-2026-31938 e CVE-2026-31898 | Verificado |
+
+## O OWASP Top 10, um a um
+
+| Categoria | Aplica-se? | Como está |
+| --- | --- | --- |
+| A01 Controlo de acessos | Só em parte | Não há utilizadores nem servidor. O código de acesso trava o gesto distraído, **não** é um controlo (ponto 10, nota de 3.19.0). Os dados estão isolados por origem, que é só desta app (ponto 9, fechado). |
+| A02 Falhas criptográficas | Só em parte | Não há dados em trânsito (`connect-src 'self'`, HTTPS do Cloudflare). O código próprio guarda-se como sal de 96 bits (`crypto.getRandomValues`) e resumo cyrb53; com 4 a 8 algarismos é adivinhável por tentativas, e isso está assumido. Os dados no dispositivo não são cifrados: quem tem o dispositivo desbloqueado tem os dados. |
+| A03 Injecção (XSS) | **Sim** | `esc()` em toda a interpolação de texto; nenhum `eval`, `new Function`, `document.write`, `srcdoc` ou handler inline; CSP por hashes na versão publicada. **Uma excepção: o ponto 25.** O `mailto:` usa `encodeURIComponent` no assunto e no corpo; o nome do ficheiro do PDF tira os caracteres de caminho. A exportação Excel escreve células de texto (`json_to_sheet`), que o Excel não avalia como fórmula. |
+| A04 Desenho inseguro | Só em parte | Portas únicas de entrada (`sanitizeAudit`, `sanitizeItems`, `sanitizeResps`, `sanitizeAcoes`, `sanitizeEnvios`, `fotosParaImportar`), tectos de tamanho, e o «Substituir tudo» com confirmação, código e cópia antes. **O ponto 26** era um buraco nesta porta. |
+| A05 Má configuração | **Sim** | Sem o `_headers` (3.23.0), `frame-ancestors`, `X-Frame-Options` e `nosniff` não chegam ao browser; o clickjacking fica mitigado pela guarda em JS (ponto 4). Recomenda-se repor os cabeçalhos se o alojamento o permitir. O `publicar.sh` publica só os ficheiros da app. |
+| A06 Componentes vulneráveis | **Sim** | SheetJS 0.20.3, html2canvas 1.4.1 e jsPDF 4.2.1, em `vendor/`, com SRI. Nenhum tem CVE por corrigir à data (ponto 27). As actions da CI estão fixadas por SHA. |
+| A07 Autenticação | Não | Não há contas nem sessões. |
+| A08 Integridade de software e dados | **Sim** | SRI nas três bibliotecas; o SheetJS também por SHA-256 na CI (ponto 18); allowlist no service worker; os ficheiros importados passam pelas portas do A04. |
+| A09 Registo e monitorização | Não | Sem servidor não há onde registar. Os envios ficam registados na própria auditoria (`envios`). |
+| A10 SSRF | Não | A app não faz pedidos a endereços vindos de dados. |
+
+---
+
+## 25. `src` das fotos sem `esc()` (Baixa)
+
+Três `<img>` são montados em HTML com a foto lida do IndexedDB:
+
+```js
+`<img src="${url}" …>`        // mostrarEvid()        antes de 3.24.1
+`<img src="${foto}" …>`       // recsHTML()
+`<img src="${x.foto}" …>`     // evidHTML()
+```
+
+A leitura do IndexedDB só verifica `startsWith("data:image/")` (3.9.0). A
+verificação completa (`RE_FOTO_URL`, só base64) existe, mas só na importação de
+ficheiro. Um valor como `data:image/x" onerror="…` passa a leitura, fecha o
+atributo e acrescenta um handler. É a única interpolação de texto em HTML sem
+`esc()` em toda a app.
+
+Verificado no Chromium, com essa foto semeada no IndexedDB e o relatório aberto:
+
+| Versão | Resultado |
+| --- | --- |
+| 3.24.0 do repositório (`'unsafe-inline'`) | o `<img>` ganha `onerror` e **o código corre** |
+| 3.24.0 publicada (CSP por hashes) | o `<img>` ganha `onerror`, mas o browser **não o corre** |
+| 3.24.1 | o `<img>` fica só com `src` e `alt` |
+
+Para explorar é preciso escrever no IndexedDB da origem, ou seja, já correr
+código na origem. Por isso fica em Baixa: é defesa em profundidade, e a CSP
+publicada já a cobria. Mas a regra do ficheiro é «`esc()` em toda a
+interpolação», e era a CSP, não a regra, que estava a segurar.
+
+**Correcção:** `esc()` nos três. O base64 não tem nenhum dos caracteres que
+`esc()` troca, pelo que uma foto verdadeira não muda. `tests/fotos-src.test.js`
+falha se aparecer um `<img src="${…}">` sem `esc()`.
+
+## 26. `raw` e `id` importados sem validação (Baixa)
+
+`sanitizeAudit()` validava quase tudo, mas deixava dois campos como vinham:
+
+- **`raw`** (o valor escrito em cada pergunta) passava com `slice()` e mais
+  nada: objectos, textos de qualquer tamanho ou `=HYPERLINK(…)` iam para o
+  `localStorage`, para a caixa da edição e para a coluna «Valor» da exportação
+  Excel. A app só grava inteiros (`parseInt` em `pick()`).
+- **`id`** passava com `Number(x.id)||…`, que aceita `1.5`, `-3` ou `1e21`. As
+  chaves das fotos são `"<id>|…"` e `"<id>#…"`, lidas por `/^(\d+)[|#]/`: uma
+  auditoria com um destes ids gravava fotos que a cópia de segurança **não
+  levava** e que a limpeza de órfãs não via. Perda de dados em silêncio, não
+  uma vulnerabilidade.
+
+**Correcção:** `raw` passa a ser inteiro de 0 a 1 000 000, ou `null` (as mesmas
+regras de `inteiroOuNull()` no rascunho); `id` passa a ser inteiro positivo
+seguro, ou recebe um novo. Testes em `tests/sanitize.test.js`. Os registos que
+já estão no `localStorage` não são reescritos: a app nunca os criou com outra
+forma.
+
+## 27. jsPDF 4.2.1 (Info)
+
+Duas CVE de 2026 afectam o jsPDF **antes** de 4.2.1: CVE-2026-31938 (XSS pelas
+opções de `output()`, nos modos `…newwindow`) e CVE-2026-31898 (objectos PDF
+injectados por `createAnnotation`). A cópia em `vendor/` declara
+`version="4.2.1"`, a versão que as corrige. A app também não usa nenhum dos
+caminhos afectados: só `addImage`, `addPage` e a saída em Blob, com imagens
+rasterizadas pelo html2canvas.
+
+## O que foi verificado e continua bem
+
+- `esc()` em todas as interpolações de texto, à excepção do ponto 25.
+- O texto dos envios vai para o `mailto:` por `encodeURIComponent` e para a
+  área de transferência como texto; o menu de partilha recebe um `File`.
+- O código de acesso: sal com `crypto.getRandomValues`, resumo nunca exportado,
+  registo estragado volta ao código de origem (para não trancar a app).
+- O service worker continua com a allowlist em tudo; o `guia.html` tem
+  `script-src 'none'`.
+- A suite passa: 207 testes unitários e os smoke tests de browser das
+  evidências, das cópias, do envio, da edição, das perguntas de amostra e da
+  CSP publicada.
+
+---
 
 ## Nota de 3.23.0 (2026-11-08): sem _headers, e PDF criado pela app
 

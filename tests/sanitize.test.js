@@ -68,3 +68,25 @@ test("tgts nunca é mais longo do que scores", () => {
   }));
   assert.strictEqual(a.tgts.length, 1);
 });
+
+/* v3.24.1 (SECURITY.md, ponto 26): o valor bruto e o id passam a ser validados. */
+test("raw: só inteiros entre 0 e 1e6; o resto fica null", () => {
+  const a = sanitizeAudit(Object.assign({}, base, { scores: [1, 1, 1, 1, 1, 1],
+    raw: [3, "7", { x: 1 }, "=HYPERLINK(\"http://x\")", -2, 2e6] }));
+  assert.deepStrictEqual(Array.from(a.raw), [3, 7, null, null, null, null]);
+});
+
+test("raw: não passa do número de respostas", () => {
+  const a = sanitizeAudit(Object.assign({}, base, { raw: [1, 2, 3] }));
+  assert.strictEqual(a.raw.length, 1);
+});
+
+test("id: só inteiro positivo; o resto recebe um id novo", () => {
+  assert.strictEqual(sanitizeAudit(Object.assign({}, base, { id: 1700000000000 })).id, 1700000000000);
+  assert.strictEqual(sanitizeAudit(Object.assign({}, base, { id: "42" })).id, 42);
+  for (const mau of [1.5, -3, 1e21, "abc", "1e3", null]) {
+    const id = sanitizeAudit(Object.assign({}, base, { id: mau })).id;
+    assert.ok(Number.isSafeInteger(id) && id > 0 && /^\d+$/.test(String(id)), "id " + mau + " → " + id);
+    assert.notStrictEqual(id, mau);
+  }
+});
