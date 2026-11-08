@@ -125,13 +125,14 @@ publica a partir de um repositório privado. Configuração, feita uma vez em
 
 A partir daí, cada push para `main` publica sozinho. `scripts/publicar.sh` copia
 para `dist/` **só** os ficheiros da aplicação — sem ele, o repositório inteiro
-(testes, documentação, CI) ficaria acessível pelo endereço da app. O ficheiro
-`_headers` diz ao Cloudflare que cabeçalhos HTTP enviar, entre eles a CSP; os
-dois são verificados por `tests/publicacao.test.js`.
+(testes, documentação, CI) ficaria acessível pelo endereço da app; é verificado
+por `tests/publicacao.test.js`. Até 3.22.0 publicava também um `_headers`, com
+os cabeçalhos HTTP do Cloudflare (a CSP e `X-Frame-Options`); deixou de ser
+preciso e foi retirado (3.23.0). A CSP fica só no `<meta>` da página.
 
 Desde 3.10.0, `publicar.sh` corre também `node scripts/csp.mjs dist`, que troca
 o `'unsafe-inline'` do `script-src` pelo **hash SHA-256 de cada `<script>`**
-embutido, no `<meta>` e no `_headers` publicados (ver [Segurança](#segurança)).
+embutido, no `<meta>` publicado (ver [Segurança](#segurança)).
 Precisa de Node, que a imagem de build do Cloudflare Pages traz; sem ele, a
 publicação falha e fica no ar a versão anterior.
 
@@ -140,9 +141,9 @@ Ganhos de segurança face ao GitHub Pages:
 - **Endereço próprio.** O `localStorage`, o IndexedDB e a licença da pasta do
   painel deixam de ser partilhados com os outros projectos de `qzte.github.io`
   ([SECURITY.md](SECURITY.md), pontos 9 e 21).
-- **Cabeçalhos HTTP.** A CSP vai em cabeçalho, onde `frame-ancestors` vale; com
-  `X-Frame-Options: DENY`, o browser recusa mostrar a app dentro de uma moldura
-  (ponto 4).
+- **Cabeçalhos HTTP** (3.7.0 a 3.22.0). A CSP ia em cabeçalho, onde
+  `frame-ancestors` vale, com `X-Frame-Options: DENY`. Sem o `_headers`, a
+  protecção contra molduras volta a ser só a guarda em JS (ponto 4).
 
 ### Passar os dados do endereço antigo
 
@@ -526,7 +527,6 @@ index.html         Aplicação completa: HTML, CSS e JS
 vendor/xlsx.full.min.js  SheetJS 0.20.3, carregado só para Excel (3.11.0)
 manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
-_headers           Cabeçalhos HTTP do Cloudflare Pages (CSP, molduras, cache do SW)
 scripts/publicar.sh  Prepara dist/ com só os ficheiros da app, para o Cloudflare Pages
 scripts/csp.mjs    Na versão publicada, troca 'unsafe-inline' pelos hashes dos <script>
 tools/lint/        Ferramentas de desenvolvimento (ESLint, axe-core), com lockfile próprio
@@ -684,10 +684,12 @@ Revisão completa em [SECURITY.md](SECURITY.md), incluindo o que **não** está
 mitigado. Dois pontos a reter:
 
 - `frame-ancestors` numa CSP em `<meta>` é **ignorado pelos browsers**: só
-  funciona em cabeçalho HTTP, que o GitHub Pages não permitia definir. Desde
-  3.7.0, no Cloudflare Pages, a CSP vai também em cabeçalho (`_headers`) e o
-  browser recusa a moldura; a guarda em JS no `<head>` (3.1.2) fica para quem
-  sirva a app de outro lado.
+  funciona em cabeçalho HTTP. De 3.7.0 a 3.22.0, no Cloudflare Pages, a CSP ia
+  também em cabeçalho (`_headers`) e o browser recusava a moldura; desde 3.23.0
+  o `_headers` já não existe, e a protecção é a guarda em JS no `<head>`
+  (3.1.2). Quem sirva a app de um alojamento que deixe definir cabeçalhos deve
+  enviar `Content-Security-Policy` com `frame-ancestors 'none'` e
+  `X-Frame-Options: DENY`.
 - O `localStorage` pertence à **origem**, não ao caminho. Em
   `qzte.github.io`, qualquer outra página publicada na mesma conta lia e
   escrevia os dados desta aplicação, e herdava a licença da **pasta do painel
