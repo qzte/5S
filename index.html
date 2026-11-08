@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.24.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.24.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1279,7 +1279,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.24.0";
+const APP_VERSION="3.24.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1598,7 +1598,7 @@ function mostrarEvid(i){
   if(!box)return;
   box.classList.toggle("hidden",!(answers[i]===0||answers[i]===1));
   const url=fotosForm.get(i);
-  box.querySelector("[data-efoto]").innerHTML=url?`<img src="${url}" alt="Foto de evidência">`:"";
+  box.querySelector("[data-efoto]").innerHTML=url?`<img src="${esc(url)}" alt="Foto de evidência">`:"";
   box.querySelector("[data-eadd]").textContent=url?"Trocar foto":"Foto";
   box.querySelector("[data-erm]").classList.toggle("hidden",!url);
 }
@@ -2502,7 +2502,7 @@ function recsHTML(a){
         <h3>${esc(RESP[k])}</h3>
         <div class="rec-body">
           <div class="rec-foto" data-foto="${esc(k)}">
-            ${foto?`<img src="${foto}" alt="Foto: ${esc(RESP[k])}">`
+            ${foto?`<img src="${esc(foto)}" alt="Foto: ${esc(RESP[k])}">`
                   :`<span class="rec-vazio no-print">Sem foto</span>`}
           </div>
           <div class="rec-txt">
@@ -2601,7 +2601,7 @@ function evidHTML(a,fotos){
   return`<section id="evid" class="page page-evid"><div class="card">
     <h3 style="margin-bottom:8px">Evidências · ${esc(a.service)} · ${esc(a.date)}</h3>
     <div class="evid-grelha">${lista.map(x=>`<div class="evid-item">
-      ${x.foto?`<img src="${x.foto}" alt="Evidência da pergunta ${esc(x.it.n)}">`:""}
+      ${x.foto?`<img src="${esc(x.foto)}" alt="Evidência da pergunta ${esc(x.it.n)}">`:""}
       <div><b>Nº ${esc(x.it.n)} · ${esc(x.it.t)}</b>
         <span class="pill" style="background:${x.s===0?"var(--red)":"var(--amber-bg)"}">${esc(LBL[x.s])}</span>
         <br><small style="color:var(--muted)">${esc(x.it.c)}</small>
@@ -3937,7 +3937,12 @@ function sanitizeAudit(x){
   if(!service||!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;
   if(!Array.isArray(x.scores)||!x.scores.length)return null;
   const scores=x.scores.map(v=>{const n=parseInt(v,10);return n>=0&&n<=2?n:0;});
-  const raw=Array.isArray(x.raw)?x.raw.slice(0,scores.length):[];
+  /* v3.24.1: o valor bruto é sempre um inteiro (pick() grava parseInt do
+     campo). Vinha do ficheiro sem validação: objectos, textos enormes ou
+     fórmulas passavam para o localStorage e para a exportação Excel. */
+  const raw=Array.isArray(x.raw)?x.raw.slice(0,scores.length).map(v=>{
+    const n=typeof v==="number"?v:(typeof v==="string"&&/^\s*\d+\s*$/.test(v)?parseInt(v,10):NaN);
+    return Number.isInteger(n)&&n>=0&&n<=1e6?n:null;}):[];
   /* v3.1.0: alvos efectivos. Validados valor a valor — um alvo inválido num
      item não deve descartar os dos restantes. */
   const tgts=Array.isArray(x.tgts)?x.tgts.slice(0,scores.length).map(v=>{
@@ -3959,7 +3964,10 @@ function sanitizeAudit(x){
     })).map(normItem);
   }
   return{
-    id:Number(x.id)||Date.now()+Math.floor(Math.random()*1e6),
+    /* v3.24.1: só um inteiro positivo. As chaves das fotos são "<id>|…" e
+       "<id>#…", lidas por /^(\d+)[|#]/: um id 1.5, -3 ou 1e21 gravava fotos
+       que a cópia de segurança não levava e a limpeza de órfãs não via. */
+    id:Number.isSafeInteger(Number(x.id))&&Number(x.id)>0?Number(x.id):Date.now()+Math.floor(Math.random()*1e6),
     service,date,
     pick:clean(x.pick,120),
     repo:clean(x.repo,120),verif:clean(x.verif,120),

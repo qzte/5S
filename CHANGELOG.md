@@ -5,6 +5,18 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.24.1] — 2026-11-08
+
+### Segurança
+
+- Revisão pelo OWASP Top 10 (`SECURITY.md`, pontos 25 a 27).
+- As fotos passam por `esc()` no `src` das imagens: uma foto com aspas no
+  armazenamento já não acrescenta atributos à página (ponto 25).
+- A importação valida o valor de cada resposta (`raw`, só inteiros) e o id da
+  auditoria (só inteiros positivos), para que as fotos não fiquem de fora da
+  cópia de segurança (ponto 26).
+- Testes: `tests/fotos-src.test.js` e casos novos em `tests/sanitize.test.js`.
+
 ## [3.24.0] — 2026-11-08
 
 ### Alterado
