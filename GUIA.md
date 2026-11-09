@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.25.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.26.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -110,18 +110,32 @@ Para auditar no serviço com o telemóvel e acabar o trabalho no computador:
    para o PC** e escolha o email. Vai um ficheiro só com esta auditoria e as
    suas fotos (no Chrome termina em `.txt`; não faz mal).
 3. **No PC**: guarde o anexo do email, abra a app, e em **Histórico →
-   Importar auditoria** escolha o ficheiro. Abre o relatório da auditoria, com
+   Importar ficheiro** escolha o ficheiro. Abre o relatório da auditoria, com
    as fotos, e as acções fechadas no terreno ficam fechadas também no PC.
    Complete as recomendações (texto e foto), o plano de acção e, em **Editar
    auditoria** — que não pede o código enquanto está por finalizar —, a
    observação, as notas e as fotos. Carregue em **Finalizar auditoria**.
-4. **PDF e email ao serviço**: *Descarregar PDF* e *Enviar por email*.
+4. **PDF e email ao serviço**: *Descarregar PDF* e *Enviar por email*. Se o
+   serviço tiver email em *Config* (ver [Configuração](#configuração)), o
+   cartão mostra-o: ao carregar em *Enviar por email* o endereço fica copiado
+   — cole-o em «Para». Sem menu de partilha, o email já abre com ele.
 5. **Cópia de segurança**: *Guardar cópia com fotos*, no PC.
 
 Se importar o mesmo ficheiro outra vez, nada se perde: fica a versão mais
-recente. Para o telemóvel ficar a par (acções novas, auditorias finalizadas),
-importe nele, de vez em quando, uma cópia de segurança do PC com **Fundir**: as
-auditorias que o PC tem mais recentes substituem as do telemóvel.
+recente.
+
+**O telemóvel a par do PC.** De vez em quando — por exemplo antes de sair para
+auditar —, no PC, em **Config → Dados**, carregue em **Enviar para o
+telemóvel** e mande o ficheiro para o seu email. No telemóvel, abra-o em
+**Histórico → Importar ficheiro** e carregue em **Actualizar**. O telemóvel
+fica com as auditorias finalizadas, as acções criadas ou fechadas no PC, as
+frequências, os emails dos serviços e as perguntas do PC. As auditorias que
+ainda só estão no telemóvel ficam. O ficheiro não leva fotos: é leve.
+
+**Libertar espaço no telemóvel.** Depois de actualizado, *Config → Dados*
+oferece **Apagar fotos que já estão no PC**: as das auditorias que enviou daqui
+e foram finalizadas no PC. As auditorias ficam; as fotos ficam só no PC (e na
+cópia de segurança de lá).
 
 ## O relatório
 
@@ -235,8 +249,10 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 
 ## Configuração
 
-- **Serviços** e **Frequência das auditorias** — ver
-  [Antes de começar](#antes-de-começar). Remover um serviço ou uma pessoa
+- **Serviços** e **Frequência das auditorias e email** — ver
+  [Antes de começar](#antes-de-começar). O **email** de cada serviço (até 5
+  endereços, separados por vírgulas) é para onde vai o relatório; o que não
+  for um endereço fica de fora, com um aviso. Remover um serviço ou uma pessoa
   mostra **Desfazer** no fundo do ecrã durante 10 segundos.
 - **Responsáveis** — quem responde por cada pergunta; são os eixos do radar e
   os blocos de recomendações. Um responsável com perguntas, recomendações ou
@@ -275,9 +291,9 @@ recupera.
 **Partilhei a cópia e o ficheiro acaba em .txt.** É o Chrome, que não partilha
 ficheiros .json. O conteúdo é o mesmo: importe-o tal como está.
 
-**Importei a auditoria no PC e não aparecem as acções que criei antes no
-PC, no telemóvel.** O telemóvel só as conhece depois de importar uma cópia do
-PC (*Fundir*). Ver [Do telemóvel para o PC](#do-telemóvel-para-o-pc).
+**As acções que criei no PC não aparecem no telemóvel.** O telemóvel só as
+conhece depois de importar o ficheiro *Enviar para o telemóvel* do PC. Ver
+[Do telemóvel para o PC](#do-telemóvel-para-o-pc).
 
 **Mudei de telemóvel.** No antigo, *Exportar com fotos (JSON)*. No novo, abra a
 app, *Importar cópia de segurança* e escolha *Substituir tudo*.

@@ -5,6 +5,31 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.26.0] — 2026-11-09
+
+### Adicionado
+
+- **Enviar para o telemóvel** (*Config → Dados*, no PC): a cópia sem fotos,
+  que o telemóvel abre em *Histórico → Importar ficheiro* com *Actualizar*.
+  Traz as auditorias finalizadas, as acções, as frequências, os emails dos
+  serviços e as perguntas do PC; as auditorias que só existem no telemóvel
+  ficam.
+- **Email de cada serviço** (até 5 endereços), em *Config → Frequência das
+  auditorias e email*. O cartão «Depois da auditoria» mostra-o e copia-o ao
+  enviar por email; sem menu de partilha, o email abre já com ele. Vai nas
+  cópias de segurança.
+- **Libertar espaço no telemóvel**: apagar as fotos das auditorias enviadas
+  para o PC e finalizadas lá. As auditorias ficam.
+- Testes: `tests/sincronizacao.test.js`; `tests/smoke-terreno.mjs` cobre o
+  email, o ficheiro para o telemóvel e a limpeza das fotos.
+
+### Alterado
+
+- O botão do Histórico chama-se *Importar ficheiro* (uma auditoria do
+  telemóvel ou os dados do PC).
+- Ao importar, as perguntas do ficheiro só são propostas se forem diferentes
+  das actuais.
+
 ## [3.25.0] — 2026-11-09
 
 ### Adicionado
