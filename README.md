@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.26.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.27.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.26.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.27.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -600,6 +600,17 @@ envia-se ao serviço auditado e faz-se a cópia de segurança.
   dispositivo (`fotosNoPC()`) têm as fotos no PC: *Config → Dados* oferece
   apagá-las deste dispositivo. As auditorias ficam, com o histórico, os
   prazos e o seguimento.
+
+### Enviar para o PC conta como cópia (3.27.0)
+
+No telemóvel, a cópia de segurança faz-se no PC. Depois de *Enviar para o PC*,
+`tudoNoPC()` verifica se todas as auditorias alteradas desde a última cópia
+(`backup.at`) já estão no PC: enviadas depois da última alteração
+(`envios.pc ≥ alterada`), com as acções fechadas no terreno no ficheiro agora
+enviado, ou vindas do PC (finalizadas noutro dispositivo). As anteriores a
+3.25.0 (sem `alterada`) só contam como seguras se já houve alguma cópia. Se
+sim, o envio regista-se como cópia com fotos (`registarExportacao(true,
+"pc")`, com `viaPC`), e o lembrete desaparece; se não, continua.
 
 ## Relatório mensal (3.20.0)
 
