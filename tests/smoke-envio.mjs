@@ -58,7 +58,8 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
   });
   const { pg } = await abrir(ctx);
   let p = await passos(pg);
-  check(p.length === 3 && /Cópia de segurança/.test(p[0]) && /PDF do relatório/.test(p[1]) && /Enviar/.test(p[2]),
+  /* 3.25.0: pela ordem do fluxo — PDF, envio, e a cópia no fim. */
+  check(p.length === 3 && /PDF do relatório/.test(p[0]) && /Enviar/.test(p[1]) && /Cópia de segurança/.test(p[2]),
     "o cartão devia ter os três passos: " + p.join(" | "));
   check(!/✓/.test(p.join("")), "nada feito ainda");
 
@@ -70,8 +71,8 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
   check(/^auditorias5s_\d{4}-\d{2}-\d{2}_com_fotos\.txt$/.test(cp.nome) && cp.tipo === "text/plain" && cp.inicio === '{"app',
     "a cópia do passo 1 vai pelo menu de partilha: " + JSON.stringify(cp).slice(0, 160));
   check(/Importar cópia de segurança/.test(cp.texto), "o texto diz como a recuperar: " + cp.texto);
-  await pg.waitForFunction(() => /✓/.test(document.querySelector("#pos-aud .passos li").textContent));
-  check(/✓ Feita/.test((await passos(pg))[0]), "o passo 1 devia ficar feito");
+  await pg.waitForFunction(() => /✓/.test(document.querySelectorAll("#pos-aud .passos li")[2].textContent));
+  check(/✓ Feita/.test((await passos(pg))[2]), "o passo da cópia devia ficar feito");
 
   /* Passo 2: PDF. */
   const [dp] = await Promise.all([pg.waitForEvent("download", { timeout: 30000 }), pg.locator("#pa-pdf").click()]);
@@ -81,7 +82,7 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
     `o PDF devia ser um PDF com as folhas do relatório (${paginasPdf(pdf)} páginas, ${pdf.length} bytes)`);
   await pg.waitForFunction(() => /Descarregado/.test(document.querySelector("#pos-aud").textContent));
   check(!!(await auditoria(pg, 2)).envios.pdf, "o PDF fica registado na auditoria");
-  check(/✓ Feita/.test((await passos(pg))[0]), "registar o PDF não volta a pedir a cópia de segurança");
+  check(/✓ Feita/.test((await passos(pg))[2]), "registar o PDF não volta a pedir a cópia de segurança");
 
   /* Passo 3: email e Teams, pelo menu de partilha. */
   await pg.locator("#pa-email").click();
@@ -126,8 +127,8 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
   /* Passo 1 sem partilha: descarrega a cópia, e conta como feita. */
   const [dc] = await Promise.all([pg.waitForEvent("download", { timeout: 30000 }), pg.locator("#pa-copia").click()]);
   check(/_com_fotos\.json$/.test(dc.suggestedFilename()), "sem partilha, o passo 1 descarrega a cópia: " + dc.suggestedFilename());
-  await pg.waitForFunction(() => /✓/.test(document.querySelector("#pos-aud .passos li").textContent), null, { timeout: 5000 }).catch(() => {});
-  check(/✓ Feita/.test((await passos(pg))[0]), "sem partilha, o passo 1 também fica feito");
+  await pg.waitForFunction(() => /✓/.test(document.querySelectorAll("#pos-aud .passos li")[2].textContent), null, { timeout: 5000 }).catch(() => {});
+  check(/✓ Feita/.test((await passos(pg))[2]), "sem partilha, a cópia também fica feita");
   check(!vistos.length, "sem partilha, o passo 1 não mostra avisos");
   /* O botão de importar diz que aceita os dois formatos. */
   check(/\.json ou \.txt/.test(await pg.locator("#btn-impjson").textContent()), "o botão de importar diz .json ou .txt");
