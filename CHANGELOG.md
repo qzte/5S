@@ -5,6 +5,32 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.25.0] — 2026-11-09
+
+### Adicionado
+
+- **Auditar no telemóvel, finalizar no PC.** Uma auditoria nova fica **por
+  finalizar**, e o cartão «Depois da auditoria» passa a ter, nessa fase, dois
+  passos: *Enviar para o PC* e *Finalizar auditoria*. O PDF, o envio ao
+  serviço e a cópia de segurança vêm depois de finalizada, por esta ordem.
+- **Enviar para o PC**: um ficheiro só com essa auditoria e as suas fotos,
+  pelo menu de partilha (para o email), com as acções fechadas no terreno.
+- **Importar auditoria**, no Histórico: abre o ficheiro enviado do telemóvel
+  (só funde, nunca substitui), fecha as acções feitas no terreno e abre o
+  relatório da auditoria.
+- O Histórico diz «por finalizar», e se já foi enviada para o PC.
+- Testes: `tests/terreno.test.js` e `tests/smoke-terreno.mjs` (no CI).
+
+### Alterado
+
+- **Fundir actualiza.** Uma auditoria que já existe é substituída pela do
+  ficheiro quando esta é mais recente (campo novo `alterada`), em vez de ser
+  ignorada; as fotos dela também, se o ficheiro as trouxer. Assim a cópia do
+  PC, importada no telemóvel, leva lá as auditorias finalizadas e as acções.
+- Enquanto está por finalizar, *Editar auditoria* não pede o código de acesso.
+- Os passos do cartão «Depois da auditoria» passam à ordem PDF, envio e cópia
+  de segurança.
+
 ## [3.24.1] — 2026-11-08
 
 ### Segurança

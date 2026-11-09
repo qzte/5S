@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.24.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.25.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -17,6 +17,7 @@ app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver
 - [Antes de começar](#antes-de-começar)
 - [Fazer uma auditoria](#fazer-uma-auditoria)
 - [Depois da auditoria](#depois-da-auditoria)
+- [Do telemóvel para o PC](#do-telemóvel-para-o-pc)
 - [O relatório](#o-relatório)
 - [Plano de acção](#plano-de-acção)
 - [Histórico e prazos](#histórico-e-prazos)
@@ -57,7 +58,8 @@ No separador **Auditar**:
 4. **Evidência.** Numa pergunta classificada **Mau** ou **Oportunidade**
    aparecem um campo de nota e o botão **Foto**: escreva o que viu e fotografe.
    *Trocar foto* e *Remover foto* fazem o que dizem.
-5. Carregue em **Guardar auditoria**. Abre o relatório. Se já houver uma
+5. Carregue em **Guardar auditoria**. Abre o relatório, e a auditoria fica
+   **por finalizar** (ver [Do telemóvel para o PC](#do-telemóvel-para-o-pc)). Se já houver uma
    auditoria ao mesmo serviço nesse dia, a app pergunta antes de gravar outra:
    se é a mesma, cancele e edite a do Histórico.
 
@@ -68,24 +70,58 @@ de novo** apaga-a. Só entra no Histórico ao carregar em *Guardar auditoria*.
 
 ## Depois da auditoria
 
-Ao gravar, abre o relatório. No topo, o cartão **Depois da auditoria** tem os
-três passos a seguir, e marca com ✓ os que já foram feitos:
+Ao gravar, abre o relatório. No topo, o cartão **Depois da auditoria** diz o
+que falta, e marca com ✓ o que já foi feito.
 
-1. **Guardar cópia com fotos** — a cópia de segurança completa, de todas as
+Enquanto a auditoria está **por finalizar**:
+
+1. **Enviar para o PC** — ver [Do telemóvel para o PC](#do-telemóvel-para-o-pc).
+2. **Finalizar auditoria** — depois de completar as recomendações, o plano de
+   acção e o que faltar. Se fizer tudo no mesmo dispositivo, carregue logo
+   aqui.
+
+Depois de finalizada:
+
+1. **Descarregar PDF** — o relatório num ficheiro, com o nome do serviço e da
+   data. A app cria-o sozinha; demora um ou dois segundos.
+2. **Enviar por email** ou **Enviar para o Teams** — abre o menu de partilha
+   com o PDF e um resumo da auditoria (nota, comparação com a anterior, pior
+   pilar, acções). Escolha lá o Outlook, o Gmail ou o Teams, e a pessoa, a
+   conversa ou o canal.
+3. **Guardar cópia com fotos** — a cópia de segurança completa, de todas as
    auditorias. Abre o menu de partilha: mande-a para a Drive, o OneDrive, o
    email ou o Teams. Onde não há menu de partilha, descarrega o ficheiro —
    guarde-o noutro sítio.
-2. **Descarregar PDF** — o relatório num ficheiro, com o nome do serviço e da
-   data. A app cria-o sozinha; demora um ou dois segundos.
-3. **Enviar por email** ou **Enviar para o Teams** — abre o menu de partilha do
-   telemóvel com o PDF e um resumo da auditoria (nota, comparação com a
-   anterior, pior pilar, acções). Escolha lá o Outlook, o Gmail ou o Teams, e a
-   pessoa, a conversa ou o canal.
 
 No computador, se o browser não tiver menu de partilha, o PDF é descarregado e
 abre-se o email já escrito (anexe o PDF à mão) ou o resumo fica copiado para
-colar no Teams. O Histórico mostra, em cada auditoria, se já foi **enviada** ou
-está **por enviar**.
+colar no Teams. O Histórico mostra, em cada auditoria, se está **por
+finalizar**, já foi **enviada** ou está **por enviar**.
+
+## Do telemóvel para o PC
+
+Para auditar no serviço com o telemóvel e acabar o trabalho no computador:
+
+1. **No serviço, com o telemóvel**: responda às perguntas, feche as acções que
+   ficaram resolvidas e tire as fotos **dentro da app** (botão **Foto** nas
+   perguntas Mau ou Oportunidade) — assim vão já ligadas à pergunta. Carregue
+   em **Guardar auditoria**.
+2. **Enviar para o PC**: no cartão *Depois da auditoria*, carregue em **Enviar
+   para o PC** e escolha o email. Vai um ficheiro só com esta auditoria e as
+   suas fotos (no Chrome termina em `.txt`; não faz mal).
+3. **No PC**: guarde o anexo do email, abra a app, e em **Histórico →
+   Importar auditoria** escolha o ficheiro. Abre o relatório da auditoria, com
+   as fotos, e as acções fechadas no terreno ficam fechadas também no PC.
+   Complete as recomendações (texto e foto), o plano de acção e, em **Editar
+   auditoria** — que não pede o código enquanto está por finalizar —, a
+   observação, as notas e as fotos. Carregue em **Finalizar auditoria**.
+4. **PDF e email ao serviço**: *Descarregar PDF* e *Enviar por email*.
+5. **Cópia de segurança**: *Guardar cópia com fotos*, no PC.
+
+Se importar o mesmo ficheiro outra vez, nada se perde: fica a versão mais
+recente. Para o telemóvel ficar a par (acções novas, auditorias finalizadas),
+importe nele, de vez em quando, uma cópia de segurança do PC com **Fundir**: as
+auditorias que o PC tem mais recentes substituem as do telemóvel.
 
 ## O relatório
 
@@ -238,6 +274,10 @@ recupera.
 
 **Partilhei a cópia e o ficheiro acaba em .txt.** É o Chrome, que não partilha
 ficheiros .json. O conteúdo é o mesmo: importe-o tal como está.
+
+**Importei a auditoria no PC e não aparecem as acções que criei antes no
+PC, no telemóvel.** O telemóvel só as conhece depois de importar uma cópia do
+PC (*Fundir*). Ver [Do telemóvel para o PC](#do-telemóvel-para-o-pc).
 
 **Mudei de telemóvel.** No antigo, *Exportar com fotos (JSON)*. No novo, abra a
 app, *Importar cópia de segurança* e escolha *Substituir tudo*.

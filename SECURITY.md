@@ -2,6 +2,7 @@
 
 Quatro revisões, por ordem inversa:
 
+- **[Nota de 3.25.0](#nota-de-3250-2026-11-09-ficheiro-de-auditoria-e-fundir-que-actualiza)** — o ficheiro de auditoria do telemóvel e a fusão que actualiza pela data de alteração.
 - **[Revisão OWASP de 3.24.0](#revisão-owasp-de-3240-2026-11-08)** — o OWASP Top 10 ponto a ponto; correcções em 3.24.1.
 - **[Nota de 3.23.0](#nota-de-3230-2026-11-08-sem-_headers-e-pdf-criado-pela-app)** — sai o `_headers` (o ponto 4 volta a ser só mitigado); entram as bibliotecas do PDF, com SRI.
 - **[Nota de 3.19.0](#nota-de-3190-2026-11-07-código-de-acesso-próprio)** — código de acesso próprio de cada dispositivo.
@@ -129,6 +130,26 @@ rasterizadas pelo html2canvas.
   CSP publicada.
 
 ---
+
+## Nota de 3.25.0 (2026-11-09): ficheiro de auditoria e Fundir que actualiza
+
+O ficheiro que o telemóvel envia para o PC é uma cópia de segurança com uma
+só auditoria, e entra pela mesma porta: `sanitizeAudit()`, `sanitizeAcoes()`,
+`fotosParaImportar()` e `sanitizeResps()`. O que é novo também passa por
+validação: `fase` só vale `"terreno"`; `alterada`, `finalizada` e `envios.pc`
+só datas ISO; as acções feitas no terreno (`acoesFeitas`) passam por
+`sanitizeFeitas()` (texto limpo e limitado, ids inteiros, no máximo 500) e só
+**fecham** acções que já existem com o mesmo id e texto, nunca as criam nem as
+reabrem. Um ficheiro de auditoria nunca propõe *Substituir tudo*.
+
+Fundir passou a **substituir** uma auditoria de casa pela do ficheiro quando
+esta tem `alterada` mais recente. Um ficheiro forjado com uma data no futuro
+consegue, por isso, reescrever uma auditoria que já existe — o que *Substituir
+tudo* já permitia com o código de acesso. A caixa da importação diz quantas
+auditorias seriam actualizadas antes de se confirmar, e o modelo de ameaça não
+muda: quem importa escolhe o ficheiro. Por finalizar, *Editar auditoria* não
+pede o código; o código protege contra o toque distraído no histórico, e uma
+auditoria por finalizar ainda não é histórico fechado.
 
 ## Nota de 3.23.0 (2026-11-08): sem _headers, e PDF criado pela app
 

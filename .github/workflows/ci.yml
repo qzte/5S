@@ -197,6 +197,10 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-envio.mjs
 
+      - name: Auditar no telemóvel, finalizar no PC
+        timeout-minutes: 4
+        run: node tests/smoke-terreno.mjs
+
       # Serve uma cópia do dist/ noutra porta (8767), que o teste altera e
       # desliga para simular erros do servidor e uma actualização.
       - name: Offline, servidor em erro e actualização do service worker
