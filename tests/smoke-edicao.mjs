@@ -112,6 +112,15 @@ check(await nAudits() === 1, "cancelar não altera o histórico");
 
 /* ---- 5. Código errado não abre a edição. ---- */
 pinAtual = "0000";
+/* 3.25.0: por finalizar, a edição não pede o código (completá-la é o passo
+   seguinte); só depois de finalizada. */
+check(await pg.evaluate(() => audits[0].fase) === "terreno", "a auditoria nova fica por finalizar");
+await pg.locator("[data-v=history]").click();
+await pg.locator("[data-edit='0']").click();
+check(!(await pg.locator("#edit-banner").isHidden()), "por finalizar, a edição abre sem código");
+await pg.locator("#btn-canceledit").click();
+await semDialogo(pg);
+await pg.evaluate(() => { delete audits[0].fase; save("audits", audits); });
 await pg.locator("[data-v=history]").click();
 await pg.locator("[data-edit='0']").click();
 await semDialogo(pg);

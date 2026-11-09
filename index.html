@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.24.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.25.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -478,6 +478,12 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <div class="stat-row" style="font-size:.78rem;color:var(--muted);font-weight:400">
       <span id="hf-conta" role="status"></span>
       <button class="btn small ghost" id="btn-hf-limpar">Limpar filtros</button></div>
+  </div>
+  <!-- v3.25.0: a auditoria feita no telemóvel, para finalizar aqui. -->
+  <div class="card" id="hist-importar">
+    <div class="stat-row" style="font-weight:400;align-items:center;gap:10px">
+      <span style="font-size:.78rem;color:var(--muted)">Auditoria feita no telemóvel? Abra aqui o ficheiro que recebeu por email, para a finalizar.</span>
+      <button class="btn small ghost" id="btn-hist-importar">Importar auditoria</button></div>
   </div>
   <div id="hist-list"></div>
 </section>
@@ -1279,7 +1285,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.24.1";
+const APP_VERSION="3.25.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1838,7 +1844,7 @@ document.getElementById("btn-save").onclick=async()=>{
     "/100). Gravar esta também? Se é a mesma auditoria, cancele e edite a que já está no Histórico.",
     {titulo:"Auditoria repetida?",sim:"Gravar também"})))return;
   if(editId!=null){
-    const nova=aplicarEdicao(audits,editId,dados);
+    const nova=aplicarEdicao(audits,editId,tocar(dados));
     if(!nova){aviso("Esta auditoria já não existe no histórico. As alterações não foram guardadas.");resetForm();return;}
     const anterior=audits;
     audits=nova;
@@ -1857,7 +1863,8 @@ document.getElementById("btn-save").onclick=async()=>{
     openReport(a);
     return;
   }
-  const a=Object.assign({id:Date.now()},dados);
+  /* v3.25.0: gravada no terreno, fica por finalizar (ver enviarParaPC). */
+  const a=tocar(Object.assign({id:Date.now()},dados,{fase:"terreno"}));
   audits.push(a);
   if(!save("audits",audits)){audits.pop();return;}
   /* O rascunho sai ANTES de resetForm(): de outro modo renderForm() voltava a
@@ -2530,6 +2537,7 @@ function wireRecs(a){
       alvo.recs=Object.assign({},recsOf(alvo));
       alvo.recs[k]=clean(t.value,600);
       a.recs=alvo.recs;
+      tocar(alvo);a.alterada=alvo.alterada;
       save("audits",audits);
       const pv=t.closest(".rec-body").querySelector(".rec-print");
       if(pv)pv.textContent=alvo.recs[k]||"—";
@@ -2543,7 +2551,7 @@ function wireRecs(a){
     shrinkImage(f,url=>{
       if(!url){aviso("Não foi possível ler a imagem.");return;}
       REC_FOTOS.set(k,url);redrawRecs(a);
-      guardarFoto(a.id,k,url).then(()=>registarFotos(1)).catch(()=>aviso(
+      guardarFoto(a.id,k,url).then(()=>{registarFotos(1);fotoAlterada(a);}).catch(()=>aviso(
         "A foto aparece neste relatório, mas não foi possível guardá-la no dispositivo: "+
         "ao sair do relatório perde-se."));
     });
@@ -2551,7 +2559,12 @@ function wireRecs(a){
   box.querySelectorAll("[data-rmf]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.rmf;
     REC_FOTOS.delete(k);redrawRecs(a);
-    apagarFoto(a.id,k).catch(()=>{});});
+    apagarFoto(a.id,k).then(()=>fotoAlterada(a)).catch(()=>{});});
+}
+/* v3.25.0: uma foto das recomendações também é uma alteração à auditoria. */
+function fotoAlterada(a){
+  const alvo=audits.find(x=>x.id===a.id);if(!alvo)return;
+  tocar(alvo);a.alterada=alvo.alterada;save("audits",audits);
 }
 /* Redesenha só a página 3, para não perder o scroll nem recalcular os gráficos. */
 function redrawRecs(a){
@@ -2671,8 +2684,10 @@ function mudarAcoes(auditId,fn){
   const alvo=audits.find(x=>x.id===auditId);
   if(!alvo)return false;
   const antes=alvo.acoes;
+  const alteradaAntes=alvo.alterada;
   alvo.acoes=sanitizeAcoes(fn((Array.isArray(antes)?antes:[]).map(x=>Object.assign({},x))));
-  if(!save("audits",audits)){alvo.acoes=antes;return false;}
+  tocar(alvo);
+  if(!save("audits",audits)){alvo.acoes=antes;alvo.alterada=alteradaAntes;return false;}
   registarAlteracao();
   return true;
 }
@@ -2991,6 +3006,9 @@ async function partilharFicheiro(f,titulo,texto){
 /* No Histórico: « · enviada por email a 08/11/26», ou « · por enviar». */
 function textoEnviada(a){
   const e=a&&a.envios||{};
+  /* v3.25.0: por finalizar, e se já foi enviada para o PC. */
+  if(a&&a.fase==="terreno")return ` · <span data-enviada style="color:var(--amber-ink)">por finalizar${
+    e.pc?" (enviada para o PC a "+esc(dataCurta(dataLocal(e.pc)))+")":""}</span>`;
   const v=[e.email?["email",e.email]:null,e.teams?["Teams",e.teams]:null].filter(Boolean)
     .sort((x,y)=>y[1].localeCompare(x[1]));
   return v.length?` · <span data-enviada style="color:var(--green-ink)">enviada (${v.map(x=>x[0]).join(", ")}) a ${esc(dataCurta(dataLocal(v[0][1])))}</span>`
@@ -3004,7 +3022,9 @@ function marcarEnvio(id,via){
   const a=audits.find(x=>x.id===id);if(!a)return;
   a.envios=Object.assign({},a.envios||{},{[via]:new Date().toISOString()});
   /* Sem registarAlteracao(): é um registo, não uma alteração à auditoria, e
-     não deve voltar a pedir a cópia de segurança que acabou de ser feita. */
+     não deve voltar a pedir a cópia de segurança que acabou de ser feita.
+     Mas é mais recente (3.25.0): vai assim para a outra cópia, ao fundir. */
+  tocar(a);
   save("audits",audits);
 }
 function estadoPassos(a,b){
@@ -3015,23 +3035,7 @@ function estadoPassos(a,b){
 }
 function renderPosAuditoria(a){
   const box=document.getElementById("pos-aud");if(!box)return;
-  const st=estadoPassos(a,backupInfo());
   const ok=t=>`<span class="passo-ok">✓ ${esc(t)}</span>`;
-  const enviado=[st.email?"por email "+quando(st.email):"",st.teams?"para o Teams "+quando(st.teams):""].filter(Boolean).join("; ");
-  box.innerHTML=`<h3 style="margin-bottom:4px">Depois da auditoria</h3>
-    <ol class="passos">
-      <li class="${st.copia?"feito":""}"><div><b>Cópia de segurança</b><br>
-        <small>${st.copia?ok("Feita "+quando(st.copiaEm)):"Uma cópia de tudo, com fotos, para outro sítio: abre o menu de partilha (Drive, OneDrive, email, Teams). Sem menu, descarrega o ficheiro."}</small></div>
-        <button class="btn small ${st.copia?"ghost":""}" id="pa-copia">Guardar cópia com fotos</button></li>
-      <li class="${st.pdf?"feito":""}"><div><b>PDF do relatório</b><br>
-        <small>${st.pdf?ok("Descarregado "+quando(st.pdf)):"O relatório num ficheiro, para guardar ou anexar."}</small></div>
-        <button class="btn small ${st.pdf?"ghost":""}" id="pa-pdf">Descarregar PDF</button></li>
-      <li class="${enviado?"feito":""}"><div><b>Enviar</b><br>
-        <small>${enviado?ok("Enviada "+enviado):"O PDF e um resumo da auditoria. Abre o menu de partilha: escolha lá o Outlook, o Gmail ou o Teams."}</small></div>
-        <span class="passo-btns"><button class="btn small ${st.email?"ghost":""}" id="pa-email">Enviar por email</button>
-        <button class="btn small ${st.teams?"ghost":""}" id="pa-teams">Enviar para o Teams</button></span></li>
-    </ol>
-    <p id="pa-estado" class="hidden" role="status" style="font-size:.78rem;color:var(--muted);margin-top:6px"></p>`;
   const estado=t=>{const el=document.getElementById("pa-estado");if(!el)return;el.textContent=t||"";el.classList.toggle("hidden",!t);};
   const ocupado=async(btn,texto,fn)=>{
     const bs=box.querySelectorAll("button");bs.forEach(x=>x.disabled=true);estado(texto);
@@ -3039,6 +3043,44 @@ function renderPosAuditoria(a){
     catch(e){aviso(e&&e.message?e.message:"Não foi possível concluir.");}
     finally{estado("");if(document.getElementById("pos-aud")===box)renderPosAuditoria(audits.find(x=>x.id===a.id)||a);}
   };
+  const rodape=`<p id="pa-estado" class="hidden" role="status" style="font-size:.78rem;color:var(--muted);margin-top:6px"></p>`;
+  /* v3.25.0: no terreno (telemóvel), a auditoria grava-se «por finalizar». Os
+     passos são enviá-la para o PC e finalizá-la lá (ou aqui mesmo); o PDF, o
+     envio ao serviço e a cópia de segurança vêm depois de finalizada. */
+  if(porFinalizar(a)){
+    const pc=(a.envios||{}).pc||"";
+    box.innerHTML=`<h3 style="margin-bottom:4px">Depois da auditoria</h3>
+      <p style="font-size:.78rem;color:var(--muted)">Por finalizar. Depois de finalizada: PDF, envio ao serviço e cópia de segurança.</p>
+      <ol class="passos">
+        <li class="${pc?"feito":""}"><div><b>Enviar para o PC</b><br>
+          <small>${pc?ok("Enviada "+quando(pc)):"Só esta auditoria, com as fotos. Abre o menu de partilha: envie-a para o seu email. No PC, abra-a em Histórico → Importar auditoria."}</small></div>
+          <button class="btn small ${pc?"ghost":""}" id="pa-pc">Enviar para o PC</button></li>
+        <li><div><b>Finalizar</b><br>
+          <small>Complete as recomendações, o plano de acção e, em <i>Editar auditoria</i> (sem código enquanto está por finalizar), a observação, as notas e as fotos. Depois, carregue em Finalizar.</small></div>
+          <button class="btn small ghost" id="pa-fim">Finalizar auditoria</button></li>
+      </ol>${rodape}`;
+    document.getElementById("pa-pc").onclick=e=>ocupado(e.currentTarget,"A preparar o ficheiro…",()=>enviarParaPC(a));
+    document.getElementById("pa-fim").onclick=()=>finalizarAuditoria(a.id);
+    return;
+  }
+  const st=estadoPassos(a,backupInfo());
+  const enviado=[st.email?"por email "+quando(st.email):"",st.teams?"para o Teams "+quando(st.teams):""].filter(Boolean).join("; ");
+  /* v3.25.0: pela ordem do fluxo — PDF, envio ao serviço auditado, e a cópia
+     de segurança no fim, já com tudo o que se acrescentou ao finalizar. */
+  box.innerHTML=`<h3 style="margin-bottom:4px">Depois da auditoria</h3>
+    ${a.finalizada?`<p style="font-size:.78rem">${ok("Finalizada "+quando(a.finalizada))}</p>`:""}
+    <ol class="passos">
+      <li class="${st.pdf?"feito":""}"><div><b>PDF do relatório</b><br>
+        <small>${st.pdf?ok("Descarregado "+quando(st.pdf)):"O relatório num ficheiro, para guardar ou anexar."}</small></div>
+        <button class="btn small ${st.pdf?"ghost":""}" id="pa-pdf">Descarregar PDF</button></li>
+      <li class="${enviado?"feito":""}"><div><b>Enviar</b><br>
+        <small>${enviado?ok("Enviada "+enviado):"O PDF e um resumo da auditoria. Abre o menu de partilha: escolha lá o Outlook, o Gmail ou o Teams."}</small></div>
+        <span class="passo-btns"><button class="btn small ${st.email?"ghost":""}" id="pa-email">Enviar por email</button>
+        <button class="btn small ${st.teams?"ghost":""}" id="pa-teams">Enviar para o Teams</button></span></li>
+      <li class="${st.copia?"feito":""}"><div><b>Cópia de segurança</b><br>
+        <small>${st.copia?ok("Feita "+quando(st.copiaEm)):"Uma cópia de tudo, com fotos, para outro sítio: abre o menu de partilha (Drive, OneDrive, email, Teams). Sem menu, descarrega o ficheiro."}</small></div>
+        <button class="btn small ${st.copia?"ghost":""}" id="pa-copia">Guardar cópia com fotos</button></li>
+    </ol>${rodape}`;
   /* v3.24.0: pelo menu de partilha, para a cópia sair logo do telemóvel. */
   document.getElementById("pa-copia").onclick=e=>ocupado(e.currentTarget,"A preparar a cópia…",()=>partilharCopia(true));
   document.getElementById("pa-pdf").onclick=e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
@@ -3068,6 +3110,125 @@ function renderPosAuditoria(a){
   });
   document.getElementById("pa-email").onclick=enviar("email");
   document.getElementById("pa-teams").onclick=enviar("teams");
+}
+
+/* ---------- Auditar no telemóvel, finalizar no PC (v3.25.0) ----------
+   Uma auditoria nova grava-se «por finalizar» (`fase: "terreno"`). No
+   telemóvel, «Enviar para o PC» partilha um ficheiro só com ela e as suas
+   fotos (o «ficheiro de auditoria», `tipo: "auditoria"`), que no PC se abre
+   com «Importar auditoria». Lá completam-se as recomendações, as acções e as
+   notas, e «Finalizar» tira-a da fase de terreno (`finalizada`, a data). As
+   auditorias anteriores a 3.25.0 não têm `fase`: contam como finalizadas.
+
+   Com dois dispositivos há duas cópias de cada auditoria. `alterada` (data
+   ISO) diz qual é a mais recente: muda a cada alteração ao conteúdo, e na
+   importação (Fundir) a mais recente substitui a outra, em vez de a do
+   ficheiro ser ignorada por já existir. As acções marcadas como feitas no
+   terreno pertencem a auditorias ANTERIORES, que o ficheiro de auditoria não
+   leva: vão à parte, em `acoesFeitas`, e só fecham acções (nunca as reabrem). */
+const MAX_FEITAS=500;
+const porFinalizar=a=>!!a&&a.fase==="terreno";
+function tocar(a){if(a)a.alterada=new Date().toISOString();return a;}
+/* `a` é mais recente do que `b`? Sem `alterada` (antes de 3.25.0) conta como
+   a mais antiga de todas; iguais não são mais recentes. */
+function maisRecente(a,b){return String(a&&a.alterada||"")>String(b&&b.alterada||"");}
+/* As acções feitas de outras auditorias ao mesmo serviço, para irem com o
+   ficheiro de auditoria. Identificam-se pela auditoria (serviço e data), pelo
+   id e pelo texto. */
+function acoesFeitasDe(lista,a){
+  const out=[];
+  (lista||[]).forEach(au=>{
+    if(!au||!a||au.id===a.id||au.service!==a.service||!Array.isArray(au.acoes))return;
+    au.acoes.forEach(ac=>{
+      if(ac&&ac.estado==="feita")out.push({service:au.service,date:au.date,id:ac.id,texto:ac.texto,feitaEm:ac.feitaEm||""});
+    });
+  });
+  return out.slice(-MAX_FEITAS);
+}
+function sanitizeFeitas(x){
+  if(!Array.isArray(x))return [];
+  const data=v=>typeof v==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v:"";
+  const out=[];
+  x.slice(0,MAX_FEITAS).forEach(f=>{
+    if(!f||typeof f!=="object"||Array.isArray(f))return;
+    const service=clean(f.service,200),date=data(f.date),texto=clean(f.texto,300);
+    if(!service||!date||!texto||!Number.isInteger(f.id)||f.id<=0)return;
+    out.push({service,date,id:f.id,texto,feitaEm:data(f.feitaEm)});
+  });
+  return out;
+}
+/* Fecha, em `lista`, as acções de `feitas` que ainda estão abertas. Altera as
+   auditorias no sítio (e marca-as como alteradas); devolve quantas fechou. */
+function aplicarAcoesFeitas(lista,feitas){
+  let n=0;
+  (feitas||[]).forEach(f=>{
+    const au=(lista||[]).find(x=>x&&x.service===f.service&&x.date===f.date&&Array.isArray(x.acoes)&&
+      x.acoes.some(ac=>ac&&ac.id===f.id&&ac.texto===f.texto));
+    if(!au)return;
+    const ac=au.acoes.find(y=>y&&y.id===f.id&&y.texto===f.texto);
+    if(ac.estado==="feita")return;
+    au.acoes=au.acoes.map(y=>y===ac?Object.assign({},y,{estado:"feita",feitaEm:f.feitaEm||""}):y);
+    tocar(au);n++;
+  });
+  return n;
+}
+/* O que fazer a cada auditoria do ficheiro, ao fundir: "nova" (não existe
+   neste dispositivo), "actualizar" (existe, e a do ficheiro é mais recente) ou
+   "igual" (existe, igual ou mais recente; fica a de casa). A mesma auditoria é
+   a do mesmo id, serviço e data; senão, a do mesmo serviço e data. Duas do
+   ficheiro com o mesmo serviço e data: só a primeira conta. */
+function planoFusao(locais,entrada){
+  const novasSD=new Set();
+  return (entrada||[]).map(a=>{
+    const sd=a.service+"|"+a.date;
+    const local=(locais||[]).find(x=>x.id===a.id&&x.service===a.service&&x.date===a.date)||
+      (locais||[]).find(x=>x.service===a.service&&x.date===a.date)||null;
+    if(!local){
+      if(novasSD.has(sd))return{a,local:null,accao:"igual"};
+      novasSD.add(sd);return{a,local:null,accao:"nova"};
+    }
+    return{a,local,accao:maisRecente(a,local)?"actualizar":"igual"};
+  });
+}
+/* O conteúdo do ficheiro de auditoria. Leva a auditoria já com o registo do
+   envio (`envios.pc`), as suas fotos, as acções feitas no terreno, os
+   responsáveis (as atribuições das perguntas apontam para eles) e as pessoas. */
+function payloadTransferencia(a,lista,fotos,extra,agora){
+  return{app:"auditoria5s",tipo:"auditoria",version:extra.version,exportedAt:agora,
+    audits:[Object.assign({},a,{envios:Object.assign({},a.envios||{},{pc:agora})})],
+    services:[a.service],people:extra.people||[],resps:extra.resps||[],
+    acoesFeitas:acoesFeitasDe(lista,a),
+    fotos:(fotos||[]).filter(f=>f&&idDaChave(f.k)===a.id)};
+}
+async function enviarParaPC(a){
+  let fotos;
+  try{fotos=await todasAsFotos([a.id]);}
+  catch(e){throw new Error("Não foi possível ler as fotos desta auditoria.",{cause:e});}
+  const agora=new Date().toISOString();
+  const p=payloadTransferencia(a,audits,fotos,{version:APP_VERSION,people,resps:respsActuais()},agora);
+  const blob=new Blob([JSON.stringify(p)],{type:"application/json"});
+  const nome=tituloPdf(a)+".json";
+  const f=ficheiroPartilha(blob,nome);
+  const registar=()=>{
+    const x=audits.find(y=>y.id===a.id);if(!x)return;
+    /* Sem tocar(): o envio não muda a auditoria, e a cópia do PC (que já leva
+       este registo) tem de continuar a valer tanto como esta. */
+    x.envios=Object.assign({},x.envios||{},{pc:agora});save("audits",audits);
+  };
+  if(!f){descarregar(blob,nome);registar();return;}
+  const r=await partilharFicheiro(f,tituloPdf(a),
+    "Auditoria 5S de "+a.service+" ("+dataCurta(a.date)+"), por finalizar. No computador: Histórico → Importar auditoria, e escolha este ficheiro.");
+  if(r==="cancelado")return;
+  if(r==="sem"){descarregar(blob,nome);}
+  registar();
+}
+function finalizarAuditoria(id){
+  const a=audits.find(x=>x.id===id);if(!a)return;
+  const antes=Object.assign({},a);
+  delete a.fase;a.finalizada=new Date().toISOString();tocar(a);
+  if(!save("audits",audits)){Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,antes);return;}
+  registarAlteracao();
+  renderPosAuditoria(a);
 }
 
 /* ---------- Histórico ---------- */
@@ -3152,7 +3313,9 @@ async function editAudit(a){
   /* Reescrever uma auditoria gravada é uma alteração ao histórico, e passa pelo
      mesmo código do editor de perguntas. A ordem importa: primeiro diz-se se a
      auditoria é sequer editável, para não pedir um código e só depois recusar. */
-  if(!(await pedirPin("Código de acesso para editar uma auditoria gravada (evita alterações acidentais):")))return;
+  /* v3.25.0: por finalizar, completá-la é o passo seguinte, e não uma
+     alteração ao histórico: não pede o código. */
+  if(!porFinalizar(a)&&!(await pedirPin("Código de acesso para editar uma auditoria gravada (evita alterações acidentais):")))return;
   editId=a.id;
   FORM_ITEMS=IT.map(normItem);
   renderForm();
@@ -3932,6 +4095,8 @@ function sanitizeItems(data){
 
 function sanitizeAudit(x){
   if(!x||typeof x!=="object")return null;
+  /* Uma data ISO (instante) do ficheiro, ou undefined. */
+  const dataISO=v=>typeof v==="string"&&v.length<=40&&Number.isFinite(Date.parse(v))?v:undefined;
   const service=clean(x.service,200);
   const date=clean(x.date,10);
   if(!service||!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;
@@ -3982,14 +4147,19 @@ function sanitizeAudit(x){
     notas:Array.isArray(x.notas)?scores.map((_,i)=>clean(x.notas[i],300)):undefined,
     /* v3.23.0: quando o PDF foi descarregado e a auditoria enviada. */
     envios:sanitizeEnvios(x.envios),
+    /* v3.25.0: por finalizar (auditada no terreno), quando foi finalizada e
+       quando foi alterada pela última vez (é o que decide, ao fundir). */
+    fase:x.fase==="terreno"?"terreno":undefined,
+    finalizada:dataISO(x.finalizada),
+    alterada:dataISO(x.alterada),
     items:items||undefined
   };
 }
-/* {pdf, email, teams}: datas ISO; o resto cai. Vazio, fica de fora. */
+/* {pdf, email, teams, pc}: datas ISO; o resto cai. Vazio, fica de fora. */
 function sanitizeEnvios(e){
   if(!e||typeof e!=="object"||Array.isArray(e))return undefined;
   const out={};
-  ["pdf","email","teams"].forEach(k=>{
+  ["pdf","email","teams","pc"].forEach(k=>{
     if(typeof e[k]==="string"&&e[k].length<=40&&Number.isFinite(Date.parse(e[k])))out[k]=e[k];
   });
   return Object.keys(out).length?out:undefined;
@@ -4026,13 +4196,32 @@ function importJson(inp){
     const inPerg=sanitizeItems(data.itemsCfg);
     const temPerg=inPerg.length;
     const origem=data.version?" (v"+data.version+")":"";
-    /* v3.9.0: dois botões em vez de um prompt() onde se escrevia «F» ou «S». */
-    const m=await caixa({titulo:"Importar histórico",
+    /* v3.25.0: o que Fundir faria a cada auditoria do ficheiro, e as acções
+       fechadas no terreno que traz. */
+    const plano=planoFusao(audits,inAudits);
+    const nNovas=plano.filter(x=>x.accao==="nova").length,nAct=plano.filter(x=>x.accao==="actualizar").length;
+    const feitas=sanitizeFeitas(data.acoesFeitas);
+    const nFotos=Array.isArray(data.fotos)?data.fotos.length:0;
+    const deAuditoria=data.tipo==="auditoria"&&inAudits.length===1;
+    let m;
+    if(deAuditoria){
+      /* Um ficheiro de auditoria (enviado do telemóvel) só se funde: nunca
+         substitui o histórico deste dispositivo. */
+      const a=inAudits[0],pl=plano[0];
+      m=await caixa({titulo:"Importar auditoria",
+        texto:"Auditoria a "+a.service+" de "+dataCurta(a.date)+" ("+total(a)+"/100)"+(nFotos?", com "+nFotos+" foto(s)":"")+
+          (porFinalizar(a)?", por finalizar":"")+"."+
+          (pl.accao==="actualizar"?"\nJá existe neste dispositivo: a do ficheiro é mais recente e substitui-a.":
+           pl.accao==="igual"?"\nJá existe neste dispositivo, igual ou mais recente: fica a que está.":"")+
+          (feitas.length?"\nTraz também as acções feitas no terreno, que são fechadas aqui.":""),
+        botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"F",label:"Importar",def:true}]});
+    }else m=await caixa({titulo:"Importar histórico",
       texto:"Ficheiro"+origem+": "+inAudits.length+" auditoria(s), "+inSvc.length+" serviço(s), "+inPpl.length+" pessoa(s)."+
       (descartadas?"\n"+descartadas+" registo(s) inválido(s) serão ignorados.":"")+
       (truncadas?"\nO ficheiro traz mais de "+MAX_AUDITS+" auditorias: as "+truncadas+" últimas são ignoradas.":"")+
       (semItens?"\nAtenção: "+semItens+" auditoria(s) sem as perguntas associadas e com nº de respostas diferente do actual — os relatórios podem ficar desalinhados.":"")+
-      "\n\nFundir junta-as às actuais, sem duplicar. Substituir apaga as "+audits.length+" auditoria(s) actuais.",
+      "\n\nFundir junta as novas ("+nNovas+") às actuais, sem duplicar"+(nAct?", e actualiza "+nAct+" que o ficheiro tem mais recente(s)":"")+
+      ". Substituir apaga as "+audits.length+" auditoria(s) actuais.",
       botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"S",label:"Substituir tudo",cls:"ghost perigo"},
         {v:"F",label:"Fundir",def:true}]});
     if(m==null){desfazerResps();return;}
@@ -4040,6 +4229,7 @@ function importJson(inp){
     /* v3.14.0: id no ficheiro → id em casa, para as fotos acompanharem cada
        auditoria importada (ao fundir, um id já ocupado passa ao seguinte). */
     const mapaIds=new Map();
+    let novas=0,fechadas=0,abrirId=null;const actualizadas=[],trocarFotos=[];
     if(m==="S"){
       if(!(await confirmar("Substituir TODOS os dados actuais ("+audits.length+" auditoria(s))? Esta acção não pode ser anulada.",{sim:"Substituir",perigo:true}))){desfazerResps();return;}
       /* v3.5.1 — o mesmo código de acesso que apagar UMA auditoria pede desde
@@ -4053,26 +4243,44 @@ function importJson(inp){
       if(Array.isArray(data.freqAud))freqs=sanitizeFreqs(data.freqAud);
       people=[...new Set(inPpl)];
     }else{
-      const chaves=new Set(audits.map(a=>a.id+"|"+a.service+"|"+a.date));
-      const chavesSD=new Set(audits.map(a=>a.service+"|"+a.date));
-      let novas=0;
-      inAudits.forEach(a=>{
-        if(chaves.has(a.id+"|"+a.service+"|"+a.date)||chavesSD.has(a.service+"|"+a.date))return;
-        const orig=a.id;
-        while(audits.some(x=>x.id===a.id))a.id++;
-        mapaIds.set(orig,a.id);
-        audits.push(a);chaves.add(a.id+"|"+a.service+"|"+a.date);chavesSD.add(a.service+"|"+a.date);novas++;
+      /* v3.25.0: as que já existem não são só ignoradas — a do ficheiro
+         substitui a de casa quando é mais recente (`alterada`), e fica com o id
+         de casa. As fotos dela, se o ficheiro as trouxer, substituem as de
+         casa; um ficheiro sem fotos deixa as de casa como estão. */
+      novas=0;
+      plano.forEach(({a,local,accao})=>{
+        if(accao==="nova"){
+          const orig=a.id;
+          while(audits.some(x=>x.id===a.id))a.id++;
+          mapaIds.set(orig,a.id);
+          audits.push(a);novas++;abrirId=abrirId==null?a.id:abrirId;
+        }else if(accao==="actualizar"){
+          const i=audits.indexOf(local);
+          if(i<0)return;
+          audits[i]=Object.assign({},a,{id:local.id});
+          if(Array.isArray(data.fotos)){mapaIds.set(a.id,local.id);trocarFotos.push(local.id);}
+          actualizadas.push(audits[i]);abrirId=abrirId==null?local.id:abrirId;
+        }
       });
+      if(abrirId==null&&plano[0]&&plano[0].local)abrirId=plano[0].local.id;
+      fechadas=aplicarAcoesFeitas(audits,feitas);
       services=[...new Set(services.concat(inSvc))];
       /* Fundir: as de casa mantêm-se; do ficheiro entram as dos serviços sem frequência. */
       freqs=sanitizeFreqs(freqs.concat(sanitizeFreqs(data.freqAud).filter(f=>!freqs.some(g=>g.s===f.s))));
       people=[...new Set(people.concat(inPpl))];
-      if(!novas&&!inSvc.length&&!inPpl.length){desfazerResps();aviso("Nada de novo a importar: as auditorias já existem.");return;}
+      if(!novas&&!actualizadas.length&&!fechadas&&!(deAuditoria?0:inSvc.length+inPpl.length)){desfazerResps();
+        if(deAuditoria&&plano[0].local){aviso("Esta auditoria já está neste dispositivo, igual ou mais recente.");openReport(plano[0].local);}
+        else aviso("Nada de novo a importar: as auditorias já existem.");
+        return;}
     }
     const gravou=save("audits",audits);save("services",services);save("people",people);save("freqAud",freqs);
     /* As fotos das auditorias que o ficheiro substituiu já não têm a quem
        pertencer. Só depois de a lista nova estar gravada. */
     if(m==="S"&&gravou)await apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
+    if(gravou&&trocarFotos.length){
+      clearFotos();
+      await Promise.all(trocarFotos.map(id=>apagarFotosDe(id))).catch(()=>{});
+    }
     /* v3.14.0: as fotos do ficheiro (uma cópia "com fotos"), depois de as
        auditorias estarem gravadas e as órfãs limpas. */
     const fotosIn=gravou?fotosParaImportar(data.fotos,mapaIds):[];
@@ -4089,12 +4297,22 @@ function importJson(inp){
       save("resps",finais);loadResps();respDraft=respsActuais();
     }
 
+    if(gravou&&deAuditoria&&(novas||actualizadas.length||fechadas))registarAlteracao();
     if(temPerg&&await confirmar("O ficheiro inclui "+inPerg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas.")){
       save("itemsCfg",inPerg);
       loadItems();
     }
     refreshForm();renderCfg();renderHist();
+    /* Um ficheiro de auditoria abre logo o relatório dela, para a finalizar. */
+    if(deAuditoria&&gravou){
+      const a=audits.find(x=>x.id===abrirId);
+      if(a){openReport(a);
+        aviso("Auditoria importada"+(fotosOk?", com "+fotosOk+" foto(s)":"")+
+          (fechadas?". "+fechadas+" acção(ões) fechada(s) no terreno":"")+".");return;}
+    }
     aviso("Importação concluída: "+audits.length+" auditoria(s) no histórico"+
+      (novas?", "+novas+" nova(s)":"")+(actualizadas.length?", "+actualizadas.length+" actualizada(s)":"")+
+      (fechadas?", "+fechadas+" acção(ões) fechada(s)":"")+
       (fotosOk?", "+fotosOk+" foto(s) importada(s)":"")+".");
   };
   rd.readAsText(file);
@@ -4780,6 +4998,7 @@ on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(
 on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
 on("f-service","change",()=>mostrarAnteriores());
 on("btn-impjson","click",()=>document.getElementById("hist-file").click());
+on("btn-hist-importar","click",()=>document.getElementById("hist-file").click());
 on("hist-file","change",function(){importJson(this);});
 on("btn-impxl","click",()=>document.getElementById("xl-file").click());
 on("xl-file","change",function(){importExcel(this);});

@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.24.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.25.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.24.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.25.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -34,6 +34,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Plano de acção](#plano-de-acção)
 - [Dados e privacidade](#dados-e-privacidade)
 - [Depois da auditoria](#depois-da-auditoria-3230)
+- [Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250)
 - [Relatório mensal](#relatório-mensal-3200)
 - [Importação de Excel](#importação-de-excel)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -87,6 +88,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | Separador **Acções**: o plano de acção de todos os serviços | 3.21.0 |
 | | PDF com o nome do serviço e da data | 3.22.0 |
 | | [Depois da auditoria](#depois-da-auditoria-3230): cópia, PDF criado pela app, envio por email ou Teams | 3.23.0 |
+| **Dois dispositivos** | [Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250): auditoria por finalizar, envio só dela para o PC, importação que actualiza | 3.25.0 |
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
 | | Aviso de nova versão; arranque ~2,5× mais rápido (SheetJS só quando é preciso) | 3.8.0, 3.11.0 |
@@ -395,6 +397,11 @@ telemetria nem recursos externos.
 | `rascunho` | Auditoria nova por terminar (3.8.0) — apagada ao gravar ou descartar |
 | `backup` | Data da última exportação e alterações desde então (3.8.0) |
 
+Desde 3.25.0 cada auditoria tem também `alterada` (quando mudou pela última
+vez), `fase: "terreno"` enquanto está por finalizar e `finalizada` (quando foi
+finalizada); `envios` ganha `pc`. Ver
+[Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250).
+
 **Faça exportações regulares.** Limpar os dados do navegador apaga tudo sem
 possibilidade de recuperação. A exportação JSON inclui auditorias, serviços,
 pessoas e perguntas; a importação permite **Fundir** (sem duplicar, por
@@ -526,6 +533,46 @@ teams}`, com a data), e portanto nas cópias de segurança; o Histórico mostra
 «enviada (email, Teams) a …» ou «por enviar». Registar um envio não volta a
 pedir a cópia de segurança. Fechar o menu de partilha sem enviar não conta.
 
+## Auditar no telemóvel, finalizar no PC (3.25.0)
+
+O fluxo: no serviço, com o telemóvel, responde-se às perguntas e tiram-se as
+fotos; a auditoria vai por email para o PC; no PC completa-se, gera-se o PDF,
+envia-se ao serviço auditado e faz-se a cópia de segurança.
+
+- **Por finalizar.** Uma auditoria nova grava-se com `fase: "terreno"`. O
+  cartão *Depois da auditoria* tem então dois passos: **Enviar para o PC** e
+  **Finalizar auditoria**. O PDF, o envio ao serviço e a cópia de segurança
+  aparecem depois de finalizada, por esta ordem. As auditorias de versões
+  anteriores não têm `fase` e contam como finalizadas. O Histórico diz «por
+  finalizar» e se já foi enviada para o PC.
+- **Enviar para o PC** (`enviarParaPC()`, `payloadTransferencia()`) partilha
+  pelo menu do sistema um **ficheiro de auditoria** — «Auditoria 5S -
+  <serviço> - <data>.json» (`.txt` no Chrome), com `tipo: "auditoria"` — só
+  com essa auditoria e as suas fotos (algumas centenas de KB, e não a cópia
+  inteira, que cresce até passar o limite do email). Leva também as acções que
+  se fecharam no terreno (`acoesFeitas`), que pertencem a auditorias
+  anteriores e não iriam de outro modo. Sem menu de partilha, descarrega-o.
+- **Importar auditoria**, no Histórico (é a mesma importação de *Config →
+  Dados*), reconhece o ficheiro de auditoria: só funde (nunca propõe
+  *Substituir tudo*), fecha as acções feitas no terreno (nunca as reabre) e
+  abre logo o relatório da auditoria.
+- **Finalizar no PC.** Enquanto está por finalizar, *Editar auditoria* não
+  pede o código de acesso: completá-la (observação, notas, fotos) é o passo
+  seguinte, e não uma alteração ao histórico. Recomendações e acções
+  escrevem-se no relatório, como sempre. **Finalizar auditoria** grava
+  `finalizada` e tira a `fase`.
+- **Fundir actualiza.** Até 3.24.x, Fundir ignorava uma auditoria que já
+  existisse (mesmo id, ou mesmo serviço e data). Com duas cópias de cada
+  auditoria isso deixava o PC com a versão antiga, e as acções fechadas no
+  terreno por fechar. Agora cada auditoria guarda `alterada` (a data ISO da
+  última alteração: gravar, editar, recomendações, fotos das recomendações,
+  acções, envios, finalizar), e a do ficheiro **substitui** a de casa quando é
+  mais recente (`planoFusao()`), mantendo o id de casa. Se o ficheiro trouxer
+  fotos, as dessa auditoria substituem as de casa; um ficheiro sem fotos deixa
+  as de casa como estão. A mesma regra faz o caminho inverso: a cópia do PC,
+  importada no telemóvel com Fundir, actualiza lá as auditorias finalizadas e
+  as acções.
+
 ## Relatório mensal (3.20.0)
 
 Na **Análise**, *Relatório mensal* resume um mês de todos os serviços, para a
@@ -633,6 +680,7 @@ node tests/smoke-acesso.mjs        # código de acesso próprio; espaço ocupado
 node tests/smoke-mensal.mjs        # relatório mensal; partilhar a cópia (Web Share simulado)
 node tests/smoke-correcoes.mjs     # data local, «Remover foto», nome do PDF, auditoria repetida
 node tests/smoke-envio.mjs         # depois da auditoria: cópia, PDF, email e Teams (partilha simulada)
+node tests/smoke-terreno.mjs       # auditar no telemóvel, finalizar no PC (dois dispositivos)
 node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização, guia
 ```
 
