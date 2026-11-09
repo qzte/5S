@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.26.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 3.27.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -120,6 +120,10 @@ Para auditar no serviço com o telemóvel e acabar o trabalho no computador:
    cartão mostra-o: ao carregar em *Enviar por email* o endereço fica copiado
    — cole-o em «Para». Sem menu de partilha, o email já abre com ele.
 5. **Cópia de segurança**: *Guardar cópia com fotos*, no PC.
+
+No telemóvel, **Enviar para o PC** conta como cópia de segurança, desde que
+tudo o que lá mudou já tenha ido para o PC: o lembrete de cópia desaparece. Se
+ficou alguma auditoria por enviar, continua a aparecer.
 
 Se importar o mesmo ficheiro outra vez, nada se perde: fica a versão mais
 recente.
