@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.25.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.26.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -250,6 +250,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .freq-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .freq-row label{flex:1 1 auto;margin:0;text-transform:none;letter-spacing:0;font-size:.85rem;color:var(--ink)}
 .freq-row select{flex:0 0 46%;margin:0}
+.email-row{margin:0 0 12px}
+.email-row input{margin:0;font-size:.85rem}
 .prazo-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
 .prazo-row:first-of-type{border-top:0}
 .prazo-row>div{flex:1 1 auto;min-width:0;font-size:.85rem}
@@ -482,8 +484,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   <!-- v3.25.0: a auditoria feita no telemóvel, para finalizar aqui. -->
   <div class="card" id="hist-importar">
     <div class="stat-row" style="font-weight:400;align-items:center;gap:10px">
-      <span style="font-size:.78rem;color:var(--muted)">Auditoria feita no telemóvel? Abra aqui o ficheiro que recebeu por email, para a finalizar.</span>
-      <button class="btn small ghost" id="btn-hist-importar">Importar auditoria</button></div>
+      <span style="font-size:.78rem;color:var(--muted)">Recebeu um ficheiro da app por email — uma auditoria do telemóvel, para a finalizar, ou os dados do PC, para o telemóvel? Abra-o aqui.</span>
+      <button class="btn small ghost" id="btn-hist-importar">Importar ficheiro</button></div>
   </div>
   <div id="hist-list"></div>
 </section>
@@ -562,10 +564,11 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <button class="btn small ghost" id="btn-addsvc">Adicionar</button></div>
   </div>
   <div class="card" id="card-freq">
-    <h3 style="margin-bottom:4px">Frequência das auditorias</h3>
+    <h3 style="margin-bottom:4px">Frequência das auditorias e email</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">De quanto em quanto tempo cada serviço
       deve ser auditado. O Histórico mostra os que estão em atraso e os que estão a vencer, e o formulário
-      avisa ao escolher o serviço.</p>
+      avisa ao escolher o serviço. O <b>email</b> é para onde vai o relatório (até 5 endereços, separados
+      por vírgulas).</p>
     <div id="freq-list"></div>
   </div>
   <div class="card">
@@ -575,15 +578,20 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
       repositores/picking e perguntas. A importação permite <b>fundir</b> com os dados actuais
       (sem duplicar) ou <b>substituir</b> tudo. A exportação para <b>Excel</b> serve para análise
       noutro programa (uma folha por auditoria e outra por resposta) e não pode ser importada de volta:
-      a cópia de segurança é a JSON.</p>
+      a cópia de segurança é a JSON. <b>Enviar para o telemóvel</b> (no PC) manda ao telemóvel, sem fotos, as
+      auditorias finalizadas, as acções, as frequências, os emails e as perguntas: no telemóvel, abre-se em
+      Histórico → Importar ficheiro.</p>
     <button class="btn small ghost" id="btn-expjson">Exportar histórico (JSON)</button>
     <button class="btn small ghost" id="btn-expfotos">Exportar com fotos (JSON)</button>
     <button class="btn small ghost" id="btn-partilhar" style="display:none">Partilhar cópia com fotos</button>
     <button class="btn small ghost" id="btn-impjson">Importar cópia de segurança (.json ou .txt)</button>
     <button class="btn small ghost" id="btn-expxl">Exportar para Excel</button>
+    <button class="btn small ghost" id="btn-telemovel">Enviar para o telemóvel</button>
     <input type="file" id="hist-file" accept=".json,.txt,application/json,text/plain" class="hidden">
     <div id="data-stats" style="font-size:.78rem;color:var(--muted);margin-top:12px"></div>
     <div id="data-armaz" style="font-size:.78rem;color:var(--muted);margin-top:6px"></div>
+    <!-- v3.26.0: as fotos que já estão no PC. -->
+    <div id="limpeza" class="hidden"></div>
     <p style="font-size:.78rem;color:var(--muted);margin-top:10px">Os dados ficam guardados apenas neste dispositivo. Faça exportações regulares como cópia de segurança.</p>
   </div>
   <div class="card" id="card-painel">
@@ -1285,7 +1293,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.25.0";
+const APP_VERSION="3.26.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1307,6 +1315,9 @@ let services=loadArr("services",["Serviço A (00001)"]);
 /* v3.13.0: frequência das auditorias por serviço (ver sanitizeFreqs). */
 let freqs=sanitizeFreqs(load("freqAud",[]));
 let people=loadArr("people",[]); /* repositores / picking */
+/* v3.26.0: email de cada serviço (ver sanitizeEmails). Lido mais abaixo,
+   depois de RE_EMAIL e EMAILS_MAX: aqui ainda não existem. */
+let emails=[];
 let answers={};
 /* v3.3.0 — edição de auditorias anteriores.
    `editId` é o id da auditoria que o formulário está a editar (null = auditoria
@@ -2160,6 +2171,35 @@ function sanitizeFreqs(x){
   });
   return out;
 }
+/* ---------- Email de cada serviço (v3.26.0) ----------
+   Para quem vai o relatório de cada serviço auditado. Como as frequências, uma
+   LISTA de pares {s: serviço, e: endereços} e não um objecto indexado pelo
+   nome. `e` leva até EMAILS_MAX endereços, separados por "; ". */
+const EMAILS_MAX=5;
+const RE_EMAIL=/^[^\s@<>()[\]",;:\\?&=]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
+/* Os endereços de um texto, separados por vírgula, ponto e vírgula ou espaço:
+   {ok: "a@b.pt; c@d.pt", maus: [os que não são endereços]}. */
+function lerEmails(txt){
+  const partes=String(txt==null?"":txt).split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean);
+  const bons=[],maus=[];
+  partes.forEach(x=>{if(x.length<=120&&RE_EMAIL.test(x)){if(!bons.includes(x))bons.push(x);}else maus.push(x);});
+  return{ok:bons.slice(0,EMAILS_MAX).join("; "),maus:maus.concat(bons.slice(EMAILS_MAX))};
+}
+function sanitizeEmails(x){
+  if(!Array.isArray(x))return [];
+  const vistos=new Set(),out=[];
+  x.slice(0,1000).forEach(f=>{
+    if(!f||typeof f!=="object"||Array.isArray(f))return;
+    const svc=clean(f.s,200),e=lerEmails(clean(f.e,800)).ok;
+    if(!svc||!e||vistos.has(svc))return;
+    vistos.add(svc);out.push({s:svc,e});
+  });
+  return out;
+}
+emails=sanitizeEmails(load("emailsSvc",[]));
+function emailDe(lista,svc){const f=(lista||[]).find(x=>x.s===svc);return f?f.e:"";}
+/* Para o mailto: os endereços separados por vírgula, cada um codificado. */
+function enderecosMailto(e){return lerEmails(e).ok.split("; ").filter(Boolean).map(encodeURIComponent).join(",");}
 function freqDe(freqs,svc){const f=(freqs||[]).find(x=>x.s===svc);return f?f.d:0;}
 function nomeFreq(d){const o=FREQ_OPCOES.find(x=>x[0]===d);return o?o[1]:"A cada "+d+" dias";}
 function somarDias(d,n){const t=new Date(d+"T00:00:00Z");t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);}
@@ -3053,7 +3093,7 @@ function renderPosAuditoria(a){
       <p style="font-size:.78rem;color:var(--muted)">Por finalizar. Depois de finalizada: PDF, envio ao serviço e cópia de segurança.</p>
       <ol class="passos">
         <li class="${pc?"feito":""}"><div><b>Enviar para o PC</b><br>
-          <small>${pc?ok("Enviada "+quando(pc)):"Só esta auditoria, com as fotos. Abre o menu de partilha: envie-a para o seu email. No PC, abra-a em Histórico → Importar auditoria."}</small></div>
+          <small>${pc?ok("Enviada "+quando(pc)):"Só esta auditoria, com as fotos. Abre o menu de partilha: envie-a para o seu email. No PC, abra-a em Histórico → Importar ficheiro."}</small></div>
           <button class="btn small ${pc?"ghost":""}" id="pa-pc">Enviar para o PC</button></li>
         <li><div><b>Finalizar</b><br>
           <small>Complete as recomendações, o plano de acção e, em <i>Editar auditoria</i> (sem código enquanto está por finalizar), a observação, as notas e as fotos. Depois, carregue em Finalizar.</small></div>
@@ -3064,6 +3104,10 @@ function renderPosAuditoria(a){
     return;
   }
   const st=estadoPassos(a,backupInfo());
+  /* v3.26.0: o email do serviço auditado, se estiver em Config. O menu de
+     partilha não deixa escolher o destinatário: o endereço é copiado ao
+     carregar, para colar em «Para»; sem menu, vai já no email. */
+  const dest=emailDe(emails,a.service);
   const enviado=[st.email?"por email "+quando(st.email):"",st.teams?"para o Teams "+quando(st.teams):""].filter(Boolean).join("; ");
   /* v3.25.0: pela ordem do fluxo — PDF, envio ao serviço auditado, e a cópia
      de segurança no fim, já com tudo o que se acrescentou ao finalizar. */
@@ -3074,7 +3118,8 @@ function renderPosAuditoria(a){
         <small>${st.pdf?ok("Descarregado "+quando(st.pdf)):"O relatório num ficheiro, para guardar ou anexar."}</small></div>
         <button class="btn small ${st.pdf?"ghost":""}" id="pa-pdf">Descarregar PDF</button></li>
       <li class="${enviado?"feito":""}"><div><b>Enviar</b><br>
-        <small>${enviado?ok("Enviada "+enviado):"O PDF e um resumo da auditoria. Abre o menu de partilha: escolha lá o Outlook, o Gmail ou o Teams."}</small></div>
+        <small>${enviado?ok("Enviada "+enviado):"O PDF e um resumo da auditoria. Abre o menu de partilha: escolha lá o Outlook, o Gmail ou o Teams."}</small>
+        ${dest?`<br><small data-dest>Para: <span style="font-weight:700">${esc(dest)}</span> — o endereço é copiado ao carregar em Enviar por email; cole-o em «Para».</small>`:""}</div>
         <span class="passo-btns"><button class="btn small ${st.email?"ghost":""}" id="pa-email">Enviar por email</button>
         <button class="btn small ${st.teams?"ghost":""}" id="pa-teams">Enviar para o Teams</button></span></li>
       <li class="${st.copia?"feito":""}"><div><b>Cópia de segurança</b><br>
@@ -3088,6 +3133,9 @@ function renderPosAuditoria(a){
     descarregar(blob,nomePdf(a));marcarEnvio(a.id,"pdf");
   });
   const enviar=via=>e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
+    /* Antes de qualquer espera: a área de transferência só aceita escrita
+       logo a seguir ao toque. */
+    if(via==="email"&&dest&&navigator.clipboard)navigator.clipboard.writeText(dest).catch(()=>{});
     const blob=await pdfDoRelatorio();
     const f=new File([blob],nomePdf(a),{type:"application/pdf"});
     const titulo=tituloPdf(a),texto=resumoEnvio(a,audits,hojeISO(),via);
@@ -3098,7 +3146,7 @@ function renderPosAuditoria(a){
        o PDF e abre-se o email já escrito, ou copia-se o resumo para o Teams. */
     descarregar(blob,nomePdf(a));
     if(via==="email"){
-      abrirLink("mailto:?subject="+encodeURIComponent(titulo)+"&body="+
+      abrirLink("mailto:"+enderecosMailto(dest)+"?subject="+encodeURIComponent(titulo)+"&body="+
         encodeURIComponent(texto+"\n\n(Anexe o PDF que foi descarregado: "+nomePdf(a)+")"));
     }else{
       let copiado;
@@ -3116,7 +3164,7 @@ function renderPosAuditoria(a){
    Uma auditoria nova grava-se «por finalizar» (`fase: "terreno"`). No
    telemóvel, «Enviar para o PC» partilha um ficheiro só com ela e as suas
    fotos (o «ficheiro de auditoria», `tipo: "auditoria"`), que no PC se abre
-   com «Importar auditoria». Lá completam-se as recomendações, as acções e as
+   com «Importar ficheiro». Lá completam-se as recomendações, as acções e as
    notas, e «Finalizar» tira-a da fase de terreno (`finalizada`, a data). As
    auditorias anteriores a 3.25.0 não têm `fase`: contam como finalizadas.
 
@@ -3217,15 +3265,83 @@ async function enviarParaPC(a){
   };
   if(!f){descarregar(blob,nome);registar();return;}
   const r=await partilharFicheiro(f,tituloPdf(a),
-    "Auditoria 5S de "+a.service+" ("+dataCurta(a.date)+"), por finalizar. No computador: Histórico → Importar auditoria, e escolha este ficheiro.");
+    "Auditoria 5S de "+a.service+" ("+dataCurta(a.date)+"), por finalizar. No computador: Histórico → Importar ficheiro, e escolha este ficheiro.");
   if(r==="cancelado")return;
   if(r==="sem"){descarregar(blob,nome);}
   registar();
 }
+/* ---------- Do PC para o telemóvel (v3.26.0) ----------
+   «Enviar para o telemóvel» (no PC) partilha a cópia SEM fotos, marcada
+   `tipo: "actualizacao"`. Importada no telemóvel, funde as auditorias (as
+   mais recentes do PC substituem as do telemóvel: finalizadas, acções novas
+   ou fechadas) e traz as frequências, os emails e as perguntas do PC. Não
+   conta como cópia de segurança do PC: é para o telemóvel. */
+async function enviarParaTelemovel(){
+  const c=await ficheiroCopia(false,"actualizacao");if(!c)return;
+  const f=ficheiroPartilha(c.blob,c.nome);
+  if(!f){descarregar(c.blob,c.nome);return;}
+  const r=await partilharFicheiro(f,"Auditoria 5S · dados do PC",
+    "Dados da Auditoria 5S do PC, para o telemóvel ("+audits.length+" auditoria(s), sem fotos). No telemóvel: Histórico → Importar ficheiro, e escolha este ficheiro.");
+  if(r==="sem")descarregar(c.blob,c.nome);
+}
+/* Um identificador deste dispositivo, criado uma vez e guardado só aqui (não
+   vai nas cópias). Serve para saber se uma auditoria foi finalizada noutro
+   dispositivo — o PC —, e se as fotos dela estão por isso lá. */
+const DISP_KEY="dispositivo";
+function idDispositivo(){
+  let id=load(DISP_KEY,null);
+  if(typeof id==="string"&&/^[a-z0-9]{6,32}$/.test(id))return id;
+  const b=new Uint8Array(8);crypto.getRandomValues(b);
+  id=Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");
+  try{localStorage.setItem(DISP_KEY,JSON.stringify(id));}catch(e){}
+  return id;
+}
+/* As auditorias cujas fotos podem sair deste dispositivo: enviadas daqui para
+   o PC e finalizadas noutro dispositivo (chegaram cá pela actualização do PC).
+   As fotos estão no PC, e na cópia de segurança de lá. */
+function fotosNoPC(lista,eu){
+  return (lista||[]).filter(a=>a&&a.envios&&a.envios.pc&&a.finalizada&&!porFinalizar(a)&&
+    typeof a.finalizadaPor==="string"&&a.finalizadaPor!==eu);
+}
+/* Quantas fotos há de cada auditoria (só as chaves, sem ler as imagens). */
+function contarFotos(ids){
+  const quer=new Set(ids.map(String));
+  return fotosIDB("readonly",st=>{
+    const n=new Map(),cur=st.openKeyCursor?st.openKeyCursor():st.openCursor();
+    cur.onsuccess=()=>{const c=cur.result;if(!c)return;
+      const id=idDaChave(c.key);
+      if(id!=null&&quer.has(String(id)))n.set(id,(n.get(id)||0)+1);
+      c.continue();};
+    return n;
+  });
+}
+/* Config → Dados: «Libertar espaço» quando há fotos que já estão no PC. */
+async function mostrarLimpeza(){
+  const box=document.getElementById("limpeza");if(!box)return;
+  const cand=fotosNoPC(audits,idDispositivo());
+  let n=new Map();
+  if(cand.length){try{n=await contarFotos(cand.map(a=>a.id));}catch(e){n=new Map();}}
+  const com=cand.filter(a=>n.get(a.id));
+  const total=com.reduce((t,a)=>t+n.get(a.id),0);
+  box.classList.toggle("hidden",!total);
+  if(!total){box.innerHTML="";return;}
+  box.innerHTML=`<p style="font-size:.78rem;color:var(--muted);margin:10px 0 6px">
+      <b>${total}</b> foto(s) de <b>${com.length}</b> auditoria(s) já finalizada(s) no PC: estão lá, e na cópia de
+      segurança do PC. Pode apagá-las deste dispositivo para libertar espaço; as auditorias ficam.</p>
+    <button class="btn small ghost" id="btn-limpar-fotos">Apagar fotos que já estão no PC</button>`;
+  document.getElementById("btn-limpar-fotos").onclick=async()=>{
+    if(!(await confirmar("Apagar deste dispositivo "+total+" foto(s) de "+com.length+" auditoria(s) finalizada(s) no PC? "+
+      "As auditorias ficam; as fotos só existirão no PC.",{titulo:"Libertar espaço",sim:"Apagar fotos",perigo:true})))return;
+    try{await Promise.all(com.map(a=>apagarFotosDe(a.id)));}
+    catch(e){aviso("Não foi possível apagar as fotos.");}
+    clearFotos();
+    mostrarLimpeza();mostrarArmaz();
+  };
+}
 function finalizarAuditoria(id){
   const a=audits.find(x=>x.id===id);if(!a)return;
   const antes=Object.assign({},a);
-  delete a.fase;a.finalizada=new Date().toISOString();tocar(a);
+  delete a.fase;a.finalizada=new Date().toISOString();a.finalizadaPor=idDispositivo();tocar(a);
   if(!save("audits",audits)){Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,antes);return;}
   registarAlteracao();
   renderPosAuditoria(a);
@@ -3496,6 +3612,7 @@ function renderCfg(){
       `Sem auditorias guardadas.`;
   }
   mostrarArmaz();
+  mostrarLimpeza();
   /* Cartão da migração: visível só enquanto houver perguntas por converter.
      Desaparece sozinho depois de aplicada. */
   const mc=document.getElementById("migr-card");
@@ -3520,7 +3637,9 @@ function renderFreqs(){
     const d=freqDe(freqs,sv),opc=FREQ_OPCOES.slice();
     if(d&&!opc.some(o=>o[0]===d))opc.push([d,nomeFreq(d)]);
     return`<div class="freq-row"><label>${esc(sv)}</label><select data-freq="${i}">
-      ${opc.map(([v,t])=>`<option value="${v}"${v===d?" selected":""}>${esc(t)}</option>`).join("")}</select></div>`;
+      ${opc.map(([v,t])=>`<option value="${v}"${v===d?" selected":""}>${esc(t)}</option>`).join("")}</select></div>
+      <div class="email-row"><input type="text" inputmode="email" autocomplete="off" data-email="${i}"
+        aria-label="Email de ${esc(sv)}" placeholder="Email do serviço (para enviar o relatório)" value="${esc(emailDe(emails,sv))}"></div>`;
   }).join("");
   ligarRotulos(box);
   box.querySelectorAll("[data-freq]").forEach(el=>el.onchange=()=>{
@@ -3528,6 +3647,16 @@ function renderFreqs(){
     const antes=freqs;
     freqs=sanitizeFreqs(freqs.filter(f=>f.s!==sv).concat(d?[{s:sv,d}]:[]));
     if(!save("freqAud",freqs))freqs=antes;
+  });
+  /* v3.26.0: o email grava-se ao sair do campo; o que não for um endereço
+     fica de fora, e diz-se qual. */
+  box.querySelectorAll("[data-email]").forEach(el=>el.onchange=()=>{
+    const sv=services[+el.dataset.email],r=lerEmails(el.value);
+    const antes=emails;
+    emails=sanitizeEmails(emails.filter(f=>f.s!==sv).concat(r.ok?[{s:sv,e:r.ok}]:[]));
+    if(!save("emailsSvc",emails)){emails=antes;return;}
+    el.value=r.ok;
+    if(r.maus.length)aviso("Não é um endereço de email (ou passa de "+EMAILS_MAX+"): "+r.maus.join(", ")+". Ficou de fora.","Email do serviço");
   });
 }
 /* Prazos: o cartão do Histórico, o número no separador e a indicação junto ao
@@ -3963,8 +4092,9 @@ function rmSvc(i){
     services.splice(Math.min(i,services.length),0,sv);
     save("services",services);renderCfg();renderForm();
   },()=>{
-    if(services.includes(sv)||!freqs.some(f=>f.s===sv))return;
-    freqs=freqs.filter(f=>f.s!==sv);save("freqAud",freqs);
+    if(services.includes(sv))return;
+    if(freqs.some(f=>f.s===sv)){freqs=freqs.filter(f=>f.s!==sv);save("freqAud",freqs);}
+    if(emails.some(f=>f.s===sv)){emails=emails.filter(f=>f.s!==sv);save("emailsSvc",emails);}
   });
 }
 /* v3.14.0: com `comFotos`, o ficheiro leva também as fotos (das recomendações
@@ -3979,7 +4109,7 @@ async function exportJson(comFotos){
 }
 /* O ficheiro da cópia de segurança, para descarregar ou partilhar: {blob,
    nome, comFotos}, ou null se as fotos pedidas não se puderam ler. */
-async function ficheiroCopia(comFotos){
+async function ficheiroCopia(comFotos,tipo){
   let fotos=null;
   if(comFotos){
     try{fotos=await todasAsFotos(audits.map(a=>a.id));}
@@ -4000,9 +4130,17 @@ async function ficheiroCopia(comFotos){
        precisamente quando o armazenamento já estava estragado. */
     itemsCfg:loadArr("itemsCfg",null),
     /* v3.13.0: a frequência das auditorias por serviço. */
-    freqAud:freqs
+    freqAud:freqs,
+    /* v3.26.0: o email de cada serviço. */
+    emailsSvc:emails
   };
   if(fotos)payload.fotos=fotos;
+  /* v3.26.0: o ficheiro para o telemóvel é esta cópia, sem fotos, marcada. */
+  if(tipo==="actualizacao"){
+    payload.tipo="actualizacao";
+    return{blob:new Blob([JSON.stringify(payload)],{type:"application/json"}),comFotos:false,
+      nome:"auditorias5s_para_telemovel_"+hojeISO()+".json"};
+  }
   /* Com fotos, sem indentação: são centenas de KB de base64 que não ganham nada
      com ela. */
   const blob=new Blob([fotos?JSON.stringify(payload):JSON.stringify(payload,null,2)],{type:"application/json"});
@@ -4151,6 +4289,8 @@ function sanitizeAudit(x){
        quando foi alterada pela última vez (é o que decide, ao fundir). */
     fase:x.fase==="terreno"?"terreno":undefined,
     finalizada:dataISO(x.finalizada),
+    /* v3.26.0: o dispositivo que a finalizou (ver idDispositivo). */
+    finalizadaPor:typeof x.finalizadaPor==="string"&&/^[a-z0-9]{6,32}$/.test(x.finalizadaPor)?x.finalizadaPor:undefined,
     alterada:dataISO(x.alterada),
     items:items||undefined
   };
@@ -4203,8 +4343,20 @@ function importJson(inp){
     const feitas=sanitizeFeitas(data.acoesFeitas);
     const nFotos=Array.isArray(data.fotos)?data.fotos.length:0;
     const deAuditoria=data.tipo==="auditoria"&&inAudits.length===1;
+    /* v3.26.0: o ficheiro «para o telemóvel», do PC. O PC manda: além de
+       fundir as auditorias, traz as frequências, os emails e as perguntas. */
+    const deActualizacao=data.tipo==="actualizacao";
+    const pergDiferentes=temPerg&&JSON.stringify(inPerg)!==JSON.stringify(sanitizeItems(ITEMS));
     let m;
-    if(deAuditoria){
+    if(deActualizacao){
+      const quandoFich=typeof data.exportedAt==="string"&&Number.isFinite(Date.parse(data.exportedAt))?" de "+quando(data.exportedAt):"";
+      m=await caixa({titulo:"Actualizar com os dados do PC",
+        texto:"Ficheiro do PC"+quandoFich+": "+inAudits.length+" auditoria(s)."+
+          "\n"+(nNovas?nNovas+" nova(s) para este dispositivo. ":"")+(nAct?nAct+" que o PC tem mais recente(s) (finalizadas, acções) são actualizadas. ":"")+
+          (!nNovas&&!nAct?"As auditorias já estão a par. ":"")+
+          "\nAs frequências e os emails dos serviços"+(pergDiferentes?", e as perguntas,":"")+" passam a ser os do PC. As auditorias que só existem neste dispositivo ficam.",
+        botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"F",label:"Actualizar",def:true}]});
+    }else if(deAuditoria){
       /* Um ficheiro de auditoria (enviado do telemóvel) só se funde: nunca
          substitui o histórico deste dispositivo. */
       const a=inAudits[0],pl=plano[0];
@@ -4241,6 +4393,7 @@ function importJson(inp){
       services=inSvc.length?[...new Set(inSvc)]:services;
       /* v3.13.0: as frequências do ficheiro, se as trouxer; senão ficam as de casa. */
       if(Array.isArray(data.freqAud))freqs=sanitizeFreqs(data.freqAud);
+      if(Array.isArray(data.emailsSvc))emails=sanitizeEmails(data.emailsSvc);
       people=[...new Set(inPpl)];
     }else{
       /* v3.25.0: as que já existem não são só ignoradas — a do ficheiro
@@ -4266,14 +4419,24 @@ function importJson(inp){
       fechadas=aplicarAcoesFeitas(audits,feitas);
       services=[...new Set(services.concat(inSvc))];
       /* Fundir: as de casa mantêm-se; do ficheiro entram as dos serviços sem frequência. */
-      freqs=sanitizeFreqs(freqs.concat(sanitizeFreqs(data.freqAud).filter(f=>!freqs.some(g=>g.s===f.s))));
+      const fqFich=sanitizeFreqs(data.freqAud),emFich=sanitizeEmails(data.emailsSvc);
+      if(deActualizacao){
+        /* Do PC: para os serviços que o ficheiro traz, valem as do ficheiro
+           (também quando o PC tirou a frequência ou o email). */
+        const doFich=new Set(inSvc);
+        if(Array.isArray(data.freqAud))freqs=sanitizeFreqs(fqFich.concat(freqs.filter(f=>!doFich.has(f.s)&&!fqFich.some(g=>g.s===f.s))));
+        if(Array.isArray(data.emailsSvc))emails=sanitizeEmails(emFich.concat(emails.filter(f=>!doFich.has(f.s)&&!emFich.some(g=>g.s===f.s))));
+      }else{
+        freqs=sanitizeFreqs(freqs.concat(fqFich.filter(f=>!freqs.some(g=>g.s===f.s))));
+        emails=sanitizeEmails(emails.concat(emFich.filter(f=>!emails.some(g=>g.s===f.s))));
+      }
       people=[...new Set(people.concat(inPpl))];
-      if(!novas&&!actualizadas.length&&!fechadas&&!(deAuditoria?0:inSvc.length+inPpl.length)){desfazerResps();
+      if(!deActualizacao&&!novas&&!actualizadas.length&&!fechadas&&!(deAuditoria?0:inSvc.length+inPpl.length)){desfazerResps();
         if(deAuditoria&&plano[0].local){aviso("Esta auditoria já está neste dispositivo, igual ou mais recente.");openReport(plano[0].local);}
         else aviso("Nada de novo a importar: as auditorias já existem.");
         return;}
     }
-    const gravou=save("audits",audits);save("services",services);save("people",people);save("freqAud",freqs);
+    const gravou=save("audits",audits);save("services",services);save("people",people);save("freqAud",freqs);save("emailsSvc",emails);
     /* As fotos das auditorias que o ficheiro substituiu já não têm a quem
        pertencer. Só depois de a lista nova estar gravada. */
     if(m==="S"&&gravou)await apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
@@ -4298,7 +4461,8 @@ function importJson(inp){
     }
 
     if(gravou&&deAuditoria&&(novas||actualizadas.length||fechadas))registarAlteracao();
-    if(temPerg&&await confirmar("O ficheiro inclui "+inPerg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas.")){
+    /* v3.26.0: só se forem diferentes das actuais; do PC, sem perguntar. */
+    if(pergDiferentes&&(deActualizacao||await confirmar("O ficheiro inclui "+inPerg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas."))){
       save("itemsCfg",inPerg);
       loadItems();
     }
@@ -4309,6 +4473,11 @@ function importJson(inp){
       if(a){openReport(a);
         aviso("Auditoria importada"+(fotosOk?", com "+fotosOk+" foto(s)":"")+
           (fechadas?". "+fechadas+" acção(ões) fechada(s) no terreno":"")+".");return;}
+    }
+    if(deActualizacao&&gravou){
+      aviso("Actualizado com os dados do PC: "+(novas?novas+" auditoria(s) nova(s), ":"")+
+        actualizadas.length+" actualizada(s)"+(pergDiferentes?", perguntas do PC":"")+".","Actualizar com os dados do PC");
+      mostrarLimpeza();return;
     }
     aviso("Importação concluída: "+audits.length+" auditoria(s) no histórico"+
       (novas?", "+novas+" nova(s)":"")+(actualizadas.length?", "+actualizadas.length+" actualizada(s)":"")+
@@ -4999,6 +5168,9 @@ on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderSta
 on("f-service","change",()=>mostrarAnteriores());
 on("btn-impjson","click",()=>document.getElementById("hist-file").click());
 on("btn-hist-importar","click",()=>document.getElementById("hist-file").click());
+on("btn-telemovel","click",async e=>{const bt=e.currentTarget;bt.disabled=true;
+  try{await enviarParaTelemovel();}catch(err){aviso(err&&err.message?err.message:"Não foi possível enviar.");}
+  finally{bt.disabled=false;}});
 on("hist-file","change",function(){importJson(this);});
 on("btn-impxl","click",()=>document.getElementById("xl-file").click());
 on("xl-file","change",function(){importExcel(this);});

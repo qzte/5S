@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.25.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.26.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.25.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 3.26.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -89,6 +89,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | PDF com o nome do serviço e da data | 3.22.0 |
 | | [Depois da auditoria](#depois-da-auditoria-3230): cópia, PDF criado pela app, envio por email ou Teams | 3.23.0 |
 | **Dois dispositivos** | [Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250): auditoria por finalizar, envio só dela para o PC, importação que actualiza | 3.25.0 |
+| | Enviar para o telemóvel (dados do PC, sem fotos), email de cada serviço, libertar espaço no telemóvel | 3.26.0 |
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
 | | Aviso de nova versão; arranque ~2,5× mais rápido (SheetJS só quando é preciso) | 3.8.0, 3.11.0 |
@@ -394,6 +395,8 @@ telemetria nem recursos externos.
 | `resps` | Responsáveis (código e nome), pela ordem dos eixos do radar |
 | `perguntasAud` | Perguntas com que as auditorias foram feitas, cada conjunto uma vez (3.11.0) |
 | `freqAud` | Frequência das auditorias por serviço, como lista de pares (3.13.0) |
+| `emailsSvc` | Email de cada serviço, como lista de pares `{s, e}` (3.26.0) |
+| `dispositivo` | Identificador deste dispositivo, que não vai nas cópias (3.26.0) |
 | `rascunho` | Auditoria nova por terminar (3.8.0) — apagada ao gravar ou descartar |
 | `backup` | Data da última exportação e alterações desde então (3.8.0) |
 
@@ -552,7 +555,7 @@ envia-se ao serviço auditado e faz-se a cópia de segurança.
   inteira, que cresce até passar o limite do email). Leva também as acções que
   se fecharam no terreno (`acoesFeitas`), que pertencem a auditorias
   anteriores e não iriam de outro modo. Sem menu de partilha, descarrega-o.
-- **Importar auditoria**, no Histórico (é a mesma importação de *Config →
+- **Importar ficheiro**, no Histórico (é a mesma importação de *Config →
   Dados*), reconhece o ficheiro de auditoria: só funde (nunca propõe
   *Substituir tudo*), fecha as acções feitas no terreno (nunca as reabre) e
   abre logo o relatório da auditoria.
@@ -572,6 +575,31 @@ envia-se ao serviço auditado e faz-se a cópia de segurança.
   as de casa como estão. A mesma regra faz o caminho inverso: a cópia do PC,
   importada no telemóvel com Fundir, actualiza lá as auditorias finalizadas e
   as acções.
+
+### Do PC para o telemóvel, email e espaço (3.26.0)
+
+- **Enviar para o telemóvel** (*Config → Dados*, no PC) partilha a cópia
+  **sem fotos**, marcada `tipo: "actualizacao"` (`enviarParaTelemovel()`).
+  Importada no telemóvel, a caixa é *Actualizar com os dados do PC*, só com
+  *Actualizar* (nunca *Substituir*): funde as auditorias pela regra de
+  `alterada`, e para os serviços do ficheiro passam a valer as frequências e
+  os emails do PC, mesmo os que o PC tirou. As perguntas do PC aplicam-se sem
+  perguntar, quando são diferentes (nas outras importações a pergunta só
+  aparece se forem diferentes). Não conta como cópia de segurança.
+- **Email de cada serviço** (`emailsSvc`, lista de pares `{s, e}`, até 5
+  endereços por serviço, validados por `lerEmails()`), em *Config →
+  Frequência das auditorias e email*. O cartão *Depois da auditoria* mostra o
+  destinatário. O menu de partilha não deixa escolher o destinatário: ao
+  carregar em *Enviar por email*, o endereço é copiado para colar em «Para»;
+  sem menu, o `mailto:` já o leva. Vai nas cópias de segurança (*Substituir*
+  traz os do ficheiro, *Fundir* só os que faltam). Remover um serviço tira o
+  seu email no fim do prazo de *Desfazer*.
+- **Libertar espaço.** Finalizar regista o dispositivo (`finalizadaPor`, o
+  `dispositivo` gerado uma vez em cada um, que não vai nas cópias). No
+  telemóvel, as auditorias enviadas daqui para o PC e finalizadas noutro
+  dispositivo (`fotosNoPC()`) têm as fotos no PC: *Config → Dados* oferece
+  apagá-las deste dispositivo. As auditorias ficam, com o histórico, os
+  prazos e o seguimento.
 
 ## Relatório mensal (3.20.0)
 
