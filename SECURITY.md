@@ -2,6 +2,7 @@
 
 Quatro revisões, por ordem inversa:
 
+- **[Nota de 3.26.0](#nota-de-3260-2026-11-09-emails-dos-serviços-e-ficheiro-do-pc)** — emails dos serviços, o ficheiro do PC para o telemóvel e a limpeza das fotos.
 - **[Nota de 3.25.0](#nota-de-3250-2026-11-09-ficheiro-de-auditoria-e-fundir-que-actualiza)** — o ficheiro de auditoria do telemóvel e a fusão que actualiza pela data de alteração.
 - **[Revisão OWASP de 3.24.0](#revisão-owasp-de-3240-2026-11-08)** — o OWASP Top 10 ponto a ponto; correcções em 3.24.1.
 - **[Nota de 3.23.0](#nota-de-3230-2026-11-08-sem-_headers-e-pdf-criado-pela-app)** — sai o `_headers` (o ponto 4 volta a ser só mitigado); entram as bibliotecas do PDF, com SRI.
@@ -130,6 +131,27 @@ rasterizadas pelo html2canvas.
   CSP publicada.
 
 ---
+
+## Nota de 3.26.0 (2026-11-09): emails dos serviços e ficheiro do PC
+
+Os emails dos serviços (`emailsSvc`) entram por `sanitizeEmails()`: uma lista
+de pares (não um objecto indexado pelo nome do serviço), e cada endereço tem de
+passar `RE_EMAIL`, sem espaços, aspas, `<>`, `?`, `&` nem `=` — nada que
+acrescente campos a um `mailto:` (`?cc=`, `&bcc=`) ou atributos ao HTML. No
+`mailto:` cada endereço vai ainda por `encodeURIComponent()`, e no cartão por
+`esc()`.
+
+O ficheiro *Enviar para o telemóvel* (`tipo: "actualizacao"`) é uma cópia de
+segurança sem fotos e passa pelas mesmas portas. A diferença é que aplica as
+frequências, os emails e as perguntas do ficheiro sem perguntar, e nunca
+oferece *Substituir tudo*. Um ficheiro forjado pode, por isso, trocar as
+perguntas de um telemóvel; as auditorias já gravadas não mudam (cada uma
+guarda as suas), e a caixa diz que as perguntas passam a ser as do ficheiro.
+O modelo de ameaça é o de antes: quem importa escolhe o ficheiro.
+
+*Apagar fotos que já estão no PC* só considera auditorias enviadas deste
+dispositivo e finalizadas noutro (`finalizadaPor`, um identificador aleatório
+de cada dispositivo, que não vai nas cópias), e pede confirmação.
 
 ## Nota de 3.25.0 (2026-11-09): ficheiro de auditoria e Fundir que actualiza
 
