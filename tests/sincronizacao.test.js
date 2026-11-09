@@ -64,3 +64,25 @@ test("sanitizeAudit: finalizadaPor só com a forma do identificador", () => {
   for (const v of ["<x>", "ABC123", "abc", 5, "a".repeat(40)])
     assert.strictEqual(sanitizeAudit(Object.assign({}, base, { finalizadaPor: v })).finalizadaPor, undefined, String(v));
 });
+
+/* 3.27.0: «Enviar para o PC» conta como cópia de segurança quando tudo o que
+   mudou neste dispositivo desde a última cópia já está no PC. */
+test("tudoNoPC: só quando nada do que mudou ficou por enviar", () => {
+  const { tudoNoPC } = buildContext(["tudoNoPC"], ["porFinalizar"]);
+  const T = h => "2026-11-09T" + String(h).padStart(2, "0") + ":00:00.000Z";
+  const enviada = { id: 1, alterada: T(10), fase: "terreno", envios: { pc: T(11) } };
+  assert.strictEqual(tudoNoPC([enviada], undefined, "eu"), true, "enviada depois da última alteração");
+  assert.strictEqual(tudoNoPC([enviada, { id: 2, alterada: T(12), fase: "terreno" }], undefined, "eu"), false,
+    "outra auditoria por enviar: o lembrete continua");
+  assert.strictEqual(tudoNoPC([{ id: 3, alterada: T(12), envios: { pc: T(11) } }], undefined, "eu"), false,
+    "alterada depois de enviada");
+  assert.strictEqual(tudoNoPC([{ id: 4, alterada: T(8) }], T(9), "eu"), true, "sem alterações desde a última cópia");
+  assert.strictEqual(tudoNoPC([{ id: 5, alterada: T(12) }], T(9), "eu", new Set([5])), true,
+    "as acções fechadas nela foram agora com o ficheiro");
+  assert.strictEqual(tudoNoPC([{ id: 6, alterada: T(12), finalizada: T(12), finalizadaPor: "pc00aa" }], T(9), "eu00aa"), true,
+    "veio do PC (finalizada noutro dispositivo)");
+  assert.strictEqual(tudoNoPC([{ id: 7, alterada: T(12), finalizada: T(12), finalizadaPor: "eu00aa" }], T(9), "eu00aa"), false,
+    "finalizada aqui e nunca enviada");
+  assert.strictEqual(tudoNoPC([{ id: 8 }], undefined, "eu"), false, "anterior a 3.25.0 e nunca houve cópia");
+  assert.strictEqual(tudoNoPC([{ id: 8 }], T(9), "eu"), true, "anterior a 3.25.0, já com uma cópia");
+});

@@ -5,6 +5,18 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [3.27.0] — 2026-11-09
+
+### Alterado
+
+- **«Enviar para o PC» conta como cópia de segurança no telemóvel**, quando
+  tudo o que lá mudou desde a última cópia já está no PC (a auditoria
+  enviada, as acções fechadas no terreno e as que vieram do PC). Se ficou
+  alguma auditoria por enviar, o lembrete continua. *Config → Dados* diz
+  quando a última cópia foi pelo envio para o PC.
+- Testes: `tudoNoPC()` em `tests/sincronizacao.test.js`; `smoke-terreno`
+  verifica que o lembrete desaparece depois do envio.
+
 ## [3.26.0] — 2026-11-09
 
 ### Adicionado

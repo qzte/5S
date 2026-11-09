@@ -100,6 +100,11 @@ check(fich.fotos.length === 1 && fich.fotos[0].k === nova.id + "#0", "com a foto
 check(fich.acoesFeitas.length === 1 && fich.acoesFeitas[0].texto === "Retirar caixas", "e a acção fechada no terreno");
 await pg.waitForFunction(() => /✓ Enviada/.test(document.querySelector("#pos-aud").textContent), null, { timeout: 5000 }).catch(() => {});
 check(/✓ Enviada/.test((await passos(pg))[0]), "o passo de enviar fica feito");
+/* 3.27.0: tudo o que mudou no telemóvel foi para o PC (a auditoria nova e a
+   acção fechada na anterior): o envio conta como cópia de segurança. */
+const bkTel = await pg.evaluate(() => JSON.parse(localStorage.getItem("backup")));
+check(bkTel && bkTel.viaPC && bkTel.pend === 0 && bkTel.pendFotos === 0 && bkTel.atFotos, "o envio conta como cópia: " + JSON.stringify(bkTel));
+check(await pg.locator("#aviso-backup").isHidden(), "e o lembrete de cópia desaparece");
 await pg.locator("#btn-back").click();
 check(/por finalizar \(enviada para o PC/.test(await pg.locator("#hist-list").textContent()), "o Histórico diz por finalizar e enviada para o PC");
 

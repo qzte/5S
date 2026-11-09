@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.26.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 3.27.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1293,7 +1293,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.26.0";
+const APP_VERSION="3.27.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -3248,6 +3248,24 @@ function payloadTransferencia(a,lista,fotos,extra,agora){
     acoesFeitas:acoesFeitasDe(lista,a),
     fotos:(fotos||[]).filter(f=>f&&idDaChave(f.k)===a.id)};
 }
+/* v3.27.0: está no PC tudo o que mudou neste dispositivo desde a última cópia
+   (`desde`, data ISO; sem ela, desde sempre)? Cada auditoria alterada depois
+   dela tem de ter sido enviada para o PC depois da última alteração, ou ter
+   vindo do PC (finalizada noutro dispositivo), ou ter ido agora no ficheiro
+   (`agora`: ids das auditorias cujas acções fechadas no terreno foram com
+   ele). Uma auditoria sem `alterada` (anterior a 3.25.0) só conta como
+   segura se já houve alguma cópia. */
+function tudoNoPC(lista,desde,eu,agora){
+  const d=typeof desde==="string"?desde:"";
+  return (lista||[]).every(a=>{
+    if(!a)return true;
+    if(!a.alterada)return !!d;
+    if(d&&a.alterada<=d)return true;
+    if(agora&&agora.has(a.id))return true;
+    if(a.envios&&typeof a.envios.pc==="string"&&a.envios.pc>=a.alterada)return true;
+    return !!(a.finalizada&&!porFinalizar(a)&&typeof a.finalizadaPor==="string"&&a.finalizadaPor!==eu);
+  });
+}
 async function enviarParaPC(a){
   let fotos;
   try{fotos=await todasAsFotos([a.id]);}
@@ -3257,11 +3275,18 @@ async function enviarParaPC(a){
   const blob=new Blob([JSON.stringify(p)],{type:"application/json"});
   const nome=tituloPdf(a)+".json";
   const f=ficheiroPartilha(blob,nome);
+  /* As auditorias anteriores cujas acções fechadas no terreno vão no ficheiro. */
+  const comFeitas=new Set(p.acoesFeitas.map(f=>(audits.find(y=>y.service===f.service&&y.date===f.date)||{}).id).filter(x=>x!=null));
   const registar=()=>{
     const x=audits.find(y=>y.id===a.id);if(!x)return;
     /* Sem tocar(): o envio não muda a auditoria, e a cópia do PC (que já leva
        este registo) tem de continuar a valer tanto como esta. */
-    x.envios=Object.assign({},x.envios||{},{pc:agora});save("audits",audits);
+    x.envios=Object.assign({},x.envios||{},{pc:agora});
+    if(!save("audits",audits))return;
+    /* v3.27.0: se tudo o que mudou neste dispositivo desde a última cópia já
+       está no PC, o envio conta como cópia de segurança (com fotos): a cópia
+       é feita lá. Se ficou alguma coisa por enviar, o lembrete continua. */
+    if(tudoNoPC(audits,backupInfo().at,idDispositivo(),comFeitas))registarExportacao(true,"pc");
   };
   if(!f){descarregar(blob,nome);registar();return;}
   const r=await partilharFicheiro(f,tituloPdf(a),
@@ -5268,7 +5293,8 @@ function mostrarArmaz(semPedir){
   el.innerHTML="Espaço ocupado:<br>"+linhasEspaco(ocupacaoLocal(),armazEst).map(t=>"· "+esc(t)+"<br>").join("")+
     `Protecção contra limpeza automática: ${esc(prot)}.<br>`+
     `Última cópia de segurança: <b>${Number.isFinite(at)?esc(quando(b.at)):"nunca"}</b>; `+
-    `com fotos: <b>${Number.isFinite(Date.parse(b.atFotos))?esc(quando(b.atFotos)):"nunca"}</b>.`;
+    `com fotos: <b>${Number.isFinite(Date.parse(b.atFotos))?esc(quando(b.atFotos)):"nunca"}</b>`+
+    (b.viaPC?" (pelo envio para o PC, onde se faz a cópia)":"")+".";
 }
 
 /* ---------- Cópia de segurança: estado e aviso (v3.8.0) ---------- */
@@ -5289,9 +5315,11 @@ function registarFotos(n){
 /* Chamada depois do clique no download: o browser não diz se o ficheiro chegou
    a ser gravado, pelo que se assume que sim — é o mesmo que o utilizador vê.
    v3.18.0: uma cópia sem fotos não conta para as fotos. */
-function registarExportacao(comFotos){
+function registarExportacao(comFotos,via){
   const b=backupInfo(),agora=new Date().toISOString();
-  gravarBackupInfo(comFotos?{at:agora,pend:0,atFotos:agora,pendFotos:0}
+  /* v3.27.0: `viaPC` quando a cópia é o envio para o PC (ver tudoNoPC). */
+  const pc=via==="pc"?{viaPC:true}:{};
+  gravarBackupInfo(comFotos?Object.assign({at:agora,pend:0,atFotos:agora,pendFotos:0},pc)
     :{at:agora,pend:0,atFotos:b.atFotos,pendFotos:b.pendFotos});
 }
 function mostrarAvisoBackup(){
