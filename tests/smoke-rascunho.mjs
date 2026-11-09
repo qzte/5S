@@ -89,11 +89,24 @@ check(/Espaço ocupado/.test(armaz) && /Protecção contra limpeza automática/.
 /* ---- 8. Aviso de nova versão. ----
    A primeira mudança de controlador (a instalação) não avisa; uma seguinte sim.
    Simula-se a seguinte com o próprio evento, numa página já controlada. */
-await pg.evaluate(async () => {
+/* O service worker pode ficar activo sem nunca controlar esta página: se ela
+   foi recarregada (passo 2) enquanto ele se instalava, o clients.claim() não
+   a apanha, e o controllerchange não chega. Esperava-se por ele para sempre
+   (o passo encravava até ao tempo máximo da CI). Espera-se um pouco; se não
+   vier, recarrega-se: uma página aberta com o service worker activo nasce
+   controlada por ele, sem mudança de controlador. */
+const controlada = () => pg.evaluate(async () => {
   await navigator.serviceWorker.ready;
-  if (!navigator.serviceWorker.controller)
-    await new Promise(r => navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }));
+  if (navigator.serviceWorker.controller) return true;
+  return new Promise(r => {
+    navigator.serviceWorker.addEventListener("controllerchange", () => r(true), { once: true });
+    setTimeout(() => r(!!navigator.serviceWorker.controller), 5000);
+  });
 });
+if (!(await controlada())) {
+  await pg.reload();
+  check(await controlada(), "depois de recarregar, a página devia estar controlada pelo service worker");
+}
 check(!(await visivel("#aviso-versao")), "a instalação inicial do service worker não devia avisar");
 await pg.evaluate(() => navigator.serviceWorker.dispatchEvent(new Event("controllerchange")));
 check(await visivel("#aviso-versao"), "uma mudança de service worker devia mostrar o aviso de nova versão");
