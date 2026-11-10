@@ -279,7 +279,10 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
   e lê-se ao lado do serviço; para o mudar, importe de novo o Excel corrigido.
   A importação reconhece os serviços pelo código, mesmo com outra descrição, e
   diz no fim quais ficaram sem tipo (os que não estão no ficheiro). Só os
-  serviços sem tipo mostram a caixa para o escolher. Remover um serviço ou uma pessoa
+  serviços sem tipo mostram a caixa para o escolher. Na listagem do sistema,
+  **HPH** conta como Interno e **ACES** como Externo, e a importação pergunta
+  se quer **substituir a lista** pela do ficheiro (recomendado: a lista fica
+  igual à listagem) ou juntar à actual. As auditorias já feitas não mudam. Remover um serviço ou uma pessoa
   mostra **Desfazer** no fundo do ecrã durante 10 segundos.
 - **Objectivo anual de auditorias** — quantas auditorias fazer em cada ano, de
   todos os serviços. Escolha o ano e escreva o número; apague-o para ficar sem
