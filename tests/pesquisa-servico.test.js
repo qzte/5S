@@ -83,3 +83,10 @@ test("4.2.4: o mesmo código em dois serviços da lista: os dois recebem o tipo,
   assert.deepStrictEqual(r.semTipo, []);
   assert.deepStrictEqual(r.duplicados, [["Téc.Nefrol. (70EE10)", "Téc.Nefrol (70EE10)"]]);
 });
+
+test("4.2.5: HPH é Interno e ACES é Externo; substituir a lista pela do ficheiro", () => {
+  const q = buildContext(["tipoDoExcel", "planoSubstituirServicos"], ["norm"]);
+  assert.deepStrictEqual(["HPH", "hph ", "ACES", "Aces", "HPHX"].map(q.tipoDoExcel), ["i", "i", "e", "e", ""]);
+  const r = plain(q.planoSubstituirServicos([{ nome: "B (2)", t: "e" }, { nome: "A (1)", t: "" }, { nome: "B (2)", t: "i" }, null, { nome: "" }]));
+  assert.deepStrictEqual(r, { servicos: ["B (2)", "A (1)"], tipos: [{ s: "B (2)", t: "i" }] });
+});

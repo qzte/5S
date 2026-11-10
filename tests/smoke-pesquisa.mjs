@@ -22,7 +22,8 @@ const erros = [], nativos = [], caixas = [];
 pg.on("pageerror", e => erros.push(String(e)));
 pg.on("console", m => { if (m.type() === "error" && !/frame-ancestors/.test(m.text())) erros.push(m.text()); });
 pg.on("dialog", d => { nativos.push(d.type() + ": " + d.message()); d.accept(""); });
-await ligarDialogos(pg, d => { caixas.push(d); });
+let escolhaListagem = "Juntar à lista";   /* 4.2.5: a listagem do sistema pergunta Substituir ou Juntar */
+await ligarDialogos(pg, d => { caixas.push(d); if (d.titulo === "Importar listagem de serviços") return escolhaListagem; });
 await pg.goto(URL);
 
 const falhas = [];
@@ -94,7 +95,7 @@ fs.unlinkSync(csv);
 const svcs = await pg.evaluate(() => JSON.parse(localStorage.getItem("services")));
 check(JSON.stringify(svcs) === JSON.stringify(["Talho (101)", "Peixaria (102)", "teste 2 (teste2)", "teste 3 (teste3)", "teste 4 (teste4)"]),
   "importa os activos como «Descrição (código)»: " + JSON.stringify(svcs));
-check(caixas.some(c => /3 serviço\(s\).*tipo.*3 serviço\(s\).*1 inactivo/.test(c.texto)), "a confirmação diz os tipos e os inactivos: " + caixas.map(c => c.texto).join(" | "));
+check(caixas.some(c => /3 serviço\(s\) activo\(s\): 2 interno\(s\), 1 externo\(s\)\. 1 inactivo/.test(c.texto)), "a pergunta diz os tipos e os inactivos: " + caixas.map(c => c.texto).join(" | "));
 const tipos = await pg.evaluate(() => JSON.parse(localStorage.getItem("tipoSvc") || "[]"));
 check(JSON.stringify(tipos) === JSON.stringify([{ s: "teste 2 (teste2)", t: "i" }, { s: "teste 3 (teste3)", t: "i" }, { s: "teste 4 (teste4)", t: "e" }]),
   "o local dá o tipo: " + JSON.stringify(tipos));
@@ -134,14 +135,38 @@ const svcs3 = await pg.evaluate(() => JSON.parse(localStorage.getItem("services"
 check(!svcs3.includes("Téc.Nefrol (70EE10)"), "o mesmo código com outra descrição não se duplica: " + JSON.stringify(svcs3));
 check(await pg.evaluate(() => JSON.parse(localStorage.getItem("tipoSvc")).some(f => f.s === "Téc.Nefrol. (70EE10)" && f.t === "i")),
   "o tipo vai para o serviço da lista com o mesmo código");
-check(caixas.some(c => /1 já estão na lista com outra descrição/.test(c.texto) && /sem tipo.*Piso E/.test(c.texto)),
-  "a confirmação diz o do mesmo código e os que ficam sem tipo: " + caixas.map(c => c.texto).join(" | "));
+check(caixas.some(c => /Juntar à lista: acrescenta 0 serviço/.test(c.texto)), "Juntar não acrescenta o do mesmo código: " + caixas.map(c => c.texto).join(" | "));
+check(caixas.some(c => /Importação concluída/.test(c.texto) && /sem tipo.*Piso E/.test(c.texto)),
+  "o aviso final diz os que ficam sem tipo: " + caixas.map(c => c.texto).join(" | "));
+
+/* ---- 3d. 4.2.5: a listagem real tem HPH e ACES no local, e pode substituir
+   a lista. As auditorias ficam, e os serviços delas continuam na pesquisa. ---- */
+caixas.length = 0;
+escolhaListagem = "Substituir a lista";
+const csv4 = path.join(os.tmpdir(), "5s-listagem-servicos-4.csv");
+fs.writeFileSync(csv4, "\ufeffID_SERVICO,DESCRICAO_SERVICO,LOCAL_SERVICO,SERVICO_ATIVO\n1,USF Porta Sol,ACES,TRUE\n11120,Unidade de Cuidados Intermédios Polivalente,HPH,TRUE\n");
+await pg.locator("#xl-file").setInputFiles(csv4);
+await pg.waitForFunction(() => JSON.parse(localStorage.getItem("services") || "[]").length === 2, null, { timeout: 15000 }).catch(() => {});
+await semDialogo(pg);
+fs.unlinkSync(csv4);
+check(caixas.some(c => /2 serviço\(s\) activo\(s\): 1 interno\(s\), 1 externo\(s\)/.test(c.texto) && /Saem \d+ serviço/.test(c.texto)),
+  "a pergunta diz os tipos HPH/ACES e quantos saem: " + caixas.map(c => c.texto).join(" | "));
+check(JSON.stringify(await pg.evaluate(() => JSON.parse(localStorage.getItem("services")))) ===
+  JSON.stringify(["USF Porta Sol (1)", "Unidade de Cuidados Intermédios Polivalente (11120)"]), "a lista passa a ser a do ficheiro: " + JSON.stringify(await pg.evaluate(() => JSON.parse(localStorage.getItem("services")))));
+check(JSON.stringify(await pg.evaluate(() => JSON.parse(localStorage.getItem("tipoSvc")))) ===
+  JSON.stringify([{ s: "USF Porta Sol (1)", t: "e" }, { s: "Unidade de Cuidados Intermédios Polivalente (11120)", t: "i" }]), "ACES é Externo, HPH é Interno");
+check(await pg.evaluate(() => JSON.parse(localStorage.getItem("audits")).length) === 1, "as auditorias ficam");
+await pg.locator("[data-v=audit]").click();
+await busca.fill("padaria");
+check(await pg.locator("#f-svc-lista [data-svc]").count() === 1, "o serviço da auditoria antiga continua na pesquisa");
+await busca.press("Escape");
+await pg.locator("[data-v=cfg]").click();
 
 /* ---- 4. E pesquisam-se logo no Auditar. ---- */
 await pg.locator("[data-v=audit]").click();
-await busca.fill("teste4");
+await busca.fill("11120");
 await busca.press("Enter");
-check(await valor() === "teste 4 (teste4)", "o serviço importado encontra-se pelo código");
+check(await valor() === "Unidade de Cuidados Intermédios Polivalente (11120)", "o serviço importado encontra-se pelo código");
 
 check(nativos.length === 0, "nenhum diálogo nativo: " + nativos.join(" | "));
 await b.close();
