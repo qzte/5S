@@ -5,6 +5,18 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.2] — 2026-11-10
+
+### Alterado
+
+- **O tipo dos serviços vem do Excel.** Em *Config → Serviços*, o tipo
+  (Interno/Externo) de cada serviço mostra-se só para ler; a caixa para o
+  escolher aparece apenas nos serviços que ainda não o têm.
+- **Importar de novo o Excel actualiza o tipo**: o de `LOCAL_SERVICO`
+  substitui o que lá estiver, em vez de só preencher os que não o têm.
+- Testes: `tests/smoke-pesquisa.mjs` cobre o tipo só para ler e a
+  actualização ao importar de novo.
+
 ## [4.2.1] — 2026-11-10
 
 ### Alterado

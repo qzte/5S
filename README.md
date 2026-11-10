@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.2.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.2.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.2.2** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -665,7 +665,8 @@ do `index.html`, e o arranque num telemóvel médio desceu de ~690 ms para ~290 
 - Folha **Serviços** — colunas `Código` e `Descrição`. Desde 4.2.0 aceita também a
   listagem de serviços exportada do sistema, com `ID_SERVICO` (o código),
   `DESCRICAO_SERVICO`, `LOCAL_SERVICO` (Interno/Externo, que dá o
-  [tipo](#indicadores-do-ano-400) dos serviços novos e dos que ainda não o têm) e
+  [tipo](#indicadores-do-ano-400) dos serviços e, desde 4.2.2, substitui o que lá
+  estiver; na Config o tipo mostra-se só para ler, salvo nos que não o têm) e
   `SERVICO_ATIVO` (os inactivos ficam de fora), mesmo numa folha com outro nome.
 - Folha **Repositor** ou **Picking** — coluna `Nome` (e opcionalmente `Código`).
 
