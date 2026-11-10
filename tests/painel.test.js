@@ -152,4 +152,7 @@ test("kpis.anual: média do ano, abaixo da média, objectivo e internos/externos
   assert.strictEqual(d.pct, 20);
   assert.deepStrictEqual(d.internos, { total: 1, auditados: 1 });
   assert.deepStrictEqual(d.externos, { total: 2, auditados: 1 });
+  /* 4.1.0: o quadro SERVIÇOS do painel. */
+  assert.deepStrictEqual(d.pior, { nome: "B", media: 0, n: 1 });
+  assert.deepStrictEqual([d.nAbaixo, d.porAuditar, d.nServicos], [1, 1, 3]);
 });

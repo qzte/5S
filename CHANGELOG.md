@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.1.0] — 2026-11-10
+
+### Adicionado
+
+- O `5s.painel.json` leva, em `kpis.anual`, o que o painel e-ink mostra no
+  quadro **SERVIÇOS** (no lugar de «serviços críticos»): `pior`, o serviço com
+  a média do ano mais baixa (`{nome, media, n}`, ou `null`); `nAbaixo`, quantos
+  serviços estão abaixo da média total do ano (todos, não só os 10 de
+  `abaixo`); `porAuditar`, quantos serviços da lista não têm auditoria no ano;
+  e `nServicos`, quantos serviços tem a lista.
+- `kpisAnuais()` devolve também `pior` e `porAuditar` (a lista). Testes em
+  `tests/indicadores.test.js` e `tests/painel.test.js`.
+
 ## [4.0.0] — 2026-11-09
 
 Versão maior: saem a frequência das auditorias e o email de cada serviço, e o

@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.1.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.0.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.1.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -329,7 +329,11 @@ de auditorias* (`objAud`, um por ano, por `sanitizeObjetivos()`: inteiro de 1 a
 100 000). Os dois vão na cópia de segurança e no ficheiro para o telemóvel:
 *Substituir* traz os do ficheiro, *Fundir* só os que faltam, e o ficheiro do PC
 manda nos serviços e nos anos que traz. Remover um serviço tira o seu tipo no
-fim do prazo de *Desfazer*. O `5s.painel.json` leva-os em `kpis.anual`.
+fim do prazo de *Desfazer*. O `5s.painel.json` leva-os em `kpis.anual`, com
+(desde 4.1.0) o que o quadro SERVIÇOS do painel mostra: o serviço com a média do
+ano mais baixa (`pior`), quantos estão abaixo da média (`nAbaixo`), quantos da
+lista não têm auditoria no ano (`porAuditar`) e quantos tem a lista
+(`nServicos`).
 
 **Retirado em 4.0.0:** a frequência das auditorias de cada serviço (3.13.0) —
 com o cartão dos prazos no Histórico, o número no separador, o aviso no

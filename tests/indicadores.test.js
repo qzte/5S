@@ -120,3 +120,14 @@ test("serviços internos e externos auditados no ano, face aos que existem", () 
   assert.deepStrictEqual(t.externo, { total: 3, auditados: 1, porAuditar: ["E2", "E3"] });
   assert.deepStrictEqual(t.semTipo, { total: 1, auditados: 0, porAuditar: ["S"] });
 });
+
+test("pior serviço do ano e serviços por auditar (4.1.0)", () => {
+  const l = [aud(1, "A", "2026-02-01", S100), aud(2, "B", "2026-03-01", S38), aud(3, "C", "2026-04-01", S38),
+    aud(4, "D", "2025-04-01", S0)];
+  const k = plain(kpisAnuais(l, ["A", "B", "C", "D", "E"], [], [], 2026, "2026-11-09"));
+  assert.deepStrictEqual([k.pior.service, k.pior.media, k.pior.n], ["B", 38, 1], "empate: pelo nome");
+  assert.deepStrictEqual(k.porAuditar, ["D", "E"], "D só foi auditado no ano anterior");
+  const v = plain(kpisAnuais([], ["A"], [], [], 2026, "2026-11-09"));
+  assert.strictEqual(v.pior, null);
+  assert.deepStrictEqual(v.porAuditar, ["A"]);
+});
