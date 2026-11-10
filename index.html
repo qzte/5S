@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.2.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.3 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1333,7 +1333,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.2.2";
+const APP_VERSION="4.2.3";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4221,7 +4221,33 @@ function findCols(rows){
 /* v4.2.0: o tipo do serviço numa célula do Excel ("Interno", "Externo") e se
    uma linha está activa (vazio conta como activa; "Não", "Falso", "0", "N" ou
    FALSE não). */
-function tipoDoExcel(v){const t=norm(v).trim();return /^int/.test(t)?"i":/^ext/.test(t)?"e":"";}
+function tipoDoExcel(v){const t=norm(v).trim();return /^(int|i$)/.test(t)?"i":/^(ext|e$)/.test(t)?"e":"";}
+/* v4.2.3: o código de um serviço, entre parênteses no fim do nome
+   ("Talho (101)" → "101"), sem maiúsculas nem espaços à volta; "" sem código. */
+function codigoServico(nome){const m=String(nome||"").match(/\(([^()]+)\)\s*$/);return m?norm(m[1]).trim():"";}
+/* v4.2.3: o que a importação da listagem de serviços faz à lista. Cada linha
+   activa do ficheiro ({nome: "Descrição (código)", cod, t: "i"|"e"|""}) vai
+   para o serviço da lista com o mesmo nome ou, senão, com o mesmo CÓDIGO (a
+   descrição pode ter mudado: «Téc.Nefrol.» e «Téc.Nefrol»). Só sem nenhum
+   dos dois é um serviço novo. O tipo do ficheiro substitui o que lá estiver.
+   Devolve {novos, tipos: [{s,t}] a gravar, mesmoCodigo: quantos foram para
+   um serviço com outra descrição, semTipo: os serviços que ficam sem tipo}. */
+function planoServicosExcel(svcs,linhas,tiposAtuais){
+  const lista=(svcs||[]).slice(),novos=[],porCod=new Map(),mudar=new Map();
+  let mesmoCodigo=0;
+  lista.forEach(x=>{const c=codigoServico(x);if(c&&!porCod.has(c))porCod.set(c,x);});
+  (linhas||[]).forEach(l=>{
+    if(!l||!l.nome)return;
+    const c=norm(l.cod||"").trim()||codigoServico(l.nome);
+    let alvo=lista.includes(l.nome)||novos.includes(l.nome)?l.nome:null;
+    if(!alvo&&c&&porCod.has(c)){alvo=porCod.get(c);if(alvo!==l.nome)mesmoCodigo++;}
+    if(!alvo){alvo=l.nome;novos.push(alvo);if(c)porCod.set(c,alvo);}
+    if(l.t)mudar.set(alvo,l.t);
+  });
+  const tipos=[...mudar].filter(([sv,t])=>tipoDe(tiposAtuais,sv)!==t).map(([sv,t])=>({s:sv,t}));
+  const tipoFinal=sv=>mudar.get(sv)||tipoDe(tiposAtuais,sv);
+  return{novos,tipos,mesmoCodigo,semTipo:lista.concat(novos).filter(sv=>!tipoFinal(sv))};
+}
 function ativoDoExcel(v){
   if(v===false||v===0)return false;
   const t=norm(v).trim();
@@ -4241,7 +4267,7 @@ function importExcel(inp){
          página, e mantê-lo por hábito custaria essa restrição sem contrapartida. */
       try{wb=XLSX.read(rd.result,{type:"array"});}
       catch(e){aviso("Ficheiro inválido: não foi possível ler como Excel/CSV.");return;}
-      const newSvc=[],newPpl=[],tiposFich=[];let inativos=0;
+      const linhasSvc=[],newPpl=[];let inativos=0;
       wb.SheetNames.forEach(name=>{
         const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:""});
         if(!rows.length)return;
@@ -4257,10 +4283,8 @@ function importExcel(inp){
           if(isSvc||(!isPpl&&cod&&desc&&cols.nome<0)){
             if(!desc&&!cod)continue;
             if(cols.ativo>=0&&!ativoDoExcel(row[cols.ativo])){inativos++;continue;}
-            const nomeSvc=desc?(cod?`${desc} (${cod})`:desc):cod;
-            newSvc.push(nomeSvc);
-            const t=cols.local>=0?tipoDoExcel(row[cols.local]):"";
-            if(t)tiposFich.push({s:clean(nomeSvc,200),t});
+            const nomeSvc=clean(desc?(cod?`${desc} (${cod})`:desc):cod,200);
+            linhasSvc.push({nome:nomeSvc,cod,t:cols.local>=0?tipoDoExcel(row[cols.local]):""});
           }else if(isPpl||nome){
             const p=nome||desc;
             if(p)newPpl.push(cod&&nome?`${nome} (${cod})`:p);
@@ -4268,20 +4292,24 @@ function importExcel(inp){
         }
       });
       const uniq=a=>[...new Set(a.filter(Boolean))];
-      const addSvcs=uniq(newSvc).filter(s=>!services.includes(s));
+      /* v4.2.3: os serviços e o tipo, pelo nome ou pelo código (ver planoServicosExcel). */
+      const plano=planoServicosExcel(services,linhasSvc,tipos);
+      const addSvcs=plano.novos;
       const addPpl=uniq(newPpl).filter(p=>!people.includes(p));
-      /* v4.2.2: o tipo do ficheiro manda: vale para os serviços novos, para os
-         que ainda não têm tipo e substitui o que lá estiver, se for outro. */
-      const addTipos=sanitizeTipos(tiposFich).filter(f=>tipoDe(tipos,f.s)!==f.t);
-      const semInat=inativos?` (${inativos} inactivo(s) ficam de fora)`:"";
-      if(!addSvcs.length&&!addPpl.length&&!addTipos.length){aviso("Nada de novo para importar"+semInat+". Verifique os nomes das folhas (Serviços / Repositor / Picking) e das colunas (Código, Descrição, Nome).");return;}
-      if(!(await confirmar(`Importar ${addSvcs.length} serviço(s) e ${addPpl.length} repositor(es)/picking`+
-        (addTipos.length?`, com o tipo (interno/externo) de ${addTipos.length} serviço(s)`:"")+semInat+"?",{sim:"Importar"})))return;
+      const addTipos=sanitizeTipos(plano.tipos);
+      const semInat=inativos?` ${inativos} inactivo(s) ficam de fora.`:"";
+      const mesmoCod=plano.mesmoCodigo?` ${plano.mesmoCodigo} já estão na lista com outra descrição e o mesmo código: não se duplicam.`:"";
+      const lista=l=>l.slice(0,8).join("; ")+(l.length>8?"; e mais "+(l.length-8):"");
+      const semTipo=linhasSvc.length&&plano.semTipo.length?
+        `\n\n${plano.semTipo.length} serviço(s) da lista ficam sem tipo, por não estarem no ficheiro (nem pelo código) ou por o ficheiro não dizer Interno/Externo: ${lista(plano.semTipo)}.`:"";
+      if(!addSvcs.length&&!addPpl.length&&!addTipos.length){aviso("Nada de novo para importar."+semInat+mesmoCod+(semTipo||" Verifique os nomes das folhas (Serviços / Repositor / Picking) e das colunas (Código, Descrição, Nome)."));return;}
+      if(!(await confirmar(`Importar ${addSvcs.length} serviço(s) novo(s) e ${addPpl.length} repositor(es)/picking`+
+        (addTipos.length?`, e o tipo (interno/externo) de ${addTipos.length} serviço(s)`:"")+"?"+semInat+mesmoCod+semTipo,{sim:"Importar"})))return;
       services=services.concat(addSvcs);save("services",services);
       people=people.concat(addPpl);save("people",people);
       if(addTipos.length){tipos=sanitizeTipos(addTipos.concat(tipos.filter(f=>!addTipos.some(g=>g.s===f.s))));save("tipoSvc",tipos);}
       renderCfg();renderForm();
-      aviso(`Importação concluída: ${addSvcs.length} serviço(s), ${addPpl.length} pessoa(s)`+(addTipos.length?`, ${addTipos.length} tipo(s)`:"")+".");
+      aviso(`Importação concluída: ${addSvcs.length} serviço(s) novo(s), ${addPpl.length} pessoa(s)`+(addTipos.length?`, ${addTipos.length} tipo(s)`:"")+"."+semTipo);
     };
     rd.readAsArrayBuffer(file);
   }).catch(e=>aviso(e.message));
