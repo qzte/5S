@@ -10,7 +10,7 @@
 # Guia de utilização
 
 Como usar a app no dia-a-dia: fazer uma auditoria, ler o relatório, seguir as
-acções, manter os prazos e não perder dados. Este guia também está dentro da
+acções, acompanhar os indicadores e não perder dados. Este guia também está dentro da
 app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver o
 [README](README.md); para o que mudou em cada versão, o [CHANGELOG](CHANGELOG.md).
 
@@ -20,8 +20,9 @@ app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver
 - [Do telemóvel para o PC](#do-telemóvel-para-o-pc)
 - [O relatório](#o-relatório)
 - [Plano de acção](#plano-de-acção)
-- [Histórico e prazos](#histórico-e-prazos)
+- [Histórico](#histórico)
 - [Análise](#análise)
+- [Indicadores do ano](#indicadores-do-ano)
 - [Cópias de segurança](#cópias-de-segurança)
 - [Configuração](#configuração)
 - [Sem rede e actualizações](#sem-rede-e-actualizações)
@@ -33,10 +34,11 @@ app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver
    principal*. Instalada, a app abre como as outras, funciona sem rede e o
    browser protege melhor os dados (ver [Cópias de segurança](#cópias-de-segurança)).
 2. Em **Config → Serviços**, acrescente os supermercados a auditar (ou importe-os
-   de um Excel em *Importar Excel*).
-3. Em **Config → Frequência das auditorias**, diga de quanto em quanto tempo cada
-   serviço deve ser auditado (semanal, quinzenal, mensal ou trimestral). É o que
-   permite à app avisar das auditorias em atraso.
+   de um Excel em *Importar Excel*) e diga, para cada um, se é **Interno** ou
+   **Externo**.
+3. Em **Config → Objectivo anual de auditorias**, escreva quantas auditorias
+   quer fazer no ano. São os dois dados de que os
+   [indicadores do ano](#indicadores-do-ano) precisam.
 
 Os dados ficam **só neste dispositivo**. Não há conta nem servidor: quem tiver o
 telemóvel tem as auditorias, e quem o perder perde-as — a menos que tenha uma
@@ -46,9 +48,7 @@ telemóvel tem as auditorias, e quem o perder perde-as — a menos que tenha uma
 
 No separador **Auditar**:
 
-1. **Escolha o serviço.** Por baixo aparece a frequência, a última auditoria e o
-   estado — por exemplo *Semanal · última auditoria a 25/10/26 · Em atraso há 5
-   dias*.
+1. **Escolha o serviço.**
 2. **Acções em aberto neste serviço.** Se auditorias anteriores deixaram acções
    por fazer, aparecem num cartão no topo. Verifique no local e marque **Feita**
    nas que ficaram resolvidas (ver [Plano de acção](#plano-de-acção)).
@@ -115,10 +115,8 @@ Para auditar no serviço com o telemóvel e acabar o trabalho no computador:
    Complete as recomendações (texto e foto), o plano de acção e, em **Editar
    auditoria** — que não pede o código enquanto está por finalizar —, a
    observação, as notas e as fotos. Carregue em **Finalizar auditoria**.
-4. **PDF e email ao serviço**: *Descarregar PDF* e *Enviar por email*. Se o
-   serviço tiver email em *Config* (ver [Configuração](#configuração)), o
-   cartão mostra-o: ao carregar em *Enviar por email* o endereço fica copiado
-   — cole-o em «Para». Sem menu de partilha, o email já abre com ele.
+4. **PDF e email ao serviço**: *Descarregar PDF* e *Enviar por email*; o
+   destinatário escolhe-se no Outlook ou no Gmail.
 5. **Cópia de segurança**: *Guardar cópia com fotos*, no PC.
 
 No telemóvel, **Enviar para o PC** conta como cópia de segurança, desde que
@@ -133,7 +131,7 @@ auditar —, no PC, em **Config → Dados**, carregue em **Enviar para o
 telemóvel** e mande o ficheiro para o seu email. No telemóvel, abra-o em
 **Histórico → Importar ficheiro** e carregue em **Actualizar**. O telemóvel
 fica com as auditorias finalizadas, as acções criadas ou fechadas no PC, as
-frequências, os emails dos serviços e as perguntas do PC. As auditorias que
+o tipo dos serviços, o objectivo anual e as perguntas do PC. As auditorias que
 ainda só estão no telemóvel ficam. O ficheiro não leva fotos: é leve.
 
 **Libertar espaço no telemóvel.** Depois de actualizado, *Config → Dados*
@@ -185,14 +183,8 @@ As recomendações dizem o que melhorar; uma **acção** é um passo concreto, c
   **Relatório** da auditoria de onde a acção veio. O número a vermelho no
   separador diz quantas estão em atraso.
 
-## Histórico e prazos
+## Histórico
 
-O separador **Histórico** mostra um número a vermelho quando há serviços por
-auditar (em atraso ou nunca auditados).
-
-- **Prazos das auditorias** — os serviços com frequência, pela urgência: *Em
-  atraso*, *Nunca auditado*, *A vencer* (faltam 2 dias ou menos), *Em dia*.
-  **Auditar** abre o formulário já com o serviço escolhido.
 - **Filtros** — por serviço, intervalo de datas e faixa de nota (Crítico,
   Com oportunidade, Excelente). *Limpar filtros* repõe tudo.
 - **Cada auditoria** mostra a nota e a variação face à anterior ao mesmo
@@ -218,11 +210,34 @@ carregue em **Abrir relatório mensal**. Mostra, para todos os serviços:
 - cada serviço, do pior para o melhor, com os que ficaram por auditar no fim;
 - os pilares 5S e os responsáveis;
 - as cinco perguntas que mais falharam, e em que serviços;
-- o plano de acção (acções novas, concluídas, em aberto e em atraso);
-- os serviços com a auditoria em atraso.
+- o plano de acção (acções novas, concluídas, em aberto e em atraso).
 
-**Gerar PDF** imprime-o em duas folhas. No mês em curso, as acções e os prazos
-contam até hoje.
+**Gerar PDF** imprime-o em duas folhas. No mês em curso, as acções contam até
+hoje.
+
+## Indicadores do ano
+
+No topo da **Análise**, o cartão **Indicadores do ano** mede as auditorias de
+todos os serviços no ano escolhido (por omissão, o actual). Não segue o serviço
+nem o período escolhidos por cima.
+
+- **Média total** — a média de todas as auditorias do ano.
+- **Serviços abaixo da média — para o plano de acção** — os serviços cuja média
+  no ano ficou abaixo da média total, do pior para o melhor, com quantos pontos
+  estão abaixo e quantas acções têm em aberto. **Plano de acção** abre o
+  relatório da última auditoria a esse serviço, onde se acrescentam acções.
+- **Objectivo anual** — as auditorias feitas face ao objectivo (em
+  *Config → Objectivo anual de auditorias*), em percentagem, e quantas faltam.
+- **Média semanal** — as auditorias por semana desde 1 de Janeiro (ou no ano
+  inteiro, num ano que já acabou), ao lado das que o objectivo pede por semana.
+- **Face ao plano** — quantas auditorias estão a mais (+) ou a menos (−) face às
+  que já deviam estar feitas, na proporção do ano decorrido: *Em linha com o
+  plano*, *Atrás do plano* ou *Objectivo cumprido*. Por baixo, quantas se fazem
+  até ao fim do ano ao ritmo actual, e quantas são precisas por semana para
+  cumprir o objectivo.
+- **Serviços auditados** — os serviços **internos** auditados no ano face a
+  todos os internos, e o mesmo para os **externos**, com os que faltam auditar.
+  Os serviços sem tipo não entram: a app diz quantos são.
 
 ## Cópias de segurança
 
@@ -231,7 +246,7 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 
 | Botão (em Config → Dados) | O que gera | Para quê |
 | --- | --- | --- |
-| **Exportar histórico (JSON)** | Auditorias, serviços, pessoas, perguntas, responsáveis, frequências, acções e notas — **sem fotos** | Cópia leve, para fazer muitas vezes |
+| **Exportar histórico (JSON)** | Auditorias, serviços e o tipo de cada um, pessoas, perguntas, responsáveis, objectivo anual, acções e notas — **sem fotos** | Cópia leve, para fazer muitas vezes |
 | **Exportar com fotos (JSON)** | O mesmo, **com todas as fotos** | Cópia completa: a que permite recuperar tudo |
 | **Partilhar cópia com fotos** | A cópia completa, enviada pelo menu de partilha do telemóvel | Mandá-la logo para a Drive ou o email. Só aparece onde o browser o permite |
 | **Exportar para Excel** | Folhas *Auditorias*, *Respostas* e *Acções* | Análise noutro programa. **Não** é uma cópia: não se importa de volta |
@@ -253,11 +268,12 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 
 ## Configuração
 
-- **Serviços** e **Frequência das auditorias e email** — ver
-  [Antes de começar](#antes-de-começar). O **email** de cada serviço (até 5
-  endereços, separados por vírgulas) é para onde vai o relatório; o que não
-  for um endereço fica de fora, com um aviso. Remover um serviço ou uma pessoa
+- **Serviços** — a lista, e o **tipo** de cada um (Interno ou Externo), para os
+  [indicadores do ano](#indicadores-do-ano). Remover um serviço ou uma pessoa
   mostra **Desfazer** no fundo do ecrã durante 10 segundos.
+- **Objectivo anual de auditorias** — quantas auditorias fazer em cada ano, de
+  todos os serviços. Escolha o ano e escreva o número; apague-o para ficar sem
+  objectivo.
 - **Responsáveis** — quem responde por cada pergunta; são os eixos do radar e
   os blocos de recomendações. Um responsável com perguntas, recomendações ou
   acções atribuídas não pode ser removido.
@@ -308,9 +324,9 @@ estão lá (cartão *Auditoria por terminar*).
 **Não vejo o campo de nota e foto numa pergunta.** Só aparece quando a resposta
 a classifica como Mau ou Oportunidade.
 
-**Uma auditoria aparece em atraso, mas foi feita.** O prazo conta a partir da
-última auditoria **gravada** a esse serviço. Confirme no Histórico que foi
-gravada com o serviço e a data certos.
+**Onde estão a frequência e os prazos das auditorias?** Saíram em 4.0.0, com o
+email de cada serviço. O ritmo das auditorias segue-se agora pelo objectivo
+anual, nos [indicadores do ano](#indicadores-do-ano).
 
 **Esqueci-me do código de acesso.** Em *Config → Dados*, *Exportar com fotos
 (JSON)* (não pede código). Depois limpe os dados do site nas definições do

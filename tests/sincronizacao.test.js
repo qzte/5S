@@ -1,49 +1,15 @@
-/* Testes da 3.26.0: o email de cada serviço, as fotos que já estão no PC e o
-   dispositivo que finalizou cada auditoria. */
+/* Testes da 3.26.0: as fotos que já estão no PC e o dispositivo que finalizou
+   cada auditoria. (O email de cada serviço saiu em 4.0.0.) */
 const test = require("node:test");
 const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
-  ["lerEmails", "sanitizeEmails", "emailDe", "enderecosMailto", "fotosNoPC",
+  ["fotosNoPC",
    "sanitizeAudit", "sanitizeEnvios", "sanitizeAcoes", "recsOf", "recTexto", "normItem", "classify", "fixedKey"],
-  ["EMAILS_MAX", "RE_EMAIL", "porFinalizar", "MAX_ACOES", "ITEMS", "LBL"]);
-const { lerEmails, sanitizeEmails, emailDe, enderecosMailto, fotosNoPC, sanitizeAudit } = ctx;
+  ["porFinalizar", "MAX_ACOES", "ITEMS", "LBL"]);
+const { fotosNoPC, sanitizeAudit } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
-
-test("lerEmails: separa por vírgula, ponto e vírgula ou espaço; sem repetidos; diz os maus", () => {
-  assert.deepStrictEqual(plain(lerEmails(" loja1@kaizen.pt, gerente@kaizen.pt;loja1@kaizen.pt ")),
-    { ok: "loja1@kaizen.pt; gerente@kaizen.pt", maus: [] });
-  assert.deepStrictEqual(plain(lerEmails("loja1@kaizen.pt, nao-e-email, a@b, x@y.pt")),
-    { ok: "loja1@kaizen.pt; x@y.pt", maus: ["nao-e-email", "a@b"] });
-  assert.deepStrictEqual(plain(lerEmails("")), { ok: "", maus: [] });
-  assert.deepStrictEqual(plain(lerEmails(null)), { ok: "", maus: [] });
-  const muitos = lerEmails("a1@x.pt a2@x.pt a3@x.pt a4@x.pt a5@x.pt a6@x.pt");
-  assert.strictEqual(muitos.ok.split("; ").length, ctx.EMAILS_MAX);
-  assert.deepStrictEqual(plain(muitos.maus), ["a6@x.pt"], "o que passa do máximo fica de fora, e diz-se");
-});
-
-test("lerEmails: nada que mexa com o mailto ou com o HTML", () => {
-  for (const x of ['a"b@x.pt', "a<b>@x.pt", "a@x.pt?cc=z@y.pt", "a@x.pt&bcc=z@y.pt", "mailto:a@x.pt", "a(b)@x.pt"])
-    assert.strictEqual(lerEmails(x).ok.includes("?") || lerEmails(x).ok.includes("<") || lerEmails(x).ok.includes('"') ||
-      lerEmails(x).ok.includes("("), false, x);
-  assert.strictEqual(lerEmails("a@x.pt?cc=z@y.pt").ok, "", "um ? não é aceite (?cc= no mailto)");
-  assert.strictEqual(lerEmails("a@x.pt?subject=oi").ok, "", "nem no domínio");
-  assert.strictEqual(lerEmails("nome.apelido+5s@loja-1.kaizen.pt").ok, "nome.apelido+5s@loja-1.kaizen.pt");
-});
-
-test("sanitizeEmails: pares {s, e} limpos; um por serviço; sem endereço válido, fora", () => {
-  assert.deepStrictEqual(plain(sanitizeEmails([{ s: "Loja A", e: "a@x.pt, lixo" }, { s: "Loja A", e: "b@x.pt" },
-    { s: "Loja B", e: "lixo" }, { s: "", e: "c@x.pt" }, null, [1], "x"])), [{ s: "Loja A", e: "a@x.pt" }]);
-  assert.deepStrictEqual(plain(sanitizeEmails({ "Loja A": "a@x.pt" })), [], "um objecto não é uma lista");
-  assert.strictEqual(emailDe([{ s: "Loja A", e: "a@x.pt" }], "Loja A"), "a@x.pt");
-  assert.strictEqual(emailDe([{ s: "Loja A", e: "a@x.pt" }], "Loja B"), "");
-});
-
-test("enderecosMailto: separados por vírgula, cada um codificado", () => {
-  assert.strictEqual(enderecosMailto("a@x.pt; b.c@y.pt"), "a%40x.pt,b.c%40y.pt");
-  assert.strictEqual(enderecosMailto(""), "");
-});
 
 test("fotosNoPC: enviadas daqui e finalizadas noutro dispositivo", () => {
   const pc = "2026-11-09T10:00:00.000Z";

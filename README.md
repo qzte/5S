@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 3.27.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 3.27.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.0.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -28,7 +28,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Limiares por pergunta](#limiares-por-pergunta)
 - [Responsáveis](#responsáveis)
 - [Editar auditorias anteriores](#editar-auditorias-anteriores)
-- [Frequência e prazos](#frequência-e-prazos)
+- [Indicadores do ano](#indicadores-do-ano-400)
 - [Caixas de diálogo](#caixas-de-diálogo)
 - [Evidência por pergunta](#evidência-por-pergunta)
 - [Plano de acção](#plano-de-acção)
@@ -47,12 +47,12 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 | Vista | O que faz |
 | --- | --- |
-| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra o prazo do serviço e as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. Data em hora local, e aviso antes de gravar uma segunda auditoria ao mesmo serviço no mesmo dia (3.22.0). |
-| **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço, e os **prazos** de cada serviço; edição (sob PIN) e remoção (com *Desfazer*). Diz se cada auditoria já foi **enviada** ou está **por enviar** (3.23.0). |
-| **Análise** | Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. E o **relatório mensal**, de todos os serviços, para imprimir em PDF (3.20.0). |
+| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. Data em hora local, e aviso antes de gravar uma segunda auditoria ao mesmo serviço no mesmo dia (3.22.0). |
+| **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço; edição (sob PIN) e remoção (com *Desfazer*). Diz se cada auditoria já foi **enviada** ou está **por enviar** (3.23.0). |
+| **Análise** | Os [indicadores do ano](#indicadores-do-ano-400): média total e serviços abaixo dela, objectivo anual e média semanal, internos e externos auditados (4.0.0). Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. E o **relatório mensal**, de todos os serviços, para imprimir em PDF (3.20.0). |
 | **Acções** | O plano de acção de todos os serviços: resumo, filtros por estado, responsável e serviço, as em atraso primeiro; marcar como feita e abrir o relatório de origem (3.21.0). |
 | **Relatório** | Três folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto. Mais as **Evidências** e o **plano de acção**, cada uma numa folha, quando os há. No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior, e no topo o cartão [Depois da auditoria](#depois-da-auditoria-3230): cópia de segurança pelo menu de partilha, **PDF** criado pela app (com o nome do serviço e da data) e envio **por email ou para o Teams** (3.23.0, 3.24.0). |
-| **Configuração** | Serviços e a **frequência** de cada um, responsáveis, cópia de segurança (com ou sem fotos, descarregada ou partilhada) e importação de `.json` ou `.txt`, exportação e importação de Excel, espaço ocupado e estado do armazenamento, **código de acesso** próprio, editor de perguntas e a pasta do **painel e-ink**. |
+| **Configuração** | Serviços e o **tipo** de cada um (interno ou externo), o **objectivo anual** de auditorias, responsáveis, cópia de segurança (com ou sem fotos, descarregada ou partilhada) e importação de `.json` ou `.txt`, exportação e importação de Excel, espaço ocupado e estado do armazenamento, **código de acesso** próprio, editor de perguntas e a pasta do **painel e-ink**. |
 
 Segue o **modo escuro** do sistema no ecrã (a impressão é sempre clara), e todas
 as vistas passam as regras WCAG 2 AA que o axe-core verifica — contraste,
@@ -78,7 +78,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | Cópia com fotos pelo menu de partilha no fim de cada auditoria; importar `.json` ou `.txt` | 3.24.0 |
 | **Auditar** | Seguimento da auditoria anterior, no formulário e no relatório | 3.9.0 |
 | | [Plano de acção](#plano-de-acção): acções com responsável, prazo e estado | 3.12.0 |
-| | [Frequência e prazos](#frequência-e-prazos) por serviço | 3.13.0 |
+| | Frequência e prazos por serviço (retirados em 4.0.0) | 3.13.0 |
 | | [Evidência por pergunta](#evidência-por-pergunta): nota e foto | 3.14.0 |
 | | Data da auditoria em hora local; aviso de auditoria repetida; «Remover foto» só com foto | 3.22.0 |
 | **Consultar** | Histórico com filtros e variação; Análise por serviço e período; exportação para Excel | 3.9.0 |
@@ -88,8 +88,9 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | Separador **Acções**: o plano de acção de todos os serviços | 3.21.0 |
 | | PDF com o nome do serviço e da data | 3.22.0 |
 | | [Depois da auditoria](#depois-da-auditoria-3230): cópia, PDF criado pela app, envio por email ou Teams | 3.23.0 |
+| | [Indicadores do ano](#indicadores-do-ano-400): média total, abaixo da média, objectivo anual, internos e externos | 4.0.0 |
 | **Dois dispositivos** | [Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250): auditoria por finalizar, envio só dela para o PC, importação que actualiza | 3.25.0 |
-| | Enviar para o telemóvel (dados do PC, sem fotos), email de cada serviço, libertar espaço no telemóvel | 3.26.0 |
+| | Enviar para o telemóvel (dados do PC, sem fotos), libertar espaço no telemóvel | 3.26.0 |
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
 | | Aviso de nova versão; arranque ~2,5× mais rápido (SheetJS só quando é preciso) | 3.8.0, 3.11.0 |
@@ -109,7 +110,7 @@ Não há passo de compilação nem dependências a instalar.
 2. No telemóvel, use *Adicionar ao ecrã principal* para instalar como aplicação.
 3. Depois da primeira visita funciona sem rede: o service worker guarda a aplicação em cache.
 
-Como fazer uma auditoria, seguir as acções, manter os prazos e fazer cópias de
+Como fazer uma auditoria, seguir as acções e os indicadores e fazer cópias de
 segurança está no [guia de utilização](GUIA.md).
 
 Para correr localmente basta servir a pasta por HTTP (o service worker não funciona
@@ -305,25 +306,36 @@ Uma auditoria antiga que não tenha guardado as suas perguntas e cujo número de
 respostas não coincida com o das perguntas actuais **não é editável** — não há
 como saber a que pergunta pertence cada resposta.
 
-## Frequência e prazos
+## Indicadores do ano (4.0.0)
 
-Desde 3.13.0, cada serviço pode ter uma **frequência** de auditoria (semanal,
-quinzenal, mensal ou trimestral), escolhida em *Configuração → Frequência das
-auditorias*. Conta a partir da última auditoria ao serviço:
+Os KPIs que as auditorias medem estão no topo da **Análise**, no cartão
+*Indicadores do ano* (`kpisAnuais()`, pura e testada em
+`tests/indicadores.test.js`). São de todos os serviços, no ano escolhido no
+cartão — o actual, os que têm auditorias e os que têm objectivo —, e não seguem
+os filtros de serviço e período da Análise. No ano em curso contam até hoje.
 
-| Estado | Quando |
+| Indicador | Como se calcula |
 | --- | --- |
-| **Em atraso** | Passou o prazo sem nova auditoria |
-| **Nunca auditado** | Tem frequência, mas nenhuma auditoria |
-| **A vencer** | Faltam 2 dias ou menos |
-| **Em dia** | O resto |
+| **Média total** | A média das notas de todas as auditorias do ano |
+| **Abaixo da média** | Os serviços cuja média no ano é menor do que a média total, do pior para o melhor, com a diferença e as acções em aberto. *Plano de acção* abre o relatório da última auditoria ao serviço |
+| **Objectivo anual** | Auditorias feitas ÷ objectivo do ano (`objAud`), e as que faltam |
+| **Média semanal** | Auditorias ÷ (dias decorridos do ano ÷ 7), com uma casa decimal; ao lado, objectivo ÷ (dias do ano ÷ 7) |
+| **Face ao plano** | Feitas − esperadas, com esperadas = objectivo × dias decorridos ÷ dias do ano. *Em linha* (≥ 0), *Atrás do plano* (< 0) ou *Objectivo cumprido*. Mais a projecção ao ritmo actual e o ritmo semanal que falta |
+| **Internos / externos** | Serviços da lista de cada tipo com pelo menos uma auditoria no ano ÷ todos os desse tipo, com os que faltam. Os sem tipo ficam de fora, e a app diz quantos são |
 
-O **Histórico** mostra um cartão com os serviços pela urgência, com o botão
-**Auditar**, que abre o formulário já com o serviço escolhido; o separador
-*Histórico* mostra quantos estão em atraso ou nunca foram auditados; e o
-formulário avisa ao escolher o serviço. As frequências vão na exportação JSON
-(`freqAud`): *Substituir* traz as do ficheiro, *Fundir* só acrescenta as dos
-serviços que ainda não tinham.
+O **tipo** de cada serviço escolhe-se em *Config → Serviços* (`tipoSvc`, lista
+de pares, por `sanitizeTipos()`); o **objectivo** em *Config → Objectivo anual
+de auditorias* (`objAud`, um por ano, por `sanitizeObjetivos()`: inteiro de 1 a
+100 000). Os dois vão na cópia de segurança e no ficheiro para o telemóvel:
+*Substituir* traz os do ficheiro, *Fundir* só os que faltam, e o ficheiro do PC
+manda nos serviços e nos anos que traz. Remover um serviço tira o seu tipo no
+fim do prazo de *Desfazer*. O `5s.painel.json` leva-os em `kpis.anual`.
+
+**Retirado em 4.0.0:** a frequência das auditorias de cada serviço (3.13.0) —
+com o cartão dos prazos no Histórico, o número no separador, o aviso no
+formulário, os prazos no relatório mensal e os `prazos`/`urgentes` do painel —
+e o email de cada serviço (3.26.0). As chaves `freqAud` e `emailsSvc` que
+estejam gravadas, ou venham num ficheiro de uma versão anterior, são ignoradas.
 
 ## Caixas de diálogo
 
@@ -394,8 +406,9 @@ telemetria nem recursos externos.
 | `itemsCfg` | Perguntas e limiares personalizados |
 | `resps` | Responsáveis (código e nome), pela ordem dos eixos do radar |
 | `perguntasAud` | Perguntas com que as auditorias foram feitas, cada conjunto uma vez (3.11.0) |
-| `freqAud` | Frequência das auditorias por serviço, como lista de pares (3.13.0) |
-| `emailsSvc` | Email de cada serviço, como lista de pares `{s, e}` (3.26.0) |
+| `tipoSvc` | Tipo de cada serviço, como lista de pares `{s, t}`, `t` = `"i"` (interno) ou `"e"` (externo) (4.0.0) |
+| `objAud` | Objectivo anual de auditorias, como lista `{a: ano, n: auditorias}` (4.0.0) |
+| `freqAud`, `emailsSvc` | Frequência (3.13.0) e email (3.26.0) de cada serviço: retirados em 4.0.0; ficam por apagar e são ignorados |
 | `dispositivo` | Identificador deste dispositivo, que não vai nas cópias (3.26.0) |
 | `rascunho` | Auditoria nova por terminar (3.8.0) — apagada ao gravar ou descartar |
 | `backup` | Data da última exportação e alterações desde então (3.8.0) |
@@ -582,12 +595,13 @@ envia-se ao serviço auditado e faz-se a cópia de segurança.
   **sem fotos**, marcada `tipo: "actualizacao"` (`enviarParaTelemovel()`).
   Importada no telemóvel, a caixa é *Actualizar com os dados do PC*, só com
   *Actualizar* (nunca *Substituir*): funde as auditorias pela regra de
-  `alterada`, e para os serviços do ficheiro passam a valer as frequências e
-  os emails do PC, mesmo os que o PC tirou. As perguntas do PC aplicam-se sem
+  `alterada`, e para os serviços do ficheiro passa a valer o tipo do PC,
+  mesmo o que o PC tirou, e o objectivo de cada ano que o PC tem (até 3.27.0,
+  as frequências e os emails). As perguntas do PC aplicam-se sem
   perguntar, quando são diferentes (nas outras importações a pergunta só
   aparece se forem diferentes). Não conta como cópia de segurança.
 - **Email de cada serviço** (`emailsSvc`, lista de pares `{s, e}`, até 5
-  endereços por serviço, validados por `lerEmails()`), em *Config →
+  endereços por serviço) — *retirado em 4.0.0*. Estava em *Config →
   Frequência das auditorias e email*. O cartão *Depois da auditoria* mostra o
   destinatário. O menu de partilha não deixa escolher o destinatário: ao
   carregar em *Enviar por email*, o endereço é copiado para colar em «Para»;
@@ -598,8 +612,8 @@ envia-se ao serviço auditado e faz-se a cópia de segurança.
   `dispositivo` gerado uma vez em cada um, que não vai nas cópias). No
   telemóvel, as auditorias enviadas daqui para o PC e finalizadas noutro
   dispositivo (`fotosNoPC()`) têm as fotos no PC: *Config → Dados* oferece
-  apagá-las deste dispositivo. As auditorias ficam, com o histórico, os
-  prazos e o seguimento.
+  apagá-las deste dispositivo. As auditorias ficam, com o histórico e o
+  seguimento.
 
 ### Enviar para o PC conta como cópia (3.27.0)
 
@@ -629,10 +643,9 @@ mais recente com auditorias) e *Gerar PDF* imprime-o em duas folhas
   sem Excelente, com os Mau e os serviços.
 - **Plano de acção** — as acções novas (das auditorias do mês), as concluídas
   no mês, e as em aberto e em atraso no fim do mês.
-- **Prazos das auditorias** no fim do mês, com os serviços em atraso ou nunca
-  auditados.
 
-No mês em curso, as acções e os prazos contam até hoje, não até ao fim do mês.
+No mês em curso, as acções contam até hoje, não até ao fim do mês. (Até 3.27.0
+tinha também os prazos das auditorias, que saíram com a frequência.)
 
 ## Importação de Excel
 
@@ -712,7 +725,7 @@ node tests/smoke-csp.mjs           # versão publicada: CSP por hashes (serve di
 node tests/smoke-a11y.mjs          # acessibilidade com o axe-core, modo claro e escuro
 node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditorias, Excel offline
 node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no terreno, PDF
-node tests/smoke-prazos.mjs        # frequência e prazos; nenhum diálogo nativo
+node tests/smoke-indicadores.mjs   # indicadores do ano, tipo e objectivo; nenhum diálogo nativo
 node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
 node tests/smoke-copias.mjs        # lembrete das fotos por copiar; Desfazer ao remover
 node tests/smoke-acesso.mjs        # código de acesso próprio; espaço ocupado com as fotos

@@ -4,9 +4,8 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(["resumoMensal", "mesesRelatorio", "nomeMes", "fimDoMes", "mesAnterior",
-  "byPillar", "byResp", "metricas", "avg", "ordemCron", "somarDias", "diasEntre", "freqDe", "ultimaDe",
-  "estadoServico", "prazosServicos", "textoPrazo"],
-  ["ITEMS", "itemsOf", "ORDEM_PRAZO", "MESES_PT", "memoMetricas"]);
+  "byPillar", "byResp", "metricas", "avg", "ordemCron", "somarDias", "diasEntre"],
+  ["ITEMS", "itemsOf", "MESES_PT", "memoMetricas"]);
 const { resumoMensal, mesesRelatorio, nomeMes, fimDoMes, mesAnterior } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
 
@@ -37,7 +36,7 @@ test("média do mês, face ao anterior, e cada serviço", () => {
     aud(3, "Loja A", "2026-10-20", [2, 2, 2, 2, 2]),   /* 100: a última */
     aud(4, "Loja B", "2026-10-15", [1, 1, 1, 1, 1]),   /* 38 */
   ];
-  const r = plain(resumoMensal(l, "2026-10", ["Loja A", "Loja B", "Loja C"], [], "2026-11-07"));
+  const r = plain(resumoMensal(l, "2026-10", ["Loja A", "Loja B", "Loja C"], "2026-11-07"));
   assert.strictEqual(r.n, 3);
   assert.strictEqual(r.media, Math.round((0 + 100 + 38) / 3));
   assert.strictEqual(r.mediaAnt, 100);
@@ -58,7 +57,7 @@ test("perguntas que mais falharam: pela proporção, depois pelos Mau", () => {
     aud(1, "A", "2026-10-01", [0, 1, 2, 2, 1]),
     aud(2, "B", "2026-10-02", [0, 2, 2, 2, 1]),
   ];
-  const r = plain(resumoMensal(l, "2026-10", ["A", "B"], [], "2026-11-07"));
+  const r = plain(resumoMensal(l, "2026-10", ["A", "B"], "2026-11-07"));
   assert.deepStrictEqual(r.piores.map(x => [x.n, x.falhas, x.vezes, x.mau]), [[1, 2, 2, 2], [5, 2, 2, 0], [2, 1, 2, 0]]);
   assert.deepStrictEqual(r.piores[0].servicos, ["A", "B"]);
   assert.strictEqual(plain(resumoMensal([aud(1, "A", "2026-10-01", [2, 2, 2, 2, 2])], "2026-10", [], [], "2026-11-07")).piores.length, 0);
@@ -74,20 +73,17 @@ test("plano de acção: novas, concluídas no mês e em aberto no fim do mês", 
       { id: 1, estado: "aberta", prazo: "2026-11-30" }]),                       /* nova, aberta, no prazo */
     aud(3, "A", "2026-11-03", [0, 0, 0, 0, 0], [{ id: 1, estado: "aberta", prazo: "" }]),  /* depois do mês */
   ];
-  const r = plain(resumoMensal(l, "2026-10", ["A"], [], "2026-11-07"));
+  const r = plain(resumoMensal(l, "2026-10", ["A"], "2026-11-07"));
   assert.deepStrictEqual(r.acoes, { novas: 1, concluidas: 1, abertas: 3, atrasadas: 1 });
 });
 
-test("mês em curso: prazos e acções até hoje, não até ao fim do mês", () => {
+test("mês em curso: acções até hoje, não até ao fim do mês; sem prazos (4.0.0)", () => {
   const l = [aud(1, "A", "2026-10-30", [2, 2, 2, 2, 2], [{ id: 1, estado: "aberta", prazo: "2026-11-20" }])];
-  const fq = [{ s: "A", d: 14 }, { s: "B", d: 30 }];
-  const r = plain(resumoMensal(l, "2026-11", ["A", "B"], fq, "2026-11-07"));
+  const r = plain(resumoMensal(l, "2026-11", ["A", "B"], "2026-11-07"));
   assert.strictEqual(r.emCurso, true);
   assert.strictEqual(r.ref, "2026-11-07");
   assert.strictEqual(r.n, 0);
   assert.strictEqual(r.media, null);
   assert.strictEqual(r.acoes.atrasadas, 0, "o prazo de 20/11 ainda não passou hoje");
-  assert.strictEqual(r.prazos.nunca, 1);
-  assert.strictEqual(r.prazos.atrasados + r.prazos.aVencer + r.prazos.emDia, 1);
-  assert.deepStrictEqual(r.prazos.urgentes.map(u => u.svc), ["B"]);
+  assert.strictEqual(r.prazos, undefined, "a frequência das auditorias saiu em 4.0.0");
 });

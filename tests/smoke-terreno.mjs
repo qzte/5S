@@ -175,31 +175,25 @@ check(estado.n === 2 && estado.ult.note === "completada no PC" && !estado.ult.fa
   "no telemóvel, a auditoria passa a ser a finalizada no PC");
 check((await chavesFotos(pg)).includes(estado.ult.id + "#0"), "uma cópia sem fotos deixa as do telemóvel como estão");
 
-/* ---------- 4. Fase 2 (3.26.0): email do serviço, ficheiro para o telemóvel, libertar espaço ---------- */
+/* ---------- 4. Fase 2 (3.26.0): ficheiro para o telemóvel, libertar espaço ----------
+   (4.0.0: o email de cada serviço saiu; o ficheiro leva o tipo e o objectivo.) */
 pg = pc.pg;
 check(!!(await pg.evaluate(() => audits[audits.length - 1].finalizadaPor)), "finalizar regista o dispositivo");
-/* Email do serviço, em Config. */
+/* Tipo do serviço e objectivo anual, em Config (4.0.0). */
 await pg.locator("[data-v=cfg]").click();
-await pg.locator("[data-email='0']").fill("loja.a@kaizen.pt, isto-nao");
-await pg.locator("[data-email='0']").press("Tab");
-await semDialogo(pg);
-check(pc.vistos.some(d => d.titulo === "Email do serviço" && /isto-nao/.test(d.texto)), "diz o que não é um endereço");
-check(await pg.locator("[data-email='0']").inputValue() === "loja.a@kaizen.pt", "fica só o endereço válido");
-check(JSON.parse(await pg.evaluate(() => localStorage.getItem("emailsSvc")))[0].e === "loja.a@kaizen.pt", "o email fica gravado");
-/* E a app arranca com ele gravado (o email é lido no arranque). */
-await pg.reload();
-await pg.locator("[data-v=cfg]").click();
-check(await pg.locator("[data-email='0']").inputValue() === "loja.a@kaizen.pt", "o email volta depois de recarregar");
-await pg.locator("[data-freq='0']").selectOption("14");
-/* No relatório: o destinatário, e no mailto (sem menu de partilha). */
+await pg.locator("[data-tipo='0']").selectOption("e");
+await pg.locator("#obj-n").fill("40");
+await pg.locator("#obj-n").press("Tab");
+check(JSON.parse(await pg.evaluate(() => localStorage.getItem("tipoSvc")))[0].t === "e", "o tipo fica gravado");
+/* No relatório, sem menu de partilha: o mailto, sem destinatário. */
 await pg.locator("[data-v=history]").click();
 await pg.locator("[data-rep='0']").click();
-check(/Para: loja\.a@kaizen\.pt/.test(await pg.locator("#pos-aud").textContent()), "o cartão mostra o email do serviço");
+check(!/Para:/.test(await pg.locator("#pos-aud").textContent()), "o cartão já não mostra email do serviço");
 const [dpdf] = await Promise.all([pg.waitForEvent("download", { timeout: 30000 }), pg.locator("#pa-email").click()]);
 check(/\.pdf$/.test(dpdf.suggestedFilename()), "sem partilha, descarrega o PDF");
 await pg.waitForFunction(() => window.__links.length === 1, null, { timeout: 10000 }).catch(() => {});
 const mail = (await pg.evaluate(() => window.__links))[0] || "";
-check(/^mailto:loja\.a%40kaizen\.pt\?subject=/.test(mail), "o email vai já para o serviço: " + mail.slice(0, 80));
+check(/^mailto:\?subject=/.test(mail), "o email abre sem destinatário: " + mail.slice(0, 80));
 /* Enviar para o telemóvel: a cópia sem fotos, marcada. */
 await pg.locator("[data-v=cfg]").click();
 const [dt] = await Promise.all([pg.waitForEvent("download", { timeout: 30000 }), pg.locator("#btn-telemovel").click()]);
@@ -207,7 +201,9 @@ check(/^auditorias5s_para_telemovel_\d{4}-\d{2}-\d{2}\.json$/.test(dt.suggestedF
 const paraTel = path.join(tmp, dt.suggestedFilename());
 fs.writeFileSync(paraTel, fs.readFileSync(await dt.path()));
 const conteudoTel = JSON.parse(fs.readFileSync(paraTel, "utf8"));
-check(conteudoTel.tipo === "actualizacao" && !conteudoTel.fotos && conteudoTel.emailsSvc.length === 1, "sem fotos, com os emails");
+check(conteudoTel.tipo === "actualizacao" && !conteudoTel.fotos && conteudoTel.tipoSvc.length === 1 && conteudoTel.objAud.length === 1,
+  "sem fotos, com o tipo e o objectivo");
+check(!("emailsSvc" in conteudoTel) && !("freqAud" in conteudoTel), "sem emails nem frequências");
 /* No telemóvel: actualizar, e libertar espaço. */
 pg = tel.pg;
 await pg.locator("[data-v=history]").click();
@@ -215,9 +211,9 @@ await pg.locator("#hist-file").setInputFiles(paraTel);
 await semDialogo(pg);
 check(tel.vistos.some(d => d.titulo === "Actualizar com os dados do PC"), "a caixa é a da actualização do PC");
 check(!tel.vistos.some(d => d.titulo === "Actualizar com os dados do PC" && /Substituir/.test(d.texto)), "sem Substituir");
-const noTel = await pg.evaluate(() => ({ e: emails, f: freqs }));
-check(noTel.e.length === 1 && noTel.e[0].e === "loja.a@kaizen.pt", "o email do serviço chega ao telemóvel");
-check(noTel.f.length === 1 && noTel.f[0].d === 14, "e a frequência do PC");
+const noTel = await pg.evaluate(() => ({ t: tipos, o: objetivos }));
+check(noTel.t.length === 1 && noTel.t[0].t === "e", "o tipo do serviço chega ao telemóvel");
+check(noTel.o.length === 1 && noTel.o[0].n === 40, "e o objectivo do PC");
 await pg.locator("[data-v=cfg]").click();
 await pg.waitForFunction(() => !document.getElementById("limpeza").classList.contains("hidden"), null, { timeout: 5000 }).catch(() => {});
 check(/1 foto\(s\) de 1 auditoria/.test(await pg.locator("#limpeza").textContent()), "oferece apagar as fotos que já estão no PC");
