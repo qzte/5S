@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.4] — 2026-11-10
+
+### Corrigido
+
+- **Serviços duplicados na lista ficavam sem tipo.** Quando a lista tinha o
+  mesmo código em mais de um serviço (por exemplo «Téc.Nefrol. (70EE10)» e
+  «Téc.Nefrol (70EE10)», de importações antigas), a linha do Excel dava o tipo
+  só a um deles, e a importação respondia «Nada de novo para importar» com os
+  outros ainda sem tipo. Agora o tipo vai para **todos** os serviços com esse
+  código, e a confirmação diz quais são os duplicados, para os poder remover
+  em *Config → Serviços*.
+- Testes: caso novo em `tests/pesquisa-servico.test.js`.
+
 ## [4.2.3] — 2026-11-10
 
 ### Corrigido

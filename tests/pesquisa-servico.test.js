@@ -71,3 +71,15 @@ test("o mesmo código com outra descrição não duplica: o tipo vai para o serv
 test("tipo de uma letra, I ou E", () => {
   assert.deepStrictEqual(["I", "e", "Ie"].map(p.tipoDoExcel), ["i", "e", ""], "uma letra a mais já não é um tipo");
 });
+
+test("4.2.4: o mesmo código em dois serviços da lista: os dois recebem o tipo, e são ditos duplicados", () => {
+  const svcs = ["Téc.Nefrol. (70EE10)", "Téc.Nefrol (70EE10)", "UCIP (11120)"];
+  const r = plain(p.planoServicosExcel(svcs, [
+    { nome: "Téc.Nefrol (70EE10)", cod: "70EE10", t: "i" },
+    { nome: "UCIP (11120)", cod: "11120", t: "e" },
+  ], [{ s: "Téc.Nefrol (70EE10)", t: "i" }, { s: "UCIP (11120)", t: "e" }]));
+  assert.deepStrictEqual(r.novos, []);
+  assert.deepStrictEqual(r.tipos, [{ s: "Téc.Nefrol. (70EE10)", t: "i" }], "o duplicado sem tipo recebe-o; os outros já o tinham");
+  assert.deepStrictEqual(r.semTipo, []);
+  assert.deepStrictEqual(r.duplicados, [["Téc.Nefrol. (70EE10)", "Téc.Nefrol (70EE10)"]]);
+});
