@@ -87,11 +87,13 @@ await pg.locator("#an-per").selectOption("0");
 
 /* ---- 3. Formulário: o que a auditoria anterior deu a cada pergunta. ---- */
 await pg.locator("[data-v=audit]").click();
-await pg.locator("#f-service").selectOption("Loja B");
+await pg.locator("#f-svc-busca").fill("Loja B");
+await pg.locator("#f-svc-busca").press("Enter");   /* 4.2.1: escolhe-se na caixa do serviço */
 check(await pg.locator("[data-prev]:not(.hidden)").count() === 19, "na Loja B, todas estavam em Oportunidade");
 check(/Na auditoria anterior \(2026-02-01\): Oportunidade/.test(await pg.locator("[data-prev='0']").textContent()),
   "a indicação devia dizer a data e a classificação anteriores");
-await pg.locator("#f-service").selectOption("Loja A");
+await pg.locator("#f-svc-busca").fill("Loja A");
+await pg.locator("#f-svc-busca").press("Enter");
 check(/\(2026-03-05\): Mau/.test(await pg.locator("[data-prev='0']").textContent()),
   "mudar de serviço devia mudar a referência para a última da Loja A");
 

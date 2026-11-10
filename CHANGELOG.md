@@ -5,6 +5,20 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.1] — 2026-11-10
+
+### Alterado
+
+- **Uma só caixa para o serviço**, em *Auditar*, em vez de uma de pesquisa e
+  outra de escolha. A caixa mostra o serviço escolhido; ao escrever o nome ou
+  o código, abre-se por baixo a lista dos que casam (os da lista e, à parte,
+  os que só existem em auditorias já feitas). Escolhe-se com um toque, com as
+  setas e Enter, ou com Tab; Esc fecha e repõe o que estava. Sair da caixa sem
+  escolher deixa o serviço que lá estava, a não ser que o texto escrito só
+  case com um.
+- Testes: `tests/smoke-pesquisa.mjs` e `tests/smoke-historico.mjs` escolhem o
+  serviço na caixa.
+
 ## [4.2.0] — 2026-11-10
 
 ### Adicionado

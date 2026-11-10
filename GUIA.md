@@ -50,10 +50,11 @@ telemóvel tem as auditorias, e quem o perder perde-as — a menos que tenha uma
 
 No separador **Auditar**:
 
-1. **Escolha o serviço.** Escreva parte do nome ou o código em *Pesquisar por
-   serviço ou código*: a lista por baixo fica só com os que casam, e o primeiro
-   fica escolhido. Aparecem os serviços da lista (*Config → Serviços*) e, num
-   grupo à parte, os que só existem em auditorias já feitas.
+1. **Escolha o serviço.** Na caixa do serviço, escreva parte do nome ou o
+   código: abre-se por baixo a lista dos que casam, com os serviços da lista
+   (*Config → Serviços*) e, num grupo à parte, os que só existem em auditorias
+   já feitas. Toque no serviço (ou use as setas e Enter). *Esc* fecha a lista
+   sem mudar o serviço.
 2. **Acções em aberto neste serviço.** Se auditorias anteriores deixaram acções
    por fazer, aparecem num cartão no topo. Verifique no local e marque **Feita**
    nas que ficaram resolvidas (ver [Plano de acção](#plano-de-acção)).
