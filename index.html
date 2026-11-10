@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.1.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1309,7 +1309,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.0.0";
+const APP_VERSION="4.1.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2250,7 +2250,11 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
   const auditados=new Set(porSvc.keys());
   const grupo=t=>{const l=(svcs||[]).filter(s=>tipoDe(tipos,s)===t);
     return{total:l.length,auditados:l.filter(s=>auditados.has(s)).length,porAuditar:l.filter(s=>!auditados.has(s))};};
-  return{ano,ini,ref,emCurso:ref<fim,n,media,servicos:servicos.length,abaixo,plano,
+  /* v4.1.0: o serviço com a média do ano mais baixa (null sem auditorias), e
+     os serviços da lista sem auditoria no ano (de qualquer tipo). */
+  const pior=servicos.slice().sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service))[0]||null;
+  const porAuditar=(svcs||[]).filter(s=>!auditados.has(s));
+  return{ano,ini,ref,emCurso:ref<fim,n,media,servicos:servicos.length,abaixo,pior,porAuditar,plano,
     tipos:{interno:grupo("i"),externo:grupo("e"),semTipo:grupo("")}};
 }
 
@@ -5141,7 +5145,8 @@ function dadosPainel5s(lista,extra){
   };
 }
 /* v4.0.0: os indicadores do ano corrente, para o painel (campo `kpis.anual`,
-   novo: os campos de antes não mudam). */
+   novo: os campos de antes não mudam). v4.1.0: mais `pior`, `nAbaixo`,
+   `porAuditar` e `nServicos`. */
 function anualPainel5s(lista,extra){
   const k=kpisAnuais(lista,extra.servicos,extra.tipos,extra.objetivos,Number(extra.hoje.slice(0,4)),extra.hoje),p=k.plano;
   const g=x=>({total:x.total,auditados:x.auditados});
@@ -5149,7 +5154,10 @@ function anualPainel5s(lista,extra){
     abaixo:k.abaixo.slice(0,10).map(x=>({nome:x.service,media:x.media,n:x.n})),
     objetivo:p.objetivo||null,pct:p.pct,esperado:p.esperado,desvio:p.desvio,estado:p.estado,
     mediaSemanal:p.mediaSemanal,objetivoSemanal:p.objetivoSemanal,projecao:p.projecao,
-    internos:g(k.tipos.interno),externos:g(k.tipos.externo)};
+    internos:g(k.tipos.interno),externos:g(k.tipos.externo),
+    /* v4.1.0: para o quadro SERVIÇOS do painel (no lugar dos «serviços críticos»). */
+    pior:k.pior?{nome:k.pior.service,media:k.pior.media,n:k.pior.n}:null,
+    nAbaixo:k.abaixo.length,porAuditar:k.porAuditar.length,nServicos:(extra.servicos||[]).length};
 }
 
 const painel=criarEscritorPainel({app:"5s",titulo:"Auditoria 5S",versaoApp:APP_VERSION});
