@@ -5,6 +5,27 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.5] — 2026-11-10
+
+### Corrigido
+
+- **A listagem real não dava tipo a nenhum serviço.** A coluna
+  `LOCAL_SERVICO` diz **HPH** (hospital) ou **ACES** (centros de saúde), e a
+  app só reconhecia Interno/Externo. Agora HPH é **Interno** e ACES é
+  **Externo**. Os valores que não reconhece são ditos na importação.
+
+### Adicionado
+
+- **Substituir a lista de serviços pela listagem.** Ao importar a listagem do
+  sistema (com `LOCAL_SERVICO` ou `SERVICO_ATIVO`), a app pergunta:
+  *Substituir a lista* (a lista passa a ser a do ficheiro, com o tipo de cada
+  serviço; os que não estão no ficheiro saem) ou *Juntar à lista* (como até
+  aqui). As auditorias já feitas não mudam: os serviços que saem continuam a
+  encontrar-se na pesquisa do Auditar, em «Só em auditorias anteriores».
+- Testes: `planoSubstituirServicos()` e HPH/ACES em
+  `tests/pesquisa-servico.test.js`; `tests/smoke-pesquisa.mjs` cobre a
+  substituição.
+
 ## [4.2.4] — 2026-11-10
 
 ### Corrigido

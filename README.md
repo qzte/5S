@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.2.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.5 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.2.4** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.2.5** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -648,7 +648,10 @@ do `index.html`, e o arranque num telemóvel médio desceu de ~690 ms para ~290 
   cria um duplicado nem deixa o serviço sem tipo. Desde 4.2.4, se a lista tiver
   o mesmo código em mais de um serviço (duplicados de importações antigas),
   todos recebem o tipo, e a importação diz quais são. Diz também quais
-  serviços ficam sem tipo.
+  serviços ficam sem tipo. Desde 4.2.5, `LOCAL_SERVICO` aceita **HPH**
+  (Interno) e **ACES** (Externo), e a importação pergunta se a listagem
+  **substitui** a lista de serviços (`planoSubstituirServicos()`) ou se
+  **junta** à actual. Substituir não toca nas auditorias já feitas.
 - Folha **Repositor** ou **Picking** — coluna `Nome` (e opcionalmente `Código`).
 
 As folhas são reconhecidas pelo nome; num ficheiro de folha única aplica-se a

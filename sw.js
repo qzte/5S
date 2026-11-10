@@ -1,6 +1,6 @@
 /*
   Auditoria 5S · Supermercados Kaizen — Service Worker
-  Versão: 4.2.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.5 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Função: cache offline da aplicação. O nome da cache inclui a versão,
           por isso cada nova versão invalida automaticamente a anterior.
   Segurança (v1.4.0): a cache só aceita recursos da própria origem que
@@ -8,7 +8,7 @@
           Desde 3.1.1 a allowlist vale também para as navegações, que antes
           escreviam em ./index.html sem a consultar.
 */
-const APP_VERSION = "4.2.4";
+const APP_VERSION = "4.2.5";
 const CACHE = "auditoria5s-v" + APP_VERSION;
 
 /* v3.16.0: "./guia.html" é o guia de utilização, gerado de GUIA.md por

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.2.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.5 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1333,7 +1333,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.2.4";
+const APP_VERSION="4.2.5";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4221,7 +4221,16 @@ function findCols(rows){
 /* v4.2.0: o tipo do serviço numa célula do Excel ("Interno", "Externo") e se
    uma linha está activa (vazio conta como activa; "Não", "Falso", "0", "N" ou
    FALSE não). */
-function tipoDoExcel(v){const t=norm(v).trim();return /^(int|i$)/.test(t)?"i":/^(ext|e$)/.test(t)?"e":"";}
+/* v4.2.5: na listagem do sistema o local é HPH (hospital: Interno) ou ACES
+   (centros de saúde: Externo). */
+function tipoDoExcel(v){const t=norm(v).trim();return /^(int|i$|hph$)/.test(t)?"i":/^(ext|e$|aces$)/.test(t)?"e":"";}
+/* v4.2.5: substituir a lista pela do ficheiro. Os serviços activos pela ordem
+   do ficheiro, sem repetidos, e o tipo de cada um (a última linha ganha). */
+function planoSubstituirServicos(linhas){
+  const servicos=[],tipo=new Map();
+  (linhas||[]).forEach(l=>{if(!l||!l.nome)return;if(!servicos.includes(l.nome))servicos.push(l.nome);if(l.t)tipo.set(l.nome,l.t);});
+  return{servicos,tipos:[...tipo].map(([s,t])=>({s,t}))};
+}
 /* v4.2.3: o código de um serviço, entre parênteses no fim do nome
    ("Talho (101)" → "101"), sem maiúsculas nem espaços à volta; "" sem código. */
 function codigoServico(nome){const m=String(nome||"").match(/\(([^()]+)\)\s*$/);return m?norm(m[1]).trim():"";}
@@ -4275,7 +4284,7 @@ function importExcel(inp){
          página, e mantê-lo por hábito custaria essa restrição sem contrapartida. */
       try{wb=XLSX.read(rd.result,{type:"array"});}
       catch(e){aviso("Ficheiro inválido: não foi possível ler como Excel/CSV.");return;}
-      const linhasSvc=[],newPpl=[];let inativos=0;
+      const linhasSvc=[],newPpl=[],locaisDesconhecidos=new Set();let inativos=0,listagem=false;
       wb.SheetNames.forEach(name=>{
         const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:""});
         if(!rows.length)return;
@@ -4290,9 +4299,13 @@ function importExcel(inp){
           const nome=cols.nome>=0?clean(row[cols.nome],160):"";
           if(isSvc||(!isPpl&&cod&&desc&&cols.nome<0)){
             if(!desc&&!cod)continue;
+            /* v4.2.5: com o local ou o activo, é a listagem de serviços do sistema. */
+            if(cols.local>=0||cols.ativo>=0)listagem=true;
             if(cols.ativo>=0&&!ativoDoExcel(row[cols.ativo])){inativos++;continue;}
             const nomeSvc=clean(desc?(cod?`${desc} (${cod})`:desc):cod,200);
-            linhasSvc.push({nome:nomeSvc,cod,t:cols.local>=0?tipoDoExcel(row[cols.local]):""});
+            const t=cols.local>=0?tipoDoExcel(row[cols.local]):"";
+            if(cols.local>=0&&!t&&clean(row[cols.local],40))locaisDesconhecidos.add(clean(row[cols.local],40));
+            linhasSvc.push({nome:nomeSvc,cod,t});
           }else if(isPpl||nome){
             const p=nome||desc;
             if(p)newPpl.push(cod&&nome?`${nome} (${cod})`:p);
@@ -4311,6 +4324,37 @@ function importExcel(inp){
       const lista=l=>l.slice(0,8).join("; ")+(l.length>8?"; e mais "+(l.length-8):"");
       const semTipo=linhasSvc.length&&plano.semTipo.length?
         `\n\n${plano.semTipo.length} serviço(s) da lista ficam sem tipo, por não estarem no ficheiro (nem pelo código) ou por o ficheiro não dizer Interno/Externo: ${lista(plano.semTipo)}.`:"";
+      const desconhecidos=locaisDesconhecidos.size?`\n\nO local de algumas linhas não é Interno/Externo (nem HPH/ACES), e ficam sem tipo: ${[...locaisDesconhecidos].slice(0,5).join(", ")}.`:"";
+      /* v4.2.5: a listagem do sistema pode SUBSTITUIR a lista. As auditorias já
+         feitas não mudam: os serviços que saem continuam na pesquisa, em «Só em
+         auditorias anteriores». */
+      if(listagem&&linhasSvc.length){
+        const sub=planoSubstituirServicos(linhasSvc);
+        const nI=sub.tipos.filter(x=>x.t==="i").length,nE=sub.tipos.filter(x=>x.t==="e").length;
+        const saem=services.filter(x=>!sub.servicos.includes(x));
+        const r=await caixa({titulo:"Importar listagem de serviços",
+          texto:`O ficheiro tem ${sub.servicos.length} serviço(s) activo(s): ${nI} interno(s), ${nE} externo(s)`+
+            (sub.servicos.length-nI-nE?`, ${sub.servicos.length-nI-nE} sem tipo`:"")+"."+semInat+desconhecidos+
+            `\n\nSubstituir a lista: a lista de serviços passa a ser a do ficheiro, com o tipo de cada um.`+
+            (saem.length?` Saem ${saem.length} serviço(s) que não estão no ficheiro (${lista(saem)}); as auditorias já feitas não mudam.`:"")+
+            `\n\nJuntar à lista: acrescenta ${addSvcs.length} serviço(s) novo(s) e mantém os actuais.`,
+          botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"J",label:"Juntar à lista",cls:"ghost"},{v:"S",label:"Substituir a lista",def:true}]});
+        if(r==null)return;
+        if(r==="S"){
+          services=sub.servicos;save("services",services);
+          tipos=sanitizeTipos(sub.tipos);save("tipoSvc",tipos);
+          people=people.concat(addPpl);save("people",people);
+          renderCfg();renderForm();
+          aviso(`Lista de serviços substituída: ${services.length} serviço(s), ${nI} interno(s) e ${nE} externo(s)`+(saem.length?`; saíram ${saem.length}`:"")+".");
+          return;
+        }
+        services=services.concat(addSvcs);save("services",services);
+        people=people.concat(addPpl);save("people",people);
+        if(addTipos.length){tipos=sanitizeTipos(addTipos.concat(tipos.filter(f=>!addTipos.some(g=>g.s===f.s))));save("tipoSvc",tipos);}
+        renderCfg();renderForm();
+        aviso(`Importação concluída: ${addSvcs.length} serviço(s) novo(s), ${addPpl.length} pessoa(s)`+(addTipos.length?`, ${addTipos.length} tipo(s)`:"")+"."+semTipo);
+        return;
+      }
       if(!addSvcs.length&&!addPpl.length&&!addTipos.length){aviso("Nada de novo para importar."+semInat+mesmoCod+dup+(semTipo||" Verifique os nomes das folhas (Serviços / Repositor / Picking) e das colunas (Código, Descrição, Nome)."));return;}
       if(!(await confirmar(`Importar ${addSvcs.length} serviço(s) novo(s) e ${addPpl.length} repositor(es)/picking`+
         (addTipos.length?`, e o tipo (interno/externo) de ${addTipos.length} serviço(s)`:"")+"?"+semInat+mesmoCod+dup+semTipo,{sim:"Importar"})))return;
