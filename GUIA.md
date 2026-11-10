@@ -34,7 +34,9 @@ app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver
    principal*. Instalada, a app abre como as outras, funciona sem rede e o
    browser protege melhor os dados (ver [Cópias de segurança](#cópias-de-segurança)).
 2. Em **Config → Serviços**, acrescente os supermercados a auditar (ou importe-os
-   de um Excel em *Importar Excel*) e diga, para cada um, se é **Interno** ou
+   de um Excel em *Importar Excel*, por exemplo a listagem de serviços do
+   sistema, com `ID_SERVICO`, `DESCRICAO_SERVICO`, `LOCAL_SERVICO` e
+   `SERVICO_ATIVO`: o local dá o tipo e os inactivos ficam de fora) e diga, para cada um, se é **Interno** ou
    **Externo**.
 3. Em **Config → Objectivo anual de auditorias**, escreva quantas auditorias
    quer fazer no ano. São os dois dados de que os
@@ -48,7 +50,10 @@ telemóvel tem as auditorias, e quem o perder perde-as — a menos que tenha uma
 
 No separador **Auditar**:
 
-1. **Escolha o serviço.**
+1. **Escolha o serviço.** Escreva parte do nome ou o código em *Pesquisar por
+   serviço ou código*: a lista por baixo fica só com os que casam, e o primeiro
+   fica escolhido. Aparecem os serviços da lista (*Config → Serviços*) e, num
+   grupo à parte, os que só existem em auditorias já feitas.
 2. **Acções em aberto neste serviço.** Se auditorias anteriores deixaram acções
    por fazer, aparecem num cartão no topo. Verifique no local e marque **Feita**
    nas que ficaram resolvidas (ver [Plano de acção](#plano-de-acção)).
