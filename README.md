@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.1.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.1.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.2.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -47,7 +47,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 | Vista | O que faz |
 | --- | --- |
-| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço, data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. Data em hora local, e aviso antes de gravar uma segunda auditoria ao mesmo serviço no mesmo dia (3.22.0). |
+| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço (que se **pesquisa** pelo nome ou pelo código, na lista e nas auditorias já feitas, 4.2.0), data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. Data em hora local, e aviso antes de gravar uma segunda auditoria ao mesmo serviço no mesmo dia (3.22.0). |
 | **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço; edição (sob PIN) e remoção (com *Desfazer*). Diz se cada auditoria já foi **enviada** ou está **por enviar** (3.23.0). |
 | **Análise** | Os [indicadores do ano](#indicadores-do-ano-400): média total e serviços abaixo dela, objectivo anual e média semanal, internos e externos auditados (4.0.0). Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. E o **relatório mensal**, de todos os serviços, para imprimir em PDF (3.20.0). |
 | **Acções** | O plano de acção de todos os serviços: resumo, filtros por estado, responsável e serviço, as em atraso primeiro; marcar como feita e abrir o relatório de origem (3.21.0). |
@@ -662,7 +662,11 @@ com a app (`vendor/xlsx.full.min.js`) e funciona offline. Desde 3.11.0 só é
 carregado quando é preciso, em vez de a cada arranque: eram 952 KB dos 1,13 MB
 do `index.html`, e o arranque num telemóvel médio desceu de ~690 ms para ~290 ms:
 
-- Folha **Serviços** — colunas `Código` e `Descrição`.
+- Folha **Serviços** — colunas `Código` e `Descrição`. Desde 4.2.0 aceita também a
+  listagem de serviços exportada do sistema, com `ID_SERVICO` (o código),
+  `DESCRICAO_SERVICO`, `LOCAL_SERVICO` (Interno/Externo, que dá o
+  [tipo](#indicadores-do-ano-400) dos serviços novos e dos que ainda não o têm) e
+  `SERVICO_ATIVO` (os inactivos ficam de fora), mesmo numa folha com outro nome.
 - Folha **Repositor** ou **Picking** — coluna `Nome` (e opcionalmente `Código`).
 
 As folhas são reconhecidas pelo nome; num ficheiro de folha única aplica-se a
@@ -730,6 +734,7 @@ node tests/smoke-a11y.mjs          # acessibilidade com o axe-core, modo claro e
 node tests/smoke-armazenamento.mjs # perguntas gravadas uma vez, 5 000 auditorias, Excel offline
 node tests/smoke-acoes.mjs         # plano de acção: criar, atrasar, fechar no terreno, PDF
 node tests/smoke-indicadores.mjs   # indicadores do ano, tipo e objectivo; nenhum diálogo nativo
+node tests/smoke-pesquisa.mjs      # pesquisar o serviço a auditar; listagem de serviços do sistema
 node tests/smoke-evidencias.mjs    # nota e foto por pergunta; cópia com fotos
 node tests/smoke-copias.mjs        # lembrete das fotos por copiar; Desfazer ao remover
 node tests/smoke-acesso.mjs        # código de acesso próprio; espaço ocupado com as fotos
