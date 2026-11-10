@@ -114,6 +114,29 @@ check(/Interno/.test(await pg.locator("[data-tipo-fixo='4']").textContent()), "o
 await pg.locator("[data-tipo='0']").selectOption("e");
 check(await pg.locator("[data-tipo-fixo='0']").count() === 1, "escolhido à mão, passa a ler-se");
 
+/* ---- 3c. 4.2.3: pelo código. Um serviço da lista com outra descrição e o
+   mesmo código recebe o tipo e não se duplica; os que ficam sem tipo são
+   ditos na confirmação. ---- */
+await pg.evaluate(() => {
+  const s = JSON.parse(localStorage.getItem("services"));
+  localStorage.setItem("services", JSON.stringify(s.concat(["Téc.Nefrol. (70EE10)", "Piso E"])));
+});
+await pg.reload();
+await pg.locator("[data-v=cfg]").click();
+caixas.length = 0;
+const csv3 = path.join(os.tmpdir(), "5s-listagem-servicos-3.csv");
+fs.writeFileSync(csv3, "ID_SERVICO,DESCRICAO_SERVICO,LOCAL_SERVICO,SERVICO_ATIVO\n70EE10,Téc.Nefrol,Interno,TRUE\n");
+await pg.locator("#xl-file").setInputFiles(csv3);
+await pg.waitForFunction(() => JSON.parse(localStorage.getItem("tipoSvc") || "[]").some(f => f.s === "Téc.Nefrol. (70EE10)"), null, { timeout: 15000 }).catch(() => {});
+await semDialogo(pg);
+fs.unlinkSync(csv3);
+const svcs3 = await pg.evaluate(() => JSON.parse(localStorage.getItem("services")));
+check(!svcs3.includes("Téc.Nefrol (70EE10)"), "o mesmo código com outra descrição não se duplica: " + JSON.stringify(svcs3));
+check(await pg.evaluate(() => JSON.parse(localStorage.getItem("tipoSvc")).some(f => f.s === "Téc.Nefrol. (70EE10)" && f.t === "i")),
+  "o tipo vai para o serviço da lista com o mesmo código");
+check(caixas.some(c => /1 já estão na lista com outra descrição/.test(c.texto) && /sem tipo.*Piso E/.test(c.texto)),
+  "a confirmação diz o do mesmo código e os que ficam sem tipo: " + caixas.map(c => c.texto).join(" | "));
+
 /* ---- 4. E pesquisam-se logo no Auditar. ---- */
 await pg.locator("[data-v=audit]").click();
 await busca.fill("teste4");

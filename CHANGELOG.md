@@ -5,6 +5,24 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.3] — 2026-11-10
+
+### Corrigido
+
+- **O tipo do Excel não chegava aos serviços já na lista com outra
+  descrição.** A importação associava cada linha ao serviço pelo nome
+  completo, «Descrição (código)»: um serviço da lista com a descrição um pouco
+  diferente (por exemplo «Téc.Nefrol.» e «Téc.Nefrol», com o mesmo código)
+  ficava sem tipo, e o do ficheiro entrava como serviço novo, duplicado.
+  Agora associa pelo nome ou, senão, pelo **código** (`planoServicosExcel()`):
+  esse serviço recebe o tipo e não se duplica.
+- A confirmação e o aviso no fim da importação dizem quantos serviços já
+  estavam na lista com outra descrição, e **quais ficam sem tipo** (não estão
+  no ficheiro, nem pelo código, ou o ficheiro não diz Interno/Externo).
+- `LOCAL_SERVICO` aceita também «I» e «E».
+- Testes: casos novos em `tests/pesquisa-servico.test.js` e
+  `tests/smoke-pesquisa.mjs`.
+
 ## [4.2.2] — 2026-11-10
 
 ### Alterado

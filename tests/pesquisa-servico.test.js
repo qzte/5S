@@ -42,3 +42,32 @@ test("tipo e ativo de uma célula", () => {
   assert.deepStrictEqual([true, "", "Sim", "VERDADEIRO", 1, null].map(ativoDoExcel), [true, true, true, true, true, true]);
   assert.deepStrictEqual([false, 0, "Não", "nao", "N", "FALSE", "Falso", "0", "Inativo"].map(ativoDoExcel), Array(9).fill(false));
 });
+
+/* ---- 4.2.3: a listagem associa-se pelo nome ou, senão, pelo código. ---- */
+const p = buildContext(["planoServicosExcel", "codigoServico", "tipoDe", "tipoDoExcel"], ["norm"]);
+
+test("código de um serviço: entre parênteses no fim do nome", () => {
+  assert.deepStrictEqual(["Talho (101)", "Téc.Nefrol. (70EE10) ", "UCIP", "A (x) B", "[UROLOGIA - BLOCO]"].map(p.codigoServico),
+    ["101", "70ee10", "", "", ""]);
+});
+
+test("o mesmo código com outra descrição não duplica: o tipo vai para o serviço da lista", () => {
+  const svcs = ["Téc.Nefrol. (70EE10)", "UCIP (11120)", "Piso E", "Farmácia (52)"];
+  const linhas = [
+    { nome: "Téc.Nefrol (70EE10)", cod: "70EE10", t: "i" },   /* outra descrição, mesmo código */
+    { nome: "UCIP (11120)", cod: "11120", t: "i" },            /* o mesmo nome */
+    { nome: "Farmácia (52)", cod: "52", t: "" },               /* o ficheiro não diz o tipo */
+    { nome: "Pediatria (15A)", cod: "15A", t: "e" },           /* novo */
+    { nome: "Pediatria B (15A)", cod: "15a", t: "i" },         /* mesmo código que o novo: vai para ele */
+  ];
+  const r = plain(p.planoServicosExcel(svcs, linhas, [{ s: "UCIP (11120)", t: "e" }]));
+  assert.deepStrictEqual(r.novos, ["Pediatria (15A)"]);
+  assert.strictEqual(r.mesmoCodigo, 2);
+  assert.deepStrictEqual(r.tipos, [{ s: "Téc.Nefrol. (70EE10)", t: "i" }, { s: "UCIP (11120)", t: "i" }, { s: "Pediatria (15A)", t: "i" }],
+    "o tipo do ficheiro substitui o que lá estava; a última linha do mesmo serviço ganha");
+  assert.deepStrictEqual(r.semTipo, ["Piso E", "Farmácia (52)"], "sem código no ficheiro, ou sem tipo no ficheiro");
+});
+
+test("tipo de uma letra, I ou E", () => {
+  assert.deepStrictEqual(["I", "e", "Ie"].map(p.tipoDoExcel), ["i", "e", ""], "uma letra a mais já não é um tipo");
+});
