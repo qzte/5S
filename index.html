@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.2.3 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1333,7 +1333,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.2.3";
+const APP_VERSION="4.2.4";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4233,20 +4233,28 @@ function codigoServico(nome){const m=String(nome||"").match(/\(([^()]+)\)\s*$/);
    Devolve {novos, tipos: [{s,t}] a gravar, mesmoCodigo: quantos foram para
    um serviço com outra descrição, semTipo: os serviços que ficam sem tipo}. */
 function planoServicosExcel(svcs,linhas,tiposAtuais){
+  /* v4.2.4: um código pode estar em mais de um serviço da lista (duplicados
+     de importações antigas, com descrições diferentes): o tipo da linha vai
+     para TODOS os serviços com esse código, e não só para o primeiro. */
   const lista=(svcs||[]).slice(),novos=[],porCod=new Map(),mudar=new Map();
   let mesmoCodigo=0;
-  lista.forEach(x=>{const c=codigoServico(x);if(c&&!porCod.has(c))porCod.set(c,x);});
+  const juntar=(c,x)=>{if(!c)return;const l=porCod.get(c)||[];if(!l.includes(x))l.push(x);porCod.set(c,l);};
+  lista.forEach(x=>juntar(codigoServico(x),x));
   (linhas||[]).forEach(l=>{
     if(!l||!l.nome)return;
     const c=norm(l.cod||"").trim()||codigoServico(l.nome);
-    let alvo=lista.includes(l.nome)||novos.includes(l.nome)?l.nome:null;
-    if(!alvo&&c&&porCod.has(c)){alvo=porCod.get(c);if(alvo!==l.nome)mesmoCodigo++;}
-    if(!alvo){alvo=l.nome;novos.push(alvo);if(c)porCod.set(c,alvo);}
-    if(l.t)mudar.set(alvo,l.t);
+    const exacto=lista.includes(l.nome)||novos.includes(l.nome);
+    const doCodigo=c&&porCod.has(c)?porCod.get(c):[];
+    let alvos=[...new Set((exacto?[l.nome]:[]).concat(doCodigo))];
+    if(!exacto&&doCodigo.length)mesmoCodigo++;
+    if(!alvos.length){novos.push(l.nome);juntar(c,l.nome);alvos=[l.nome];}
+    if(l.t)alvos.forEach(a=>mudar.set(a,l.t));
   });
   const tipos=[...mudar].filter(([sv,t])=>tipoDe(tiposAtuais,sv)!==t).map(([sv,t])=>({s:sv,t}));
   const tipoFinal=sv=>mudar.get(sv)||tipoDe(tiposAtuais,sv);
-  return{novos,tipos,mesmoCodigo,semTipo:lista.concat(novos).filter(sv=>!tipoFinal(sv))};
+  /* Os grupos de serviços da lista com o mesmo código (prováveis duplicados). */
+  const duplicados=[...porCod.values()].filter(g=>g.filter(x=>lista.includes(x)).length>1).map(g=>g.filter(x=>lista.includes(x)));
+  return{novos,tipos,mesmoCodigo,duplicados,semTipo:lista.concat(novos).filter(sv=>!tipoFinal(sv))};
 }
 function ativoDoExcel(v){
   if(v===false||v===0)return false;
@@ -4299,12 +4307,13 @@ function importExcel(inp){
       const addTipos=sanitizeTipos(plano.tipos);
       const semInat=inativos?` ${inativos} inactivo(s) ficam de fora.`:"";
       const mesmoCod=plano.mesmoCodigo?` ${plano.mesmoCodigo} já estão na lista com outra descrição e o mesmo código: não se duplicam.`:"";
+      const dup=plano.duplicados.length?`\n\nA lista tem ${plano.duplicados.length} código(s) em mais de um serviço (duplicados?), que recebem o mesmo tipo: ${plano.duplicados.slice(0,5).map(g=>g.join(" = ")).join("; ")}${plano.duplicados.length>5?"; …":""}. Pode remover os que sobram em Config → Serviços.`:"";
       const lista=l=>l.slice(0,8).join("; ")+(l.length>8?"; e mais "+(l.length-8):"");
       const semTipo=linhasSvc.length&&plano.semTipo.length?
         `\n\n${plano.semTipo.length} serviço(s) da lista ficam sem tipo, por não estarem no ficheiro (nem pelo código) ou por o ficheiro não dizer Interno/Externo: ${lista(plano.semTipo)}.`:"";
-      if(!addSvcs.length&&!addPpl.length&&!addTipos.length){aviso("Nada de novo para importar."+semInat+mesmoCod+(semTipo||" Verifique os nomes das folhas (Serviços / Repositor / Picking) e das colunas (Código, Descrição, Nome)."));return;}
+      if(!addSvcs.length&&!addPpl.length&&!addTipos.length){aviso("Nada de novo para importar."+semInat+mesmoCod+dup+(semTipo||" Verifique os nomes das folhas (Serviços / Repositor / Picking) e das colunas (Código, Descrição, Nome)."));return;}
       if(!(await confirmar(`Importar ${addSvcs.length} serviço(s) novo(s) e ${addPpl.length} repositor(es)/picking`+
-        (addTipos.length?`, e o tipo (interno/externo) de ${addTipos.length} serviço(s)`:"")+"?"+semInat+mesmoCod+semTipo,{sim:"Importar"})))return;
+        (addTipos.length?`, e o tipo (interno/externo) de ${addTipos.length} serviço(s)`:"")+"?"+semInat+mesmoCod+dup+semTipo,{sim:"Importar"})))return;
       services=services.concat(addSvcs);save("services",services);
       people=people.concat(addPpl);save("people",people);
       if(addTipos.length){tipos=sanitizeTipos(addTipos.concat(tipos.filter(f=>!addTipos.some(g=>g.s===f.s))));save("tipoSvc",tipos);}
