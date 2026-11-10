@@ -14,7 +14,7 @@ Lista de verificação 5S para supermercados, em aplicação web de **ficheiro �
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
 Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do dispositivo**.
 
-- **Aplicação:** https://auditoria-5s.pages.dev/ (Cloudflare Pages, desde 3.7.0)
+- **Aplicação:** https://qzte.github.io/5S/ (GitHub Pages, publicada a partir da `main`)
 - **Código:** https://github.com/qzte/5S
 - **Guia de utilização:** [GUIA.md](GUIA.md) — como usar a app no dia-a-dia, para quem audita.
   Também está dentro da app, em *Config → Ajuda* (3.16.0). Este README é a documentação técnica.
@@ -60,7 +60,7 @@ rótulos dos campos, títulos — nos dois modos (3.10.0).
 
 ## Novidades desde 3.8
 
-O que mudou desde a mudança para o Cloudflare Pages (3.7.0), por tema. Cada
+O que mudou desde a 3.7.0, por tema. Cada
 linha aponta para a secção que o explica; o pormenor de cada versão está no
 [CHANGELOG](CHANGELOG.md), e o uso no dia-a-dia no [guia](GUIA.md).
 
@@ -94,7 +94,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
 | | Aviso de nova versão; arranque ~2,5× mais rápido (SheetJS só quando é preciso) | 3.8.0, 3.11.0 |
-| **Segurança e qualidade** | CSP sem `'unsafe-inline'` na versão publicada (hashes) | 3.10.0 |
+| **Segurança e qualidade** | CSP sem `'unsafe-inline'` em `dist/` (hashes; não no GitHub Pages) | 3.10.0 |
 | | SheetJS com verificação de integridade (SRI) | 3.11.0 |
 | | Lint na CI; testes de acessibilidade, de offline e de actualização | 3.10.0, 3.15.0 |
 | | Código de acesso próprio do dispositivo | 3.19.0 |
@@ -106,7 +106,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 
 Não há passo de compilação nem dependências a instalar.
 
-1. Abra https://auditoria-5s.pages.dev/ no telemóvel ou no computador.
+1. Abra https://qzte.github.io/5S/ no telemóvel ou no computador.
 2. No telemóvel, use *Adicionar ao ecrã principal* para instalar como aplicação.
 3. Depois da primeira visita funciona sem rede: o service worker guarda a aplicação em cache.
 
@@ -121,64 +121,39 @@ python3 -m http.server 8000
 # abrir http://localhost:8000
 ```
 
-## Publicação (Cloudflare Pages)
+## Publicação (GitHub Pages)
 
-Até 3.6.x a app vivia em `https://qzte.github.io/5S/`. O GitHub Pages deixou de a
-publicar quando o repositório passou a privado (no plano gratuito só publica
-repositórios públicos), e desde 3.7.0 é publicada no **Cloudflare Pages**, que
-publica a partir de um repositório privado. Configuração, feita uma vez em
-*Workers & Pages → Create → Pages → Connect to Git*:
+A app é publicada no **GitHub Pages**, em `https://qzte.github.io/5S/`, a
+partir da raiz do ramo `main`: cada push (ou merge) para a `main` publica
+sozinho, pelo fluxo *pages build and deployment* do GitHub. Não há passo de
+build: o GitHub Pages serve os ficheiros do repositório tal como estão.
 
-| Campo | Valor |
-| --- | --- |
-| Repositório | `qzte/5S` |
-| Nome do projecto | `auditoria-5s` (dá o endereço `auditoria-5s.pages.dev`) |
-| Ramo de produção | `main` |
-| Comando de build | `bash scripts/publicar.sh` |
-| Pasta de saída | `dist` |
+De 3.7.0 até à 4.2.x a documentação dava como endereço o Cloudflare Pages
+(`auditoria-5s.pages.dev`, construído com `bash scripts/publicar.sh` e a pasta
+`dist`). O endereço em uso é o do GitHub Pages. `scripts/publicar.sh` e
+`scripts/csp.mjs` continuam no repositório e são usados pelos testes
+(`tests/publicacao.test.js`, `tests/smoke-csp.mjs`, `tests/smoke-offline.mjs`),
+mas **não correm no GitHub Pages**. Daí três diferenças face ao que eles
+garantiam:
 
-A partir daí, cada push para `main` publica sozinho. `scripts/publicar.sh` copia
-para `dist/` **só** os ficheiros da aplicação — sem ele, o repositório inteiro
-(testes, documentação, CI) ficaria acessível pelo endereço da app; é verificado
-por `tests/publicacao.test.js`. Até 3.22.0 publicava também um `_headers`, com
-os cabeçalhos HTTP do Cloudflare (a CSP e `X-Frame-Options`); deixou de ser
-preciso e foi retirado (3.23.0). A CSP fica só no `<meta>` da página.
+- **A CSP publicada é a do repositório**, com `'unsafe-inline'` no
+  `script-src`: a troca pelos hashes de cada `<script>` (3.10.0) só acontece em
+  `dist/` (ver [Segurança](#segurança)).
+- **O repositório inteiro fica acessível** pelo endereço da app (testes,
+  documentação, CI), e não só os ficheiros que `publicar.sh` copiaria.
+- **A origem é partilhada** com os outros projectos publicados em
+  `qzte.github.io`: o `localStorage`, o IndexedDB e a licença da pasta do
+  painel e-ink são da origem, não do caminho `/5S/` ([SECURITY.md](SECURITY.md),
+  pontos 9 e 21).
 
-Desde 3.10.0, `publicar.sh` corre também `node scripts/csp.mjs dist`, que troca
-o `'unsafe-inline'` do `script-src` pelo **hash SHA-256 de cada `<script>`**
-embutido, no `<meta>` publicado (ver [Segurança](#segurança)).
-Precisa de Node, que a imagem de build do Cloudflare Pages traz; sem ele, a
-publicação falha e fica no ar a versão anterior.
+### Dados noutro endereço
 
-Ganhos de segurança face ao GitHub Pages:
-
-- **Endereço próprio.** O `localStorage`, o IndexedDB e a licença da pasta do
-  painel deixam de ser partilhados com os outros projectos de `qzte.github.io`
-  ([SECURITY.md](SECURITY.md), pontos 9 e 21).
-- **Cabeçalhos HTTP** (3.7.0 a 3.22.0). A CSP ia em cabeçalho, onde
-  `frame-ancestors` vale, com `X-Frame-Options: DENY`. Sem o `_headers`, a
-  protecção contra molduras volta a ser só a guarda em JS (ponto 4).
-
-### Passar os dados do endereço antigo
-
-O `localStorage` é de cada endereço: as auditorias gravadas em
-`qzte.github.io/5S/` **não aparecem sozinhas** no endereço novo. Em cada
-dispositivo que tenha dados:
-
-1. Ponha o dispositivo **sem rede** (modo de avião).
-2. Abra `https://qzte.github.io/5S/`. Sem rede, o service worker serve a cópia
-   da app que tem guardada, com os dados.
-3. **Configuração → Exportar histórico (JSON)**.
-4. Volte a ligar a rede, abra o endereço novo e use **Importar histórico**.
-
-Tem de ser sem rede: o service worker instalado nesse endereço é anterior a
-3.7.0 e, com rede, entrega o 404 do GitHub em vez da cópia guardada. A 3.7.0
-corrige isso para o futuro — um erro do servidor passa a abrir a cópia em
-cache, como a falta de rede —, mas a correcção só chega a quem já está no
-endereço novo.
-
-A pasta do painel e-ink também tem de ser escolhida outra vez no endereço novo:
-a licença do browser é do endereço.
+O `localStorage` é de cada endereço: auditorias gravadas noutro endereço da app
+(por exemplo `auditoria-5s.pages.dev`) **não aparecem sozinhas** em
+`qzte.github.io/5S/`. Nesse endereço, **Configuração → Exportar com fotos
+(JSON)**; depois, em `qzte.github.io/5S/`, **Importar cópia de segurança** com
+*Fundir*. A pasta do painel e-ink também tem de ser escolhida outra vez: a
+licença do browser é do endereço.
 
 ## Modelo de pontuação
 
@@ -685,7 +660,7 @@ vendor/xlsx.full.min.js  SheetJS 0.20.3, carregado só para Excel (3.11.0)
 vendor/html2canvas.min.js, vendor/jspdf.umd.min.js  html2canvas 1.4.1 e jsPDF 4.2.1 (MIT), carregados só para criar o PDF (3.23.0)
 manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
-scripts/publicar.sh  Prepara dist/ com só os ficheiros da app, para o Cloudflare Pages
+scripts/publicar.sh  Prepara dist/ com só os ficheiros da app (usado pelos testes; o GitHub Pages serve a raiz)
 scripts/csp.mjs    Na versão publicada, troca 'unsafe-inline' pelos hashes dos <script>
 tools/lint/        Ferramentas de desenvolvimento (ESLint, axe-core), com lockfile próprio
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
@@ -702,14 +677,15 @@ tests/dialogos.mjs Responde à caixa de diálogo da app nos smoke tests
 
 `index.html` é deliberadamente um ficheiro único: é o que permite instalar,
 copiar e usar a aplicação sem infraestrutura. O custo é um ficheiro grande. O
-`'unsafe-inline'` em `script-src`, que era o outro custo, só existe no
-repositório desde 3.10.0: a versão publicada autoriza cada `<script>` pelo seu
-hash.
+`'unsafe-inline'` em `script-src` é o outro custo. `scripts/csp.mjs` troca-o
+pelo hash de cada `<script>` na pasta `dist/` (3.10.0), mas o GitHub Pages serve
+a raiz do repositório, por isso a versão em `qzte.github.io/5S/` mantém o
+`'unsafe-inline'` (ver [Publicação](#publicação-github-pages)).
 
 As ferramentas de desenvolvimento (ESLint e axe-core) vivem em `tools/lint/`,
 com o seu `package.json` e lockfile. Na raiz não há `package.json`: a app não
-tem dependências, e o Cloudflare Pages instalaria as que lá estivessem em cada
-publicação.
+tem dependências, e um alojamento com passo de build (como o Cloudflare Pages)
+instalaria as que lá estivessem em cada publicação.
 
 ## Testes
 
@@ -807,10 +783,11 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
 - Zero handlers inline (`onclick` e afins); apenas `addEventListener` com
   `data-attributes`.
 - CSP com `object-src 'none'`, `base-uri 'none'`, `frame-ancestors 'none'`,
-  `connect-src 'self'`. Na versão publicada, desde 3.10.0, o `script-src` não
-  tem `'unsafe-inline'`: autoriza só os `<script>` embutidos, pelo hash
-  SHA-256 de cada um (`scripts/csp.mjs`). Um `<script>` injectado na página não
-  corre. `tests/smoke-csp.mjs` verifica-o num browser.
+  `connect-src 'self'`. Em `dist/` (preparada por `scripts/publicar.sh`), desde
+  3.10.0, o `script-src` não tem `'unsafe-inline'`: autoriza só os `<script>`
+  embutidos, pelo hash SHA-256 de cada um (`scripts/csp.mjs`), e um `<script>`
+  injectado na página não corre; `tests/smoke-csp.mjs` verifica-o num browser.
+  A versão no GitHub Pages é a do repositório, com `'unsafe-inline'`.
 - Service worker limitado a uma allowlist da própria origem, contra
   envenenamento da cache.
 - Sem CDN: `referrer` não é enviado e a aplicação é offline de facto.
@@ -853,10 +830,10 @@ mitigado. Dois pontos a reter:
   enviar `Content-Security-Policy` com `frame-ancestors 'none'` e
   `X-Frame-Options: DENY`.
 - O `localStorage` pertence à **origem**, não ao caminho. Em
-  `qzte.github.io`, qualquer outra página publicada na mesma conta lia e
-  escrevia os dados desta aplicação, e herdava a licença da **pasta do painel
-  e-ink** (3.6.1). Desde 3.7.0 a app tem endereço próprio
-  (`auditoria-5s.pages.dev`), e esse isolamento passa a existir.
+  `qzte.github.io`, onde a app está publicada, qualquer outra página publicada
+  na mesma conta lê e escreve os dados desta aplicação, e herda a licença da
+  **pasta do painel e-ink** (3.6.1). Esse isolamento só existe num endereço
+  próprio (como era `auditoria-5s.pages.dev`).
 
 **O PIN do editor — pedido também para editar uma auditoria gravada, alterar os
 responsáveis e substituir todo o histórico numa importação — não é um controlo
