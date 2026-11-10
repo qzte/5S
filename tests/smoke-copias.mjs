@@ -6,7 +6,7 @@
    - Quem já tinha fotos de antes desta versão é avisado no primeiro arranque.
    - As fotos de evidência de uma auditoria nova contam.
    - Remover um serviço ou uma pessoa: Desfazer repõe-no no mesmo sítio (o
-     serviço com a sua frequência); sem desfazer, fica removido, e a frequência
+     serviço com o seu tipo); sem desfazer, fica removido, e o tipo
      sai com ele. */
 import pw from "playwright";
 import { ligarDialogos } from "./dialogos.mjs";
@@ -39,7 +39,7 @@ await pg.evaluate(() => {
     scores: it.map(() => 1), raw: it.map(() => null), tgts: it.map(() => null), items: it }]));
   localStorage.setItem("services", JSON.stringify(["Loja A", "Loja B", "Loja C"]));
   localStorage.setItem("people", JSON.stringify(["Ana", "Rui"]));
-  localStorage.setItem("freqAud", JSON.stringify([{ s: "Loja B", d: 7 }]));
+  localStorage.setItem("tipoSvc", JSON.stringify([{ s: "Loja B", t: "e" }]));
   localStorage.setItem("backup", JSON.stringify({ at: new Date().toISOString(), pend: 0, pendFotos: 0 }));
 });
 await pg.reload();
@@ -87,20 +87,20 @@ for (const el of await pg.locator("[data-pick]").all()) if (!(await el.inputValu
 await pg.locator("#btn-save").click();
 check(await esperar(async () => (await backup()).pendFotos === 1), "a foto de evidência devia contar: " + JSON.stringify(await backup()));
 
-/* ---- 5. Remover um serviço: Desfazer repõe-no, com a frequência. ---- */
+/* ---- 5. Remover um serviço: Desfazer repõe-no, com o tipo. ---- */
 const svcs = () => pg.evaluate(() => JSON.parse(localStorage.getItem("services")));
-const freqs = () => pg.evaluate(() => JSON.parse(localStorage.getItem("freqAud") || "[]"));
+const tipos = () => pg.evaluate(() => JSON.parse(localStorage.getItem("tipoSvc") || "[]"));
 await pg.locator("[data-v=cfg]").click();
 await pg.locator("[data-rmsvc='1']").click();
 check(JSON.stringify(await svcs()) === '["Loja A","Loja C"]', "o × devia remover a Loja B");
 check(await visivel("#toast") && /Serviço removido: Loja B/.test(await pg.locator("#toast-txt").textContent()), "com Desfazer");
 await pg.locator("#toast-btn").click();
 check(JSON.stringify(await svcs()) === '["Loja A","Loja B","Loja C"]', "Desfazer devia repô-la no mesmo sítio");
-check((await freqs()).some(f => f.s === "Loja B"), "com a frequência");
+check((await tipos()).some(f => f.s === "Loja B"), "com o tipo");
 await pg.locator("[data-rmsvc='1']").click();
 await pg.evaluate(() => concluirApagar());          /* o mesmo que esperar os 10 s */
 check(JSON.stringify(await svcs()) === '["Loja A","Loja C"]', "sem desfazer, fica removida");
-check(!(await freqs()).some(f => f.s === "Loja B"), "e a frequência sai com ela");
+check(!(await tipos()).some(f => f.s === "Loja B"), "e o tipo sai com ela");
 
 /* ---- 6. Remover uma pessoa; uma remoção nova confirma a anterior. ---- */
 const ppl = () => pg.evaluate(() => JSON.parse(localStorage.getItem("people")));
