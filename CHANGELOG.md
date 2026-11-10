@@ -5,6 +5,21 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.0] — 2026-11-10
+
+### Adicionado
+
+- **Pesquisar o serviço a auditar.** Em *Auditar*, o campo *Pesquisar por
+  serviço ou código* filtra a lista dos serviços pelo nome ou pelo código
+  (sem acentos nem maiúsculas; todas as palavras têm de aparecer) e escolhe o
+  primeiro. A lista passa a ter também, num grupo à parte, os serviços que só
+  existem em auditorias já feitas.
+- **Importar a listagem de serviços do sistema** (*Config → Importar Excel*):
+  `ID_SERVICO` conta como código, `LOCAL_SERVICO` (Interno/Externo) dá o tipo
+  aos serviços novos e aos que ainda não o têm, e as linhas com `SERVICO_ATIVO`
+  falso ficam de fora. Também numa folha que não se chame «Serviços».
+- Testes: `tests/pesquisa-servico.test.js` e `tests/smoke-pesquisa.mjs` (no CI).
+
 ## [4.1.0] — 2026-11-10
 
 ### Adicionado

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.1.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -442,8 +442,13 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink);margin-top:8px" id="btn-canceledit">Cancelar edição</button>
   </div>
   <div class="card">
-    <label>Serviço / Supermercado</label>
-    <select id="f-service"></select>
+    <label for="f-svc-busca">Serviço / Supermercado</label>
+    <!-- v4.2.0: pesquisa pelo nome ou pelo código, na lista de serviços e nos
+         serviços das auditorias já feitas. Filtra a lista de baixo. -->
+    <input id="f-svc-busca" type="search" autocomplete="off" placeholder="Pesquisar por serviço ou código"
+      aria-describedby="f-svc-conta">
+    <select id="f-service" aria-label="Serviço"></select>
+    <div id="f-svc-conta" class="hint" role="status" style="margin:-6px 0 10px;font-size:.75rem"></div>
     <div class="row">
       <div><label>Data</label><input type="date" id="f-date"></div>
       <div><label>Nota (auto)</label><input id="f-live" disabled value="—"></div>
@@ -626,7 +631,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <h3 style="margin-bottom:10px">Importar Excel (códigos e descrições)</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
       Carregue um ficheiro <b>.xlsx / .xls / .csv</b> com:<br>
-      · Folha <b>Serviços</b> — colunas <i>Código</i> e <i>Descrição</i> (ficam disponíveis no formulário como "Descrição (Código)").<br>
+      · Folha <b>Serviços</b> — colunas <i>Código</i> (ou <i>ID_SERVICO</i>) e <i>Descrição</i> (ficam disponíveis no formulário como "Descrição (Código)");
+      opcionalmente <i>Local</i> (Interno/Externo, que dá o tipo do serviço) e <i>Ativo</i> (os inactivos ficam de fora).<br>
       · Folha <b>Repositor</b> ou <b>Picking</b> — coluna <i>Nome</i> (e opcionalmente <i>Código</i>) para sugestões nos campos Repositor/Verificador.<br>
       As folhas são reconhecidas pelo nome; num ficheiro de folha única aplica-se a deteção pelas colunas.</p>
     <button class="btn small ghost" id="btn-impxl">Importar Excel</button>
@@ -1309,7 +1315,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.1.0";
+const APP_VERSION="4.2.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1404,6 +1410,45 @@ function ligarRotulos(raiz){
   });
 }
 /* ---------- Formulário ---------- */
+/* ---------- Escolher o serviço (v4.2.0) ----------
+   Os serviços que se podem auditar: os da lista (Config → Serviços) e os que
+   só existem em auditorias já feitas (um serviço removido da lista, ou de um
+   ficheiro de outro dispositivo), estes por ordem alfabética. */
+function servicosParaAuditar(svcs,lista){
+  const naLista=[...new Set((svcs||[]).filter(Boolean))],ja=new Set(naLista);
+  const anteriores=[...new Set((lista||[]).map(a=>a&&a.service).filter(x=>typeof x==="string"&&x&&!ja.has(x)))]
+    .sort((x,y)=>x.localeCompare(y,"pt"));
+  return{lista:naLista,anteriores};
+}
+/* Pesquisa sem acentos nem maiúsculas: cada palavra do texto tem de aparecer
+   no nome, que inclui o código entre parênteses ("Talho (101)"). */
+function procurarServicos(nomes,q){
+  const n=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const termos=n(q).split(/\s+/).filter(Boolean);
+  if(!termos.length)return (nomes||[]).slice();
+  return (nomes||[]).filter(s=>{const t=n(s);return termos.every(x=>t.includes(x));});
+}
+/* Desenha as opções do serviço que casam com a pesquisa. Mantém o escolhido
+   se ainda casar; senão escolhe o primeiro e, com `avisar` (ao pesquisar),
+   avisa o resto do formulário (acções em aberto, auditoria anterior). */
+function desenharServicos(q,avisar){
+  const sel=document.getElementById("f-service");if(!sel)return;
+  const antes=sel.value,{lista,anteriores}=servicosParaAuditar(services,audits);
+  const l=procurarServicos(lista,q),a=procurarServicos(anteriores,q);
+  const opt=v=>`<option>${esc(v)}</option>`;
+  sel.innerHTML=(a.length&&l.length?`<optgroup label="Lista de serviços">${l.map(opt).join("")}</optgroup>`:l.map(opt).join(""))+
+    (a.length?`<optgroup label="Só em auditorias anteriores">${a.map(opt).join("")}</optgroup>`:"");
+  const todos=l.concat(a);
+  if(todos.includes(antes))sel.value=antes;
+  const conta=document.getElementById("f-svc-conta");
+  if(conta){
+    const total=lista.length+anteriores.length;
+    conta.textContent=String(q||"").trim()?(todos.length?todos.length+" de "+total+" serviço(s)":"Nenhum serviço com «"+String(q).trim()+"».")
+      :(anteriores.length?lista.length+" na lista e "+anteriores.length+" só em auditorias anteriores.":"");
+  }
+  if(avisar&&sel.value!==antes&&todos.length)sel.dispatchEvent(new Event("change",{bubbles:true}));
+}
+
 function renderForm(){
   /* A auditoria em edição é determinada ANTES de desenhar os itens: em edição
      cada item mostra um selector de responsável em vez do nome fixo. */
@@ -1412,8 +1457,8 @@ function renderForm(){
   /* v3.22.0: a data LOCAL. Em UTC, no horário de Verão, uma auditoria começada
      entre a meia-noite e a uma ficava com a data do dia anterior. */
   document.getElementById("f-date").value=hojeISO();
-  const sel=document.getElementById("f-service");
-  sel.innerHTML=services.map(s=>`<option>${esc(s)}</option>`).join("");
+  const busca=document.getElementById("f-svc-busca");if(busca)busca.value="";
+  desenharServicos("");
   document.getElementById("dl-people").innerHTML=people.map(p=>`<option value="${esc(p)}">`).join("");
   const box=document.getElementById("items");box.innerHTML="";
   let curP=-1;
@@ -1564,7 +1609,7 @@ function preencherForm(a){
   const sel=document.getElementById("f-service");
   /* Um serviço entretanto removido da lista continua a ser o desta auditoria:
      acrescenta-se como opção em vez de o trocar em silêncio pelo primeiro. */
-  if(!services.includes(a.service))
+  if(![...sel.options].some(o=>o.value===a.service))
     sel.insertAdjacentHTML("afterbegin",`<option>${esc(a.service)}</option>`);
   sel.value=a.service;
   document.getElementById("f-date").value=a.date;
@@ -1823,7 +1868,7 @@ function mostrarRascunho(savedAt,perdidas){
 function aplicarRascunho(d){
   const sel=document.getElementById("f-service");
   if(d.service){
-    if(!services.includes(d.service))
+    if(![...sel.options].some(o=>o.value===d.service))
       sel.insertAdjacentHTML("afterbegin",`<option>${esc(d.service)}</option>`);
     sel.value=d.service;
   }
@@ -4008,7 +4053,11 @@ function loadXLSX(){
 }
 
 const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-/* Devolve {head, cod, desc, nome} a partir da linha de cabeçalho.
+/* Devolve {head, cod, desc, nome, local, ativo} a partir da linha de cabeçalho.
+   v4.2.0: "ID_SERVICO" conta como código; "LOCAL_SERVICO" (ou "Tipo") dá o tipo
+   do serviço (Interno/Externo) e "SERVICO_ATIVO" (ou "Ativo") deixa de fora os
+   inactivos — o formato da listagem de serviços exportada do sistema. Estas
+   duas não contam para escolher a linha do cabeçalho: só se procuram nela. 
 
    Duas regras, ambas nascidas do mesmo erro: um ficheiro com a linha de título
    "Relatório de serviços" antes do cabeçalho era importado ao contrário — a
@@ -4025,7 +4074,7 @@ const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u03
    antes desta versão continuam a importar, e mesmo aí a regra 1 protege-os. */
 function findCols(rows){
   const PADROES=[
-    ["cod",/^(cod|codigo|ref|referencia)/],
+    ["cod",/^(cod|codigo|ref|referencia|id(?![a-z]))/],
     ["desc",/^(desc|designa|servic)/],
     ["nome",/^(nome|repositor|picking|colaborador|funcionario)/]
   ];
@@ -4064,7 +4113,18 @@ function findCols(rows){
     const re=new RegExp(par[1].source.replace(/^\^/,""));
     m[par[0]]=h.findIndex(x=>re.test(x));
   });
-  return{head:m.head,cod:m.cod,desc:m.desc,nome:m.nome};
+  const col=re=>h.findIndex(x=>re.test(x));
+  return{head:m.head,cod:m.cod,desc:m.desc,nome:m.nome,
+    local:col(/^(local|tipo)|_local|local_/),ativo:col(/^(ativo|activo)|_ativo|_activo|^ativ/)};
+}
+/* v4.2.0: o tipo do serviço numa célula do Excel ("Interno", "Externo") e se
+   uma linha está activa (vazio conta como activa; "Não", "Falso", "0", "N" ou
+   FALSE não). */
+function tipoDoExcel(v){const t=norm(v).trim();return /^int/.test(t)?"i":/^ext/.test(t)?"e":"";}
+function ativoDoExcel(v){
+  if(v===false||v===0)return false;
+  const t=norm(v).trim();
+  return !/^(nao|n|false|falso|0|inativo|inactivo|no)$/.test(t);
 }
 function importExcel(inp){
   const file=inp.files[0];inp.value="";
@@ -4080,7 +4140,7 @@ function importExcel(inp){
          página, e mantê-lo por hábito custaria essa restrição sem contrapartida. */
       try{wb=XLSX.read(rd.result,{type:"array"});}
       catch(e){aviso("Ficheiro inválido: não foi possível ler como Excel/CSV.");return;}
-      const newSvc=[],newPpl=[];
+      const newSvc=[],newPpl=[],tiposFich=[];let inativos=0;
       wb.SheetNames.forEach(name=>{
         const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:""});
         if(!rows.length)return;
@@ -4094,7 +4154,12 @@ function importExcel(inp){
           const desc=cols.desc>=0?clean(row[cols.desc],160):"";
           const nome=cols.nome>=0?clean(row[cols.nome],160):"";
           if(isSvc||(!isPpl&&cod&&desc&&cols.nome<0)){
-            if(desc||cod)newSvc.push(desc?(cod?`${desc} (${cod})`:desc):cod);
+            if(!desc&&!cod)continue;
+            if(cols.ativo>=0&&!ativoDoExcel(row[cols.ativo])){inativos++;continue;}
+            const nomeSvc=desc?(cod?`${desc} (${cod})`:desc):cod;
+            newSvc.push(nomeSvc);
+            const t=cols.local>=0?tipoDoExcel(row[cols.local]):"";
+            if(t)tiposFich.push({s:clean(nomeSvc,200),t});
           }else if(isPpl||nome){
             const p=nome||desc;
             if(p)newPpl.push(cod&&nome?`${nome} (${cod})`:p);
@@ -4104,12 +4169,18 @@ function importExcel(inp){
       const uniq=a=>[...new Set(a.filter(Boolean))];
       const addSvcs=uniq(newSvc).filter(s=>!services.includes(s));
       const addPpl=uniq(newPpl).filter(p=>!people.includes(p));
-      if(!addSvcs.length&&!addPpl.length){aviso("Nada de novo para importar. Verifique os nomes das folhas (Serviços / Repositor / Picking) e das colunas (Código, Descrição, Nome).");return;}
-      if(!(await confirmar(`Importar ${addSvcs.length} serviço(s) e ${addPpl.length} repositor(es)/picking?`,{sim:"Importar"})))return;
+      /* O tipo do ficheiro vale para os serviços novos e para os que ainda não
+         têm tipo; o que já foi escolhido na app fica. */
+      const addTipos=sanitizeTipos(tiposFich).filter(f=>!tipos.some(g=>g.s===f.s));
+      const semInat=inativos?` (${inativos} inactivo(s) ficam de fora)`:"";
+      if(!addSvcs.length&&!addPpl.length&&!addTipos.length){aviso("Nada de novo para importar"+semInat+". Verifique os nomes das folhas (Serviços / Repositor / Picking) e das colunas (Código, Descrição, Nome).");return;}
+      if(!(await confirmar(`Importar ${addSvcs.length} serviço(s) e ${addPpl.length} repositor(es)/picking`+
+        (addTipos.length?`, com o tipo (interno/externo) de ${addTipos.length} serviço(s)`:"")+semInat+"?",{sim:"Importar"})))return;
       services=services.concat(addSvcs);save("services",services);
       people=people.concat(addPpl);save("people",people);
+      if(addTipos.length){tipos=sanitizeTipos(tipos.concat(addTipos));save("tipoSvc",tipos);}
       renderCfg();renderForm();
-      aviso(`Importação concluída: ${addSvcs.length} serviço(s), ${addPpl.length} pessoa(s).`);
+      aviso(`Importação concluída: ${addSvcs.length} serviço(s), ${addPpl.length} pessoa(s)`+(addTipos.length?`, ${addTipos.length} tipo(s)`:"")+".");
     };
     rd.readAsArrayBuffer(file);
   }).catch(e=>aviso(e.message));
@@ -5218,6 +5289,7 @@ on("obj-ano","change",e=>{anoObjetivo=parseInt(e.target.value,10)||0;renderObjet
 on("obj-n","change",()=>gravarObjetivo());
 on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
 on("f-service","change",()=>mostrarAnteriores());
+on("f-svc-busca","input",e=>desenharServicos(e.target.value,true));
 on("btn-impjson","click",()=>document.getElementById("hist-file").click());
 on("btn-hist-importar","click",()=>document.getElementById("hist-file").click());
 on("btn-telemovel","click",async e=>{const bt=e.currentTarget;bt.disabled=true;
