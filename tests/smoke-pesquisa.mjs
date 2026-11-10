@@ -1,9 +1,10 @@
 /* Smoke test de browser da 4.2.0: pesquisar o serviço a auditar e importar a
    listagem de serviços do sistema.
 
-   - No separador Auditar, o campo de pesquisa filtra os serviços pelo nome ou
-     pelo código, sem acentos nem maiúsculas; mostra os da lista e os que só
-     existem em auditorias já feitas (num grupo à parte), e escolhe o primeiro.
+   - No separador Auditar, uma só caixa para o serviço (4.2.1): escreve-se o
+     nome ou o código, sem acentos nem maiúsculas, e abre-se por baixo a lista
+     dos que casam (os da lista e, à parte, os que só existem em auditorias);
+     escolhe-se com um toque, com as setas e Enter; Esc repõe.
    - Importar Excel aceita a listagem com ID_SERVICO, DESCRICAO_SERVICO,
      LOCAL_SERVICO e SERVICO_ATIVO: o local dá o tipo, os inactivos ficam de fora.
    - Nenhum alert()/confirm() nativo. */
@@ -26,7 +27,6 @@ await pg.goto(URL);
 
 const falhas = [];
 const check = (ok, msg) => { if (!ok) falhas.push(msg); };
-const opcoes = () => pg.locator("#f-service option").allTextContents();
 const valor = () => pg.locator("#f-service").inputValue();
 
 /* Dois serviços na lista; a Padaria só existe numa auditoria antiga. */
@@ -39,22 +39,48 @@ await pg.evaluate(() => {
 });
 await pg.reload();
 
-/* ---- 1. Sem pesquisa: todos, os da lista primeiro. ---- */
-check(JSON.stringify(await opcoes()) === JSON.stringify(["Talho (101)", "Peixaria (102)", "Padaria (103)"]),
-  "os da lista e os das auditorias: " + (await opcoes()).join(" | "));
-check(await pg.locator("#f-service optgroup[label='Só em auditorias anteriores'] option").count() === 1, "a Padaria num grupo à parte");
-check(/2 na lista e 1 só em auditorias anteriores/.test(await pg.locator("#f-svc-conta").textContent()), "diz de onde vêm");
+const busca = pg.locator("#f-svc-busca");
+const itens = () => pg.locator("#f-svc-lista [data-svc]").allTextContents();
+const aberta = async () => !(await pg.locator("#f-svc-lista").isHidden());
 
-/* ---- 2. Pelo código, pelo nome sem acentos, e sem resultados. ---- */
-await pg.locator("#f-svc-busca").fill("102");
-check(JSON.stringify(await opcoes()) === JSON.stringify(["Peixaria (102)"]) && await valor() === "Peixaria (102)", "pelo código: só a Peixaria, escolhida");
+/* ---- 1. Uma só caixa, com o serviço escolhido; o <select> está escondido. ---- */
+check(await pg.locator("#f-service").isHidden(), "o <select> do serviço não se vê");
+check(await busca.inputValue() === "Talho (101)", "a caixa mostra o serviço escolhido: " + await busca.inputValue());
+check(!(await aberta()), "a lista começa fechada");
+
+/* ---- 2. Ao entrar na caixa, a lista: os da lista e, à parte, os das auditorias. ---- */
+await busca.click();
+check(await aberta(), "abre ao entrar na caixa");
+check(JSON.stringify(await itens()) === JSON.stringify(["Talho (101)", "Peixaria (102)", "Padaria (103)"]),
+  "os da lista e os das auditorias: " + (await itens()).join(" | "));
+check(/Só em auditorias anteriores/.test(await pg.locator("#f-svc-lista .grupo").textContent()), "a Padaria num grupo à parte");
+await busca.press("Escape");
+check(!(await aberta()) && await busca.inputValue() === "Talho (101)", "Esc fecha e repõe");
+
+/* ---- 3. Pelo código, com Enter. ---- */
+await busca.fill("102");
+check(JSON.stringify(await itens()) === JSON.stringify(["Peixaria (102)"]), "pelo código: só a Peixaria");
 check(/1 de 3/.test(await pg.locator("#f-svc-conta").textContent()), "diz quantos casam");
-await pg.locator("#f-svc-busca").fill("PADARIA");
-check(await valor() === "Padaria (103)", "pelo nome, um serviço que só existe numa auditoria");
-await pg.locator("#f-svc-busca").fill("zzz");
-check((await opcoes()).length === 0 && /Nenhum serviço com «zzz»/.test(await pg.locator("#f-svc-conta").textContent()), "sem resultados, diz-o");
-await pg.locator("#f-svc-busca").fill("");
-check((await opcoes()).length === 3, "limpar a pesquisa mostra todos");
+await busca.press("Enter");
+check(await valor() === "Peixaria (102)" && await busca.inputValue() === "Peixaria (102)" && !(await aberta()), "Enter escolhe e fecha");
+
+/* ---- 4. Pelo nome sem acentos, com um toque, num serviço só das auditorias. ---- */
+await busca.fill("PADARIA");
+await pg.locator("#f-svc-lista [data-svc]").first().click();
+check(await valor() === "Padaria (103)", "um toque escolhe");
+
+/* ---- 5. Setas e Enter; sem resultados; sair sem escolher. ---- */
+await busca.fill("a");
+await busca.press("ArrowDown");
+await busca.press("Enter");
+check(await valor() === "Peixaria (102)", "a seta para baixo passa ao segundo: " + await valor());
+await busca.fill("zzz");
+check((await itens()).length === 0 && /Nenhum serviço com «zzz»/.test(await pg.locator("#f-svc-lista").textContent()), "sem resultados, diz-o");
+await pg.locator("#f-date").click();
+check(await valor() === "Peixaria (102)" && await busca.inputValue() === "Peixaria (102)", "sair sem escolher deixa o que estava");
+await busca.fill("talho");
+await pg.locator("#f-date").click();
+check(await valor() === "Talho (101)", "sair com um só a casar escolhe-o");
 
 /* ---- 3. A listagem do sistema (as colunas do Livro2.xlsx), em CSV. ---- */
 await pg.locator("[data-v=cfg]").click();
@@ -75,7 +101,8 @@ check(JSON.stringify(tipos) === JSON.stringify([{ s: "teste 2 (teste2)", t: "i" 
 
 /* ---- 4. E pesquisam-se logo no Auditar. ---- */
 await pg.locator("[data-v=audit]").click();
-await pg.locator("#f-svc-busca").fill("teste4");
+await busca.fill("teste4");
+await busca.press("Enter");
 check(await valor() === "teste 4 (teste4)", "o serviço importado encontra-se pelo código");
 
 check(nativos.length === 0, "nenhum diálogo nativo: " + nativos.join(" | "));
