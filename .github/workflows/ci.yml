@@ -169,9 +169,9 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-acoes.mjs
 
-      - name: Frequência, prazos e caixas de diálogo
+      - name: Indicadores do ano e caixas de diálogo
         timeout-minutes: 4
-        run: node tests/smoke-prazos.mjs
+        run: node tests/smoke-indicadores.mjs
 
       - name: Evidência por pergunta e cópia com fotos
         timeout-minutes: 4

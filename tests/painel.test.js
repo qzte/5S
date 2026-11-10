@@ -9,7 +9,8 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(["dadosPainel5s", "kpisPainel5s", "byPillar", "byResp", "avg", "ordemCron", "somarDias", "diasEntre",
-  "freqDe", "ultimaDe", "estadoServico", "prazosServicos", "estadoAcao"], ["ITEMS", "itemsOf", "ORDEM_PRAZO"]);
+  "estadoAcao", "anualPainel5s", "kpisAnuais", "tipoDe", "objetivoDe"],
+  ["ITEMS", "itemsOf", "umaCasa"]);
 const { dadosPainel5s } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
 
@@ -66,7 +67,7 @@ test("média e pilares: as mesmas contas do relatório (pctOf por pilar, média 
 
 /* ---- v3.17.0: os KPIs (a página do painel que substitui a das auditorias). ---- */
 const HOJE = "2026-11-07";
-const kpis = (lista, svcs = [], freqs = []) => plain(dadosPainel5s(lista, { servicos: svcs, freqs, hoje: HOJE }).kpis);
+const kpis = (lista, svcs = []) => plain(dadosPainel5s(lista, { servicos: svcs, hoje: HOJE }).kpis);
 
 test("sem `extra` não há kpis (o painel mostra então a página das auditorias)", () => {
   assert.strictEqual(plain(dadosPainel5s([])).kpis, undefined);
@@ -109,14 +110,10 @@ test("últimos 30 dias (hoje incluído) e os 30 antes, e a média de cada mês",
   assert.deepStrictEqual(k.faixas, { excelente: 2, oportunidade: 0, critico: 0 });
 });
 
-test("prazos: só os serviços com frequência; os urgentes pelo atraso, os nunca auditados com dias a null", () => {
-  const k = kpis([
-    aud(1, "A", "2026-10-01", [2, 2, 2, 2, 2]),   // mensal: venceu a 10-31, 7 dias de atraso
-    aud(2, "B", "2026-11-01", [2, 2, 2, 2, 2]),   // mensal: em dia
-    aud(3, "D", "2026-11-01", [2, 2, 2, 2, 2]),   // semanal: vence amanhã
-  ], ["A", "B", "C", "D", "E"], [{ s: "A", d: 30 }, { s: "B", d: 30 }, { s: "C", d: 7 }, { s: "D", d: 7 }]);
-  assert.deepStrictEqual(k.prazos, { emDia: 1, aVencer: 1, atrasados: 1, nunca: 1 });
-  assert.deepStrictEqual(k.urgentes, [{ nome: "A", dias: 7 }, { nome: "C", dias: null }]);
+test("sem prazos nem urgentes desde 4.0.0 (saiu a frequência das auditorias)", () => {
+  const k = kpis([aud(1, "A", "2026-10-01", [2, 2, 2, 2, 2])], ["A", "B"]);
+  assert.strictEqual(k.prazos, undefined);
+  assert.strictEqual(k.urgentes, undefined);
 });
 
 test("acções: abertas (com as atrasadas), atrasadas e feitas nos últimos 30 dias", () => {
@@ -137,4 +134,22 @@ test("responsáveis: a média de cada um, só os que têm perguntas", () => {
   const nomes = Object.keys(ctx.RESP);
   assert.ok(nomes.includes("U") && nomes.includes("M"), "os responsáveis de base mudaram");
   assert.deepStrictEqual(k.responsaveis, [{ nome: ctx.RESP.U, pct: 100 }, { nome: ctx.RESP.M, pct: 0 }]);
+});
+
+/* ---- v4.0.0: os indicadores do ano corrente, em `kpis.anual`. ---- */
+test("kpis.anual: média do ano, abaixo da média, objectivo e internos/externos", () => {
+  const d = plain(dadosPainel5s([
+    aud(1, "A", "2026-03-01", [2, 2, 2, 2, 2]),   // 100
+    aud(2, "B", "2026-06-01", [0, 0, 0, 0, 0]),   // 0
+    aud(3, "B", "2025-06-01", [2, 2, 2, 2, 2]),   // outro ano
+  ], { servicos: ["A", "B", "C"], hoje: HOJE,
+    tipos: [{ s: "A", t: "i" }, { s: "B", t: "e" }, { s: "C", t: "e" }], objetivos: [{ a: 2026, n: 10 }] }).kpis.anual);
+  assert.strictEqual(d.ano, 2026);
+  assert.strictEqual(d.n, 2);
+  assert.strictEqual(d.media, 50);
+  assert.deepStrictEqual(d.abaixo, [{ nome: "B", media: 0, n: 1 }]);
+  assert.strictEqual(d.objetivo, 10);
+  assert.strictEqual(d.pct, 20);
+  assert.deepStrictEqual(d.internos, { total: 1, auditados: 1 });
+  assert.deepStrictEqual(d.externos, { total: 2, auditados: 1 });
 });

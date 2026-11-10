@@ -2,6 +2,7 @@
 
 Quatro revisões, por ordem inversa:
 
+- **[Nota de 4.0.0](#nota-de-400-2026-11-09-indicadores-do-ano)** — tipo dos serviços e objectivo anual; sai o email dos serviços.
 - **[Nota de 3.26.0](#nota-de-3260-2026-11-09-emails-dos-serviços-e-ficheiro-do-pc)** — emails dos serviços, o ficheiro do PC para o telemóvel e a limpeza das fotos.
 - **[Nota de 3.25.0](#nota-de-3250-2026-11-09-ficheiro-de-auditoria-e-fundir-que-actualiza)** — o ficheiro de auditoria do telemóvel e a fusão que actualiza pela data de alteração.
 - **[Revisão OWASP de 3.24.0](#revisão-owasp-de-3240-2026-11-08)** — o OWASP Top 10 ponto a ponto; correcções em 3.24.1.
@@ -131,6 +132,20 @@ rasterizadas pelo html2canvas.
   CSP publicada.
 
 ---
+
+## Nota de 4.0.0 (2026-11-09): indicadores do ano
+
+Entram duas chaves, com as mesmas portas das outras listas: `tipoSvc` por
+`sanitizeTipos()` (pares `{s, t}`, nome limpo por `clean()`, `t` só `"i"` ou
+`"e"`, um por serviço, até 1 000) e `objAud` por `sanitizeObjetivos()` (ano
+inteiro de 2000 a 2999, objectivo inteiro de 1 a 100 000, um por ano, até 200).
+Ficam em listas e não em objectos indexados pelo nome do serviço, pela mesma
+razão de `__proto__`. Os nomes dos serviços chegam ao HTML dos indicadores
+sempre por `esc()`; os números saem do cálculo, não do ficheiro.
+
+Sai o email de cada serviço: o `mailto:` volta a não levar destinatário, e
+`RE_EMAIL` e `lerEmails()` deixam de existir. A nota de 3.26.0 fica como
+registo.
 
 ## Nota de 3.26.0 (2026-11-09): emails dos serviços e ficheiro do PC
 

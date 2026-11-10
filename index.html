@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 3.27.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.0.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -246,16 +246,24 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .evid-item img{flex:0 0 42%;width:42%;height:120px;object-fit:cover;border-radius:6px}
 .evid-item p{margin-top:4px}
 @media (max-width:560px){.evid-grelha{grid-template-columns:1fr}}
-/* v3.13.0: frequência e prazos. */
-.freq-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.freq-row label{flex:1 1 auto;margin:0;text-transform:none;letter-spacing:0;font-size:.85rem;color:var(--ink)}
-.freq-row select{flex:0 0 46%;margin:0}
-.email-row{margin:0 0 12px}
-.email-row input{margin:0;font-size:.85rem}
-.prazo-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
-.prazo-row:first-of-type{border-top:0}
-.prazo-row>div{flex:1 1 auto;min-width:0;font-size:.85rem}
-.prazo-row .btn{margin:0}
+/* v4.0.0: lista de serviços com o tipo. */
+.svc-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.svc-row>span{flex:1 1 auto;font-size:.85rem;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.svc-row select{flex:0 0 auto;width:auto;margin:0}
+.svc-row .ed-x{border:0;background:var(--red);color:#fff;border-radius:50%;width:24px;height:24px;cursor:pointer;font-weight:900;flex:0 0 auto}
+/* v4.0.0: indicadores do ano. */
+.kpi-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.kpi-topo select{margin:0;width:auto}
+.kpi-grelha{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+.kpi b{display:block;font-size:1.5rem;line-height:1.2;margin:2px 0}
+.kpi span{font-size:.78rem;color:var(--muted)}
+.kpi .pill{color:#fff;font-size:.72rem;margin-top:4px}
+.kpi-sec{margin-top:14px}
+.kpi-sec h4{font-size:.85rem;margin-bottom:6px}
+.kpi-linha{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:.85rem}
+.kpi-linha>span:first-child{flex:1 1 auto}
 /* v3.23.0: os passos depois da auditoria. */
 .passos{list-style:none;margin:8px 0 0;padding:0;counter-reset:passo}
 .passos li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 0;border-top:1px solid var(--line);counter-increment:passo}
@@ -436,7 +444,6 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   <div class="card">
     <label>Serviço / Supermercado</label>
     <select id="f-service"></select>
-    <div id="svc-prazo" class="hint hidden" style="margin:-6px 0 10px;font-size:.75rem"></div>
     <div class="row">
       <div><label>Data</label><input type="date" id="f-date"></div>
       <div><label>Nota (auto)</label><input id="f-live" disabled value="—"></div>
@@ -462,8 +469,6 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 <section id="view-history" class="hidden">
   <h2 class="sr-only">Histórico</h2>
   <!-- v3.9.0: filtros do histórico. Só mudam o que se mostra: nada é gravado. -->
-  <!-- v3.13.0: serviços com frequência definida, pela urgência. -->
-  <div class="card hidden" id="prazos"></div>
   <div class="card" id="hist-filtros">
     <div class="row">
       <div><label for="hf-svc">Serviço</label><select id="hf-svc"></select></div>
@@ -505,10 +510,17 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     </div>
     <div id="an-conta" style="font-size:.78rem;color:var(--muted)" role="status"></div>
   </div>
+  <!-- v4.0.0: os indicadores do ano (KPIs). Não seguem os filtros acima:
+       são sempre de todos os serviços, no ano escolhido aqui. -->
+  <div class="card" id="card-kpis">
+    <div class="kpi-topo"><h3>Indicadores do ano</h3>
+      <div><label for="an-ano" class="sr-only">Ano</label><select id="an-ano"></select></div></div>
+    <div id="kpis"></div>
+  </div>
   <!-- v3.20.0: o relatório mensal, para a direcção. -->
   <div class="card" id="card-mensal">
     <h3 style="margin-bottom:6px">Relatório mensal</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">O resumo de um mês, de todos os serviços, pronto a imprimir em PDF: nota, serviços, pilares, perguntas que mais falharam, plano de acção e prazos.</p>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">O resumo de um mês, de todos os serviços, pronto a imprimir em PDF: nota, serviços, pilares, perguntas que mais falharam e plano de acção.</p>
     <div class="row">
       <div><label for="an-mes">Mês</label><select id="an-mes"></select></div>
       <div style="align-self:end"><button class="btn small" id="btn-mensal">Abrir relatório mensal</button></div>
@@ -554,22 +566,27 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   <div class="card" id="card-ajuda">
     <h3 style="margin-bottom:4px">Ajuda</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Como fazer uma auditoria, seguir as
-      acções, manter os prazos e fazer cópias de segurança. Também sem rede.</p>
+      acções, acompanhar os indicadores e fazer cópias de segurança. Também sem rede.</p>
     <a class="btn small ghost" href="./guia.html" id="lnk-guia">Abrir o guia de utilização</a>
   </div>
   <div class="card">
-    <h3 style="margin-bottom:10px">Serviços</h3>
+    <h3 style="margin-bottom:4px">Serviços</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">O <b>tipo</b> (interno ou externo) conta nos
+      indicadores do ano, na Análise.</p>
     <div id="svc-list"></div>
     <div class="row"><input id="svc-new" placeholder="Novo serviço (ex.: Serviço A 00001)">
     <button class="btn small ghost" id="btn-addsvc">Adicionar</button></div>
   </div>
-  <div class="card" id="card-freq">
-    <h3 style="margin-bottom:4px">Frequência das auditorias e email</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">De quanto em quanto tempo cada serviço
-      deve ser auditado. O Histórico mostra os que estão em atraso e os que estão a vencer, e o formulário
-      avisa ao escolher o serviço. O <b>email</b> é para onde vai o relatório (até 5 endereços, separados
-      por vírgulas).</p>
-    <div id="freq-list"></div>
+  <!-- v4.0.0: o objectivo anual, para os indicadores da Análise. -->
+  <div class="card" id="card-objetivo">
+    <h3 style="margin-bottom:4px">Objectivo anual de auditorias</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Quantas auditorias executar no ano, de
+      todos os serviços. A Análise mostra a média semanal e se estamos adiantados ou atrasados face ao plano.</p>
+    <div class="row">
+      <div><label for="obj-ano">Ano</label><select id="obj-ano"></select></div>
+      <div><label for="obj-n">Auditorias no ano</label><input id="obj-n" type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="Sem objectivo"></div>
+    </div>
+    <p id="obj-info" style="font-size:.78rem;color:var(--muted);margin-top:6px"></p>
   </div>
   <div class="card">
     <h3 style="margin-bottom:10px">Dados</h3>
@@ -579,7 +596,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
       (sem duplicar) ou <b>substituir</b> tudo. A exportação para <b>Excel</b> serve para análise
       noutro programa (uma folha por auditoria e outra por resposta) e não pode ser importada de volta:
       a cópia de segurança é a JSON. <b>Enviar para o telemóvel</b> (no PC) manda ao telemóvel, sem fotos, as
-      auditorias finalizadas, as acções, as frequências, os emails e as perguntas: no telemóvel, abre-se em
+      auditorias finalizadas, as acções, o tipo dos serviços, o objectivo anual e as perguntas: no telemóvel, abre-se em
       Histórico → Importar ficheiro.</p>
     <button class="btn small ghost" id="btn-expjson">Exportar histórico (JSON)</button>
     <button class="btn small ghost" id="btn-expfotos">Exportar com fotos (JSON)</button>
@@ -598,10 +615,9 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <h3 style="margin-bottom:10px">Painel e-ink</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
       O painel e-ink (a app <b>painel.html</b>, do repositório qzte/e-ink_panel) mostra uma página com os KPIs da 5S:
-      a média dos últimos 30 dias, a evolução mensal, os prazos dos serviços, as acções do plano e a média por
-      responsável. Esta app grava o ficheiro <b>5s.painel.json</b> numa
+      a média dos últimos 30 dias, a evolução mensal, as acções do plano, a média por responsável e os indicadores do ano. Esta app grava o ficheiro <b>5s.painel.json</b> numa
       <b>pasta partilhada</b> — a mesma das outras apps e do painel.html —, escolhida uma vez. Volta a gravá-lo
-      sempre que uma auditoria, um serviço ou uma frequência muda, e de hora a hora. Só no Chrome ou no Edge de computador.</p>
+      sempre que uma auditoria, um serviço, o tipo de um serviço ou o objectivo anual muda, e de hora a hora. Só no Chrome ou no Edge de computador.</p>
     <button class="btn small ghost" id="btn-painel">Escolher pasta</button>
     <button class="btn small ghost" style="display:none;border-color:var(--red-ink);color:var(--red-ink)" id="btn-painel-off">Deixar de gravar</button>
     <div id="painel-estado" role="status" style="font-size:.78rem;color:var(--muted);margin-top:10px"></div>
@@ -1125,10 +1141,10 @@ const save=(k,v)=>{
     if(k==="audits")gravarAudits(v);
     else localStorage.setItem(k,JSON.stringify(v));
     /* v3.6.0: o que entra no painel e-ink mudou — volta a gravar o 5s.painel.json. */
-    /* v3.17.0: e os serviços e as frequências, por causa dos prazos na página de KPIs. */
-    if(k==="audits"||k==="itemsCfg"||k==="resps"||k==="services"||k==="freqAud")agendarPainel();
-    /* v3.13.0: os prazos dependem das auditorias, dos serviços e das frequências. */
-    if(k==="audits"||k==="services"||k==="freqAud")setTimeout(atualizarPrazos,0);
+    /* v4.0.0: e os serviços, os tipos e o objectivo, pelos indicadores do ano. */
+    if(k==="audits"||k==="itemsCfg"||k==="resps"||k==="services"||k==="tipoSvc"||k==="objAud")agendarPainel();
+    /* O número de acções em atraso no separador. */
+    if(k==="audits")setTimeout(atualizarBadgeAcoes,0);
     return true;}
   catch(e){
     /* Um só aviso por acção: a importação grava quatro chaves seguidas e
@@ -1293,7 +1309,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="3.27.0";
+const APP_VERSION="4.0.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1312,12 +1328,11 @@ let audits=expandirAudits(loadArr("audits",[]),load(PERGUNTAS_KEY,null)).filter(
   try{gravarAudits(expandirAudits(cruas,load(PERGUNTAS_KEY,null)));}catch(e){}
 })();
 let services=loadArr("services",["Serviço A (00001)"]);
-/* v3.13.0: frequência das auditorias por serviço (ver sanitizeFreqs). */
-let freqs=sanitizeFreqs(load("freqAud",[]));
+/* v4.0.0: tipo de cada serviço (interno ou externo) e objectivo anual do
+   número de auditorias (ver sanitizeTipos e sanitizeObjetivos). */
+let tipos=sanitizeTipos(load("tipoSvc",[]));
+let objetivos=sanitizeObjetivos(load("objAud",[]));
 let people=loadArr("people",[]); /* repositores / picking */
-/* v3.26.0: email de cada serviço (ver sanitizeEmails). Lido mais abaixo,
-   depois de RE_EMAIL e EMAILS_MAX: aqui ainda não existem. */
-let emails=[];
 let answers={};
 /* v3.3.0 — edição de auditorias anteriores.
    `editId` é o id da auditoria que o formulário está a editar (null = auditoria
@@ -1502,7 +1517,6 @@ function renderForm(){
    auditoria nova: em edição, a "anterior" seria a própria auditoria. */
 function mostrarAnteriores(){
   mostrarAcoesAbertas();
-  mostrarPrazoServico();
   const IT=fitems();
   const ult=editId==null?ultimaDe(document.getElementById("f-service").value,audits):null;
   const mapa=new Map();
@@ -2153,90 +2167,99 @@ function fotosParaImportar(lista,mapa){
   return out;
 }
 
-/* ---------- Frequência das auditorias (v3.13.0) ----------
-   Cada serviço pode ter uma frequência (de quantos em quantos dias deve ser
-   auditado). Daí sai o estado de cada um: em dia, a vencer, em atraso, ou nunca
-   auditado. Guardada em `freqAud` como LISTA de pares {s: serviço, d: dias} e
-   não como objecto indexado pelo nome: o nome do serviço é texto do
-   utilizador, e um serviço chamado "__proto__" mexeria no protótipo. */
-const FREQ_OPCOES=[[0,"Sem frequência"],[7,"Semanal"],[14,"Quinzenal"],[30,"Mensal"],[90,"Trimestral"]];
-function sanitizeFreqs(x){
-  if(!Array.isArray(x))return [];
-  const vistos=new Set(),out=[];
-  x.slice(0,1000).forEach(f=>{
-    if(!f||typeof f!=="object"||Array.isArray(f))return;
-    const svc=clean(f.s,200),d=parseInt(f.d,10);
-    if(!svc||vistos.has(svc)||!(d>=1&&d<=365))return;
-    vistos.add(svc);out.push({s:svc,d});
-  });
-  return out;
-}
-/* ---------- Email de cada serviço (v3.26.0) ----------
-   Para quem vai o relatório de cada serviço auditado. Como as frequências, uma
-   LISTA de pares {s: serviço, e: endereços} e não um objecto indexado pelo
-   nome. `e` leva até EMAILS_MAX endereços, separados por "; ". */
-const EMAILS_MAX=5;
-const RE_EMAIL=/^[^\s@<>()[\]",;:\\?&=]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
-/* Os endereços de um texto, separados por vírgula, ponto e vírgula ou espaço:
-   {ok: "a@b.pt; c@d.pt", maus: [os que não são endereços]}. */
-function lerEmails(txt){
-  const partes=String(txt==null?"":txt).split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean);
-  const bons=[],maus=[];
-  partes.forEach(x=>{if(x.length<=120&&RE_EMAIL.test(x)){if(!bons.includes(x))bons.push(x);}else maus.push(x);});
-  return{ok:bons.slice(0,EMAILS_MAX).join("; "),maus:maus.concat(bons.slice(EMAILS_MAX))};
-}
-function sanitizeEmails(x){
-  if(!Array.isArray(x))return [];
-  const vistos=new Set(),out=[];
-  x.slice(0,1000).forEach(f=>{
-    if(!f||typeof f!=="object"||Array.isArray(f))return;
-    const svc=clean(f.s,200),e=lerEmails(clean(f.e,800)).ok;
-    if(!svc||!e||vistos.has(svc))return;
-    vistos.add(svc);out.push({s:svc,e});
-  });
-  return out;
-}
-emails=sanitizeEmails(load("emailsSvc",[]));
-function emailDe(lista,svc){const f=(lista||[]).find(x=>x.s===svc);return f?f.e:"";}
-/* Para o mailto: os endereços separados por vírgula, cada um codificado. */
-function enderecosMailto(e){return lerEmails(e).ok.split("; ").filter(Boolean).map(encodeURIComponent).join(",");}
-function freqDe(freqs,svc){const f=(freqs||[]).find(x=>x.s===svc);return f?f.d:0;}
-function nomeFreq(d){const o=FREQ_OPCOES.find(x=>x[0]===d);return o?o[1]:"A cada "+d+" dias";}
+/* v4.0.0: a frequência das auditorias (3.13.0) e o email de cada serviço
+   (3.26.0) foram retirados. As chaves `freqAud` e `emailsSvc` que estejam
+   gravadas ou venham num ficheiro são ignoradas. */
 function somarDias(d,n){const t=new Date(d+"T00:00:00Z");t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);}
 function diasEntre(a,b){return Math.round((Date.parse(b+"T00:00:00Z")-Date.parse(a+"T00:00:00Z"))/864e5);}
-/* Estado de um serviço com frequência `freq`. `falta`: dias até à próxima
-   auditoria (negativo = em atraso). "a-vencer" nos últimos dias antes do prazo
-   (até 2, e nunca a frequência inteira). */
-function estadoServico(svc,lista,freqs,hoje){
-  const freq=freqDe(freqs,svc),u=ultimaDe(svc,lista);
-  const base={svc,freq,ultima:u?u.date:null};
-  if(!freq)return Object.assign(base,{estado:"sem-freq"});
-  if(!u)return Object.assign(base,{estado:"nunca",falta:null,proxima:null});
-  const proxima=somarDias(u.date,freq),falta=diasEntre(hoje,proxima);
-  const estado=falta<0?"atrasado":falta<=Math.min(2,freq-1)?"a-vencer":"em-dia";
-  return Object.assign(base,{estado,falta,proxima});
+
+/* ---------- Indicadores do ano (v4.0.0) ----------
+   Os KPIs que as auditorias medem: a média de todas as auditorias do ano e os
+   serviços abaixo dela (os candidatos ao plano de acção); o objectivo anual do
+   número de auditorias, a média semanal e como estamos face ao plano; e os
+   serviços internos e externos auditados face aos que existem.
+   O tipo de cada serviço é uma LISTA de pares
+   {s: serviço, t: "i" (interno) ou "e" (externo)}. O objectivo é por ano:
+   [{a: 2026, n: 120}]. */
+const TIPOS_SVC=[["","—"],["i","Interno"],["e","Externo"]];
+function sanitizeTipos(x){
+  if(!Array.isArray(x))return [];
+  const vistos=new Set(),out=[];
+  x.slice(0,1000).forEach(f=>{
+    if(!f||typeof f!=="object"||Array.isArray(f))return;
+    const svc=clean(f.s,200),t=f.t==="i"||f.t==="e"?f.t:"";
+    if(!svc||!t||vistos.has(svc))return;
+    vistos.add(svc);out.push({s:svc,t});
+  });
+  return out;
 }
-/* Os serviços COM frequência, pela urgência: em atraso (os mais atrasados
-   primeiro), nunca auditados, a vencer, em dia. */
-const ORDEM_PRAZO={atrasado:0,nunca:1,"a-vencer":2,"em-dia":3};
-function prazosServicos(svcs,lista,freqs,hoje){
-  return (svcs||[]).map(s=>estadoServico(s,lista,freqs,hoje)).filter(e=>e.freq)
-    .sort((x,y)=>ORDEM_PRAZO[x.estado]-ORDEM_PRAZO[y.estado]||(x.falta||0)-(y.falta||0)||x.svc.localeCompare(y.svc));
+function tipoDe(tipos,svc){const f=(tipos||[]).find(x=>x.s===svc);return f?f.t:"";}
+function sanitizeObjetivos(x){
+  if(!Array.isArray(x))return [];
+  const vistos=new Set(),out=[];
+  x.slice(0,200).forEach(f=>{
+    if(!f||typeof f!=="object"||Array.isArray(f))return;
+    const a=Number(f.a),n=Number(f.n);
+    if(!Number.isInteger(a)||a<2000||a>2999||!Number.isInteger(n)||n<1||n>100000||vistos.has(a))return;
+    vistos.add(a);out.push({a,n});
+  });
+  return out.sort((x,y)=>x.a-y.a);
 }
-function textoPrazo(e){
-  if(e.estado==="nunca")return "Nunca auditado";
-  if(e.estado==="atrasado")return "Em atraso há "+(-e.falta)+(e.falta===-1?" dia":" dias");
-  if(e.estado==="a-vencer")return e.falta===0?"Vence hoje":e.falta===1?"Vence amanhã":"Vence em "+e.falta+" dias";
-  if(e.estado==="em-dia")return "Em dia";
-  return "";
+function objetivoDe(objs,ano){const f=(objs||[]).find(x=>x.a===Number(ano));return f?f.n:0;}
+/* Os anos que se podem escolher: o actual e os que têm auditorias ou objectivo,
+   do mais recente para o mais antigo. */
+function anosIndicadores(lista,objs,hoje){
+  const atual=Number(String(hoje).slice(0,4)),as=new Set([atual]);
+  (lista||[]).forEach(a=>{const y=a&&typeof a.date==="string"?Number(a.date.slice(0,4)):NaN;if(Number.isInteger(y)&&y>=2000&&y<=atual)as.add(y);});
+  (objs||[]).forEach(o=>{if(o&&Number.isInteger(o.a)&&o.a<=atual+1)as.add(o.a);});
+  return [...as].sort((x,y)=>y-x);
+}
+const umaCasa=x=>Math.round(x*10)/10;
+/* `hoje` em AAAA-MM-DD limita o ano em curso: o plano conta «até hoje». */
+function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
+  ano=Number(ano);
+  const ini=ano+"-01-01",fim=ano+"-12-31",ref=fim<hoje?fim:hoje;
+  const diasAno=diasEntre(ini,fim)+1,dias=ref<ini?0:diasEntre(ini,ref)+1;
+  const doAno=(lista||[]).filter(a=>a&&typeof a.date==="string"&&a.date>=ini&&a.date<=ref).sort(ordemCron);
+  const n=doAno.length,media=n?avg(doAno.map(total)):null;
+  /* Média de cada serviço no ano; abaixo da média geral, do pior para o melhor. */
+  const porSvc=new Map();
+  doAno.forEach(a=>{if(!porSvc.has(a.service))porSvc.set(a.service,[]);porSvc.get(a.service).push(a);});
+  const servicos=[...porSvc].map(([service,l])=>({service,n:l.length,media:avg(l.map(total)),
+    ultimaId:l[l.length-1].id,ultima:total(l[l.length-1])}));
+  const abaixo=media==null?[]:servicos.filter(x=>x.media<media)
+    .map(x=>Object.assign(x,{diferenca:x.media-media}))
+    .sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service));
+  /* Objectivo anual: o esperado até hoje, a proporção do ano decorrido. */
+  const objetivo=objetivoDe(objs,ano),semanas=dias/7,semanasAno=diasAno/7;
+  const plano={objetivo,feitas:n,dias,diasAno,
+    mediaSemanal:dias?umaCasa(n/semanas):null,
+    objetivoSemanal:objetivo?umaCasa(objetivo/semanasAno):null,
+    esperado:objetivo?Math.round(objetivo*dias/diasAno):null,
+    pct:objetivo?Math.round(n/objetivo*100):null,
+    projecao:dias?Math.round(n*diasAno/dias):null,
+    faltam:objetivo?Math.max(0,objetivo-n):null,
+    necessarioSemanal:null,desvio:null,estado:null};
+  if(objetivo){
+    plano.desvio=n-plano.esperado;
+    plano.estado=n>=objetivo?"cumprido":plano.desvio>=0?"em-linha":"atrasado";
+    const resto=(diasAno-dias)/7;
+    plano.necessarioSemanal=resto>0?umaCasa(plano.faltam/resto):null;
+  }
+  /* Serviços internos e externos: os da lista, auditados no ano. */
+  const auditados=new Set(porSvc.keys());
+  const grupo=t=>{const l=(svcs||[]).filter(s=>tipoDe(tipos,s)===t);
+    return{total:l.length,auditados:l.filter(s=>auditados.has(s)).length,porAuditar:l.filter(s=>!auditados.has(s))};};
+  return{ano,ini,ref,emCurso:ref<fim,n,media,servicos:servicos.length,abaixo,plano,
+    tipos:{interno:grupo("i"),externo:grupo("e"),semTipo:grupo("")}};
 }
 
 /* ---------- Relatório mensal (v3.20.0) ----------
    Um resumo do mês para a direcção: a média e as auditorias do mês face ao
    anterior, cada serviço (os da lista e os que tiveram auditoria), os pilares
-   e os responsáveis, as perguntas que mais falharam, o plano de acção e os
-   prazos. Puro, para ser testado sem DOM. `mes` é AAAA-MM; `hoje` limita o mês
-   em curso (as acções e os prazos contam «até hoje», não até ao fim do mês). */
+   e os responsáveis, as perguntas que mais falharam e o plano de acção. Puro,
+   para ser testado sem DOM. `mes` é AAAA-MM; `hoje` limita o mês em curso
+   (as acções contam «até hoje», não até ao fim do mês). */
 const MESES_PT=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 function nomeMes(mes){const [a,m]=String(mes).split("-");return (MESES_PT[+m-1]||"?")+" de "+a;}
 function fimDoMes(mes){const d=new Date(mes+"-01T00:00:00Z");d.setUTCMonth(d.getUTCMonth()+1);d.setUTCDate(0);return d.toISOString().slice(0,10);}
@@ -2248,7 +2271,7 @@ function mesesRelatorio(lista,hoje){
   (lista||[]).forEach(a=>{const m=a&&typeof a.date==="string"?a.date.slice(0,7):"";if(/^\d{4}-\d{2}$/.test(m)&&m<=atual)ms.add(m);});
   return [...ms].sort().reverse();
 }
-function resumoMensal(lista,mes,svcs,fq,hoje){
+function resumoMensal(lista,mes,svcs,hoje){
   const todas=(lista||[]).filter(a=>a&&typeof a.date==="string").sort(ordemCron);
   const fim=fimDoMes(mes),ref=fim<hoje?fim:hoje,ant=mesAnterior(mes);
   const doMes=todas.filter(a=>a.date.slice(0,7)===mes),doAnt=todas.filter(a=>a.date.slice(0,7)===ant);
@@ -2294,14 +2317,10 @@ function resumoMensal(lista,mes,svcs,fq,hoje){
     acoes.abertas++;
     if(ac.prazo&&ac.prazo<ref)acoes.atrasadas++;
   }));
-  const est=prazosServicos(svcs,todas.filter(a=>a.date<=ref),fq,ref);
-  const conta=e=>est.filter(x=>x.estado===e).length;
   return{mes,fim,ref,emCurso:ref<fim,
     n:doMes.length,media:media(doMes),nAnt:doAnt.length,mediaAnt:media(doAnt),delta:delta(media(doMes),media(doAnt)),
     servicosAuditados:new Set(doMes.map(a=>a.service)).size,
-    porServico,pilares,responsaveis:eixos(doMes,"resp"),piores,faixas,acoes,
-    prazos:{emDia:conta("em-dia"),aVencer:conta("a-vencer"),atrasados:conta("atrasado"),nunca:conta("nunca"),
-      urgentes:est.filter(x=>x.estado==="atrasado"||x.estado==="nunca").map(x=>({svc:x.svc,texto:textoPrazo(x)}))}};
+    porServico,pilares,responsaveis:eixos(doMes,"resp"),piores,faixas,acoes};
 }
 
 /* Linhas das duas folhas da exportação para Excel: uma linha por auditoria,
@@ -2960,7 +2979,7 @@ function barrasEixo(l){
 function openMensal(mes){
   relatorioId=null;clearFotos();
   document.title=tituloMensal(mes);
-  const r=resumoMensal(audits,mes,services,freqs,hojeISO());
+  const r=resumoMensal(audits,mes,services,hojeISO());
   const t=r.media==null?null:badge(r.media);
   const nome=nomeMes(mes);
   document.getElementById("view-report").innerHTML=`
@@ -2992,11 +3011,6 @@ function openMensal(mes){
   <div class="card" id="mensal-acoes"><h3 style="margin-bottom:10px">Plano de acção</h3>
     <table><tr><th>Novas no mês</th><th>Concluídas no mês</th><th>Em aberto ${r.emCurso?"hoje":"no fim do mês"}</th><th>Das quais em atraso</th></tr>
     <tr><td>${r.acoes.novas}</td><td>${r.acoes.concluidas}</td><td>${r.acoes.abertas}</td><td>${r.acoes.atrasadas}</td></tr></table></div>
-  <div class="card" id="mensal-prazos"><h3 style="margin-bottom:10px">Prazos das auditorias ${r.emCurso?"hoje":"no fim do mês"}</h3>
-    ${r.prazos.emDia+r.prazos.aVencer+r.prazos.atrasados+r.prazos.nunca?
-    `<p style="font-size:.85rem">Em dia: <b>${r.prazos.emDia}</b> · A vencer: <b>${r.prazos.aVencer}</b> · Em atraso: <b>${r.prazos.atrasados}</b> · Nunca auditados: <b>${r.prazos.nunca}</b></p>
-    ${r.prazos.urgentes.length?`<ul style="font-size:.82rem;margin:8px 0 0 18px">${r.prazos.urgentes.map(u=>`<li>${esc(u.svc)} — ${esc(u.texto)}</li>`).join("")}</ul>`:""}`
-    :`<p class="empty">Nenhum serviço tem frequência definida (Configuração → Frequência das auditorias).</p>`}</div>
   </div>
   <button class="btn no-print" id="btn-print">Gerar PDF</button>
   <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
@@ -3104,10 +3118,6 @@ function renderPosAuditoria(a){
     return;
   }
   const st=estadoPassos(a,backupInfo());
-  /* v3.26.0: o email do serviço auditado, se estiver em Config. O menu de
-     partilha não deixa escolher o destinatário: o endereço é copiado ao
-     carregar, para colar em «Para»; sem menu, vai já no email. */
-  const dest=emailDe(emails,a.service);
   const enviado=[st.email?"por email "+quando(st.email):"",st.teams?"para o Teams "+quando(st.teams):""].filter(Boolean).join("; ");
   /* v3.25.0: pela ordem do fluxo — PDF, envio ao serviço auditado, e a cópia
      de segurança no fim, já com tudo o que se acrescentou ao finalizar. */
@@ -3118,8 +3128,7 @@ function renderPosAuditoria(a){
         <small>${st.pdf?ok("Descarregado "+quando(st.pdf)):"O relatório num ficheiro, para guardar ou anexar."}</small></div>
         <button class="btn small ${st.pdf?"ghost":""}" id="pa-pdf">Descarregar PDF</button></li>
       <li class="${enviado?"feito":""}"><div><b>Enviar</b><br>
-        <small>${enviado?ok("Enviada "+enviado):"O PDF e um resumo da auditoria. Abre o menu de partilha: escolha lá o Outlook, o Gmail ou o Teams."}</small>
-        ${dest?`<br><small data-dest>Para: <span style="font-weight:700">${esc(dest)}</span> — o endereço é copiado ao carregar em Enviar por email; cole-o em «Para».</small>`:""}</div>
+        <small>${enviado?ok("Enviada "+enviado):"O PDF e um resumo da auditoria. Abre o menu de partilha: escolha lá o Outlook, o Gmail ou o Teams."}</small></div>
         <span class="passo-btns"><button class="btn small ${st.email?"ghost":""}" id="pa-email">Enviar por email</button>
         <button class="btn small ${st.teams?"ghost":""}" id="pa-teams">Enviar para o Teams</button></span></li>
       <li class="${st.copia?"feito":""}"><div><b>Cópia de segurança</b><br>
@@ -3133,9 +3142,6 @@ function renderPosAuditoria(a){
     descarregar(blob,nomePdf(a));marcarEnvio(a.id,"pdf");
   });
   const enviar=via=>e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
-    /* Antes de qualquer espera: a área de transferência só aceita escrita
-       logo a seguir ao toque. */
-    if(via==="email"&&dest&&navigator.clipboard)navigator.clipboard.writeText(dest).catch(()=>{});
     const blob=await pdfDoRelatorio();
     const f=new File([blob],nomePdf(a),{type:"application/pdf"});
     const titulo=tituloPdf(a),texto=resumoEnvio(a,audits,hojeISO(),via);
@@ -3146,7 +3152,7 @@ function renderPosAuditoria(a){
        o PDF e abre-se o email já escrito, ou copia-se o resumo para o Teams. */
     descarregar(blob,nomePdf(a));
     if(via==="email"){
-      abrirLink("mailto:"+enderecosMailto(dest)+"?subject="+encodeURIComponent(titulo)+"&body="+
+      abrirLink("mailto:?subject="+encodeURIComponent(titulo)+"&body="+
         encodeURIComponent(texto+"\n\n(Anexe o PDF que foi descarregado: "+nomePdf(a)+")"));
     }else{
       let copiado;
@@ -3299,7 +3305,7 @@ async function enviarParaPC(a){
    «Enviar para o telemóvel» (no PC) partilha a cópia SEM fotos, marcada
    `tipo: "actualizacao"`. Importada no telemóvel, funde as auditorias (as
    mais recentes do PC substituem as do telemóvel: finalizadas, acções novas
-   ou fechadas) e traz as frequências, os emails e as perguntas do PC. Não
+   ou fechadas) e traz o tipo dos serviços, o objectivo anual e as perguntas do PC. Não
    conta como cópia de segurança do PC: é para o telemóvel. */
 async function enviarParaTelemovel(){
   const c=await ficheiroCopia(false,"actualizacao");if(!c)return;
@@ -3613,21 +3619,103 @@ function renderStats(){
   document.getElementById("rad-resp").innerHTML=lista.length?radarSVG(medResp,"#e8500a"):"";
   document.getElementById("cmp-pilar").innerHTML=lista.length?bars(medPilar.map(d=>[d.name,d.pct])):bars([]);
   document.getElementById("cmp-resp").innerHTML=bars(medResp.map(d=>[d.name,d.pct]));
+  renderKpis();
+}
+
+/* ---------- Indicadores do ano (v4.0.0) ---------- */
+let anoKpis=0;
+const numPT=x=>String(x).replace(".",",");
+function renderKpis(){
+  const box=document.getElementById("kpis"),sel=document.getElementById("an-ano");
+  if(!box||!sel)return;
+  const hoje=hojeISO(),anos=anosIndicadores(audits,objetivos,hoje);
+  if(!anos.includes(anoKpis))anoKpis=anos[0];
+  sel.innerHTML=anos.map(a=>`<option value="${a}">${a}</option>`).join("");
+  sel.value=String(anoKpis);
+  const k=kpisAnuais(audits,services,tipos,objetivos,anoKpis,hoje),p=k.plano;
+  const corNota=m=>m>=80?"var(--green)":m>=50?"var(--amber-bg)":"var(--red)";
+  const tile=(id,rot,val,sub)=>`<div class="kpi" id="${id}"><small>${rot}</small><b>${val}</b><span>${sub}</span></div>`;
+  const ESTADO_PLANO={cumprido:["Objectivo cumprido","var(--green)"],"em-linha":["Em linha com o plano","var(--green)"],atrasado:["Atrás do plano","var(--red)"]};
+  const tiles=[
+    tile("kpi-media","Média total",k.media==null?"—":k.media+"<small style=\"display:inline;font-size:.9rem\">/100</small>",
+      k.n?k.n+" auditoria(s) a "+k.servicos+" serviço(s)":"Sem auditorias em "+k.ano),
+    tile("kpi-objetivo","Objectivo anual",p.objetivo?k.n+" de "+p.objetivo:"—",
+      p.objetivo?p.pct+"% do objectivo"+(p.faltam?" · faltam "+p.faltam:""):"Defina-o em Config → Objectivo anual"),
+    tile("kpi-semanal","Média semanal",p.mediaSemanal==null?"—":numPT(p.mediaSemanal),
+      "auditorias por semana"+(p.objetivoSemanal!=null?" · plano: "+numPT(p.objetivoSemanal):"")),
+    p.objetivo?tile("kpi-plano","Face ao plano",(p.desvio>0?"+":p.desvio<0?"−":"")+Math.abs(p.desvio),
+      `esperadas até ${k.emCurso?"hoje":"ao fim do ano"}: ${p.esperado}<br><span class="pill" style="background:${ESTADO_PLANO[p.estado][1]}">${ESTADO_PLANO[p.estado][0]}</span>`):""
+  ].join("");
+  const ritmo=p.objetivo&&k.emCurso&&p.dias?`<p id="kpi-ritmo" style="font-size:.78rem;color:var(--muted);margin:-4px 0 4px">Ao ritmo actual, ${p.projecao} auditorias no fim do ano`+
+    (p.faltam&&p.necessarioSemanal!=null?`; para cumprir o objectivo, ${numPT(p.necessarioSemanal)} por semana até ao fim do ano.`:".")+`</p>`:"";
+  /* Abaixo da média: com as acções em aberto e o relatório da última auditoria,
+     onde se acrescentam acções ao plano. */
+  const abertas=sv=>audits.reduce((s,a)=>s+(a.service===sv&&Array.isArray(a.acoes)?a.acoes.filter(ac=>ac&&estadoAcao(ac,hoje)!=="feita").length:0),0);
+  const abaixo=`<div class="kpi-sec" id="kpi-abaixo"><h4>Serviços abaixo da média — para o plano de acção</h4>`+
+    (k.abaixo.length?k.abaixo.map((x,i)=>{const na=abertas(x.service);
+      return`<div class="kpi-linha"><span><b>${esc(x.service)}</b><br><small style="color:var(--muted)">${x.n} auditoria(s) · ${x.diferenca} pontos face à média · ${na?na+" acção(ões) em aberto":"sem acções em aberto"}</small></span>`+
+      `<span class="pill" style="background:${corNota(x.media)}">${x.media}</span>`+
+      `<button class="btn small ghost" data-kpi-plano="${i}" aria-label="Plano de acção de ${esc(x.service)}">Plano de acção</button></div>`;}).join(""):
+      `<p class="empty" style="padding:8px">${k.n?"Nenhum serviço abaixo da média.":"Sem auditorias neste ano."}</p>`)+`</div>`;
+  const grupo=(id,rot,g)=>{const pc=g.total?Math.round(g.auditados/g.total*100):0;
+    return`<div id="${id}"><div class="stat-row"><span>${rot}: <b>${g.auditados}</b> de <b>${g.total}</b> auditado(s)</span><span>${g.total?pc+"%":"—"}</span></div>
+      <div class="bar"><i class="${barCls(pc)}" style="width:${pc}%"></i></div>
+      ${g.porAuditar.length?`<small style="color:var(--muted);display:block;margin:-2px 0 8px">Por auditar: ${g.porAuditar.map(esc).join(", ")}</small>`:""}</div>`;};
+  const t=k.tipos;
+  const cobertura=`<div class="kpi-sec" id="kpi-tipos"><h4>Serviços auditados em ${k.ano}</h4>`+
+    grupo("kpi-int","Internos",t.interno)+grupo("kpi-ext","Externos",t.externo)+
+    (t.semTipo.total?`<small style="color:var(--muted)">${t.semTipo.total} serviço(s) sem tipo (${t.semTipo.auditados} auditado(s)): escolha interno ou externo em Config → Serviços.</small>`:"")+`</div>`;
+  box.innerHTML=`<div class="kpi-grelha">${tiles}</div>${ritmo}${abaixo}${cobertura}`;
+  box.querySelectorAll("[data-kpi-plano]").forEach(b=>b.onclick=()=>{
+    const x=k.abaixo[+b.dataset.kpiPlano],a=x&&audits.find(y=>y.id===x.ultimaId);
+    if(a){openReport(a);const pa=document.getElementById("plano");if(pa)pa.scrollIntoView();}
+  });
+}
+/* Config: o objectivo do ano escolhido. */
+let anoObjetivo=0;
+function renderObjetivo(){
+  const sel=document.getElementById("obj-ano"),inp=document.getElementById("obj-n"),info=document.getElementById("obj-info");
+  if(!sel||!inp)return;
+  const atual=Number(hojeISO().slice(0,4)),anos=[...new Set([atual+1,atual,...objetivos.map(o=>o.a)])].sort((x,y)=>y-x);
+  if(!anos.includes(anoObjetivo))anoObjetivo=atual;
+  sel.innerHTML=anos.map(a=>`<option value="${a}">${a}</option>`).join("");
+  sel.value=String(anoObjetivo);
+  const n=objetivoDe(objetivos,anoObjetivo);
+  inp.value=n?String(n):"";
+  if(info)info.textContent=n?"Cerca de "+numPT(umaCasa(n/((diasEntre(anoObjetivo+"-01-01",anoObjetivo+"-12-31")+1)/7)))+" auditorias por semana.":"Sem objectivo para "+anoObjetivo+".";
+}
+function gravarObjetivo(){
+  const inp=document.getElementById("obj-n"),txt=String(inp.value).trim(),n=Number(txt);
+  if(txt&&!(Number.isInteger(n)&&n>=1&&n<=100000)){aviso("O objectivo é um número inteiro de auditorias, de 1 a 100 000.","Objectivo anual");renderObjetivo();return;}
+  const antes=objetivos;
+  objetivos=sanitizeObjetivos(objetivos.filter(o=>o.a!==anoObjetivo).concat(txt?[{a:anoObjetivo,n}]:[]));
+  if(!save("objAud",objetivos))objetivos=antes;
+  renderObjetivo();
 }
 
 /* ---------- Config ---------- */
 function renderCfg(){
   const svcBox=document.getElementById("svc-list");
-  svcBox.innerHTML=services.map((s,i)=>
-  `<span class="svc-chip">${esc(s)}<button data-rmsvc="${i}" aria-label="Remover o serviço ${esc(s)}">×</button></span>`).join("");
+  /* v4.0.0: uma linha por serviço, com o tipo (interno ou externo). */
+  svcBox.innerHTML=services.length?services.map((s,i)=>{const tp=tipoDe(tipos,s);
+    return`<div class="svc-row"><span>${esc(s)}</span><select data-tipo="${i}" aria-label="Tipo de ${esc(s)}">
+      ${TIPOS_SVC.map(([v,t])=>`<option value="${v}"${v===tp?" selected":""}>${esc(t)}</option>`).join("")}</select>
+      <button class="ed-x" data-rmsvc="${i}" aria-label="Remover o serviço ${esc(s)}">×</button></div>`;}).join("")
+    :`<p class="empty" style="padding:8px">Sem serviços.</p>`;
   svcBox.querySelectorAll("[data-rmsvc]").forEach(b=>b.onclick=()=>rmSvc(+b.dataset.rmsvc));
+  svcBox.querySelectorAll("[data-tipo]").forEach(el=>el.onchange=()=>{
+    const sv=services[+el.dataset.tipo],t=el.value;
+    const antes=tipos;
+    tipos=sanitizeTipos(tipos.filter(f=>f.s!==sv).concat(t?[{s:sv,t}]:[]));
+    if(!save("tipoSvc",tipos))tipos=antes;
+  });
   const pplBox=document.getElementById("xl-people");
   pplBox.innerHTML=people.length?
     `<label>Repositores / Picking (${people.length})</label>`+people.map((p,i)=>
     `<span class="svc-chip">${esc(p)}<button data-rmppl="${i}" aria-label="Remover ${esc(p)}">×</button></span>`).join(""):"";
   pplBox.querySelectorAll("[data-rmppl]").forEach(b=>b.onclick=()=>rmPerson(+b.dataset.rmppl));
   renderResps();
-  renderFreqs();
+  renderObjetivo();
   mostrarPinCfg();
   const ds=document.getElementById("data-stats");
   if(ds){
@@ -3653,83 +3741,7 @@ function renderCfg(){
         "responsável mantêm-se; as auditorias já gravadas não mudam.";
   }
 }
-/* v3.13.0: frequência de cada serviço da lista. Grava ao mudar. */
-function renderFreqs(){
-  const box=document.getElementById("freq-list");
-  if(!box)return;
-  if(!services.length){box.innerHTML=`<p class="empty" style="padding:8px">Sem serviços.</p>`;return;}
-  box.innerHTML=services.map((sv,i)=>{
-    const d=freqDe(freqs,sv),opc=FREQ_OPCOES.slice();
-    if(d&&!opc.some(o=>o[0]===d))opc.push([d,nomeFreq(d)]);
-    return`<div class="freq-row"><label>${esc(sv)}</label><select data-freq="${i}">
-      ${opc.map(([v,t])=>`<option value="${v}"${v===d?" selected":""}>${esc(t)}</option>`).join("")}</select></div>
-      <div class="email-row"><input type="text" inputmode="email" autocomplete="off" data-email="${i}"
-        aria-label="Email de ${esc(sv)}" placeholder="Email do serviço (para enviar o relatório)" value="${esc(emailDe(emails,sv))}"></div>`;
-  }).join("");
-  ligarRotulos(box);
-  box.querySelectorAll("[data-freq]").forEach(el=>el.onchange=()=>{
-    const sv=services[+el.dataset.freq],d=parseInt(el.value,10)||0;
-    const antes=freqs;
-    freqs=sanitizeFreqs(freqs.filter(f=>f.s!==sv).concat(d?[{s:sv,d}]:[]));
-    if(!save("freqAud",freqs))freqs=antes;
-  });
-  /* v3.26.0: o email grava-se ao sair do campo; o que não for um endereço
-     fica de fora, e diz-se qual. */
-  box.querySelectorAll("[data-email]").forEach(el=>el.onchange=()=>{
-    const sv=services[+el.dataset.email],r=lerEmails(el.value);
-    const antes=emails;
-    emails=sanitizeEmails(emails.filter(f=>f.s!==sv).concat(r.ok?[{s:sv,e:r.ok}]:[]));
-    if(!save("emailsSvc",emails)){emails=antes;return;}
-    el.value=r.ok;
-    if(r.maus.length)aviso("Não é um endereço de email (ou passa de "+EMAILS_MAX+"): "+r.maus.join(", ")+". Ficou de fora.","Email do serviço");
-  });
-}
-/* Prazos: o cartão do Histórico, o número no separador e a indicação junto ao
-   serviço no formulário. */
-function atualizarPrazos(){
-  atualizarBadgeAcoes();
-  const hoje=hojeISO();
-  const lista=prazosServicos(services,audits,freqs,hoje);
-  const urgentes=lista.filter(e=>e.estado==="atrasado"||e.estado==="nunca").length;
-  const tab=document.querySelector('.tab[data-v="history"]');
-  if(tab){
-    let b=tab.querySelector(".tab-badge");
-    if(urgentes){
-      if(!b){b=document.createElement("span");b.className="tab-badge";tab.appendChild(b);}
-      b.textContent=urgentes;
-      b.setAttribute("aria-label",urgentes+(urgentes>1?" serviços":" serviço")+" por auditar");
-    }else if(b)b.remove();
-  }
-  const box=document.getElementById("prazos");
-  if(box){
-    box.classList.toggle("hidden",!lista.length);
-    const cor={atrasado:"var(--red)",nunca:"var(--red)","a-vencer":"var(--amber-bg)","em-dia":"var(--green)"};
-    box.innerHTML=lista.length?`<h3 style="margin-bottom:8px">Prazos das auditorias</h3>`+lista.map((e,i)=>
-      `<div class="prazo-row"><div><b>${esc(e.svc)}</b><br><small style="color:var(--muted)">${esc(nomeFreq(e.freq))}`+
-      `${e.ultima?" · última a "+esc(dataCurta(e.ultima)):""}${e.estado==="em-dia"?" · próxima a "+esc(dataCurta(e.proxima)):""}</small></div>`+
-      `<span class="pill" style="background:${cor[e.estado]}">${esc(textoPrazo(e))}</span>`+
-      (e.estado!=="em-dia"?`<button class="btn small ghost" data-auditar="${i}" aria-label="Auditar ${esc(e.svc)}">Auditar</button>`:"")+
-      `</div>`).join(""):"";
-    box.querySelectorAll("[data-auditar]").forEach(bt=>bt.onclick=()=>{
-      const sv=lista[+bt.dataset.auditar].svc;
-      document.querySelector('[data-v=audit]').click();
-      const sel=document.getElementById("f-service");
-      if(editId==null&&services.includes(sv)){sel.value=sv;sel.dispatchEvent(new Event("change",{bubbles:true}));}
-      window.scrollTo(0,0);
-    });
-  }
-  mostrarPrazoServico();
-}
-function mostrarPrazoServico(){
-  const el=document.getElementById("svc-prazo");
-  if(!el)return;
-  const e=editId==null?estadoServico(document.getElementById("f-service").value,audits,freqs,hojeISO()):null;
-  const vis=!!(e&&e.freq);
-  el.classList.toggle("hidden",!vis);
-  if(!vis)return;
-  el.textContent=nomeFreq(e.freq)+(e.ultima?" · última auditoria a "+dataCurta(e.ultima):"")+" · "+textoPrazo(e)+".";
-  el.style.color=e.estado==="atrasado"||e.estado==="nunca"?"var(--red-ink)":e.estado==="a-vencer"?"var(--amber-ink)":"var(--muted)";
-}
+/* O número no separador das Acções (as em atraso) muda com o dia. */
 /* v3.18.0: remover uma pessoa ou um serviço tem Desfazer, como apagar uma
    auditoria: até aqui o × apagava logo, sem confirmação nem volta. */
 function rmPerson(i){
@@ -4105,8 +4117,8 @@ function importExcel(inp){
 function addSvc(){const v=clean(document.getElementById("svc-new").value,200);
   if(!v)return;services.push(v);save("services",services);
   document.getElementById("svc-new").value="";renderCfg();renderForm();}
-/* A frequência do serviço só sai quando a remoção fica (fim do prazo), para que
-   desfazer a traga de volta. As auditorias ao serviço não são tocadas. */
+/* O tipo do serviço só sai quando a remoção fica (fim do prazo), para que
+   desfazer o traga de volta. As auditorias ao serviço não são tocadas. */
 function rmSvc(i){
   const sv=services[i];
   if(sv==null)return;
@@ -4118,8 +4130,7 @@ function rmSvc(i){
     save("services",services);renderCfg();renderForm();
   },()=>{
     if(services.includes(sv))return;
-    if(freqs.some(f=>f.s===sv)){freqs=freqs.filter(f=>f.s!==sv);save("freqAud",freqs);}
-    if(emails.some(f=>f.s===sv)){emails=emails.filter(f=>f.s!==sv);save("emailsSvc",emails);}
+    if(tipos.some(f=>f.s===sv)){tipos=tipos.filter(f=>f.s!==sv);save("tipoSvc",tipos);}
   });
 }
 /* v3.14.0: com `comFotos`, o ficheiro leva também as fotos (das recomendações
@@ -4154,10 +4165,9 @@ async function ficheiroCopia(comFotos,tipo){
        exportar não fazia nada — a cópia de segurança ficava impossível
        precisamente quando o armazenamento já estava estragado. */
     itemsCfg:loadArr("itemsCfg",null),
-    /* v3.13.0: a frequência das auditorias por serviço. */
-    freqAud:freqs,
-    /* v3.26.0: o email de cada serviço. */
-    emailsSvc:emails
+    /* v4.0.0: o tipo de cada serviço e o objectivo anual. */
+    tipoSvc:tipos,
+    objAud:objetivos
   };
   if(fotos)payload.fotos=fotos;
   /* v3.26.0: o ficheiro para o telemóvel é esta cópia, sem fotos, marcada. */
@@ -4369,7 +4379,7 @@ function importJson(inp){
     const nFotos=Array.isArray(data.fotos)?data.fotos.length:0;
     const deAuditoria=data.tipo==="auditoria"&&inAudits.length===1;
     /* v3.26.0: o ficheiro «para o telemóvel», do PC. O PC manda: além de
-       fundir as auditorias, traz as frequências, os emails e as perguntas. */
+       fundir as auditorias, traz o tipo dos serviços, o objectivo anual e as perguntas. */
     const deActualizacao=data.tipo==="actualizacao";
     const pergDiferentes=temPerg&&JSON.stringify(inPerg)!==JSON.stringify(sanitizeItems(ITEMS));
     let m;
@@ -4379,7 +4389,7 @@ function importJson(inp){
         texto:"Ficheiro do PC"+quandoFich+": "+inAudits.length+" auditoria(s)."+
           "\n"+(nNovas?nNovas+" nova(s) para este dispositivo. ":"")+(nAct?nAct+" que o PC tem mais recente(s) (finalizadas, acções) são actualizadas. ":"")+
           (!nNovas&&!nAct?"As auditorias já estão a par. ":"")+
-          "\nAs frequências e os emails dos serviços"+(pergDiferentes?", e as perguntas,":"")+" passam a ser os do PC. As auditorias que só existem neste dispositivo ficam.",
+          "\nO tipo dos serviços, o objectivo anual"+(pergDiferentes?", e as perguntas,":"")+" passam a ser os do PC. As auditorias que só existem neste dispositivo ficam.",
         botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"F",label:"Actualizar",def:true}]});
     }else if(deAuditoria){
       /* Um ficheiro de auditoria (enviado do telemóvel) só se funde: nunca
@@ -4416,9 +4426,9 @@ function importJson(inp){
       audits=inAudits;
       inAudits.forEach(a=>mapaIds.set(a.id,a.id));
       services=inSvc.length?[...new Set(inSvc)]:services;
-      /* v3.13.0: as frequências do ficheiro, se as trouxer; senão ficam as de casa. */
-      if(Array.isArray(data.freqAud))freqs=sanitizeFreqs(data.freqAud);
-      if(Array.isArray(data.emailsSvc))emails=sanitizeEmails(data.emailsSvc);
+      /* O tipo e o objectivo do ficheiro, se os trouxer; senão ficam os de casa. */
+      if(Array.isArray(data.tipoSvc))tipos=sanitizeTipos(data.tipoSvc);
+      if(Array.isArray(data.objAud))objetivos=sanitizeObjetivos(data.objAud);
       people=[...new Set(inPpl)];
     }else{
       /* v3.25.0: as que já existem não são só ignoradas — a do ficheiro
@@ -4443,17 +4453,17 @@ function importJson(inp){
       if(abrirId==null&&plano[0]&&plano[0].local)abrirId=plano[0].local.id;
       fechadas=aplicarAcoesFeitas(audits,feitas);
       services=[...new Set(services.concat(inSvc))];
-      /* Fundir: as de casa mantêm-se; do ficheiro entram as dos serviços sem frequência. */
-      const fqFich=sanitizeFreqs(data.freqAud),emFich=sanitizeEmails(data.emailsSvc);
+      /* Fundir: os de casa mantêm-se; do ficheiro entram os dos serviços (e dos anos) que não os têm. */
+      const tpFich=sanitizeTipos(data.tipoSvc),obFich=sanitizeObjetivos(data.objAud);
       if(deActualizacao){
-        /* Do PC: para os serviços que o ficheiro traz, valem as do ficheiro
-           (também quando o PC tirou a frequência ou o email). */
+        /* Do PC: para os serviços que o ficheiro traz, vale o do ficheiro
+           (também quando o PC tirou o tipo). */
         const doFich=new Set(inSvc);
-        if(Array.isArray(data.freqAud))freqs=sanitizeFreqs(fqFich.concat(freqs.filter(f=>!doFich.has(f.s)&&!fqFich.some(g=>g.s===f.s))));
-        if(Array.isArray(data.emailsSvc))emails=sanitizeEmails(emFich.concat(emails.filter(f=>!doFich.has(f.s)&&!emFich.some(g=>g.s===f.s))));
+        if(Array.isArray(data.tipoSvc))tipos=sanitizeTipos(tpFich.concat(tipos.filter(f=>!doFich.has(f.s)&&!tpFich.some(g=>g.s===f.s))));
+        if(Array.isArray(data.objAud))objetivos=sanitizeObjetivos(obFich.concat(objetivos.filter(o=>!obFich.some(g=>g.a===o.a))));
       }else{
-        freqs=sanitizeFreqs(freqs.concat(fqFich.filter(f=>!freqs.some(g=>g.s===f.s))));
-        emails=sanitizeEmails(emails.concat(emFich.filter(f=>!emails.some(g=>g.s===f.s))));
+        tipos=sanitizeTipos(tipos.concat(tpFich.filter(f=>!tipos.some(g=>g.s===f.s))));
+        objetivos=sanitizeObjetivos(objetivos.concat(obFich.filter(o=>!objetivos.some(g=>g.a===o.a))));
       }
       people=[...new Set(people.concat(inPpl))];
       if(!deActualizacao&&!novas&&!actualizadas.length&&!fechadas&&!(deAuditoria?0:inSvc.length+inPpl.length)){desfazerResps();
@@ -4461,7 +4471,7 @@ function importJson(inp){
         else aviso("Nada de novo a importar: as auditorias já existem.");
         return;}
     }
-    const gravou=save("audits",audits);save("services",services);save("people",people);save("freqAud",freqs);save("emailsSvc",emails);
+    const gravou=save("audits",audits);save("services",services);save("people",people);save("tipoSvc",tipos);save("objAud",objetivos);
     /* As fotos das auditorias que o ficheiro substituiu já não têm a quem
        pertencer. Só depois de a lista nova estar gravada. */
     if(m==="S"&&gravou)await apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
@@ -5072,17 +5082,16 @@ function criarEscritorPainel({ app, titulo, versaoApp = '' }) {
 /* Os `dados` do 5s.painel.json: nº de auditorias, média, a mais recente, a média por pilar
    e a última auditoria de cada serviço (com a % da penúltima, para a seta de tendência). */
 /* v3.17.0: os KPIs da página do painel (que substitui a página das auditorias).
-   `hoje` em AAAA-MM-DD; `svcs` e `fq`: a lista de serviços e as frequências.
+   `hoje` em AAAA-MM-DD. (Os `prazos` e os `urgentes` saíram em 4.0.0, com a
+   frequência das auditorias.)
      media30/n30: média e nº das auditorias dos últimos 30 dias (hoje incluído);
      media30Ant/n30Ant: o mesmo nos 30 dias antes desses;
      porMes: os 12 meses até ao corrente, {mes, media (null sem auditorias), n};
-     prazos: serviços com frequência por estado; urgentes: em atraso e nunca
-       auditados, pela urgência ({nome, dias: dias de atraso, ou null se nunca});
      acoes: abertas (atrasadas incluídas), atrasadas, feitas30 (concluídas nos
        últimos 30 dias);
      responsaveis: média de cada um (só os que têm perguntas);
      faixas: os serviços pela nota da sua última auditoria. */
-function kpisPainel5s(lista,svcs,fq,hoje){
+function kpisPainel5s(lista,hoje){
   const todas=[...(lista||[])].sort(ordemCron);
   const d30=somarDias(hoje,-29),d60=somarDias(hoje,-59);
   const ult=todas.filter(a=>a.date>=d30&&a.date<=hoje),ant=todas.filter(a=>a.date>=d60&&a.date<d30);
@@ -5093,10 +5102,6 @@ function kpisPainel5s(lista,svcs,fq,hoje){
     const mes=d.toISOString().slice(0,7),l=todas.filter(a=>String(a.date).slice(0,7)===mes);
     porMes.push({mes,media:l.length?avg(l.map(total)):null,n:l.length});
   }
-  const estados=prazosServicos(svcs,todas,fq,hoje);
-  const conta=e=>estados.filter(x=>x.estado===e).length;
-  const urgentes=estados.filter(x=>x.estado==="atrasado"||x.estado==="nunca")
-    .map(x=>({nome:x.svc,dias:x.estado==="atrasado"?-x.falta:null}));
   const acoes={abertas:0,atrasadas:0,feitas30:0};
   todas.forEach(a=>(Array.isArray(a.acoes)?a.acoes:[]).forEach(ac=>{
     if(!ac)return;
@@ -5114,10 +5119,9 @@ function kpisPainel5s(lista,svcs,fq,hoje){
     media30:ult.length?avg(ult.map(total)):null,n30:ult.length,
     media30Ant:ant.length?avg(ant.map(total)):null,n30Ant:ant.length,
     porMes,
-    prazos:{emDia:conta("em-dia"),aVencer:conta("a-vencer"),atrasados:conta("atrasado"),nunca:conta("nunca")},
-    urgentes:urgentes.slice(0,20),acoes,responsaveis,faixas};
+    acoes,responsaveis,faixas};
 }
-/* `extra` ({servicos, freqs, hoje}): com ele, os KPIs vão em `kpis` (v3.17.0). */
+/* `extra` ({servicos, tipos, objetivos, hoje}): com ele, os KPIs vão em `kpis` (v3.17.0). */
 function dadosPainel5s(lista,extra){
   const todas=[...lista].sort((a,b)=>a.date.localeCompare(b.date)||(Number(a.id)||0)-(Number(b.id)||0));
   const porSvc=new Map();
@@ -5132,16 +5136,28 @@ function dadosPainel5s(lista,extra){
     ultima:todas.length?todas[todas.length-1].date:null,
     pilares:PILLARS.map((p,i)=>({nome:p,pct:todas.length?avg(todas.map(a=>(typeof metricas==="function"?metricas(a).pilar:byPillar(a))[i].pct)):null})),
     servicos,
-    kpis:extra&&extra.hoje?kpisPainel5s(lista,extra.servicos,extra.freqs,extra.hoje):undefined
+    kpis:extra&&extra.hoje?Object.assign(kpisPainel5s(lista,extra.hoje),
+      {anual:anualPainel5s(lista,extra)}):undefined
   };
+}
+/* v4.0.0: os indicadores do ano corrente, para o painel (campo `kpis.anual`,
+   novo: os campos de antes não mudam). */
+function anualPainel5s(lista,extra){
+  const k=kpisAnuais(lista,extra.servicos,extra.tipos,extra.objetivos,Number(extra.hoje.slice(0,4)),extra.hoje),p=k.plano;
+  const g=x=>({total:x.total,auditados:x.auditados});
+  return{ano:k.ano,n:k.n,media:k.media,
+    abaixo:k.abaixo.slice(0,10).map(x=>({nome:x.service,media:x.media,n:x.n})),
+    objetivo:p.objetivo||null,pct:p.pct,esperado:p.esperado,desvio:p.desvio,estado:p.estado,
+    mediaSemanal:p.mediaSemanal,objetivoSemanal:p.objetivoSemanal,projecao:p.projecao,
+    internos:g(k.tipos.interno),externos:g(k.tipos.externo)};
 }
 
 const painel=criarEscritorPainel({app:"5s",titulo:"Auditoria 5S",versaoApp:APP_VERSION});
 let painelTimer=null;
 /* Agrupa gravações seguidas (a importação grava várias chaves de uma vez). */
-const dadosDoPainel=()=>dadosPainel5s(audits,{servicos:services,freqs,hoje:hojeISO()});
+const dadosDoPainel=()=>dadosPainel5s(audits,{servicos:services,tipos,objetivos,hoje:hojeISO()});
 function agendarPainel(){clearTimeout(painelTimer);painelTimer=setTimeout(()=>painel.escrever(dadosDoPainel()),2000);}
-/* v3.17.0: os prazos e os «últimos 30 dias» mudam com o dia, sem mudar os dados.
+/* v3.17.0: os «últimos 30 dias» (e o plano do ano) mudam com o dia, sem mudar os dados.
    De hora a hora volta a calcular; o escritor só grava se algo mudou. */
 setInterval(()=>painel.escrever(dadosDoPainel()),36e5);
 function mostrarPainel(i){
@@ -5189,6 +5205,9 @@ on("ac-estado","change",e=>{acFiltro.estado=e.target.value;acMostrar=AC_PAGINA;r
 on("ac-r","change",e=>{acFiltro.r=e.target.value;acMostrar=AC_PAGINA;renderAcoes();});
 on("ac-svc","change",e=>{acFiltro.svc=e.target.value;acMostrar=AC_PAGINA;renderAcoes();});
 on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(m)openMensal(m);});
+on("an-ano","change",e=>{anoKpis=parseInt(e.target.value,10)||0;renderKpis();});
+on("obj-ano","change",e=>{anoObjetivo=parseInt(e.target.value,10)||0;renderObjetivo();});
+on("obj-n","change",()=>gravarObjetivo());
 on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
 on("f-service","change",()=>mostrarAnteriores());
 on("btn-impjson","click",()=>document.getElementById("hist-file").click());
@@ -5379,7 +5398,7 @@ window.addEventListener("beforeunload",e=>{
 
 renderForm();
 ligarRotulos();
-atualizarPrazos();
+atualizarBadgeAcoes();
 mostrarAvisoBackup();
 iniciarContagemFotos();
 pedirPersistencia();

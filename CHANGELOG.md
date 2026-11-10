@@ -5,6 +5,46 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.0.0] — 2026-11-09
+
+Versão maior: saem a frequência das auditorias e o email de cada serviço, e o
+`5s.painel.json` deixa de ter os `prazos` e os `urgentes`.
+
+### Adicionado
+
+- **Indicadores do ano**, no topo da *Análise*, de todos os serviços, no ano
+  escolhido:
+  - **Média total** das auditorias do ano, e os **serviços abaixo da média**,
+    do pior para o melhor, com as acções em aberto e o botão *Plano de acção*,
+    que abre o relatório da última auditoria ao serviço.
+  - **Objectivo anual** do número de auditorias: feitas face ao objectivo,
+    **média semanal** (e a que o objectivo pede), e **como estamos face ao
+    plano** (adiantados ou atrasados face às que já deviam estar feitas), com
+    a projecção ao ritmo actual e o ritmo semanal para cumprir.
+  - **Serviços internos e externos auditados** no ano face ao número de
+    serviços internos e externos, com os que faltam.
+- **Tipo de cada serviço** (Interno ou Externo), em *Config → Serviços*.
+- **Objectivo anual de auditorias**, por ano, num cartão novo da *Config*.
+- O tipo e o objectivo vão na cópia de segurança e no ficheiro para o
+  telemóvel (`tipoSvc`, `objAud`), e no `5s.painel.json` (`kpis.anual`).
+- Testes: `tests/indicadores.test.js` e `tests/smoke-indicadores.mjs` (no CI,
+  em vez de `smoke-prazos`).
+
+### Removido
+
+- **Frequência das auditorias** (3.13.0): o cartão *Frequência das auditorias
+  e email* da *Config*, os prazos no Histórico e o número no separador, o aviso
+  ao escolher o serviço, os prazos no relatório mensal, e os `prazos` e os
+  `urgentes` dos KPIs do painel e-ink.
+- **Email de cada serviço** (3.26.0): o *Enviar por email* abre sem
+  destinatário, como antes de 3.26.0.
+- As chaves `freqAud` e `emailsSvc` gravadas, ou num ficheiro de uma versão
+  anterior, são ignoradas.
+
+### Alterado
+
+- *Config → Serviços* passa a uma linha por serviço, com o tipo e o ×.
+
 ## [3.27.0] — 2026-11-09
 
 ### Alterado
