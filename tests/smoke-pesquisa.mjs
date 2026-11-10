@@ -99,6 +99,21 @@ const tipos = await pg.evaluate(() => JSON.parse(localStorage.getItem("tipoSvc")
 check(JSON.stringify(tipos) === JSON.stringify([{ s: "teste 2 (teste2)", t: "i" }, { s: "teste 3 (teste3)", t: "i" }, { s: "teste 4 (teste4)", t: "e" }]),
   "o local dá o tipo: " + JSON.stringify(tipos));
 
+/* ---- 3b. 4.2.2: na Config, o tipo vindo do Excel lê-se, não se escolhe; e
+   importar de novo actualiza-o. ---- */
+check(await pg.locator("#svc-list [data-tipo-fixo]").count() === 3, "os 3 com tipo mostram-no só para ler");
+check(await pg.locator("#svc-list select[data-tipo]").count() === 2, "os 2 sem tipo têm a caixa");
+check(/Externo/.test(await pg.locator("[data-tipo-fixo='4']").textContent()), "teste4 é Externo");
+const csv2 = path.join(os.tmpdir(), "5s-listagem-servicos-2.csv");
+fs.writeFileSync(csv2, "ID_SERVICO,DESCRICAO_SERVICO,LOCAL_SERVICO,SERVICO_ATIVO\nteste4,teste 4,Interno,TRUE\n");
+await pg.locator("#xl-file").setInputFiles(csv2);
+await pg.waitForFunction(() => JSON.parse(localStorage.getItem("tipoSvc") || "[]").some(f => f.s === "teste 4 (teste4)" && f.t === "i"), null, { timeout: 15000 }).catch(() => {});
+await semDialogo(pg);
+fs.unlinkSync(csv2);
+check(/Interno/.test(await pg.locator("[data-tipo-fixo='4']").textContent()), "o Excel novo muda o tipo de teste4 para Interno");
+await pg.locator("[data-tipo='0']").selectOption("e");
+check(await pg.locator("[data-tipo-fixo='0']").count() === 1, "escolhido à mão, passa a ler-se");
+
 /* ---- 4. E pesquisam-se logo no Auditar. ---- */
 await pg.locator("[data-v=audit]").click();
 await busca.fill("teste4");
