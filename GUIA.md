@@ -275,7 +275,9 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 ## Configuração
 
 - **Serviços** — a lista, e o **tipo** de cada um (Interno ou Externo), para os
-  [indicadores do ano](#indicadores-do-ano). Remover um serviço ou uma pessoa
+  [indicadores do ano](#indicadores-do-ano). O tipo vem do Excel (`LOCAL_SERVICO`)
+  e lê-se ao lado do serviço; para o mudar, importe de novo o Excel corrigido.
+  Só os serviços sem tipo mostram a caixa para o escolher. Remover um serviço ou uma pessoa
   mostra **Desfazer** no fundo do ecrã durante 10 segundos.
 - **Objectivo anual de auditorias** — quantas auditorias fazer em cada ano, de
   todos os serviços. Escolha o ano e escreva o número; apague-o para ficar sem

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.2.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -260,6 +260,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .svc-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
 .svc-row>span{flex:1 1 auto;font-size:.85rem;font-weight:700;min-width:0;overflow-wrap:anywhere}
 .svc-row select{flex:0 0 auto;width:auto;margin:0}
+.svc-row .svc-tipo{flex:0 0 auto;font-size:.78rem;font-weight:700;color:var(--muted);padding:0 4px}
 .svc-row .ed-x{border:0;background:var(--red);color:#fff;border-radius:50%;width:24px;height:24px;cursor:pointer;font-weight:900;flex:0 0 auto}
 /* v4.0.0: indicadores do ano. */
 .kpi-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
@@ -593,7 +594,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   <div class="card">
     <h3 style="margin-bottom:4px">Serviços</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">O <b>tipo</b> (interno ou externo) conta nos
-      indicadores do ano, na Análise.</p>
+      indicadores do ano, na Análise. Vem do Excel (coluna <i>LOCAL_SERVICO</i>), em <i>Importar Excel</i>: importar
+      de novo actualiza-o. Num serviço sem tipo, escolha-o aqui.</p>
     <div id="svc-list"></div>
     <div class="row"><input id="svc-new" placeholder="Novo serviço (ex.: Serviço A 00001)">
     <button class="btn small ghost" id="btn-addsvc">Adicionar</button></div>
@@ -1331,7 +1333,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.2.1";
+const APP_VERSION="4.2.2";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -3840,10 +3842,13 @@ function gravarObjetivo(){
 /* ---------- Config ---------- */
 function renderCfg(){
   const svcBox=document.getElementById("svc-list");
-  /* v4.0.0: uma linha por serviço, com o tipo (interno ou externo). */
+  /* v4.0.0: uma linha por serviço, com o tipo (interno ou externo).
+     v4.2.2: o tipo vem do Excel (LOCAL_SERVICO) e mostra-se só para ler; a
+     caixa para o escolher aparece apenas nos serviços que ainda não o têm. */
   svcBox.innerHTML=services.length?services.map((s,i)=>{const tp=tipoDe(tipos,s);
-    return`<div class="svc-row"><span>${esc(s)}</span><select data-tipo="${i}" aria-label="Tipo de ${esc(s)}">
-      ${TIPOS_SVC.map(([v,t])=>`<option value="${v}"${v===tp?" selected":""}>${esc(t)}</option>`).join("")}</select>
+    return`<div class="svc-row"><span>${esc(s)}</span>`+(tp?`<span class="svc-tipo" data-tipo-fixo="${i}">${tp==="i"?"Interno":"Externo"}</span>`:
+      `<select data-tipo="${i}" aria-label="Tipo de ${esc(s)}">
+      ${TIPOS_SVC.map(([v,t])=>`<option value="${v}">${esc(t)}</option>`).join("")}</select>`)+`
       <button class="ed-x" data-rmsvc="${i}" aria-label="Remover o serviço ${esc(s)}">×</button></div>`;}).join("")
     :`<p class="empty" style="padding:8px">Sem serviços.</p>`;
   svcBox.querySelectorAll("[data-rmsvc]").forEach(b=>b.onclick=()=>rmSvc(+b.dataset.rmsvc));
@@ -3851,7 +3856,8 @@ function renderCfg(){
     const sv=services[+el.dataset.tipo],t=el.value;
     const antes=tipos;
     tipos=sanitizeTipos(tipos.filter(f=>f.s!==sv).concat(t?[{s:sv,t}]:[]));
-    if(!save("tipoSvc",tipos))tipos=antes;
+    if(!save("tipoSvc",tipos)){tipos=antes;return;}
+    renderCfg();
   });
   const pplBox=document.getElementById("xl-people");
   pplBox.innerHTML=people.length?
@@ -4264,16 +4270,16 @@ function importExcel(inp){
       const uniq=a=>[...new Set(a.filter(Boolean))];
       const addSvcs=uniq(newSvc).filter(s=>!services.includes(s));
       const addPpl=uniq(newPpl).filter(p=>!people.includes(p));
-      /* O tipo do ficheiro vale para os serviços novos e para os que ainda não
-         têm tipo; o que já foi escolhido na app fica. */
-      const addTipos=sanitizeTipos(tiposFich).filter(f=>!tipos.some(g=>g.s===f.s));
+      /* v4.2.2: o tipo do ficheiro manda: vale para os serviços novos, para os
+         que ainda não têm tipo e substitui o que lá estiver, se for outro. */
+      const addTipos=sanitizeTipos(tiposFich).filter(f=>tipoDe(tipos,f.s)!==f.t);
       const semInat=inativos?` (${inativos} inactivo(s) ficam de fora)`:"";
       if(!addSvcs.length&&!addPpl.length&&!addTipos.length){aviso("Nada de novo para importar"+semInat+". Verifique os nomes das folhas (Serviços / Repositor / Picking) e das colunas (Código, Descrição, Nome).");return;}
       if(!(await confirmar(`Importar ${addSvcs.length} serviço(s) e ${addPpl.length} repositor(es)/picking`+
         (addTipos.length?`, com o tipo (interno/externo) de ${addTipos.length} serviço(s)`:"")+semInat+"?",{sim:"Importar"})))return;
       services=services.concat(addSvcs);save("services",services);
       people=people.concat(addPpl);save("people",people);
-      if(addTipos.length){tipos=sanitizeTipos(tipos.concat(addTipos));save("tipoSvc",tipos);}
+      if(addTipos.length){tipos=sanitizeTipos(addTipos.concat(tipos.filter(f=>!addTipos.some(g=>g.s===f.s))));save("tipoSvc",tipos);}
       renderCfg();renderForm();
       aviso(`Importação concluída: ${addSvcs.length} serviço(s), ${addPpl.length} pessoa(s)`+(addTipos.length?`, ${addTipos.length} tipo(s)`:"")+".");
     };
