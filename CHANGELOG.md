@@ -5,6 +5,15 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.9] — 2026-11-11
+
+### Corrigido
+
+- **PDF: o resultado subia para cima do nome da auditoria.** No cabeçalho do
+  relatório em PDF, o «91/100» ficava colado ou por cima da linha «Auditoria
+  5S · serviço · data». Agora fica ao centro, com o mesmo espaço em cima (até
+  ao nome) e em baixo (até à classificação). Só muda o PDF; o ecrã fica igual.
+
 ## [4.2.8] — 2026-11-11
 
 ### Alterado
