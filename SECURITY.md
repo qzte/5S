@@ -13,7 +13,7 @@ Quatro revisões, por ordem inversa:
 - **[Nota de 3.11.0](#nota-de-3110-2026-11-06-sheetjs-em-ficheiro-próprio)** — o SheetJS sai do `index.html` e passa a ser carregado com SRI.
 - **[Nota de 3.10.0](#nota-de-3100-2026-11-06-csp-por-hashes)** — a versão publicada deixa de ter `'unsafe-inline'` no `script-src` (ponto 11).
 - **[Nota de 3.9.0](#nota-de-390-2026-11-06-fotos-em-indexeddb)** — as fotos das recomendações passam a ser guardadas.
-- **[Nota de 3.7.0](#nota-de-370-2026-11-06-cloudflare-pages)** — a mudança para o Cloudflare Pages fecha os pontos 4, 9 e 21.
+- **[Nota de 3.7.0](#nota-de-370-2026-11-06-alojamento-próprio)** — a mudança para um alojamento próprio fecha os pontos 4, 9 e 21.
 - **[Revisão de 3.6.0](#revisão-de-360-2026-11-06)** — correcções em 3.6.1.
 - **[Revisão de 3.5.0](#revisão-de-350-2026-08-04)** — correcções em 3.5.1 e 3.5.2.
 - **[Revisão de 3.1.0](#revisão-de-310-2026-07-31)** — correcções em 3.1.1 e 3.1.2.
@@ -73,7 +73,7 @@ partilha (3.24.0) — e, de novo, todas as interpolações em
 `innerHTML`/`insertAdjacentHTML` (as `${…}` sem `esc()` foram listadas uma a
 uma: são números calculados, índices ou HTML já montado por funções que
 escapam). O modelo de ameaça é o da primeira revisão: app estática, sem
-servidor, origem própria (`auditoria-5s.pages.dev`) desde 3.7.0.
+servidor, origem própria desde 3.7.0.
 
 ## Resumo
 
@@ -88,7 +88,7 @@ servidor, origem própria (`auditoria-5s.pages.dev`) desde 3.7.0.
 | Categoria | Aplica-se? | Como está |
 | --- | --- | --- |
 | A01 Controlo de acessos | Só em parte | Não há utilizadores nem servidor. O código de acesso trava o gesto distraído, **não** é um controlo (ponto 10, nota de 3.19.0). Os dados estão isolados por origem, que é só desta app (ponto 9, fechado). |
-| A02 Falhas criptográficas | Só em parte | Não há dados em trânsito (`connect-src 'self'`, HTTPS do Cloudflare). O código próprio guarda-se como sal de 96 bits (`crypto.getRandomValues`) e resumo cyrb53; com 4 a 8 algarismos é adivinhável por tentativas, e isso está assumido. Os dados no dispositivo não são cifrados: quem tem o dispositivo desbloqueado tem os dados. |
+| A02 Falhas criptográficas | Só em parte | Não há dados em trânsito (`connect-src 'self'`, HTTPS do alojamento). O código próprio guarda-se como sal de 96 bits (`crypto.getRandomValues`) e resumo cyrb53; com 4 a 8 algarismos é adivinhável por tentativas, e isso está assumido. Os dados no dispositivo não são cifrados: quem tem o dispositivo desbloqueado tem os dados. |
 | A03 Injecção (XSS) | **Sim** | `esc()` em toda a interpolação de texto; nenhum `eval`, `new Function`, `document.write`, `srcdoc` ou handler inline; CSP por hashes na versão publicada. **Uma excepção: o ponto 25.** O `mailto:` usa `encodeURIComponent` no assunto e no corpo; o nome do ficheiro do PDF tira os caracteres de caminho. A exportação Excel escreve células de texto (`json_to_sheet`), que o Excel não avalia como fórmula. |
 | A04 Desenho inseguro | Só em parte | Portas únicas de entrada (`sanitizeAudit`, `sanitizeItems`, `sanitizeResps`, `sanitizeAcoes`, `sanitizeEnvios`, `fotosParaImportar`), tectos de tamanho, e o «Substituir tudo» com confirmação, código e cópia antes. **O ponto 26** era um buraco nesta porta. |
 | A05 Má configuração | **Sim** | Sem o `_headers` (3.23.0), `frame-ancestors`, `X-Frame-Options` e `nosniff` não chegam ao browser; o clickjacking fica mitigado pela guarda em JS (ponto 4). Recomenda-se repor os cabeçalhos se o alojamento o permitir. O `publicar.sh` publica só os ficheiros da app. |
@@ -234,7 +234,7 @@ auditoria por finalizar ainda não é histórico fechado.
 
 ## Nota de 3.23.0 (2026-11-08): sem _headers, e PDF criado pela app
 
-O `_headers` (cabeçalhos HTTP do Cloudflare Pages: a CSP, `X-Frame-Options:
+O `_headers` (cabeçalhos HTTP do alojamento: a CSP, `X-Frame-Options:
 DENY`, `nosniff`, `no-referrer` e o `no-cache` do service worker) foi retirado
 do repositório e da publicação. A CSP continua no `<meta>`, com os hashes de
 cada `<script>` na versão publicada; o que se perde é o que só um cabeçalho
@@ -335,7 +335,7 @@ memória. Desde 3.9.0 são guardadas no IndexedDB da origem (base
 - O que se lê do IndexedDB só chega ao `src` de uma imagem se for texto
   começado por `data:image/` (`carregarFotos()`): outra página da mesma origem
   que lá escrevesse outra coisa não consegue pôr um URL arbitrário no relatório.
-  Desde 3.7.0 a origem é só desta app (`auditoria-5s.pages.dev`).
+  Desde 3.7.0 a origem é só desta app.
 - Apagar uma auditoria apaga as fotos dela. *Substituir* na importação apaga as
   das auditorias que deixaram de existir, mas só depois de a lista nova estar
   gravada; no arranque nada é apagado, para que um `localStorage` ilegível não
@@ -344,11 +344,10 @@ memória. Desde 3.9.0 são guardadas no IndexedDB da origem (base
 O código de acesso passa a ser pedido numa caixa `<dialog>` própria, com campo
 de palavra-passe. Continua a **não** ser um controlo de segurança (ponto 10).
 
-## Nota de 3.7.0 (2026-11-06): Cloudflare Pages
+## Nota de 3.7.0 (2026-11-06): alojamento próprio
 
 O GitHub Pages deixou de publicar a app quando o repositório passou a privado,
-e a 3.7.0 passa a publicá-la no Cloudflare Pages, em endereço próprio
-(`auditoria-5s.pages.dev`). Três pontos das revisões anteriores, todos
+e a 3.7.0 passa a publicá-la num alojamento com endereço próprio. Três pontos das revisões anteriores, todos
 aceites ou só mitigados por falta de controlo sobre o alojamento, mudam de
 estado:
 
@@ -361,7 +360,7 @@ estado:
 E dois controlos novos:
 
 - **`scripts/publicar.sh`** publica só os ficheiros da app. Sem ele o
-  Cloudflare publicaria o repositório inteiro, testes e documentação incluídos.
+  alojamento publicaria o repositório inteiro, testes e documentação incluídos.
   `tests/publicacao.test.js` verifica que a lista é a da cache do service
   worker, e que a CSP do `_headers` é igual à do `<meta>`.
 - **O service worker cai na cópia em cache quando o servidor responde com
