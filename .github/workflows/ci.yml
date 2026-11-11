@@ -64,8 +64,8 @@ jobs:
 
   # 3.10.0: lint do JavaScript embutido no index.html. O ESLint vive em
   # tools/lint, com o seu package.json e lockfile: a app continua sem
-  # dependências, e na raiz não há package.json (o Cloudflare Pages
-  # instalaria dependências em cada publicação).
+  # dependências, e na raiz não há package.json (um alojamento com
+  # passo de build instalaria dependências em cada publicação).
   lint:
     name: Lint (ESLint)
     runs-on: ubuntu-latest

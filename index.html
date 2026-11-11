@@ -39,9 +39,9 @@
 /* ---------- Guarda contra clickjacking (v3.1.2) ----------
    A directiva frame-ancestors da CSP acima é IGNORADA pelos browsers quando a
    política vem por <meta>: só vale em cabeçalho HTTP, que o GitHub Pages não
-   permitia definir. Desde 3.7.0 a app é publicada no Cloudflare Pages, que envia
+   permitia definir. De 3.7.0 a 3.22.0 a app foi publicada num alojamento que enviava
    a CSP (com frame-ancestors) e X-Frame-Options em cabeçalho — ver _headers —,
-   e o browser recusa a moldura antes de este código correr. A guarda fica para
+   e o browser recusava a moldura antes de este código correr. A guarda fica para
    quem sirva a app de outro lado sem esses cabeçalhos.
 
    Não se tenta sair da moldura com top.location: entre origens o browser
