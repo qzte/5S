@@ -1,0 +1,30 @@
+"""Gera o JSON de importação a partir das leituras dos PDFs (página 1).
+Cada auditoria: respostas por item da app (n) -> (valor, classificação 0/1/2, target)."""
+import json, csv
+M,O,E=0,1,2
+NOMES={1:"Artigos extra acordo",2:"Artigos inactivos",3:"Kanbans quantidades excessivas (amostra)",
+4:"Estantes c/ dificuldade reabastecimento",5:"Artigos sem etiqueta de posição",6:"Estantes sem identificação visual",
+7:"Kanbans vazios mal arrumados",8:"Artigos em rutura mal identificados",9:"Prateleiras danificadas",
+10:"Kanbans/caixas mau estado",11:"Caixas sujas",12:"Temperatura (0-2)",13:"Espaço arrumado e limpo (0-2)",
+14:"Caixas não adaptadas",15:"Norma de picking/elementos (0-4)",16:"Artigos fora da localização Index",
+17:"Norma de picking não respeitada",18:"Norma de reposição (amostra)",19:"Kanbans fora de validade (amostra)"}
+# ID, serviço, taxa no PDF, {n:(valor,class,target)}; itens omitidos = (0,Excelente)
+LEIT=[
+ (83,"TIM - Cardiologia (20704)","84,75%",{12:(0,M),15:(3,O),5:(1,O),6:(1,O),13:(2,E),3:(0,E,7),18:(0,E,1),19:(0,E,7)}),
+ (84,"Medicina F (14F)","76,25%",{12:(0,M),3:(5,M,30),17:(1,O),8:(1,O),2:(1,O),19:(1,O,30),15:(4,E),18:(0,E,10),13:(2,E)}),
+ (85,"Cirurgia C (11C)","73,75%",{16:(1,O),17:(1,O),8:(1,O),1:(2,O),4:(1,O),3:(2,O,30),13:(1,O),19:(1,O,30),15:(4,E),12:(2,E),18:(0,E,16)}),
+ (86,"VMER (VMER)","82,75%",{12:(0,M),3:(4,M,30),17:(1,O),19:(1,O,20),15:(4,E),18:(0,E,6),13:(2,E)}),
+ (87,"Unidade Medicina Hiperbárica (23UMH)","84,75%",{19:(2,M,20),15:(2,O),1:(2,O),3:(3,O,30),12:(2,E),18:(0,E,4),13:(2,E)}),
+ (88,"ACES - USF Godinho de Faria (127313)","86,75%",{16:(1,O),17:(1,O),8:(1,O),3:(3,O,20),15:(4,E),12:(2,E),18:(0,E,10),13:(2,E),19:(0,E,20)}),
+]
+audits=[];linhas=[]
+for pid,svc,taxa,r in LEIT:
+    it=[(r.get(n,(0,E))+(None,))[:3] for n in range(1,20)]
+    audits.append({"id":2026000000+pid,"service":svc,"date":"2026-01-01","note":f"Importada de PDF (ID{pid})",
+      "scores":[x[1] for x in it],"raw":[x[0] for x in it],"tgts":[x[2] for x in it]})
+    for n,x in enumerate(it,1):
+        linhas.append([pid,svc,taxa,n,NOMES[n],x[0],x[2] or "",["Mau","Com Oportunidade","Excelente"][x[1]]])
+json.dump({"app":"auditoria5s","version":"4.2.9","exportedAt":"2026-11-11T00:00:00Z","audits":audits,
+  "services":[a["service"] for a in audits],"people":[]},open("auditorias-pdf.json","w"),ensure_ascii=False,indent=1)
+with open("conferencia.csv","w",newline="",encoding="utf-8-sig") as f:
+    w=csv.writer(f,delimiter=";");w.writerow(["ID PDF","Serviço","Taxa PDF","Item app","Pergunta","Valor","Target","Classificação"]);w.writerows(linhas)

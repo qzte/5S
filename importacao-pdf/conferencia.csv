@@ -1,0 +1,115 @@
+﻿ID PDF;Serviço;Taxa PDF;Item app;Pergunta;Valor;Target;Classificação
+83;TIM - Cardiologia (20704);84,75%;1;Artigos extra acordo;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;2;Artigos inactivos;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;3;Kanbans quantidades excessivas (amostra);0;7;Excelente
+83;TIM - Cardiologia (20704);84,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;5;Artigos sem etiqueta de posição;1;;Com Oportunidade
+83;TIM - Cardiologia (20704);84,75%;6;Estantes sem identificação visual;1;;Com Oportunidade
+83;TIM - Cardiologia (20704);84,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;8;Artigos em rutura mal identificados;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;9;Prateleiras danificadas;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;10;Kanbans/caixas mau estado;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;11;Caixas sujas;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;12;Temperatura (0-2);0;;Mau
+83;TIM - Cardiologia (20704);84,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+83;TIM - Cardiologia (20704);84,75%;14;Caixas não adaptadas;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;15;Norma de picking/elementos (0-4);3;;Com Oportunidade
+83;TIM - Cardiologia (20704);84,75%;16;Artigos fora da localização Index;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;17;Norma de picking não respeitada;0;;Excelente
+83;TIM - Cardiologia (20704);84,75%;18;Norma de reposição (amostra);0;1;Excelente
+83;TIM - Cardiologia (20704);84,75%;19;Kanbans fora de validade (amostra);0;7;Excelente
+84;Medicina F (14F);76,25%;1;Artigos extra acordo;0;;Excelente
+84;Medicina F (14F);76,25%;2;Artigos inactivos;1;;Com Oportunidade
+84;Medicina F (14F);76,25%;3;Kanbans quantidades excessivas (amostra);5;30;Mau
+84;Medicina F (14F);76,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+84;Medicina F (14F);76,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+84;Medicina F (14F);76,25%;6;Estantes sem identificação visual;0;;Excelente
+84;Medicina F (14F);76,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+84;Medicina F (14F);76,25%;8;Artigos em rutura mal identificados;1;;Com Oportunidade
+84;Medicina F (14F);76,25%;9;Prateleiras danificadas;0;;Excelente
+84;Medicina F (14F);76,25%;10;Kanbans/caixas mau estado;0;;Excelente
+84;Medicina F (14F);76,25%;11;Caixas sujas;0;;Excelente
+84;Medicina F (14F);76,25%;12;Temperatura (0-2);0;;Mau
+84;Medicina F (14F);76,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+84;Medicina F (14F);76,25%;14;Caixas não adaptadas;0;;Excelente
+84;Medicina F (14F);76,25%;15;Norma de picking/elementos (0-4);4;;Excelente
+84;Medicina F (14F);76,25%;16;Artigos fora da localização Index;0;;Excelente
+84;Medicina F (14F);76,25%;17;Norma de picking não respeitada;1;;Com Oportunidade
+84;Medicina F (14F);76,25%;18;Norma de reposição (amostra);0;10;Excelente
+84;Medicina F (14F);76,25%;19;Kanbans fora de validade (amostra);1;30;Com Oportunidade
+85;Cirurgia C (11C);73,75%;1;Artigos extra acordo;2;;Com Oportunidade
+85;Cirurgia C (11C);73,75%;2;Artigos inactivos;0;;Excelente
+85;Cirurgia C (11C);73,75%;3;Kanbans quantidades excessivas (amostra);2;30;Com Oportunidade
+85;Cirurgia C (11C);73,75%;4;Estantes c/ dificuldade reabastecimento;1;;Com Oportunidade
+85;Cirurgia C (11C);73,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+85;Cirurgia C (11C);73,75%;6;Estantes sem identificação visual;0;;Excelente
+85;Cirurgia C (11C);73,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+85;Cirurgia C (11C);73,75%;8;Artigos em rutura mal identificados;1;;Com Oportunidade
+85;Cirurgia C (11C);73,75%;9;Prateleiras danificadas;0;;Excelente
+85;Cirurgia C (11C);73,75%;10;Kanbans/caixas mau estado;0;;Excelente
+85;Cirurgia C (11C);73,75%;11;Caixas sujas;0;;Excelente
+85;Cirurgia C (11C);73,75%;12;Temperatura (0-2);2;;Excelente
+85;Cirurgia C (11C);73,75%;13;Espaço arrumado e limpo (0-2);1;;Com Oportunidade
+85;Cirurgia C (11C);73,75%;14;Caixas não adaptadas;0;;Excelente
+85;Cirurgia C (11C);73,75%;15;Norma de picking/elementos (0-4);4;;Excelente
+85;Cirurgia C (11C);73,75%;16;Artigos fora da localização Index;1;;Com Oportunidade
+85;Cirurgia C (11C);73,75%;17;Norma de picking não respeitada;1;;Com Oportunidade
+85;Cirurgia C (11C);73,75%;18;Norma de reposição (amostra);0;16;Excelente
+85;Cirurgia C (11C);73,75%;19;Kanbans fora de validade (amostra);1;30;Com Oportunidade
+86;VMER (VMER);82,75%;1;Artigos extra acordo;0;;Excelente
+86;VMER (VMER);82,75%;2;Artigos inactivos;0;;Excelente
+86;VMER (VMER);82,75%;3;Kanbans quantidades excessivas (amostra);4;30;Mau
+86;VMER (VMER);82,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+86;VMER (VMER);82,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+86;VMER (VMER);82,75%;6;Estantes sem identificação visual;0;;Excelente
+86;VMER (VMER);82,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+86;VMER (VMER);82,75%;8;Artigos em rutura mal identificados;0;;Excelente
+86;VMER (VMER);82,75%;9;Prateleiras danificadas;0;;Excelente
+86;VMER (VMER);82,75%;10;Kanbans/caixas mau estado;0;;Excelente
+86;VMER (VMER);82,75%;11;Caixas sujas;0;;Excelente
+86;VMER (VMER);82,75%;12;Temperatura (0-2);0;;Mau
+86;VMER (VMER);82,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+86;VMER (VMER);82,75%;14;Caixas não adaptadas;0;;Excelente
+86;VMER (VMER);82,75%;15;Norma de picking/elementos (0-4);4;;Excelente
+86;VMER (VMER);82,75%;16;Artigos fora da localização Index;0;;Excelente
+86;VMER (VMER);82,75%;17;Norma de picking não respeitada;1;;Com Oportunidade
+86;VMER (VMER);82,75%;18;Norma de reposição (amostra);0;6;Excelente
+86;VMER (VMER);82,75%;19;Kanbans fora de validade (amostra);1;20;Com Oportunidade
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;1;Artigos extra acordo;2;;Com Oportunidade
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;2;Artigos inactivos;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;3;Kanbans quantidades excessivas (amostra);3;30;Com Oportunidade
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;6;Estantes sem identificação visual;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;8;Artigos em rutura mal identificados;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;9;Prateleiras danificadas;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;10;Kanbans/caixas mau estado;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;11;Caixas sujas;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;12;Temperatura (0-2);2;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;14;Caixas não adaptadas;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;15;Norma de picking/elementos (0-4);2;;Com Oportunidade
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;16;Artigos fora da localização Index;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;17;Norma de picking não respeitada;0;;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;18;Norma de reposição (amostra);0;4;Excelente
+87;Unidade Medicina Hiperbárica (23UMH);84,75%;19;Kanbans fora de validade (amostra);2;20;Mau
+88;ACES - USF Godinho de Faria (127313);86,75%;1;Artigos extra acordo;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;2;Artigos inactivos;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;3;Kanbans quantidades excessivas (amostra);3;20;Com Oportunidade
+88;ACES - USF Godinho de Faria (127313);86,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;6;Estantes sem identificação visual;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;8;Artigos em rutura mal identificados;1;;Com Oportunidade
+88;ACES - USF Godinho de Faria (127313);86,75%;9;Prateleiras danificadas;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;10;Kanbans/caixas mau estado;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;11;Caixas sujas;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;12;Temperatura (0-2);2;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;14;Caixas não adaptadas;0;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;15;Norma de picking/elementos (0-4);4;;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;16;Artigos fora da localização Index;1;;Com Oportunidade
+88;ACES - USF Godinho de Faria (127313);86,75%;17;Norma de picking não respeitada;1;;Com Oportunidade
+88;ACES - USF Godinho de Faria (127313);86,75%;18;Norma de reposição (amostra);0;10;Excelente
+88;ACES - USF Godinho de Faria (127313);86,75%;19;Kanbans fora de validade (amostra);0;20;Excelente
