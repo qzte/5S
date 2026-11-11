@@ -5,6 +5,18 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.3.0] — 2026-11-11
+
+### Adicionado
+
+- **Escolher a pasta ao exportar.** No Chrome e no Edge do computador, todas
+  as exportações (PDF do relatório, cópias de segurança JSON, perguntas,
+  Excel e o ficheiro para o PC) abrem a janela «Guardar como», para escolher
+  a pasta e o nome do ficheiro. Se a janela for fechada sem guardar, a
+  exportação não fica registada (o PDF não conta como enviado, a cópia não
+  conta como feita). Nos outros browsers (Firefox, Safari, telemóvel), o
+  ficheiro continua a ir para as Transferências.
+
 ## [4.2.9] — 2026-11-11
 
 ### Corrigido
