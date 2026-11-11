@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.2.8 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.9 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1343,7 +1343,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.2.8";
+const APP_VERSION="4.2.9";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4091,6 +4091,18 @@ function svgParaImagem(doc){
     svg.replaceWith(img);
   });
 }
+/* v4.2.9: no PDF, o resultado (91/100) subia para cima do nome da auditoria.
+   Com line-height:1, o html2canvas desenha os algarismos grandes acima da
+   caixa da linha, sobretudo quando a letra do dispositivo é outra. Na cópia,
+   a linha do resultado ganha altura e o mesmo espaço em cima e em baixo, e
+   fica ao centro entre o nome e a classificação. */
+function heroParaPdf(doc){
+  const st=doc.createElement("style");
+  st.textContent=".score-hero .lbl{margin:0}"+
+    ".score-hero .big{line-height:1.3;margin:10px 0}"+
+    ".score-hero .badge{margin-top:0}";
+  doc.head.appendChild(st);
+}
 /* PDF A4 do relatório aberto (o de uma auditoria ou o mensal). Cada .page
    começa folha nova, como na impressão; o cabeçalho vai com a primeira. Uma
    folha um pouco maior que o A4 encolhe para caber; muito maior, continua na
@@ -4105,7 +4117,7 @@ async function pdfDoRelatorio(){
   let y=M,vazia=true,primeira=true;
   for(const el of blocos){
     const cv=await window.html2canvas(el,{scale:1.6,backgroundColor:"#ffffff",windowWidth:794,logging:false,
-      onclone:d=>{modoImpressao(d);svgParaImagem(d);}});
+      onclone:d=>{modoImpressao(d);svgParaImagem(d);heroParaPdf(d);}});
     if(!cv.width||!cv.height)continue;
     let w=W,h=cv.height*W/cv.width;
     if(h>H&&h<=H*1.3){w=W*H/h;h=H;}
