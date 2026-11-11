@@ -5,6 +5,23 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.8] — 2026-11-11
+
+### Alterado
+
+- **Sem referências ao Cloudflare.** A documentação e os comentários falam do
+  alojamento sem o nomear, e o `vendor/jspdf.umd.min.js` deixa de ter o
+  endereço do `cdnjs.cloudflare.com` (usado só pelo modo
+  `output("pdfobjectnewwindow")`, que a app não usa). O SRI do jsPDF no
+  `index.html` foi recalculado; os PDFs não mudam.
+
+### Corrigido
+
+- **O PDF voltava a falhar nos dispositivos com a app instalada.** O jsPDF
+  mudou sem mudar a versão: a cache do service worker (com o nome da versão)
+  continuava a servir o ficheiro antigo, que já não batia com o SRI novo, e o
+  browser recusava carregá-lo. A nova versão renova a cache.
+
 ## [4.2.7] — 2026-11-11
 
 ### Segurança
