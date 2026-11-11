@@ -1875,7 +1875,7 @@ function refreshForm(){
   ["f-pick","f-repo","f-verif","f-note"].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value="";});
   /* v4.2.6: a auditoria seguinte também começa sem serviço. */
-  const sel=document.getElementById("f-service");if(sel)sel.value="";
+  const sel=document.getElementById("f-service");if(sel){sel.value="";mostrarServicoEscolhido();}
   renderForm();
 }
 function resetForm(){endEdit();refreshForm();}
