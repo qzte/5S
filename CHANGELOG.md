@@ -5,6 +5,17 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.7] — 2026-11-11
+
+### Segurança
+
+- **Tecto ao tamanho dos ficheiros importados.** A importação do histórico
+  (JSON, até 300 MB, por levar as fotos), da listagem Excel (até 50 MB) e das
+  perguntas (até 5 MB) recusa ficheiros maiores, com aviso, antes de os ler.
+  Até aqui o ficheiro era lido inteiro para memória antes de qualquer
+  validação, e um ficheiro enorme bloqueava o separador.
+- `SECURITY.md`: nota da revisão de 4.2.6.
+
 ## [4.2.6] — 2026-11-11
 
 ### Alterado

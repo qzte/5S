@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.2.6 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.7 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1214,6 +1214,16 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>ESC_MAP[c]);
    à regra do lint (v3.10.0). */
 // eslint-disable-next-line no-control-regex
 const clean=(v,max)=>String(v==null?"":v).replace(/[\u0000-\u001F\u007F\u061C\u200B\u200E\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,"").trim().slice(0,max||200);
+/* v4.2.7: tecto do tamanho dos ficheiros importados. O FileReader lia o
+   ficheiro inteiro para memória antes de qualquer validação: um ficheiro
+   enorme, escolhido por engano, bloqueava o separador. A cópia de segurança
+   leva as fotos, daí o tecto maior. */
+const MAX_IMPORT={json:300*1024*1024,excel:50*1024*1024,perguntas:5*1024*1024};
+function ficheiroGrande(file,max){
+  if(file.size<=max)return false;
+  aviso("Ficheiro demasiado grande ("+Math.round(file.size/1048576)+" MB; o máximo são "+Math.round(max/1048576)+" MB).");
+  return true;
+}
 
 /* ---------- Rascunho da auditoria em curso (v3.8.0) ----------
    Até 3.7.x o formulário vivia só em memória: um separador fechado pelo
@@ -1333,7 +1343,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.2.6";
+const APP_VERSION="4.2.7";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4283,6 +4293,7 @@ function ativoDoExcel(v){
 function importExcel(inp){
   const file=inp.files[0];inp.value="";
   if(!file)return;
+  if(ficheiroGrande(file,MAX_IMPORT.excel))return;
   loadXLSX().then(()=>{
     const rd=new FileReader();
     rd.onload=async()=>{
@@ -4609,6 +4620,7 @@ function sanitizeEnvios(e){
 function importJson(inp){
   const file=inp.files[0];inp.value="";
   if(!file)return;
+  if(ficheiroGrande(file,MAX_IMPORT.json))return;
   const rd=new FileReader();
   rd.onload=async()=>{
     let data;
@@ -5192,6 +5204,7 @@ function edExport(){
 function edImport(inp){
   const file=inp.files[0];inp.value="";
   if(!file)return;
+  if(ficheiroGrande(file,MAX_IMPORT.perguntas))return;
   const rd=new FileReader();
   rd.onload=async()=>{
     let data;
