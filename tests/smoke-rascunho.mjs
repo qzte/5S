@@ -12,6 +12,9 @@ const { chromium } = pw;
 const URL = "http://127.0.0.1:8765/index.html";
 const b = await chromium.launch();
 const ctx = await b.newContext({ acceptDownloads: true });
+/* O Chromium tem a janela «Guardar como» (showSaveFilePicker), que o
+   teste não consegue usar: retira-se, para testar a transferência normal. */
+await ctx.addInitScript(() => { delete window.showSaveFilePicker; });
 const pg = await ctx.newPage();
 const erros = [];
 pg.on("pageerror", e => erros.push(String(e)));
