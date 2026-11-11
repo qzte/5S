@@ -2,6 +2,7 @@
 
 Quatro revisões, por ordem inversa:
 
+- **[Revisão de 4.2.6](#revisão-de-426-2026-11-11)** — o código desde 4.0.0 (listagem de serviços em Excel); tecto ao tamanho das importações em 4.2.7.
 - **[Nota de 4.0.0](#nota-de-400-2026-11-09-indicadores-do-ano)** — tipo dos serviços e objectivo anual; sai o email dos serviços.
 - **[Nota de 3.26.0](#nota-de-3260-2026-11-09-emails-dos-serviços-e-ficheiro-do-pc)** — emails dos serviços, o ficheiro do PC para o telemóvel e a limpeza das fotos.
 - **[Nota de 3.25.0](#nota-de-3250-2026-11-09-ficheiro-de-auditoria-e-fundir-que-actualiza)** — o ficheiro de auditoria do telemóvel e a fusão que actualiza pela data de alteração.
@@ -19,6 +20,49 @@ Quatro revisões, por ordem inversa:
 
 Âmbito das revisões: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+# Revisão de 4.2.6 (2026-11-11)
+
+Revisto o código acrescentado desde 4.0.0 — sobretudo a importação da listagem
+de serviços em Excel, com o tipo de cada serviço e o «Substituir a lista»
+(4.2.2 a 4.2.5) — e, de novo, as interpolações em `innerHTML` sem `esc()`, as
+portas de entrada das importações, o service worker, a CI e a publicação.
+
+## Resumo
+
+| # | Gravidade | Assunto | Estado |
+| --- | --- | --- | --- |
+| 28 | Baixa | Importações sem tecto de tamanho: o ficheiro era lido inteiro para memória antes de qualquer validação | **Corrigido em 4.2.7** |
+
+Sem achados de gravidade alta ou média. O que foi confirmado:
+
+- **XSS.** As interpolações sem `esc()` são números calculados, cores fixas ou
+  ids que `sanitizeAudit`/`sanitizeAcoes` obrigam a ser inteiros. Os nomes de
+  serviço do Excel passam por `clean()` e chegam ao ecrã por `esc()` (lista do
+  Auditar) ou por `textContent` (as confirmações da importação).
+- **Importações.** O código novo (`planoServicosExcel`, `tipoDoExcel`,
+  `ativoDoExcel`) só produz texto limpo e cortado; os tipos entram por
+  `sanitizeTipos`.
+- **Service worker, CI e publicação** sem alterações de risco: allowlist na
+  cache, actions fixadas por SHA, sem `pull_request_target`, e o `publicar.sh`
+  publica só os ficheiros da app, com a CSP por hashes.
+
+Continuam como estavam: os cabeçalhos HTTP do ponto 4 (mitigado em JS), o
+código de acesso como trava e não como controlo (nota de 3.19.0) e os dados não
+cifrados no dispositivo.
+
+## 28. Importações sem tecto de tamanho (Baixa)
+
+`importJson`, `importExcel` e `edImport` entregavam o ficheiro ao
+`FileReader` sem olhar para o tamanho. Um ficheiro de vários GB, escolhido por
+engano, esgotava a memória e bloqueava o separador antes de qualquer
+validação. Só afecta quem escolhe o ficheiro, daí a gravidade baixa.
+
+**Correcção (4.2.7):** `ficheiroGrande()` compara `file.size` com
+`MAX_IMPORT` (histórico 300 MB, por levar as fotos; Excel 50 MB; perguntas
+5 MB) e recusa com aviso, antes de ler.
+
+---
 
 # Revisão OWASP de 3.24.0 (2026-11-08)
 
