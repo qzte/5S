@@ -280,7 +280,7 @@ Versão maior: saem a frequência das auditorias e o email de cada serviço, e o
 
 ### Removido
 
-- O `_headers` (cabeçalhos HTTP do Cloudflare Pages), apagado do repositório:
+- O `_headers` (cabeçalhos HTTP do alojamento), apagado do repositório:
   o `publicar.sh`, o `scripts/csp.mjs` e os testes deixam de o usar. A CSP fica
   só no `<meta>`; a protecção contra molduras volta a ser a guarda em JS.
 
@@ -690,20 +690,20 @@ serem exportadas, e havia quatro formas de as perder sem aviso.
 
 ## [3.7.0] — 2026-11-06
 
-A app muda-se para o **Cloudflare Pages**. O GitHub Pages deixou de a publicar
+A app muda-se para um **alojamento com endereço próprio**. O GitHub Pages deixou de a publicar
 quando o repositório passou a privado — no plano gratuito só publica
 repositórios públicos —, e o endereço antigo dava 404.
 
 ### Adicionado
 
-- `_headers`: os cabeçalhos HTTP que o Cloudflare envia — a CSP (igual à do
+- `_headers`: os cabeçalhos HTTP que o alojamento envia — a CSP (igual à do
   `<meta>`), `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`,
   `Permissions-Policy`, HSTS, e `no-cache` para o `sw.js`.
 - `scripts/publicar.sh`: prepara `dist/` com só os ficheiros da app, para que o
   repositório inteiro não fique acessível pelo endereço dela.
 - `tests/publicacao.test.js`: a CSP do cabeçalho e a do `<meta>` não podem
   divergir, e o que se publica é o que o service worker guarda em cache.
-- README: configuração do Cloudflare Pages e como passar os dados do endereço
+- README: configuração do alojamento e como passar os dados do endereço
   antigo para o novo.
 
 ### Alterado

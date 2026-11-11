@@ -1,5 +1,5 @@
 /* Smoke test de browser da CSP publicada (3.10.0): a pasta dist/ que o
-   scripts/publicar.sh prepara é servida tal como o Cloudflare a serve, e a app
+   scripts/publicar.sh prepara é servida tal como um alojamento a serve, e a app
    tem de arrancar e funcionar sem nenhuma violação da CSP — os <script>
    embutidos são autorizados pelo hash, e o SheetJS, ficheiro da própria origem,
    pelo 'self'. Um <script> injectado depois não corre.

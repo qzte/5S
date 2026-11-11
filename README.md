@@ -128,8 +128,8 @@ partir da raiz do ramo `main`: cada push (ou merge) para a `main` publica
 sozinho, pelo fluxo *pages build and deployment* do GitHub. Não há passo de
 build: o GitHub Pages serve os ficheiros do repositório tal como estão.
 
-De 3.7.0 até à 4.2.x a documentação dava como endereço o Cloudflare Pages
-(`auditoria-5s.pages.dev`, construído com `bash scripts/publicar.sh` e a pasta
+De 3.7.0 até à 4.2.x a documentação dava como endereço o de outro alojamento
+(construído com `bash scripts/publicar.sh` e a pasta
 `dist`). O endereço em uso é o do GitHub Pages. `scripts/publicar.sh` e
 `scripts/csp.mjs` continuam no repositório e são usados pelos testes
 (`tests/publicacao.test.js`, `tests/smoke-csp.mjs`, `tests/smoke-offline.mjs`),
@@ -149,7 +149,7 @@ garantiam:
 ### Dados noutro endereço
 
 O `localStorage` é de cada endereço: auditorias gravadas noutro endereço da app
-(por exemplo `auditoria-5s.pages.dev`) **não aparecem sozinhas** em
+(por exemplo, o endereço usado entre 3.7.0 e 4.2.x) **não aparecem sozinhas** em
 `qzte.github.io/5S/`. Nesse endereço, **Configuração → Exportar com fotos
 (JSON)**; depois, em `qzte.github.io/5S/`, **Importar cópia de segurança** com
 *Fundir*. A pasta do painel e-ink também tem de ser escolhida outra vez: a
@@ -689,7 +689,7 @@ a raiz do repositório, por isso a versão em `qzte.github.io/5S/` mantém o
 
 As ferramentas de desenvolvimento (ESLint e axe-core) vivem em `tools/lint/`,
 com o seu `package.json` e lockfile. Na raiz não há `package.json`: a app não
-tem dependências, e um alojamento com passo de build (como o Cloudflare Pages)
+tem dependências, e um alojamento com passo de build
 instalaria as que lá estivessem em cada publicação.
 
 ## Testes
@@ -828,7 +828,7 @@ Revisão completa em [SECURITY.md](SECURITY.md), incluindo o que **não** está
 mitigado. Dois pontos a reter:
 
 - `frame-ancestors` numa CSP em `<meta>` é **ignorado pelos browsers**: só
-  funciona em cabeçalho HTTP. De 3.7.0 a 3.22.0, no Cloudflare Pages, a CSP ia
+  funciona em cabeçalho HTTP. De 3.7.0 a 3.22.0, no alojamento de então, a CSP ia
   também em cabeçalho (`_headers`) e o browser recusava a moldura; desde 3.23.0
   o `_headers` já não existe, e a protecção é a guarda em JS no `<head>`
   (3.1.2). Quem sirva a app de um alojamento que deixe definir cabeçalhos deve
@@ -838,7 +838,7 @@ mitigado. Dois pontos a reter:
   `qzte.github.io`, onde a app está publicada, qualquer outra página publicada
   na mesma conta lê e escreve os dados desta aplicação, e herda a licença da
   **pasta do painel e-ink** (3.6.1). Esse isolamento só existe num endereço
-  próprio (como era `auditoria-5s.pages.dev`).
+  próprio (como o usado entre 3.7.0 e 4.2.x).
 
 **O PIN do editor — pedido também para editar uma auditoria gravada, alterar os
 responsáveis e substituir todo o histórico numa importação — não é um controlo
