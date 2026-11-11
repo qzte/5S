@@ -3200,9 +3200,34 @@ function opcoesMes(){
    e envio (email ou Teams, pelo menu de partilha do sistema). Cada passo diz
    se já foi feito; o PDF e os envios ficam registados na auditoria
    (`envios`), e por isso também nas cópias de segurança. */
-function descarregar(blob,nome){
+/* Onde o browser deixa (Chrome/Edge no computador), abre a janela
+   «Guardar como» para escolher a pasta e o nome. Sem ela, descarrega para a
+   pasta de transferências, como antes. Devolve true se guardou (ou
+   descarregou), false se a pessoa cancelou. */
+const TIPOS_FICHEIRO={pdf:["Documento PDF","application/pdf"],json:["Ficheiro JSON","application/json"],
+  xlsx:["Livro do Excel","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]};
+async function descarregar(blob,nome){
+  if(typeof window.showSaveFilePicker==="function"){
+    const ext=(nome.split(".").pop()||"").toLowerCase(),t=TIPOS_FICHEIRO[ext];
+    const opcoes={suggestedName:nome};
+    if(t)opcoes.types=[{description:t[0],accept:{[t[1]]:["."+ext]}}];
+    const guardar=async()=>{
+      const h=await window.showSaveFilePicker(opcoes);
+      const w=await h.createWritable();await w.write(blob);await w.close();return true;
+    };
+    try{return await guardar();}
+    catch(e){
+      if(e&&e.name==="AbortError")return false;  /* fechou a janela */
+      /* Criar o ficheiro pode demorar mais do que o browser deixa entre o
+         clique e a janela (SecurityError): pede-se outro clique. */
+      if(e&&e.name==="SecurityError"&&await confirmar("O ficheiro está pronto. Escolha onde o guardar.",{titulo:"Guardar ficheiro",sim:"Escolher pasta"})){
+        try{return await guardar();}catch(e2){if(e2&&e2.name==="AbortError")return false;}
+      }
+    }
+  }
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  return true;
 }
 /* Partilha um ficheiro pelo menu do sistema. "ok", "cancelado" ou "sem" (o
    browser não partilha ficheiros, ou este tipo). Criar o ficheiro pode demorar
@@ -3305,7 +3330,7 @@ function renderPosAuditoria(a){
   document.getElementById("pa-copia").onclick=e=>ocupado(e.currentTarget,"A preparar a cópia…",()=>partilharCopia(true));
   document.getElementById("pa-pdf").onclick=e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
     const blob=await pdfDoRelatorio();
-    descarregar(blob,nomePdf(a));marcarEnvio(a.id,"pdf");
+    if(await descarregar(blob,nomePdf(a)))marcarEnvio(a.id,"pdf");
   });
   const enviar=via=>e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
     const blob=await pdfDoRelatorio();
@@ -3316,7 +3341,7 @@ function renderPosAuditoria(a){
     if(r==="ok"){marcarEnvio(a.id,via);return;}
     /* Sem partilha de ficheiros (alguns browsers de computador): descarrega-se
        o PDF e abre-se o email já escrito, ou copia-se o resumo para o Teams. */
-    descarregar(blob,nomePdf(a));
+    await descarregar(blob,nomePdf(a));
     if(via==="email"){
       abrirLink("mailto:?subject="+encodeURIComponent(titulo)+"&body="+
         encodeURIComponent(texto+"\n\n(Anexe o PDF que foi descarregado: "+nomePdf(a)+")"));
@@ -3460,11 +3485,11 @@ async function enviarParaPC(a){
        é feita lá. Se ficou alguma coisa por enviar, o lembrete continua. */
     if(tudoNoPC(audits,backupInfo().at,idDispositivo(),comFeitas))registarExportacao(true,"pc");
   };
-  if(!f){descarregar(blob,nome);registar();return;}
+  if(!f){if(await descarregar(blob,nome))registar();return;}
   const r=await partilharFicheiro(f,tituloPdf(a),
     "Auditoria 5S de "+a.service+" ("+dataCurta(a.date)+"), por finalizar. No computador: Histórico → Importar ficheiro, e escolha este ficheiro.");
   if(r==="cancelado")return;
-  if(r==="sem"){descarregar(blob,nome);}
+  if(r==="sem"&&!await descarregar(blob,nome))return;
   registar();
 }
 /* ---------- Do PC para o telemóvel (v3.26.0) ----------
@@ -4428,10 +4453,7 @@ function rmSvc(i){
    fica leve, como até aqui. */
 async function exportJson(comFotos){
   const c=await ficheiroCopia(comFotos);if(!c)return;
-  const a=document.createElement("a");a.href=URL.createObjectURL(c.blob);
-  a.download=c.nome;a.click();
-  URL.revokeObjectURL(a.href);
-  registarExportacao(c.comFotos);
+  if(await descarregar(c.blob,c.nome))registarExportacao(c.comFotos);
 }
 /* O ficheiro da cópia de segurança, para descarregar ou partilhar: {blob,
    nome, comFotos}, ou null se as fotos pedidas não se puderam ler. */
@@ -4494,7 +4516,7 @@ async function partilharCopia(descarregarSemPartilha){
   const c=await ficheiroCopia(true);if(!c)return;
   const f=ficheiroPartilha(c.blob,c.nome);
   if(!f||typeof navigator.share!=="function"){
-    if(descarregarSemPartilha===true){descarregar(c.blob,c.nome);registarExportacao(c.comFotos);return;}
+    if(descarregarSemPartilha===true){if(await descarregar(c.blob,c.nome))registarExportacao(c.comFotos);return;}
     aviso("Este navegador não consegue partilhar ficheiros. Use «Exportar com fotos (JSON)» e envie o ficheiro descarregado.");return;}
   const dados={files:[f],title:"Cópia de segurança · Auditoria 5S",
     text:"Cópia de segurança da Auditoria 5S, com fotos ("+audits.length+" auditoria(s)). Para recuperar: Configuração → Dados → Importar cópia de segurança."};
@@ -4523,7 +4545,8 @@ function exportExcel(){
     XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(auditorias),"Auditorias");
     XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(respostas),"Respostas");
     if(acoes.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(acoes),"Acções");
-    XLSX.writeFile(wb,"auditorias5s_"+hojeISO()+".xlsx",{compression:true});
+    const dados=XLSX.write(wb,{bookType:"xlsx",type:"array",compression:true});
+    return descarregar(new Blob([dados],{type:TIPOS_FICHEIRO.xlsx[1]}),"auditorias5s_"+hojeISO()+".xlsx");
   }).catch(e=>aviso("Não foi possível exportar para Excel: "+e.message));
 }
 
@@ -5210,8 +5233,7 @@ function edSave(){
 }
 function edExport(){
   const blob=new Blob([JSON.stringify(edItems,null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-  a.download="perguntas5s_"+hojeISO()+".json";a.click();
+  descarregar(blob,"perguntas5s_"+hojeISO()+".json");
 }
 function edImport(inp){
   const file=inp.files[0];inp.value="";
