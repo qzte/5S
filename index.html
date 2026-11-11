@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.2.5 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.2.6 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1333,7 +1333,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.2.5";
+const APP_VERSION="4.2.6";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1457,8 +1457,10 @@ function desenharServicos(){
   const sel=document.getElementById("f-service");if(!sel)return;
   const antes=sel.value,{lista,anteriores}=servicosParaAuditar(services,audits);
   const opt=v=>`<option>${esc(v)}</option>`;
-  sel.innerHTML=lista.map(opt).join("")+(anteriores.length?`<optgroup label="Só em auditorias anteriores">${anteriores.map(opt).join("")}</optgroup>`:"");
-  if(lista.concat(anteriores).includes(antes))sel.value=antes;
+  /* v4.2.6: uma opção vazia primeiro. Uma auditoria nova começa sem serviço
+     (antes ficava o primeiro da lista, e gravava-se nele por esquecimento). */
+  sel.innerHTML=`<option value=""></option>`+lista.map(opt).join("")+(anteriores.length?`<optgroup label="Só em auditorias anteriores">${anteriores.map(opt).join("")}</optgroup>`:"");
+  sel.value=lista.concat(anteriores).includes(antes)?antes:"";
   mostrarServicoEscolhido();
 }
 /* A caixa mostra o serviço escolhido (fora da pesquisa). */
@@ -1872,6 +1874,8 @@ function refreshForm(){
      auditoria, pelo que a limpeza tem de vir antes. */
   ["f-pick","f-repo","f-verif","f-note"].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value="";});
+  /* v4.2.6: a auditoria seguinte também começa sem serviço. */
+  const sel=document.getElementById("f-service");if(sel)sel.value="";
   renderForm();
 }
 function resetForm(){endEdit();refreshForm();}
@@ -1997,6 +2001,12 @@ function auditoriaRepetida(lista,service,date,exceptoId){
 }
 document.getElementById("btn-save").onclick=async()=>{
   const IT=fitems();
+  /* v4.2.6: o serviço já não vem escolhido: sem ele, não se grava. */
+  if(!document.getElementById("f-service").value){
+    await aviso("Escolha o serviço auditado: escreva o nome ou o código na caixa do serviço.","Falta o serviço");
+    const b=document.getElementById("f-svc-busca");if(b){b.scrollIntoView({block:"center"});b.focus();}
+    return;
+  }
   if(Object.keys(answers).length<IT.length){aviso("Faltam "+(IT.length-Object.keys(answers).length)+" itens por avaliar.");return;}
   const dados=colherFormulario();
   /* v3.6.1: a data é obrigatória e tem de ter a forma que sanitizeAudit() exige.

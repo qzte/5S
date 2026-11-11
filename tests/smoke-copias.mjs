@@ -10,6 +10,7 @@
      sai com ele. */
 import pw from "playwright";
 import { ligarDialogos } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -84,7 +85,7 @@ await pg.locator("[data-pick='0']").fill("9");
 await pg.locator("[data-efile='0']").setInputFiles(imagem);
 await esperar(async () => await pg.locator("[data-efoto='0'] img").count() === 1);
 for (const el of await pg.locator("[data-pick]").all()) if (!(await el.inputValue())) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await esperar(async () => (await backup()).pendFotos === 1), "a foto de evidência devia contar: " + JSON.stringify(await backup()));
 
 /* ---- 5. Remover um serviço: Desfazer repõe-no, com o tipo. ---- */

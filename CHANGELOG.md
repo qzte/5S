@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.2.6] — 2026-11-11
+
+### Alterado
+
+- **A auditoria nova começa sem serviço.** Ao abrir o *Auditar* (e depois de
+  gravar uma auditoria), a caixa do serviço fica vazia, em vez de vir com o
+  primeiro da lista; gravar sem serviço pede-o («Falta o serviço») e não
+  grava. Evita gravar uma auditoria no serviço errado por esquecimento. As
+  acções em aberto e a auditoria anterior aparecem ao escolher o serviço.
+- Testes: `tests/servico.mjs` (auxiliar que escolhe o serviço antes de gravar
+  uma auditoria nova nos smoke tests); `tests/smoke-pesquisa.mjs` cobre a
+  caixa vazia e o aviso.
+
 ## [4.2.5] — 2026-11-10
 
 ### Corrigido

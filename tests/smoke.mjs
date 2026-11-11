@@ -1,6 +1,7 @@
 /* Smoke test de browser: confirma que o campo de amostra existe, que mudar o
    alvo reclassifica a resposta já dada, e que o relatório mostra a fracção. */
 import pw from "playwright";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -46,7 +47,7 @@ await alvo.fill("10");
 /* Preencher tudo e gravar leva ao relatório com a fracção. */
 const inputs = await pg.locator("[data-pick]").all();
 for (const el of inputs) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 const grelha = await pg.locator("#view-report").textContent();
 check(grelha.includes("0 / 10"), "o relatório devia mostrar a fracção auditada");
 
