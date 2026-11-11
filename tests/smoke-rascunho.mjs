@@ -6,6 +6,7 @@
    nova versão. */
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -63,7 +64,7 @@ check(!(await visivel("#draft-banner")), "descartar devia esconder o aviso");
 
 /* ---- 5. Gravar a auditoria tira-a do rascunho. ---- */
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await rascunho() === null, "uma auditoria gravada não pode continuar no rascunho");
 await pg.locator("[data-v=audit]").click();
 check(await pg.locator("[data-pick='0']").inputValue() === "", "depois de gravar, o formulário devia vir vazio");

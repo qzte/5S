@@ -12,6 +12,7 @@
 import pw from "playwright";
 import fs from "fs";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -57,7 +58,7 @@ check(await esperar(async () => await pg.locator("[data-efoto='0'] img").count()
 
 /* ---- 3. Gravar: folha Evidências, fotos passam para a auditoria. ---- */
 for (const el of await pg.locator("[data-pick]").all()) if (!(await el.inputValue())) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 const id = await pg.evaluate(() => audits[0].id);
 check(await esperar(async () => await pg.locator("#evid img").count() === 1), "o relatório devia mostrar a foto de evidência");
 check((await pg.locator("#evid").textContent()).includes("caixas vazias no corredor 3"), "e a nota");
@@ -75,14 +76,14 @@ await semDialogo(pg);
 check(await pg.locator("[data-nota='0']").inputValue() === "caixas vazias no corredor 3", "em edição, a nota vem preenchida");
 check(await esperar(async () => await pg.locator("[data-efoto='0'] img").count() === 1), "em edição, a foto vem do disco");
 await pg.locator("[data-erm='0']").click();
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await esperar(async () => !(await chaves()).includes(id + "#0")), "remover e gravar devia apagar a foto de evidência");
 check(await pg.locator("#evid img").count() === 0 && (await pg.locator("#evid").textContent()).includes("corredor 3"),
   "o relatório fica com a nota, sem a foto");
 await pg.locator("#btn-edit").click();
 await semDialogo(pg);
 await pg.locator("[data-efile='0']").setInputFiles(imagem);
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await esperar(async () => (await chaves()).includes(id + "#0")), "voltar a pôr a foto e gravar devia gravá-la");
 
 /* ---- 5. Cópias: sem fotos e com fotos. ---- */

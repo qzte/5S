@@ -4,6 +4,7 @@
    PDF — 3 folhas sem plano, 4 com ele, nunca uma folha em branco. */
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -29,7 +30,7 @@ const folhas = async () => {
 
 /* ---- 1. Uma auditoria com tudo a 0: há itens a melhorar. Sem plano, 3 folhas. ---- */
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await pg.locator("#plano.page").count() === 0, "sem acções, o plano não é uma folha impressa");
 check(await folhas() === 3, "sem plano, o relatório tem de continuar com 3 folhas");
 
@@ -63,6 +64,8 @@ check(/1 acção em aberto \(1 em atraso\)/.test(await pg.locator("#hist-list").
 
 /* ---- 4. Auditoria seguinte ao mesmo serviço: a acção aparece e fecha-se lá. ---- */
 await pg.reload();
+check(await pg.locator("#acoes-abertas").isHidden(), "4.2.6: sem serviço escolhido, ainda não há acções em aberto a mostrar");
+await escolherServico(pg);
 check(!(await pg.locator("#acoes-abertas").isHidden()), "o formulário devia mostrar as acções em aberto do serviço");
 check((await pg.locator("#acoes-abertas").textContent()).includes("retirar as caixas"), "com o texto da acção");
 await pg.locator("#acoes-abertas [data-acao-feita]").click();  /* o cartão é redesenhado: click e não check */
@@ -77,7 +80,7 @@ await pg.evaluate(() => {   /* reabrir a acção, e gravar uma segunda auditoria
 });
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
 await pg.locator("#f-date").fill("2099-01-01");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 const plano = await pg.locator("#plano").textContent();
 check(/Em aberto de auditorias anteriores \(1\)/.test(plano), "o relatório seguinte devia trazer a acção em aberto");
 await pg.locator("#plano [data-acao-feita]").click();
