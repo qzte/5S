@@ -3,6 +3,7 @@
    não tem pasta: uma de mentira, em memória, no lugar do showDirectoryPicker. */
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -62,7 +63,7 @@ check((await pg.locator("#painel-estado").textContent()).includes("partilhada"),
 await pg.locator("[data-v=audit]").click();
 await pg.locator("#f-verif").fill("Sicrano");
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 await pg.waitForFunction(() => {
   const t = window.__PASTA.ficheiros["5s.painel.json"];
   return t && JSON.parse(t).dados.total === 1;
@@ -82,7 +83,7 @@ const antes = await pg.evaluate(() => window.__PASTA.escritas);
 await pg.locator("[data-v=audit]").click();
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
 await pg.locator("#f-date").fill("2026-01-02");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 await pg.waitForTimeout(2600);
 check(await pg.evaluate(() => window.__PASTA.escritas) === antes, "depois de largar a pasta não devia gravar mais");
 

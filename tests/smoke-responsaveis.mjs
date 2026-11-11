@@ -9,6 +9,7 @@ import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -70,7 +71,7 @@ check(guardados[5].k === "L" && guardados[5].n === "Logística",
 /* ---- 4. Chega ao editor de perguntas e à edição de uma auditoria. ---- */
 await pg.locator("[data-v=audit]").click();
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await pg.locator("[data-rec]").count() === 6,
   "o relatório devia ter um bloco de recomendações por responsável");
 await pg.locator("#btn-edit").click();
@@ -78,7 +79,7 @@ await semDialogo(pg);
 const opcoes = await pg.locator("[data-edresp='0'] option").allTextContents();
 check(opcoes.includes("Logística"), "o selector da edição devia oferecer o responsável novo");
 await pg.locator("[data-edresp='0']").selectOption("L");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 /* As perguntas gravam-se à parte desde 3.11.0: lê-se o gravado, expandido. */
 const gravadas = () => pg.evaluate(() => expandirAudits(JSON.parse(localStorage.getItem("audits")),
   JSON.parse(localStorage.getItem("perguntasAud") || "{}")));

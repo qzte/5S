@@ -14,6 +14,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -99,7 +100,7 @@ check(await pg.locator("#view-report").isVisible() && /Loja B/.test(await pg.loc
 
 /* ---- 4. Os avisos vêm na caixa da app, não em alert() nativo. ---- */
 await pg.locator("[data-v=audit]").click();
-await pg.locator("#btn-save").click();          /* formulário vazio: "Faltam N itens" */
+await escolherServico(pg); await pg.locator("#btn-save").click();          /* formulário vazio: "Faltam N itens" */
 await semDialogo(pg);
 check(caixas.some(c => /Faltam \d+ itens/.test(c.texto)), "o aviso de itens em falta devia vir na caixa da app");
 

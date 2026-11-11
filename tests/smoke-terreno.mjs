@@ -14,6 +14,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -73,6 +74,7 @@ const passos = pg => pg.locator("#pos-aud .passos li").allTextContents().then(l 
 /* ---------- 1. No telemóvel ---------- */
 const tel = await dispositivo(true);
 let pg = tel.pg;
+await escolherServico(pg);   /* 4.2.6: a auditoria nova começa sem serviço */
 check(!(await pg.locator("#acoes-abertas").isHidden()), "o formulário mostra a acção em aberto do serviço");
 await pg.locator("#acoes-abertas [data-acao-feita]").click();
 check(await pg.evaluate(() => audits[0].acoes[0].estado) === "feita", "a acção fica feita no terreno");
@@ -81,7 +83,7 @@ await pg.locator("[data-pick='0']").fill("9");  /* contagem: 9 a mais é Mau */
 await pg.locator("[data-nota='0']").fill("caixas no corredor");
 await pg.locator("[data-efile='0']").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: png });
 check(await esperar(pg, async () => await pg.locator("[data-efoto='0'] img").count() === 1), "a foto aparece no formulário");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 await semDialogo(pg);
 const nova = await pg.evaluate(() => audits[audits.length - 1]);
 check(nova.fase === "terreno" && !!nova.alterada, "a auditoria nova fica por finalizar, com a data de alteração");
@@ -137,7 +139,7 @@ await pg.locator("#btn-edit").click();
 check(!(await pg.locator("#edit-banner").isHidden()), "por finalizar, edita-se sem código");
 check(!pc.vistos.slice(antesPin).some(d => d.temCampo), "sem pedir o código");
 await pg.locator("#f-note").fill("completada no PC");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 await semDialogo(pg);
 await pg.locator("[data-rec='U']").fill("Arrumar o corredor 3.");
 await pg.locator("#pa-fim").click();

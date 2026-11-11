@@ -5,6 +5,7 @@
    mesmo dia pede confirmação. */
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -50,7 +51,7 @@ check(await rm.isHidden(), "depois de remover, volta a esconder-se");
 
 /* ---- 3. Repetida: o mesmo serviço no mesmo dia pede confirmação. ---- */
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await nAudits() === 1, "a primeira grava-se sem perguntar");
 check(vistos.length === 0, "a primeira não devia pedir confirmação");
 check(await pg.title() === "Auditoria 5S - " + await pg.evaluate(() => audits[0].service) + " - " + await pg.evaluate(() => audits[0].date),
@@ -60,7 +61,7 @@ check(await pg.title() === "Auditoria 5S · Supermercados Kaizen", "ao sair do r
 await pg.locator("[data-v=audit]").click();
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("2");
 fila = ["Cancelar"];
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 await semDialogo(pg);
 check(vistos.length === 1 && /Auditoria repetida/.test(vistos[0].titulo), "a segunda no mesmo dia devia pedir confirmação");
 check(await nAudits() === 1, "cancelar não grava");
@@ -71,7 +72,7 @@ if (await nAudits() !== 1) {   /* gravou sem perguntar: o resto já não faz sen
   process.exit(1);
 }
 fila = ["Gravar também"];
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 await semDialogo(pg);
 check(await nAudits() === 2, "confirmar grava a segunda");
 /* Editar a primeira sem mudar o dia não conta com ela própria. */
@@ -80,7 +81,7 @@ fila = [{ campo: "3758", botao: "Confirmar" }];
 await pg.locator("[data-v=history]").click();
 await pg.locator("[data-edit='1']").click();
 await semDialogo(pg);
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 await semDialogo(pg).catch(() => {});
 check(vistos.filter(d => /Auditoria repetida/.test(d.titulo)).length === 1,
   "editar uma de duas no mesmo dia avisa da outra (e só uma vez): " + vistos.map(d => d.titulo).join(", "));

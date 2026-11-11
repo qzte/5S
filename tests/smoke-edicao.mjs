@@ -7,6 +7,7 @@
    auditoria — o checklist em vigor não é tocado. */
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -43,7 +44,7 @@ check(await pg.locator("[data-edresp]").count() === 0,
 await pg.locator("#f-verif").fill("Sicrano");
 await pg.locator("#f-note").fill("primeira");
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 /* Zero em todas as respostas não é 100: nas perguntas de escala e de elementos
    mais é melhor, e um zero aí é Mau. O valor exacto não interessa ao teste —
    interessa que a edição o reproduza e depois o altere. */
@@ -77,7 +78,7 @@ await pg.locator("[data-pick='0']").fill("5");
 /* Reatribuir a pergunta 1 ao Picking, o caso que motivou a funcionalidade:
    acrescentou-se um responsável e o passado tem de poder acompanhá-lo. */
 await pg.locator("[data-edresp='0']").selectOption("P");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await nAudits() === 1, "editar não pode criar uma segunda auditoria");
 const dep = await audit0();
 check(dep.id === idOriginal, "o id tem de se manter");

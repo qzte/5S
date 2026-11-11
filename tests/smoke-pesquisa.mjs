@@ -46,8 +46,13 @@ const aberta = async () => !(await pg.locator("#f-svc-lista").isHidden());
 
 /* ---- 1. Uma só caixa, com o serviço escolhido; o <select> está escondido. ---- */
 check(await pg.locator("#f-service").isHidden(), "o <select> do serviço não se vê");
-check(await busca.inputValue() === "Talho (101)", "a caixa mostra o serviço escolhido: " + await busca.inputValue());
+check(await busca.inputValue() === "" && await valor() === "", "4.2.6: uma auditoria nova começa sem serviço: " + await busca.inputValue());
 check(!(await aberta()), "a lista começa fechada");
+for (const el of await pg.locator("[data-pick]").all()) await el.fill("2");
+await pg.locator("#btn-save").click();
+await semDialogo(pg);
+check(caixas.some(c => c.titulo === "Falta o serviço"), "sem serviço, gravar pede-o");
+check(await pg.evaluate(() => JSON.parse(localStorage.getItem("audits")).length) === 1, "e não grava");
 
 /* ---- 2. Ao entrar na caixa, a lista: os da lista e, à parte, os das auditorias. ---- */
 await busca.click();
@@ -56,7 +61,7 @@ check(JSON.stringify(await itens()) === JSON.stringify(["Talho (101)", "Peixaria
   "os da lista e os das auditorias: " + (await itens()).join(" | "));
 check(/Só em auditorias anteriores/.test(await pg.locator("#f-svc-lista .grupo").textContent()), "a Padaria num grupo à parte");
 await busca.press("Escape");
-check(!(await aberta()) && await busca.inputValue() === "Talho (101)", "Esc fecha e repõe");
+check(!(await aberta()) && await busca.inputValue() === "", "Esc fecha e repõe (sem serviço)");
 
 /* ---- 3. Pelo código, com Enter. ---- */
 await busca.fill("102");

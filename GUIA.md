@@ -54,7 +54,8 @@ No separador **Auditar**:
    código: abre-se por baixo a lista dos que casam, com os serviços da lista
    (*Config → Serviços*) e, num grupo à parte, os que só existem em auditorias
    já feitas. Toque no serviço (ou use as setas e Enter). *Esc* fecha a lista
-   sem mudar o serviço.
+   sem mudar o serviço. A caixa começa vazia em cada auditoria nova: sem
+   serviço escolhido, a app não grava.
 2. **Acções em aberto neste serviço.** Se auditorias anteriores deixaram acções
    por fazer, aparecem num cartão no topo. Verifique no local e marque **Feita**
    nas que ficaram resolvidas (ver [Plano de acção](#plano-de-acção)).

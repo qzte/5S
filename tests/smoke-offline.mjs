@@ -19,6 +19,7 @@ import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import { ligarDialogos } from "./dialogos.mjs";
+import { escolherServico } from "./servico.mjs";
 const { chromium } = pw;
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -76,7 +77,7 @@ await ctx.setOffline(true);
 await pg.reload();
 check(await abriuApp(), "sem rede, a app devia abrir a partir da cache");
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
-await pg.locator("#btn-save").click();
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(!(await pg.locator("#view-report").isHidden()), "sem rede, gravar devia abrir o relatório");
 check(await pg.evaluate(() => audits.length) === 1, "e a auditoria devia ficar gravada");
 await ctx.setOffline(false);
