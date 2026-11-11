@@ -44,6 +44,9 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
 /* ---------- 1. Com menu de partilha (como num telemóvel) ---------- */
 {
   const ctx = await b.newContext({ acceptDownloads: true });
+  /* O Chromium tem a janela «Guardar como» (showSaveFilePicker), que o
+     teste não consegue usar: retira-se, para testar a transferência normal. */
+  await ctx.addInitScript(() => { delete window.showSaveFilePicker; });
   await ctx.addInitScript(() => {
     window.__partilhas = [];
     window.__resposta = "ok";
@@ -115,6 +118,9 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
 /* ---------- 2. Sem menu de partilha (alguns browsers de computador) ---------- */
 {
   const ctx = await b.newContext({ acceptDownloads: true });
+  /* O Chromium tem a janela «Guardar como» (showSaveFilePicker), que o
+     teste não consegue usar: retira-se, para testar a transferência normal. */
+  await ctx.addInitScript(() => { delete window.showSaveFilePicker; });
   await ctx.addInitScript(() => {
     window.__links = [];
     const clicar = HTMLAnchorElement.prototype.click;

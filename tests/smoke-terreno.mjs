@@ -27,6 +27,9 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "terreno-"));
 
 async function dispositivo(comPartilha) {
   const ctx = await b.newContext({ acceptDownloads: true });
+  /* O Chromium tem a janela «Guardar como» (showSaveFilePicker), que o
+     teste não consegue usar: retira-se, para testar a transferência normal. */
+  await ctx.addInitScript(() => { delete window.showSaveFilePicker; });
   /* Os mailto: ficam registados em vez de abrirem o cliente de email. */
   await ctx.addInitScript(() => {
     window.__links = [];
