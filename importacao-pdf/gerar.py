@@ -10,6 +10,11 @@ NOMES={1:"Artigos extra acordo",2:"Artigos inactivos",3:"Kanbans quantidades exc
 17:"Norma de picking não respeitada",18:"Norma de reposição (amostra)",19:"Kanbans fora de validade (amostra)"}
 # ID, serviço, taxa no PDF, {n:(valor,class,target)}; itens omitidos = (0,Excelente)
 LEIT=[
+ (73,"Farmácia (52)","80,25%",{16:(1,O),17:(3,O),1:(1,O),3:(1,O,20),7:(2,O),13:(1,O),15:(4,E),12:(2,E),18:(0,E,9),19:(0,E,20)}),
+ (74,"Tec.Nefrologia (70EE10)","71,75%",{12:(0,M),17:(2,O),1:(1,O),4:(1,O),3:(1,O,20),18:(3,O,9),7:(1,O),13:(1,O),15:(4,E),19:(0,E,20)}),
+ (75,"Obstetrícia J (13J)","83,50%",{17:(1,O),5:(1,O),2:(1,O),3:(1,O,20),18:(2,O,6),15:(4,E),12:(2,E),13:(2,E),19:(0,E,20)}),
+ (76,"UCI Neonatal (15NN)","96,50%",{3:(1,O,20),15:(4,E),12:(2,E),18:(0,E,5),13:(2,E),19:(0,E,20)}),
+ (77,"Consulta Externa - Dor Crônica (12345)","88,00%",{12:(0,M),3:(2,O,20),19:(1,O,20),15:(4,E),18:(0,E,4),13:(2,E)}),
  (78,"UADCI - Un. Adm. Doente Cir. Int (29997)","84,75%",{12:(0,M),1:(1,O),2:(1,O),19:(1,O,20),15:(4,E),3:(0,E,20),18:(0,E,9),13:(2,E)}),
  (79,"SMI - Serviço Medicina Intensiva (116011)","69,75%",{12:(0,M),3:(4,M,20),17:(3,O),1:(2,O),2:(1,O),14:(1,O),9:(2,O),19:(1,O,20),15:(4,E),18:(0,E,35),13:(2,E)}),
  (80,"Cirurgia I (11I)","66,50%",{8:(2,M),1:(3,M),16:(1,O),17:(1,O),2:(1,O),6:(1,O),3:(3,O,20),18:(3,O,17),9:(1,O),15:(4,E),12:(2,E),13:(2,E),19:(0,E,20)}),
