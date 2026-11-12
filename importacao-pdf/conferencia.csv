@@ -1,4 +1,80 @@
 ﻿ID PDF;Serviço;Taxa PDF;Item app;Pergunta;Valor;Target;Classificação
+53;Exames Especiais - Broncologia (70EE2);60,00%;1;Artigos extra acordo;1;;Com Oportunidade
+53;Exames Especiais - Broncologia (70EE2);60,00%;2;Artigos inactivos;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;3;Kanbans quantidades excessivas (amostra);4;30;Mau
+53;Exames Especiais - Broncologia (70EE2);60,00%;4;Estantes c/ dificuldade reabastecimento;1;;Com Oportunidade
+53;Exames Especiais - Broncologia (70EE2);60,00%;5;Artigos sem etiqueta de posição;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;6;Estantes sem identificação visual;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;7;Kanbans vazios mal arrumados;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;8;Artigos em rutura mal identificados;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;9;Prateleiras danificadas;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;10;Kanbans/caixas mau estado;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;11;Caixas sujas;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;12;Temperatura (0-2);2;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;14;Caixas não adaptadas;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;15;Norma de picking/elementos (0-4);4;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;16;Artigos fora da localização Index;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);60,00%;17;Norma de picking não respeitada;2;;Com Oportunidade
+53;Exames Especiais - Broncologia (70EE2);60,00%;18;Norma de reposição (amostra);3;13;Com Oportunidade
+53;Exames Especiais - Broncologia (70EE2);60,00%;19;Kanbans fora de validade (amostra);2;30;Mau
+54;Farmácia (52);66,00%;1;Artigos extra acordo;0;;Excelente
+54;Farmácia (52);66,00%;2;Artigos inactivos;0;;Excelente
+54;Farmácia (52);66,00%;3;Kanbans quantidades excessivas (amostra);3;30;Com Oportunidade
+54;Farmácia (52);66,00%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+54;Farmácia (52);66,00%;5;Artigos sem etiqueta de posição;0;;Excelente
+54;Farmácia (52);66,00%;6;Estantes sem identificação visual;0;;Excelente
+54;Farmácia (52);66,00%;7;Kanbans vazios mal arrumados;1;;Com Oportunidade
+54;Farmácia (52);66,00%;8;Artigos em rutura mal identificados;0;;Excelente
+54;Farmácia (52);66,00%;9;Prateleiras danificadas;0;;Excelente
+54;Farmácia (52);66,00%;10;Kanbans/caixas mau estado;0;;Excelente
+54;Farmácia (52);66,00%;11;Caixas sujas;0;;Excelente
+54;Farmácia (52);66,00%;12;Temperatura (0-2);2;;Excelente
+54;Farmácia (52);66,00%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+54;Farmácia (52);66,00%;14;Caixas não adaptadas;0;;Excelente
+54;Farmácia (52);66,00%;15;Norma de picking/elementos (0-4);4;;Excelente
+54;Farmácia (52);66,00%;16;Artigos fora da localização Index;1;;Com Oportunidade
+54;Farmácia (52);66,00%;17;Norma de picking não respeitada;1;;Com Oportunidade
+54;Farmácia (52);66,00%;18;Norma de reposição (amostra);2;9;Com Oportunidade
+54;Farmácia (52);66,00%;19;Kanbans fora de validade (amostra);0;20;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;1;Artigos extra acordo;3;;Mau
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;2;Artigos inactivos;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;3;Kanbans quantidades excessivas (amostra);7;30;Mau
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;5;Artigos sem etiqueta de posição;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;6;Estantes sem identificação visual;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;7;Kanbans vazios mal arrumados;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;8;Artigos em rutura mal identificados;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;9;Prateleiras danificadas;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;10;Kanbans/caixas mau estado;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;11;Caixas sujas;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;12;Temperatura (0-2);2;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;14;Caixas não adaptadas;1;;Com Oportunidade
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;15;Norma de picking/elementos (0-4);4;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;16;Artigos fora da localização Index;2;;Com Oportunidade
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;17;Norma de picking não respeitada;2;;Com Oportunidade
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;18;Norma de reposição (amostra);0;25;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;19;Kanbans fora de validade (amostra);1;40;Com Oportunidade
+57;Lab. Análises Clínicas (35LAC);81,50%;1;Artigos extra acordo;1;;Com Oportunidade
+57;Lab. Análises Clínicas (35LAC);81,50%;2;Artigos inactivos;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;3;Kanbans quantidades excessivas (amostra);1;40;Com Oportunidade
+57;Lab. Análises Clínicas (35LAC);81,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;5;Artigos sem etiqueta de posição;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;6;Estantes sem identificação visual;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;8;Artigos em rutura mal identificados;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;9;Prateleiras danificadas;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;10;Kanbans/caixas mau estado;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;11;Caixas sujas;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;12;Temperatura (0-2);0;;Mau
+57;Lab. Análises Clínicas (35LAC);81,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;14;Caixas não adaptadas;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;15;Norma de picking/elementos (0-4);3;;Com Oportunidade
+57;Lab. Análises Clínicas (35LAC);81,50%;16;Artigos fora da localização Index;0;;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;17;Norma de picking não respeitada;1;;Com Oportunidade
+57;Lab. Análises Clínicas (35LAC);81,50%;18;Norma de reposição (amostra);0;7;Excelente
+57;Lab. Análises Clínicas (35LAC);81,50%;19;Kanbans fora de validade (amostra);0;20;Excelente
 56;Esterilização (6502);96,50%;1;Artigos extra acordo;0;;Excelente
 56;Esterilização (6502);96,50%;2;Artigos inactivos;0;;Excelente
 56;Esterilização (6502);96,50%;3;Kanbans quantidades excessivas (amostra);0;40;Excelente
