@@ -10,6 +10,10 @@ NOMES={1:"Artigos extra acordo",2:"Artigos inactivos",3:"Kanbans quantidades exc
 17:"Norma de picking não respeitada",18:"Norma de reposição (amostra)",19:"Kanbans fora de validade (amostra)"}
 # ID, serviço, taxa no PDF, {n:(valor,class,target)}; itens omitidos = (0,Excelente)
 LEIT=[
+ (53,"Exames Especiais - Broncologia (70EE2)","60,00%",{3:(4,M,30),19:(2,M,30),17:(2,O),1:(1,O),4:(1,O),18:(3,O,13),15:(4,E),12:(2,E),13:(2,E)}),
+ (54,"Farmácia (52)","66,00%",{16:(1,O),17:(1,O),3:(3,O,30),18:(2,O,9),7:(1,O),15:(4,E),12:(2,E),13:(2,E),19:(0,E,20)}),
+ (55,"Unidade de Cuidados Intermédios Polivale (11120)","60,00%",{1:(3,M),3:(7,M,30),16:(2,O),17:(2,O),14:(1,O),19:(1,O,40),15:(4,E),12:(2,E),18:(0,E,25),13:(2,E)}),
+ (57,"Lab. Análises Clínicas (35LAC)","81,50%",{12:(0,M),15:(3,O),17:(1,O),1:(1,O),3:(1,O,40),18:(0,E,7),13:(2,E),19:(0,E,20)}),
  (56,"Esterilização (6502)","96,50%",{15:(1,O),12:(2,E),3:(0,E,40),18:(0,E,9),13:(2,E),19:(0,E,20)}),
  (58,"Consulta Externa - Pequena Cirurgia (12398)","84,75%",{12:(0,M),15:(3,O),1:(2,O),3:(3,O,40),18:(0,E,17),13:(2,E),19:(0,E,20)}),
  (61,"Hemoterapia (35HMO)","91,25%",{12:(0,M),6:(1,O),15:(4,E),3:(0,E,30),18:(0,E,14),13:(2,E),19:(0,E,30)}),
