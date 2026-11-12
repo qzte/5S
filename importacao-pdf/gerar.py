@@ -10,6 +10,10 @@ NOMES={1:"Artigos extra acordo",2:"Artigos inactivos",3:"Kanbans quantidades exc
 17:"Norma de picking não respeitada",18:"Norma de reposição (amostra)",19:"Kanbans fora de validade (amostra)"}
 # ID, serviço, taxa no PDF, {n:(valor,class,target)}; itens omitidos = (0,Excelente)
 LEIT=[
+ (69,"Consulta Externa - Otorrino (70CE2)","93,25%",{17:(1,O),1:(1,O),15:(4,E),12:(2,E),3:(0,E,10),18:(0,E,5),13:(2,E),19:(0,E,10)}),
+ (70,"Consulta Externa - Ginecologia/Obstetrícia (70CE3)","96,50%",{3:(3,O,20),15:(4,E),12:(2,E),18:(0,E,6),13:(2,E),19:(0,E,20)}),
+ (71,"Consulta Externa - Ortopedia (70CE7)","96,50%",{3:(1,O,10),15:(4,E),12:(2,E),18:(0,E,3),13:(2,E),19:(0,E,10)}),
+ (72,"Pediatria (15A)","84,75%",{12:(0,M),16:(1,O),3:(2,O,30),18:(3,O,11),15:(4,E),13:(2,E),19:(0,E,30)}),
  (73,"Farmácia (52)","80,25%",{16:(1,O),17:(3,O),1:(1,O),3:(1,O,20),7:(2,O),13:(1,O),15:(4,E),12:(2,E),18:(0,E,9),19:(0,E,20)}),
  (74,"Tec.Nefrologia (70EE10)","71,75%",{12:(0,M),17:(2,O),1:(1,O),4:(1,O),3:(1,O,20),18:(3,O,9),7:(1,O),13:(1,O),15:(4,E),19:(0,E,20)}),
  (75,"Obstetrícia J (13J)","83,50%",{17:(1,O),5:(1,O),2:(1,O),3:(1,O,20),18:(2,O,6),15:(4,E),12:(2,E),13:(2,E),19:(0,E,20)}),

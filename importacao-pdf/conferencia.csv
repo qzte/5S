@@ -1,4 +1,80 @@
 ﻿ID PDF;Serviço;Taxa PDF;Item app;Pergunta;Valor;Target;Classificação
+69;Consulta Externa - Otorrino (70CE2);93,25%;1;Artigos extra acordo;1;;Com Oportunidade
+69;Consulta Externa - Otorrino (70CE2);93,25%;2;Artigos inactivos;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;3;Kanbans quantidades excessivas (amostra);0;10;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;6;Estantes sem identificação visual;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;8;Artigos em rutura mal identificados;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;9;Prateleiras danificadas;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;10;Kanbans/caixas mau estado;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;11;Caixas sujas;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;12;Temperatura (0-2);2;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;14;Caixas não adaptadas;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;15;Norma de picking/elementos (0-4);4;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;16;Artigos fora da localização Index;0;;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;17;Norma de picking não respeitada;1;;Com Oportunidade
+69;Consulta Externa - Otorrino (70CE2);93,25%;18;Norma de reposição (amostra);0;5;Excelente
+69;Consulta Externa - Otorrino (70CE2);93,25%;19;Kanbans fora de validade (amostra);0;10;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;1;Artigos extra acordo;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;2;Artigos inactivos;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;3;Kanbans quantidades excessivas (amostra);3;20;Com Oportunidade
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;5;Artigos sem etiqueta de posição;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;6;Estantes sem identificação visual;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;8;Artigos em rutura mal identificados;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;9;Prateleiras danificadas;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;10;Kanbans/caixas mau estado;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;11;Caixas sujas;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;12;Temperatura (0-2);2;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;14;Caixas não adaptadas;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;15;Norma de picking/elementos (0-4);4;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;16;Artigos fora da localização Index;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;17;Norma de picking não respeitada;0;;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;18;Norma de reposição (amostra);0;6;Excelente
+70;Consulta Externa - Ginecologia/Obstetrícia (70CE3);96,50%;19;Kanbans fora de validade (amostra);0;20;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;1;Artigos extra acordo;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;2;Artigos inactivos;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;3;Kanbans quantidades excessivas (amostra);1;10;Com Oportunidade
+71;Consulta Externa - Ortopedia (70CE7);96,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;5;Artigos sem etiqueta de posição;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;6;Estantes sem identificação visual;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;8;Artigos em rutura mal identificados;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;9;Prateleiras danificadas;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;10;Kanbans/caixas mau estado;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;11;Caixas sujas;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;12;Temperatura (0-2);2;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;14;Caixas não adaptadas;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;15;Norma de picking/elementos (0-4);4;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;16;Artigos fora da localização Index;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;17;Norma de picking não respeitada;0;;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;18;Norma de reposição (amostra);0;3;Excelente
+71;Consulta Externa - Ortopedia (70CE7);96,50%;19;Kanbans fora de validade (amostra);0;10;Excelente
+72;Pediatria (15A);84,75%;1;Artigos extra acordo;0;;Excelente
+72;Pediatria (15A);84,75%;2;Artigos inactivos;0;;Excelente
+72;Pediatria (15A);84,75%;3;Kanbans quantidades excessivas (amostra);2;30;Com Oportunidade
+72;Pediatria (15A);84,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+72;Pediatria (15A);84,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+72;Pediatria (15A);84,75%;6;Estantes sem identificação visual;0;;Excelente
+72;Pediatria (15A);84,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+72;Pediatria (15A);84,75%;8;Artigos em rutura mal identificados;0;;Excelente
+72;Pediatria (15A);84,75%;9;Prateleiras danificadas;0;;Excelente
+72;Pediatria (15A);84,75%;10;Kanbans/caixas mau estado;0;;Excelente
+72;Pediatria (15A);84,75%;11;Caixas sujas;0;;Excelente
+72;Pediatria (15A);84,75%;12;Temperatura (0-2);0;;Mau
+72;Pediatria (15A);84,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+72;Pediatria (15A);84,75%;14;Caixas não adaptadas;0;;Excelente
+72;Pediatria (15A);84,75%;15;Norma de picking/elementos (0-4);4;;Excelente
+72;Pediatria (15A);84,75%;16;Artigos fora da localização Index;1;;Com Oportunidade
+72;Pediatria (15A);84,75%;17;Norma de picking não respeitada;0;;Excelente
+72;Pediatria (15A);84,75%;18;Norma de reposição (amostra);3;11;Com Oportunidade
+72;Pediatria (15A);84,75%;19;Kanbans fora de validade (amostra);0;30;Excelente
 73;Farmácia (52);80,25%;1;Artigos extra acordo;1;;Com Oportunidade
 73;Farmácia (52);80,25%;2;Artigos inactivos;0;;Excelente
 73;Farmácia (52);80,25%;3;Kanbans quantidades excessivas (amostra);1;20;Com Oportunidade
