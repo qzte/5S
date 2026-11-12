@@ -1,4 +1,99 @@
 ﻿ID PDF;Serviço;Taxa PDF;Item app;Pergunta;Valor;Target;Classificação
+73;Farmácia (52);80,25%;1;Artigos extra acordo;1;;Com Oportunidade
+73;Farmácia (52);80,25%;2;Artigos inactivos;0;;Excelente
+73;Farmácia (52);80,25%;3;Kanbans quantidades excessivas (amostra);1;20;Com Oportunidade
+73;Farmácia (52);80,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+73;Farmácia (52);80,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+73;Farmácia (52);80,25%;6;Estantes sem identificação visual;0;;Excelente
+73;Farmácia (52);80,25%;7;Kanbans vazios mal arrumados;2;;Com Oportunidade
+73;Farmácia (52);80,25%;8;Artigos em rutura mal identificados;0;;Excelente
+73;Farmácia (52);80,25%;9;Prateleiras danificadas;0;;Excelente
+73;Farmácia (52);80,25%;10;Kanbans/caixas mau estado;0;;Excelente
+73;Farmácia (52);80,25%;11;Caixas sujas;0;;Excelente
+73;Farmácia (52);80,25%;12;Temperatura (0-2);2;;Excelente
+73;Farmácia (52);80,25%;13;Espaço arrumado e limpo (0-2);1;;Com Oportunidade
+73;Farmácia (52);80,25%;14;Caixas não adaptadas;0;;Excelente
+73;Farmácia (52);80,25%;15;Norma de picking/elementos (0-4);4;;Excelente
+73;Farmácia (52);80,25%;16;Artigos fora da localização Index;1;;Com Oportunidade
+73;Farmácia (52);80,25%;17;Norma de picking não respeitada;3;;Com Oportunidade
+73;Farmácia (52);80,25%;18;Norma de reposição (amostra);0;9;Excelente
+73;Farmácia (52);80,25%;19;Kanbans fora de validade (amostra);0;20;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;1;Artigos extra acordo;1;;Com Oportunidade
+74;Tec.Nefrologia (70EE10);71,75%;2;Artigos inactivos;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;3;Kanbans quantidades excessivas (amostra);1;20;Com Oportunidade
+74;Tec.Nefrologia (70EE10);71,75%;4;Estantes c/ dificuldade reabastecimento;1;;Com Oportunidade
+74;Tec.Nefrologia (70EE10);71,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;6;Estantes sem identificação visual;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;7;Kanbans vazios mal arrumados;1;;Com Oportunidade
+74;Tec.Nefrologia (70EE10);71,75%;8;Artigos em rutura mal identificados;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;9;Prateleiras danificadas;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;10;Kanbans/caixas mau estado;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;11;Caixas sujas;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;12;Temperatura (0-2);0;;Mau
+74;Tec.Nefrologia (70EE10);71,75%;13;Espaço arrumado e limpo (0-2);1;;Com Oportunidade
+74;Tec.Nefrologia (70EE10);71,75%;14;Caixas não adaptadas;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;15;Norma de picking/elementos (0-4);4;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;16;Artigos fora da localização Index;0;;Excelente
+74;Tec.Nefrologia (70EE10);71,75%;17;Norma de picking não respeitada;2;;Com Oportunidade
+74;Tec.Nefrologia (70EE10);71,75%;18;Norma de reposição (amostra);3;9;Com Oportunidade
+74;Tec.Nefrologia (70EE10);71,75%;19;Kanbans fora de validade (amostra);0;20;Excelente
+75;Obstetrícia J (13J);83,50%;1;Artigos extra acordo;0;;Excelente
+75;Obstetrícia J (13J);83,50%;2;Artigos inactivos;1;;Com Oportunidade
+75;Obstetrícia J (13J);83,50%;3;Kanbans quantidades excessivas (amostra);1;20;Com Oportunidade
+75;Obstetrícia J (13J);83,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+75;Obstetrícia J (13J);83,50%;5;Artigos sem etiqueta de posição;1;;Com Oportunidade
+75;Obstetrícia J (13J);83,50%;6;Estantes sem identificação visual;0;;Excelente
+75;Obstetrícia J (13J);83,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+75;Obstetrícia J (13J);83,50%;8;Artigos em rutura mal identificados;0;;Excelente
+75;Obstetrícia J (13J);83,50%;9;Prateleiras danificadas;0;;Excelente
+75;Obstetrícia J (13J);83,50%;10;Kanbans/caixas mau estado;0;;Excelente
+75;Obstetrícia J (13J);83,50%;11;Caixas sujas;0;;Excelente
+75;Obstetrícia J (13J);83,50%;12;Temperatura (0-2);2;;Excelente
+75;Obstetrícia J (13J);83,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+75;Obstetrícia J (13J);83,50%;14;Caixas não adaptadas;0;;Excelente
+75;Obstetrícia J (13J);83,50%;15;Norma de picking/elementos (0-4);4;;Excelente
+75;Obstetrícia J (13J);83,50%;16;Artigos fora da localização Index;0;;Excelente
+75;Obstetrícia J (13J);83,50%;17;Norma de picking não respeitada;1;;Com Oportunidade
+75;Obstetrícia J (13J);83,50%;18;Norma de reposição (amostra);2;6;Com Oportunidade
+75;Obstetrícia J (13J);83,50%;19;Kanbans fora de validade (amostra);0;20;Excelente
+76;UCI Neonatal (15NN);96,50%;1;Artigos extra acordo;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;2;Artigos inactivos;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;3;Kanbans quantidades excessivas (amostra);1;20;Com Oportunidade
+76;UCI Neonatal (15NN);96,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;5;Artigos sem etiqueta de posição;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;6;Estantes sem identificação visual;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;8;Artigos em rutura mal identificados;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;9;Prateleiras danificadas;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;10;Kanbans/caixas mau estado;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;11;Caixas sujas;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;12;Temperatura (0-2);2;;Excelente
+76;UCI Neonatal (15NN);96,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+76;UCI Neonatal (15NN);96,50%;14;Caixas não adaptadas;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;15;Norma de picking/elementos (0-4);4;;Excelente
+76;UCI Neonatal (15NN);96,50%;16;Artigos fora da localização Index;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;17;Norma de picking não respeitada;0;;Excelente
+76;UCI Neonatal (15NN);96,50%;18;Norma de reposição (amostra);0;5;Excelente
+76;UCI Neonatal (15NN);96,50%;19;Kanbans fora de validade (amostra);0;20;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;1;Artigos extra acordo;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;2;Artigos inactivos;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;3;Kanbans quantidades excessivas (amostra);2;20;Com Oportunidade
+77;Consulta Externa - Dor Crônica (12345);88,00%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;5;Artigos sem etiqueta de posição;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;6;Estantes sem identificação visual;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;7;Kanbans vazios mal arrumados;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;8;Artigos em rutura mal identificados;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;9;Prateleiras danificadas;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;10;Kanbans/caixas mau estado;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;11;Caixas sujas;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;12;Temperatura (0-2);0;;Mau
+77;Consulta Externa - Dor Crônica (12345);88,00%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;14;Caixas não adaptadas;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;15;Norma de picking/elementos (0-4);4;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;16;Artigos fora da localização Index;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;17;Norma de picking não respeitada;0;;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;18;Norma de reposição (amostra);0;4;Excelente
+77;Consulta Externa - Dor Crônica (12345);88,00%;19;Kanbans fora de validade (amostra);1;20;Com Oportunidade
 78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;1;Artigos extra acordo;1;;Com Oportunidade
 78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;2;Artigos inactivos;1;;Com Oportunidade
 78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;3;Kanbans quantidades excessivas (amostra);0;20;Excelente
