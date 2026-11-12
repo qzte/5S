@@ -1,4 +1,99 @@
 ﻿ID PDF;Serviço;Taxa PDF;Item app;Pergunta;Valor;Target;Classificação
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;1;Artigos extra acordo;1;;Com Oportunidade
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;2;Artigos inactivos;1;;Com Oportunidade
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;3;Kanbans quantidades excessivas (amostra);0;20;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;6;Estantes sem identificação visual;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;8;Artigos em rutura mal identificados;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;9;Prateleiras danificadas;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;10;Kanbans/caixas mau estado;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;11;Caixas sujas;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;12;Temperatura (0-2);0;;Mau
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;14;Caixas não adaptadas;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;15;Norma de picking/elementos (0-4);4;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;16;Artigos fora da localização Index;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;17;Norma de picking não respeitada;0;;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;18;Norma de reposição (amostra);0;9;Excelente
+78;UADCI - Un. Adm. Doente Cir. Int (29997);84,75%;19;Kanbans fora de validade (amostra);1;20;Com Oportunidade
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;1;Artigos extra acordo;2;;Com Oportunidade
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;2;Artigos inactivos;1;;Com Oportunidade
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;3;Kanbans quantidades excessivas (amostra);4;20;Mau
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;6;Estantes sem identificação visual;0;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;8;Artigos em rutura mal identificados;0;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;9;Prateleiras danificadas;2;;Com Oportunidade
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;10;Kanbans/caixas mau estado;0;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;11;Caixas sujas;0;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;12;Temperatura (0-2);0;;Mau
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;14;Caixas não adaptadas;1;;Com Oportunidade
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;15;Norma de picking/elementos (0-4);4;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;16;Artigos fora da localização Index;0;;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;17;Norma de picking não respeitada;3;;Com Oportunidade
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;18;Norma de reposição (amostra);0;35;Excelente
+79;SMI - Serviço Medicina Intensiva (116011);69,75%;19;Kanbans fora de validade (amostra);1;20;Com Oportunidade
+80;Cirurgia I (11I);66,50%;1;Artigos extra acordo;3;;Mau
+80;Cirurgia I (11I);66,50%;2;Artigos inactivos;1;;Com Oportunidade
+80;Cirurgia I (11I);66,50%;3;Kanbans quantidades excessivas (amostra);3;20;Com Oportunidade
+80;Cirurgia I (11I);66,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+80;Cirurgia I (11I);66,50%;5;Artigos sem etiqueta de posição;0;;Excelente
+80;Cirurgia I (11I);66,50%;6;Estantes sem identificação visual;1;;Com Oportunidade
+80;Cirurgia I (11I);66,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+80;Cirurgia I (11I);66,50%;8;Artigos em rutura mal identificados;2;;Mau
+80;Cirurgia I (11I);66,50%;9;Prateleiras danificadas;1;;Com Oportunidade
+80;Cirurgia I (11I);66,50%;10;Kanbans/caixas mau estado;0;;Excelente
+80;Cirurgia I (11I);66,50%;11;Caixas sujas;0;;Excelente
+80;Cirurgia I (11I);66,50%;12;Temperatura (0-2);2;;Excelente
+80;Cirurgia I (11I);66,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+80;Cirurgia I (11I);66,50%;14;Caixas não adaptadas;0;;Excelente
+80;Cirurgia I (11I);66,50%;15;Norma de picking/elementos (0-4);4;;Excelente
+80;Cirurgia I (11I);66,50%;16;Artigos fora da localização Index;1;;Com Oportunidade
+80;Cirurgia I (11I);66,50%;17;Norma de picking não respeitada;1;;Com Oportunidade
+80;Cirurgia I (11I);66,50%;18;Norma de reposição (amostra);3;17;Com Oportunidade
+80;Cirurgia I (11I);66,50%;19;Kanbans fora de validade (amostra);0;20;Excelente
+81;Medicina D (14D);78,25%;1;Artigos extra acordo;0;;Excelente
+81;Medicina D (14D);78,25%;2;Artigos inactivos;1;;Com Oportunidade
+81;Medicina D (14D);78,25%;3;Kanbans quantidades excessivas (amostra);2;20;Com Oportunidade
+81;Medicina D (14D);78,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+81;Medicina D (14D);78,25%;5;Artigos sem etiqueta de posição;1;;Com Oportunidade
+81;Medicina D (14D);78,25%;6;Estantes sem identificação visual;0;;Excelente
+81;Medicina D (14D);78,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+81;Medicina D (14D);78,25%;8;Artigos em rutura mal identificados;2;;Mau
+81;Medicina D (14D);78,25%;9;Prateleiras danificadas;0;;Excelente
+81;Medicina D (14D);78,25%;10;Kanbans/caixas mau estado;0;;Excelente
+81;Medicina D (14D);78,25%;11;Caixas sujas;0;;Excelente
+81;Medicina D (14D);78,25%;12;Temperatura (0-2);2;;Excelente
+81;Medicina D (14D);78,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+81;Medicina D (14D);78,25%;14;Caixas não adaptadas;0;;Excelente
+81;Medicina D (14D);78,25%;15;Norma de picking/elementos (0-4);4;;Excelente
+81;Medicina D (14D);78,25%;16;Artigos fora da localização Index;0;;Excelente
+81;Medicina D (14D);78,25%;17;Norma de picking não respeitada;1;;Com Oportunidade
+81;Medicina D (14D);78,25%;18;Norma de reposição (amostra);0;17;Excelente
+81;Medicina D (14D);78,25%;19;Kanbans fora de validade (amostra);1;20;Com Oportunidade
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;1;Artigos extra acordo;1;;Com Oportunidade
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;2;Artigos inactivos;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;3;Kanbans quantidades excessivas (amostra);4;20;Mau
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;6;Estantes sem identificação visual;5;;Mau
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;8;Artigos em rutura mal identificados;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;9;Prateleiras danificadas;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;10;Kanbans/caixas mau estado;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;11;Caixas sujas;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;12;Temperatura (0-2);0;;Mau
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;14;Caixas não adaptadas;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;15;Norma de picking/elementos (0-4);3;;Com Oportunidade
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;16;Artigos fora da localização Index;0;;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;17;Norma de picking não respeitada;1;;Com Oportunidade
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;18;Norma de reposição (amostra);0;10;Excelente
+82;TIM - Técnicas Invasivas Medicina Geral (20701);74,25%;19;Kanbans fora de validade (amostra);0;20;Excelente
 83;TIM - Cardiologia (20704);84,75%;1;Artigos extra acordo;0;;Excelente
 83;TIM - Cardiologia (20704);84,75%;2;Artigos inactivos;0;;Excelente
 83;TIM - Cardiologia (20704);84,75%;3;Kanbans quantidades excessivas (amostra);0;7;Excelente
