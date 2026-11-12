@@ -10,6 +10,11 @@ NOMES={1:"Artigos extra acordo",2:"Artigos inactivos",3:"Kanbans quantidades exc
 17:"Norma de picking não respeitada",18:"Norma de reposição (amostra)",19:"Kanbans fora de validade (amostra)"}
 # ID, serviço, taxa no PDF, {n:(valor,class,target)}; itens omitidos = (0,Excelente)
 LEIT=[
+ (56,"Esterilização (6502)","96,50%",{15:(1,O),12:(2,E),3:(0,E,40),18:(0,E,9),13:(2,E),19:(0,E,20)}),
+ (58,"Consulta Externa - Pequena Cirurgia (12398)","84,75%",{12:(0,M),15:(3,O),1:(2,O),3:(3,O,40),18:(0,E,17),13:(2,E),19:(0,E,20)}),
+ (61,"Hemoterapia (35HMO)","91,25%",{12:(0,M),6:(1,O),15:(4,E),3:(0,E,30),18:(0,E,14),13:(2,E),19:(0,E,30)}),
+ (62,"Lab. Anatomia Patológica (35LAP)","94,50%",{12:(0,M),15:(4,E),3:(0,E,30),18:(0,E,3),13:(2,E),19:(0,E,30)}),
+ (63,"Consulta Externa - Dermato Venereologia (70CED)","93,25%",{15:(3,O),3:(3,O,30),12:(2,E),18:(0,E,6),13:(2,E),19:(0,E,22)}),
  (64,"Consulta Externa - Geral (70CE)","84,75%",{3:(4,M,30),17:(3,O),1:(1,O),9:(1,O),15:(4,E),12:(2,E),18:(0,E,20),13:(2,E),19:(0,E,30)}),
  (65,"Consulta Externa - Oftalmologia (70CE6)","93,25%",{15:(3,O),3:(1,O,30),12:(2,E),18:(0,E,4),13:(2,E),19:(0,E,14)}),
  (66,"Medicina E (14E)","84,75%",{3:(4,M,30),17:(2,O),7:(2,O),9:(1,O),15:(4,E),12:(2,E),18:(0,E,16),13:(2,E),19:(0,E,30)}),

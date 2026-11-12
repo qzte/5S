@@ -1,4 +1,99 @@
 ﻿ID PDF;Serviço;Taxa PDF;Item app;Pergunta;Valor;Target;Classificação
+56;Esterilização (6502);96,50%;1;Artigos extra acordo;0;;Excelente
+56;Esterilização (6502);96,50%;2;Artigos inactivos;0;;Excelente
+56;Esterilização (6502);96,50%;3;Kanbans quantidades excessivas (amostra);0;40;Excelente
+56;Esterilização (6502);96,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+56;Esterilização (6502);96,50%;5;Artigos sem etiqueta de posição;0;;Excelente
+56;Esterilização (6502);96,50%;6;Estantes sem identificação visual;0;;Excelente
+56;Esterilização (6502);96,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+56;Esterilização (6502);96,50%;8;Artigos em rutura mal identificados;0;;Excelente
+56;Esterilização (6502);96,50%;9;Prateleiras danificadas;0;;Excelente
+56;Esterilização (6502);96,50%;10;Kanbans/caixas mau estado;0;;Excelente
+56;Esterilização (6502);96,50%;11;Caixas sujas;0;;Excelente
+56;Esterilização (6502);96,50%;12;Temperatura (0-2);2;;Excelente
+56;Esterilização (6502);96,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+56;Esterilização (6502);96,50%;14;Caixas não adaptadas;0;;Excelente
+56;Esterilização (6502);96,50%;15;Norma de picking/elementos (0-4);1;;Com Oportunidade
+56;Esterilização (6502);96,50%;16;Artigos fora da localização Index;0;;Excelente
+56;Esterilização (6502);96,50%;17;Norma de picking não respeitada;0;;Excelente
+56;Esterilização (6502);96,50%;18;Norma de reposição (amostra);0;9;Excelente
+56;Esterilização (6502);96,50%;19;Kanbans fora de validade (amostra);0;20;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;1;Artigos extra acordo;2;;Com Oportunidade
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;2;Artigos inactivos;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;3;Kanbans quantidades excessivas (amostra);3;40;Com Oportunidade
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;6;Estantes sem identificação visual;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;8;Artigos em rutura mal identificados;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;9;Prateleiras danificadas;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;10;Kanbans/caixas mau estado;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;11;Caixas sujas;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;12;Temperatura (0-2);0;;Mau
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;14;Caixas não adaptadas;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;15;Norma de picking/elementos (0-4);3;;Com Oportunidade
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;16;Artigos fora da localização Index;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;17;Norma de picking não respeitada;0;;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;18;Norma de reposição (amostra);0;17;Excelente
+58;Consulta Externa - Pequena Cirurgia (12398);84,75%;19;Kanbans fora de validade (amostra);0;20;Excelente
+61;Hemoterapia (35HMO);91,25%;1;Artigos extra acordo;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;2;Artigos inactivos;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;3;Kanbans quantidades excessivas (amostra);0;30;Excelente
+61;Hemoterapia (35HMO);91,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;6;Estantes sem identificação visual;1;;Com Oportunidade
+61;Hemoterapia (35HMO);91,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;8;Artigos em rutura mal identificados;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;9;Prateleiras danificadas;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;10;Kanbans/caixas mau estado;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;11;Caixas sujas;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;12;Temperatura (0-2);0;;Mau
+61;Hemoterapia (35HMO);91,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+61;Hemoterapia (35HMO);91,25%;14;Caixas não adaptadas;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;15;Norma de picking/elementos (0-4);4;;Excelente
+61;Hemoterapia (35HMO);91,25%;16;Artigos fora da localização Index;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;17;Norma de picking não respeitada;0;;Excelente
+61;Hemoterapia (35HMO);91,25%;18;Norma de reposição (amostra);0;14;Excelente
+61;Hemoterapia (35HMO);91,25%;19;Kanbans fora de validade (amostra);0;30;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;1;Artigos extra acordo;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;2;Artigos inactivos;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;3;Kanbans quantidades excessivas (amostra);0;30;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;5;Artigos sem etiqueta de posição;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;6;Estantes sem identificação visual;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;8;Artigos em rutura mal identificados;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;9;Prateleiras danificadas;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;10;Kanbans/caixas mau estado;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;11;Caixas sujas;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;12;Temperatura (0-2);0;;Mau
+62;Lab. Anatomia Patológica (35LAP);94,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;14;Caixas não adaptadas;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;15;Norma de picking/elementos (0-4);4;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;16;Artigos fora da localização Index;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;17;Norma de picking não respeitada;0;;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;18;Norma de reposição (amostra);0;3;Excelente
+62;Lab. Anatomia Patológica (35LAP);94,50%;19;Kanbans fora de validade (amostra);0;30;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;1;Artigos extra acordo;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;2;Artigos inactivos;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;3;Kanbans quantidades excessivas (amostra);3;30;Com Oportunidade
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;6;Estantes sem identificação visual;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;8;Artigos em rutura mal identificados;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;9;Prateleiras danificadas;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;10;Kanbans/caixas mau estado;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;11;Caixas sujas;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;12;Temperatura (0-2);2;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;14;Caixas não adaptadas;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;15;Norma de picking/elementos (0-4);3;;Com Oportunidade
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;16;Artigos fora da localização Index;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;17;Norma de picking não respeitada;0;;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;18;Norma de reposição (amostra);0;6;Excelente
+63;Consulta Externa - Dermato Venereologia (70CED);93,25%;19;Kanbans fora de validade (amostra);0;22;Excelente
 64;Consulta Externa - Geral (70CE);84,75%;1;Artigos extra acordo;1;;Com Oportunidade
 64;Consulta Externa - Geral (70CE);84,75%;2;Artigos inactivos;0;;Excelente
 64;Consulta Externa - Geral (70CE);84,75%;3;Kanbans quantidades excessivas (amostra);4;30;Mau
