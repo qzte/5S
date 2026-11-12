@@ -10,6 +10,11 @@ NOMES={1:"Artigos extra acordo",2:"Artigos inactivos",3:"Kanbans quantidades exc
 17:"Norma de picking não respeitada",18:"Norma de reposição (amostra)",19:"Kanbans fora de validade (amostra)"}
 # ID, serviço, taxa no PDF, {n:(valor,class,target)}; itens omitidos = (0,Excelente)
 LEIT=[
+ (64,"Consulta Externa - Geral (70CE)","84,75%",{3:(4,M,30),17:(3,O),1:(1,O),9:(1,O),15:(4,E),12:(2,E),18:(0,E,20),13:(2,E),19:(0,E,30)}),
+ (65,"Consulta Externa - Oftalmologia (70CE6)","93,25%",{15:(3,O),3:(1,O,30),12:(2,E),18:(0,E,4),13:(2,E),19:(0,E,14)}),
+ (66,"Medicina E (14E)","84,75%",{3:(4,M,30),17:(2,O),7:(2,O),9:(1,O),15:(4,E),12:(2,E),18:(0,E,16),13:(2,E),19:(0,E,30)}),
+ (67,"Unidade Materno Fetal (13GR)","88,00%",{12:(0,M),17:(1,O),3:(1,O,30),15:(4,E),18:(0,E,3),13:(2,E),19:(0,E,20)}),
+ (68,"Cirurgia B (11B)","83,50%",{8:(1,O),5:(2,O),3:(2,O,30),18:(3,O,30),13:(1,O),15:(4,E),12:(2,E),19:(0,E,30)}),
  (69,"Consulta Externa - Otorrino (70CE2)","93,25%",{17:(1,O),1:(1,O),15:(4,E),12:(2,E),3:(0,E,10),18:(0,E,5),13:(2,E),19:(0,E,10)}),
  (70,"Consulta Externa - Ginecologia/Obstetrícia (70CE3)","96,50%",{3:(3,O,20),15:(4,E),12:(2,E),18:(0,E,6),13:(2,E),19:(0,E,20)}),
  (71,"Consulta Externa - Ortopedia (70CE7)","96,50%",{3:(1,O,10),15:(4,E),12:(2,E),18:(0,E,3),13:(2,E),19:(0,E,10)}),
