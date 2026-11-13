@@ -29,6 +29,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Responsáveis](#responsáveis)
 - [Editar auditorias anteriores](#editar-auditorias-anteriores)
 - [Indicadores do ano](#indicadores-do-ano-400)
+- [KPIs e métricas](KPIS.md) — todos os indicadores, as fórmulas e a sua avaliação
 - [Caixas de diálogo](#caixas-de-diálogo)
 - [Evidência por pergunta](#evidência-por-pergunta)
 - [Plano de acção](#plano-de-acção)
@@ -670,6 +671,7 @@ scripts/csp.mjs    Na versão publicada, troca 'unsafe-inline' pelos hashes dos 
 tools/lint/        Ferramentas de desenvolvimento (ESLint, axe-core), com lockfile próprio
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
 SECURITY.md        Revisões de segurança (3.1.0, 3.5.0, 3.6.0) e notas das versões seguintes
+KPIS.md            Todos os KPIs e métricas: fórmulas, leitura e avaliação
 GUIA.md            Guia de utilização, para quem usa a app
 guia.html          O guia, publicado com a app (Config → Ajuda) — gerado de GUIA.md
 scripts/guia.mjs   Gera guia.html a partir de GUIA.md (Markdown mínimo, sem dependências)
