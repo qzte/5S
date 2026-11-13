@@ -22,6 +22,11 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
   não têm auditoria no ano e que percentagem da lista são. Na cobertura, cada
   grupo (internos e externos) mostra também a percentagem **sem auditoria**,
   ao lado da que já foi auditada.
+- **Painel: campos para a página «sem auditoria».** O `5s.painel.json` leva, em
+  `kpis.anual`, `naoAuditados` (`n`, `total`, `pct`: os serviços da lista sem
+  auditoria no ano) e `pctPorAuditar` em `internos` e `externos`; e, em `kpis`,
+  `acoesMaisAntiga` (`servico`, `dias`: a acção em aberto há mais tempo, ou
+  `null`). Campos novos: os que existiam não mudam.
 - **Dispersão das notas**, nos indicadores do ano: a nota mais baixa e a mais
   alta, com o serviço e a data.
 
