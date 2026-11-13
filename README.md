@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.4.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.5.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -302,6 +302,7 @@ os filtros de serviço e período da Análise. No ano em curso contam até hoje.
 | **Serviços por faixa** (4.4.0) | Quantos serviços têm a média do ano em Excelente (≥ 80), Com oportunidade (50–79) e Crítico (< 50) |
 | **Há mais tempo sem auditoria** (4.4.0) | Os cinco serviços com a última auditoria mais antiga, ou nunca auditados (`ultimaAuditoriaPorServico()`); até hoje, sem o filtro do ano |
 | **Perguntas reincidentes** (4.4.0) | Pergunta que não ficou Excelente em duas ou mais auditorias seguidas ao mesmo serviço, até à última (`reincidencias()`) |
+| **Dispersão** (4.5.0) | A nota mais baixa e a mais alta do ano, com o serviço e a data |
 
 O **tipo** de cada serviço escolhe-se em *Config → Serviços* (`tipoSvc`, lista
 de pares, por `sanitizeTipos()`); o **objectivo** em *Config → Objectivo anual
@@ -359,6 +360,11 @@ as acções são o que se pode seguir até ficar resolvido.
 - **Imprimir.** O plano é a 4.ª folha do relatório, com as acções da auditoria
   e as que vinham em aberto de antes. Sem acções, o relatório continua com 3
   folhas.
+
+Desde 4.5.0, uma acção nova guarda a data de criação (`criadaEm`, opcional: nas
+anteriores, a referência é a data da auditoria). Com ela o separador Acções mostra o
+tempo médio de fecho, o cumprimento do prazo, a idade das acções em aberto e a
+eficácia (`desempenhoAcoes()`, `idadeAcoesAbertas()`, `eficaciaAcoes()`).
 
 As acções viajam com a auditoria na exportação JSON e na importação (validadas
 pela mesma porta, `sanitizeAcoes()`), e têm uma folha própria, *Acções*, na

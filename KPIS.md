@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — KPIs e métricas
-  Referente à versão 4.4.0 do código.
+  Referente à versão 4.5.0 do código.
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
 -->
@@ -155,6 +155,7 @@ filtros da Análise. No ano em curso contam de 1 de Janeiro até hoje.
 | Indicador | Fórmula | Como se lê |
 | --- | --- | --- |
 | **Média total** | média das notas de todas as auditorias do ano | Nível 5S global. É por auditoria: um serviço auditado 3 vezes pesa 3 vezes |
+| **Dispersão** (4.5.0) | nota mais baixa e mais alta das auditorias do ano, com serviço e data | Mostra a amplitude que a média esconde |
 | **Média por serviço** (4.4.0) | média das médias de cada serviço no ano | Cada serviço pesa o mesmo; aparece ao lado da média total |
 | **Serviços por faixa** (4.4.0) | serviços com média no ano ≥ 80 (Excelente), 50–79 (Com oportunidade) e < 50 (Crítico) | Critério absoluto, a par do «abaixo da média» |
 | **Há mais tempo sem auditoria** (4.4.0) | dias entre a última auditoria de cada serviço e hoje (`ultimaAuditoriaPorServico()`); os 5 piores, nunca auditados primeiro | Até hoje, sem o filtro do ano. Inclui os serviços da lista sem nenhuma auditoria |
@@ -201,7 +202,9 @@ Estado de cada acção (`estadoAcao()`): **feita**; **atrasada** se aberta com
 | **Por auditoria** | abertas e atrasadas dessa auditoria (`contaAcoes()`) | Histórico |
 | **Por serviço** | abertas de todas as auditorias ao serviço | *Abaixo da média*, formulário |
 | **Em atraso no serviço** | as da auditoria + as que vinham de auditorias anteriores | Mensagem de envio |
-| **Tempo médio de fecho** (4.4.0) | média dos dias entre a **data da auditoria** e `feitaEm`, nas acções feitas (`desempenhoAcoes()`) | Separador Acções. A data de criação da acção não se guarda: é uma aproximação |
+| **Tempo médio de fecho** (4.4.0) | média dos dias entre a **criação da acção** (`criadaEm`; nas anteriores a 4.5.0, a data da auditoria) e `feitaEm`, nas acções feitas (`desempenhoAcoes()`) | Separador Acções |
+| **Idade em aberto** (4.5.0) | média dos dias desde a criação, das acções em aberto; atraso médio das atrasadas; a mais antiga (`idadeAcoesAbertas()`) | Separador Acções |
+| **Eficácia** (4.5.0) | das acções feitas, ligadas a uma pergunta, que não estava Excelente, e concluídas até à auditoria seguinte ao serviço: % em que a pergunta ficou Excelente nessa auditoria; mostra também as que melhoraram sem chegar lá (`eficaciaAcoes()`) | Separador Acções. A pergunta emparelha-se pela assinatura (número, tipo, enunciado) |
 | **Dentro do prazo** (4.4.0) | acções feitas com prazo e `feitaEm ≤ prazo` ÷ acções feitas com prazo | Separador Acções |
 
 ## 7. Painel e-ink
@@ -305,18 +308,19 @@ Por ordem de impacto.
    última auditoria de cada serviço, por muito antiga que seja (e de serviços
    já removidos da lista). Cada número está certo, mas não são comparáveis
    entre si.
-9. **Acções «novas» do mês contam pela data da auditoria**, não pela data em
-   que a acção foi criada (que não se guarda): uma acção acrescentada hoje a
-   uma auditoria de Março entra em Março.
+9. **Resolvida em 4.5.0 — acções «novas» do mês.** Contam pela data de criação
+   (`criadaEm`). Só as acções criadas desde a 4.5.0 a têm; nas anteriores,
+   continua a valer a data da auditoria, pelo que o tempo de fecho e as
+   «novas» dessas são uma aproximação.
 10. **Cobertura só conta serviços da lista com tipo.** Auditorias a serviços
     removidos entram na média mas não na cobertura; os sem tipo não entram em
     interno nem externo.
 
 ### O que não se mede
 
-- **Idade das acções em aberto** (atraso médio, acção mais antiga).
-- **Eficácia das acções:** das ligadas a uma pergunta, quantas viram essa
-  pergunta melhorar na auditoria seguinte.
-- **Dispersão** das notas (mínimo, máximo), que ajudaria a ler as médias.
-- **Data de criação da acção**, que tornaria exactos o tempo de fecho e as
-  «acções novas» do mês.
+- **Eficácia por serviço ou por responsável**: hoje é um só número global.
+- **Acções sem ligação a uma pergunta** não entram na eficácia, e só se avalia
+  a auditoria seguinte (não se segue a pergunta mais adiante).
+- **Dispersão por serviço** e desvio-padrão das notas.
+- **Reincidência após acção feita**: perguntas que voltam a falhar depois de
+  uma acção concluída.

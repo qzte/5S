@@ -5,6 +5,22 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.5.0] — 2026-11-13
+
+### Adicionado
+
+- **Data de criação das acções.** Uma acção nova guarda o dia em que foi criada
+  (`criadaEm`). As anteriores ficam como estavam e usam a data da auditoria. O
+  tempo de fecho e as «acções novas» do relatório mensal passam a contar desde
+  a criação; a folha *Acções* do Excel ganha a coluna *Criada em*.
+- **Eficácia das acções**, no separador Acções: das acções feitas e ligadas a
+  uma pergunta, quantas viram essa pergunta ficar Excelente na auditoria
+  seguinte ao serviço, e quantas melhoraram sem lá chegar.
+- **Idade das acções em aberto**, no separador Acções: a idade média, o atraso
+  médio das que passaram o prazo e a mais antiga.
+- **Dispersão das notas**, nos indicadores do ano: a nota mais baixa e a mais
+  alta, com o serviço e a data.
+
 ## [4.4.0] — 2026-11-13
 
 ### Adicionado
