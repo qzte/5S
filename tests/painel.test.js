@@ -9,7 +9,7 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(["dadosPainel5s", "kpisPainel5s", "mediaDoEixo", "byPillar", "byResp", "avg", "ordemCron", "somarDias", "diasEntre",
-  "estadoAcao", "anualPainel5s", "kpisAnuais", "tipoDe", "objetivoDe"],
+  "estadoAcao", "anualPainel5s", "idadeAcoesAbertas", "criadaEmDe", "kpisAnuais", "tipoDe", "objetivoDe"],
   ["ITEMS", "itemsOf", "umaCasa"]);
 const { dadosPainel5s } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
@@ -147,6 +147,16 @@ test("responsáveis: auditorias sem perguntas do responsável não contam como 0
   assert.strictEqual(d.pilares[1].pct, 100, "o pilar 1 existe nas duas auditorias");
 });
 
+/* v4.5.0: a acção em aberto há mais tempo, para a página do painel. */
+test("acoesMaisAntiga: o serviço e os dias da acção em aberto mais antiga, ou null", () => {
+  const ac = (estado, extra) => Object.assign({ id: 1, r: "U", texto: "x", prazo: "", estado, feitaEm: "", item: null }, extra || {});
+  const l = [Object.assign(aud(1, "Loja Norte", "2026-10-01", [2, 2, 2, 2, 2]), { acoes: [ac("aberta"), ac("feita", { feitaEm: "2026-10-02" })] }),
+    Object.assign(aud(2, "Loja Sul", "2026-11-05", [2, 2, 2, 2, 2]), { acoes: [ac("aberta", { criadaEm: "2026-11-06" })] })];
+  const k = kpis(l);
+  assert.deepStrictEqual(k.acoesMaisAntiga, { servico: "Loja Norte", dias: 37 });
+  assert.strictEqual(kpis([aud(3, "A", "2026-11-01", [2, 2, 2, 2, 2])]).acoesMaisAntiga, null);
+});
+
 /* ---- v4.0.0: os indicadores do ano corrente, em `kpis.anual`. ---- */
 test("kpis.anual: média do ano, abaixo da média, objectivo e internos/externos", () => {
   const d = plain(dadosPainel5s([
@@ -161,8 +171,9 @@ test("kpis.anual: média do ano, abaixo da média, objectivo e internos/externos
   assert.deepStrictEqual(d.abaixo, [{ nome: "B", media: 0, n: 1 }]);
   assert.strictEqual(d.objetivo, 10);
   assert.strictEqual(d.pct, 20);
-  assert.deepStrictEqual(d.internos, { total: 1, auditados: 1 });
-  assert.deepStrictEqual(d.externos, { total: 2, auditados: 1 });
+  assert.deepStrictEqual(d.internos, { total: 1, auditados: 1, pctPorAuditar: 0 });
+  assert.deepStrictEqual(d.externos, { total: 2, auditados: 1, pctPorAuditar: 50 });
+  assert.deepStrictEqual(d.naoAuditados, { n: 1, total: 3, pct: 33 }, "serviços da lista sem auditoria no ano (4.5.0)");
   /* 4.1.0: o quadro SERVIÇOS do painel. */
   assert.deepStrictEqual(d.pior, { nome: "B", media: 0, n: 1 });
   assert.deepStrictEqual([d.nAbaixo, d.porAuditar, d.nServicos], [1, 1, 3]);

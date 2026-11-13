@@ -5,6 +5,31 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.5.0] — 2026-11-13
+
+### Adicionado
+
+- **Data de criação das acções.** Uma acção nova guarda o dia em que foi criada
+  (`criadaEm`). As anteriores ficam como estavam e usam a data da auditoria. O
+  tempo de fecho e as «acções novas» do relatório mensal passam a contar desde
+  a criação; a folha *Acções* do Excel ganha a coluna *Criada em*.
+- **Eficácia das acções**, no separador Acções: das acções feitas e ligadas a
+  uma pergunta, quantas viram essa pergunta ficar Excelente na auditoria
+  seguinte ao serviço, e quantas melhoraram sem lá chegar.
+- **Idade das acções em aberto**, no separador Acções: a idade média, o atraso
+  médio das que passaram o prazo e a mais antiga.
+- **Serviços não auditados**, nos indicadores do ano: quantos serviços da lista
+  não têm auditoria no ano e que percentagem da lista são. Na cobertura, cada
+  grupo (internos e externos) mostra também a percentagem **sem auditoria**,
+  ao lado da que já foi auditada.
+- **Painel: campos para a página «sem auditoria».** O `5s.painel.json` leva, em
+  `kpis.anual`, `naoAuditados` (`n`, `total`, `pct`: os serviços da lista sem
+  auditoria no ano) e `pctPorAuditar` em `internos` e `externos`; e, em `kpis`,
+  `acoesMaisAntiga` (`servico`, `dias`: a acção em aberto há mais tempo, ou
+  `null`). Campos novos: os que existiam não mudam.
+- **Dispersão das notas**, nos indicadores do ano: a nota mais baixa e a mais
+  alta, com o serviço e a data.
+
 ## [4.4.0] — 2026-11-13
 
 ### Adicionado

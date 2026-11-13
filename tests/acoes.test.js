@@ -34,6 +34,12 @@ test("sanitizeAcoes: só entra o que tem texto, com campos limpos", () => {
   assert.ok(ids.every(i => Number.isInteger(i) && i > 0));
 });
 
+test("sanitizeAcoes: criadaEm só quando é uma data válida (4.5.0)", () => {
+  const r = plain(sanitizeAcoes([{ texto: "a", criadaEm: "2026-11-10" }, { texto: "b", criadaEm: "ontem" }, { texto: "c" }]));
+  assert.strictEqual(r[0].criadaEm, "2026-11-10");
+  assert.ok(!("criadaEm" in r[1]) && !("criadaEm" in r[2]), "sem a chave quando não há data válida");
+});
+
 test("sanitizeAcoes: texto limitado, número de acções limitado, não-lista vira lista vazia", () => {
   assert.strictEqual(plain(sanitizeAcoes([{ texto: "a".repeat(999) }]))[0].texto.length, 300);
   assert.strictEqual(sanitizeAcoes(Array.from({ length: 500 }, () => ({ texto: "x" }))).length, MAX_ACOES);
@@ -79,7 +85,7 @@ test("Excel: uma linha por acção, na terceira folha", () => {
   const { acoes } = plain(linhasExcel([Object.assign({}, A1, { items: its })]));
   assert.strictEqual(acoes.length, 2);
   assert.deepStrictEqual(Object.keys(acoes[0]),
-    ["ID auditoria", "Serviço", "Data da auditoria", "Responsável", "Acção", "Pergunta Nº", "Prazo", "Estado", "Concluída em"]);
+    ["ID auditoria", "Serviço", "Data da auditoria", "Responsável", "Acção", "Pergunta Nº", "Prazo", "Estado", "Concluída em", "Criada em"]);
   assert.strictEqual(acoes[0]["Responsável"], "Utilizadores");
   assert.strictEqual(acoes[1]["Estado"], "Feita");
 });
