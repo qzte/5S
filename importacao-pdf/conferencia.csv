@@ -1,61 +1,213 @@
 ﻿ID PDF;Serviço;Taxa PDF;Item app;Pergunta;Valor;Target;Classificação
-53;Exames Especiais - Broncologia (70EE2);60,00%;1;Artigos extra acordo;1;;Com Oportunidade
-53;Exames Especiais - Broncologia (70EE2);60,00%;2;Artigos inactivos;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;3;Kanbans quantidades excessivas (amostra);4;30;Mau
-53;Exames Especiais - Broncologia (70EE2);60,00%;4;Estantes c/ dificuldade reabastecimento;1;;Com Oportunidade
-53;Exames Especiais - Broncologia (70EE2);60,00%;5;Artigos sem etiqueta de posição;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;6;Estantes sem identificação visual;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;7;Kanbans vazios mal arrumados;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;8;Artigos em rutura mal identificados;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;9;Prateleiras danificadas;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;10;Kanbans/caixas mau estado;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;11;Caixas sujas;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;12;Temperatura (0-2);2;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;13;Espaço arrumado e limpo (0-2);2;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;14;Caixas não adaptadas;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;15;Norma de picking/elementos (0-4);4;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;16;Artigos fora da localização Index;0;;Excelente
-53;Exames Especiais - Broncologia (70EE2);60,00%;17;Norma de picking não respeitada;2;;Com Oportunidade
-53;Exames Especiais - Broncologia (70EE2);60,00%;18;Norma de reposição (amostra);3;13;Com Oportunidade
-53;Exames Especiais - Broncologia (70EE2);60,00%;19;Kanbans fora de validade (amostra);2;30;Mau
-54;Farmácia (52);66,00%;1;Artigos extra acordo;0;;Excelente
-54;Farmácia (52);66,00%;2;Artigos inactivos;0;;Excelente
-54;Farmácia (52);66,00%;3;Kanbans quantidades excessivas (amostra);3;30;Com Oportunidade
-54;Farmácia (52);66,00%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
-54;Farmácia (52);66,00%;5;Artigos sem etiqueta de posição;0;;Excelente
-54;Farmácia (52);66,00%;6;Estantes sem identificação visual;0;;Excelente
-54;Farmácia (52);66,00%;7;Kanbans vazios mal arrumados;1;;Com Oportunidade
-54;Farmácia (52);66,00%;8;Artigos em rutura mal identificados;0;;Excelente
-54;Farmácia (52);66,00%;9;Prateleiras danificadas;0;;Excelente
-54;Farmácia (52);66,00%;10;Kanbans/caixas mau estado;0;;Excelente
-54;Farmácia (52);66,00%;11;Caixas sujas;0;;Excelente
-54;Farmácia (52);66,00%;12;Temperatura (0-2);2;;Excelente
-54;Farmácia (52);66,00%;13;Espaço arrumado e limpo (0-2);2;;Excelente
-54;Farmácia (52);66,00%;14;Caixas não adaptadas;0;;Excelente
-54;Farmácia (52);66,00%;15;Norma de picking/elementos (0-4);4;;Excelente
-54;Farmácia (52);66,00%;16;Artigos fora da localização Index;1;;Com Oportunidade
-54;Farmácia (52);66,00%;17;Norma de picking não respeitada;1;;Com Oportunidade
-54;Farmácia (52);66,00%;18;Norma de reposição (amostra);2;9;Com Oportunidade
-54;Farmácia (52);66,00%;19;Kanbans fora de validade (amostra);0;20;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;1;Artigos extra acordo;3;;Mau
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;2;Artigos inactivos;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;3;Kanbans quantidades excessivas (amostra);7;30;Mau
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;5;Artigos sem etiqueta de posição;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;6;Estantes sem identificação visual;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;7;Kanbans vazios mal arrumados;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;8;Artigos em rutura mal identificados;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;9;Prateleiras danificadas;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;10;Kanbans/caixas mau estado;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;11;Caixas sujas;0;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;12;Temperatura (0-2);2;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;13;Espaço arrumado e limpo (0-2);2;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;14;Caixas não adaptadas;1;;Com Oportunidade
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;15;Norma de picking/elementos (0-4);4;;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;16;Artigos fora da localização Index;2;;Com Oportunidade
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;17;Norma de picking não respeitada;2;;Com Oportunidade
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;18;Norma de reposição (amostra);0;25;Excelente
-55;Unidade de Cuidados Intermédios Polivale (11120);60,00%;19;Kanbans fora de validade (amostra);1;40;Com Oportunidade
+49;Exames Especiais (70EE);69,75%;1;Artigos extra acordo;2;;Com Oportunidade
+49;Exames Especiais (70EE);69,75%;2;Artigos inactivos;0;;Excelente
+49;Exames Especiais (70EE);69,75%;3;Kanbans quantidades excessivas (amostra);4;20;Mau
+49;Exames Especiais (70EE);69,75%;4;Estantes c/ dificuldade reabastecimento;1;;Com Oportunidade
+49;Exames Especiais (70EE);69,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+49;Exames Especiais (70EE);69,75%;6;Estantes sem identificação visual;0;;Excelente
+49;Exames Especiais (70EE);69,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+49;Exames Especiais (70EE);69,75%;8;Artigos em rutura mal identificados;0;;Excelente
+49;Exames Especiais (70EE);69,75%;9;Prateleiras danificadas;0;;Excelente
+49;Exames Especiais (70EE);69,75%;10;Kanbans/caixas mau estado;0;;Excelente
+49;Exames Especiais (70EE);69,75%;11;Caixas sujas;0;;Excelente
+49;Exames Especiais (70EE);69,75%;12;Temperatura (0-2);2;;Excelente
+49;Exames Especiais (70EE);69,75%;13;Espaço arrumado e limpo (0-2);1;;Com Oportunidade
+49;Exames Especiais (70EE);69,75%;14;Caixas não adaptadas;0;;Excelente
+49;Exames Especiais (70EE);69,75%;15;Norma de picking/elementos (0-4);4;;Excelente
+49;Exames Especiais (70EE);69,75%;16;Artigos fora da localização Index;1;;Com Oportunidade
+49;Exames Especiais (70EE);69,75%;17;Norma de picking não respeitada;2;;Com Oportunidade
+49;Exames Especiais (70EE);69,75%;18;Norma de reposição (amostra);2;10;Com Oportunidade
+49;Exames Especiais (70EE);69,75%;19;Kanbans fora de validade (amostra);4;20;Mau
+50;Exames Especiais - Cardiologia (70EE3);90,00%;1;Artigos extra acordo;2;;Com Oportunidade
+50;Exames Especiais - Cardiologia (70EE3);90,00%;2;Artigos inactivos;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;3;Kanbans quantidades excessivas (amostra);1;9;Com Oportunidade
+50;Exames Especiais - Cardiologia (70EE3);90,00%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;5;Artigos sem etiqueta de posição;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;6;Estantes sem identificação visual;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;7;Kanbans vazios mal arrumados;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;8;Artigos em rutura mal identificados;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;9;Prateleiras danificadas;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;10;Kanbans/caixas mau estado;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;11;Caixas sujas;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;12;Temperatura (0-2);2;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;13;Espaço arrumado e limpo (0-2);1;;Com Oportunidade
+50;Exames Especiais - Cardiologia (70EE3);90,00%;14;Caixas não adaptadas;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;15;Norma de picking/elementos (0-4);4;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;16;Artigos fora da localização Index;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;17;Norma de picking não respeitada;0;;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;18;Norma de reposição (amostra);0;2;Excelente
+50;Exames Especiais - Cardiologia (70EE3);90,00%;19;Kanbans fora de validade (amostra);0;9;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;1;Artigos extra acordo;1;;Com Oportunidade
+51;Consulta Externa - Urologia (70CE4);86,75%;2;Artigos inactivos;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;3;Kanbans quantidades excessivas (amostra);1;20;Com Oportunidade
+51;Consulta Externa - Urologia (70CE4);86,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;6;Estantes sem identificação visual;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;8;Artigos em rutura mal identificados;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;9;Prateleiras danificadas;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;10;Kanbans/caixas mau estado;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;11;Caixas sujas;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;12;Temperatura (0-2);2;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;14;Caixas não adaptadas;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;15;Norma de picking/elementos (0-4);3;;Com Oportunidade
+51;Consulta Externa - Urologia (70CE4);86,75%;16;Artigos fora da localização Index;0;;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;17;Norma de picking não respeitada;3;;Com Oportunidade
+51;Consulta Externa - Urologia (70CE4);86,75%;18;Norma de reposição (amostra);0;2;Excelente
+51;Consulta Externa - Urologia (70CE4);86,75%;19;Kanbans fora de validade (amostra);0;20;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;1;Artigos extra acordo;1;;Com Oportunidade
+44;Consulta Externa - Pediatria (70CE1);76,25%;2;Artigos inactivos;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;3;Kanbans quantidades excessivas (amostra);6;25;Mau
+44;Consulta Externa - Pediatria (70CE1);76,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;6;Estantes sem identificação visual;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;8;Artigos em rutura mal identificados;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;9;Prateleiras danificadas;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;10;Kanbans/caixas mau estado;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;11;Caixas sujas;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;12;Temperatura (0-2);0;;Mau
+44;Consulta Externa - Pediatria (70CE1);76,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;14;Caixas não adaptadas;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;15;Norma de picking/elementos (0-4);4;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;16;Artigos fora da localização Index;0;;Excelente
+44;Consulta Externa - Pediatria (70CE1);76,25%;17;Norma de picking não respeitada;2;;Com Oportunidade
+44;Consulta Externa - Pediatria (70CE1);76,25%;18;Norma de reposição (amostra);2;8;Com Oportunidade
+44;Consulta Externa - Pediatria (70CE1);76,25%;19;Kanbans fora de validade (amostra);1;20;Com Oportunidade
+45;Patologia Clínica - Matosinhos (20293);71,75%;1;Artigos extra acordo;0;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;2;Artigos inactivos;0;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;3;Kanbans quantidades excessivas (amostra);2;15;Com Oportunidade
+45;Patologia Clínica - Matosinhos (20293);71,75%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;6;Estantes sem identificação visual;1;;Com Oportunidade
+45;Patologia Clínica - Matosinhos (20293);71,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;8;Artigos em rutura mal identificados;1;;Com Oportunidade
+45;Patologia Clínica - Matosinhos (20293);71,75%;9;Prateleiras danificadas;0;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;10;Kanbans/caixas mau estado;2;;Com Oportunidade
+45;Patologia Clínica - Matosinhos (20293);71,75%;11;Caixas sujas;0;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;12;Temperatura (0-2);0;;Mau
+45;Patologia Clínica - Matosinhos (20293);71,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;14;Caixas não adaptadas;0;;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;15;Norma de picking/elementos (0-4);2;;Com Oportunidade
+45;Patologia Clínica - Matosinhos (20293);71,75%;16;Artigos fora da localização Index;1;;Com Oportunidade
+45;Patologia Clínica - Matosinhos (20293);71,75%;17;Norma de picking não respeitada;3;;Com Oportunidade
+45;Patologia Clínica - Matosinhos (20293);71,75%;18;Norma de reposição (amostra);0;1;Excelente
+45;Patologia Clínica - Matosinhos (20293);71,75%;19;Kanbans fora de validade (amostra);0;15;Excelente
+46;UCSP Matosinhos (93);67,75%;1;Artigos extra acordo;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;2;Artigos inactivos;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;3;Kanbans quantidades excessivas (amostra);5;20;Mau
+46;UCSP Matosinhos (93);67,75%;4;Estantes c/ dificuldade reabastecimento;1;;Com Oportunidade
+46;UCSP Matosinhos (93);67,75%;5;Artigos sem etiqueta de posição;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;6;Estantes sem identificação visual;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;7;Kanbans vazios mal arrumados;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;8;Artigos em rutura mal identificados;1;;Com Oportunidade
+46;UCSP Matosinhos (93);67,75%;9;Prateleiras danificadas;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;10;Kanbans/caixas mau estado;20;;Mau
+46;UCSP Matosinhos (93);67,75%;11;Caixas sujas;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;12;Temperatura (0-2);0;;Mau
+46;UCSP Matosinhos (93);67,75%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+46;UCSP Matosinhos (93);67,75%;14;Caixas não adaptadas;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;15;Norma de picking/elementos (0-4);2;;Com Oportunidade
+46;UCSP Matosinhos (93);67,75%;16;Artigos fora da localização Index;0;;Excelente
+46;UCSP Matosinhos (93);67,75%;17;Norma de picking não respeitada;2;;Com Oportunidade
+46;UCSP Matosinhos (93);67,75%;18;Norma de reposição (amostra);2;15;Com Oportunidade
+46;UCSP Matosinhos (93);67,75%;19;Kanbans fora de validade (amostra);0;20;Excelente
+47;Imagiologia (30);73,00%;1;Artigos extra acordo;0;;Excelente
+47;Imagiologia (30);73,00%;2;Artigos inactivos;0;;Excelente
+47;Imagiologia (30);73,00%;3;Kanbans quantidades excessivas (amostra);3;20;Com Oportunidade
+47;Imagiologia (30);73,00%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+47;Imagiologia (30);73,00%;5;Artigos sem etiqueta de posição;0;;Excelente
+47;Imagiologia (30);73,00%;6;Estantes sem identificação visual;0;;Excelente
+47;Imagiologia (30);73,00%;7;Kanbans vazios mal arrumados;4;;Mau
+47;Imagiologia (30);73,00%;8;Artigos em rutura mal identificados;0;;Excelente
+47;Imagiologia (30);73,00%;9;Prateleiras danificadas;0;;Excelente
+47;Imagiologia (30);73,00%;10;Kanbans/caixas mau estado;1;;Com Oportunidade
+47;Imagiologia (30);73,00%;11;Caixas sujas;0;;Excelente
+47;Imagiologia (30);73,00%;12;Temperatura (0-2);0;;Mau
+47;Imagiologia (30);73,00%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+47;Imagiologia (30);73,00%;14;Caixas não adaptadas;0;;Excelente
+47;Imagiologia (30);73,00%;15;Norma de picking/elementos (0-4);3;;Com Oportunidade
+47;Imagiologia (30);73,00%;16;Artigos fora da localização Index;0;;Excelente
+47;Imagiologia (30);73,00%;17;Norma de picking não respeitada;4;;Com Oportunidade
+47;Imagiologia (30);73,00%;18;Norma de reposição (amostra);1;12;Com Oportunidade
+47;Imagiologia (30);73,00%;19;Kanbans fora de validade (amostra);0;20;Excelente
+48;Hospital de Dia (70HD);79,50%;1;Artigos extra acordo;2;;Com Oportunidade
+48;Hospital de Dia (70HD);79,50%;2;Artigos inactivos;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;3;Kanbans quantidades excessivas (amostra);5;20;Mau
+48;Hospital de Dia (70HD);79,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;5;Artigos sem etiqueta de posição;1;;Com Oportunidade
+48;Hospital de Dia (70HD);79,50%;6;Estantes sem identificação visual;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;7;Kanbans vazios mal arrumados;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;8;Artigos em rutura mal identificados;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;9;Prateleiras danificadas;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;10;Kanbans/caixas mau estado;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;11;Caixas sujas;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;12;Temperatura (0-2);0;;Mau
+48;Hospital de Dia (70HD);79,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+48;Hospital de Dia (70HD);79,50%;14;Caixas não adaptadas;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;15;Norma de picking/elementos (0-4);4;;Excelente
+48;Hospital de Dia (70HD);79,50%;16;Artigos fora da localização Index;0;;Excelente
+48;Hospital de Dia (70HD);79,50%;17;Norma de picking não respeitada;2;;Com Oportunidade
+48;Hospital de Dia (70HD);79,50%;18;Norma de reposição (amostra);0;18;Excelente
+48;Hospital de Dia (70HD);79,50%;19;Kanbans fora de validade (amostra);0;20;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;1;Artigos extra acordo;1;;Com Oportunidade
+53;Exames Especiais - Broncologia (70EE2);76,25%;2;Artigos inactivos;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;3;Kanbans quantidades excessivas (amostra);4;30;Mau
+53;Exames Especiais - Broncologia (70EE2);76,25%;4;Estantes c/ dificuldade reabastecimento;1;;Com Oportunidade
+53;Exames Especiais - Broncologia (70EE2);76,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;6;Estantes sem identificação visual;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;8;Artigos em rutura mal identificados;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;9;Prateleiras danificadas;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;10;Kanbans/caixas mau estado;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;11;Caixas sujas;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;12;Temperatura (0-2);2;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;14;Caixas não adaptadas;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;15;Norma de picking/elementos (0-4);4;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;16;Artigos fora da localização Index;0;;Excelente
+53;Exames Especiais - Broncologia (70EE2);76,25%;17;Norma de picking não respeitada;2;;Com Oportunidade
+53;Exames Especiais - Broncologia (70EE2);76,25%;18;Norma de reposição (amostra);3;13;Com Oportunidade
+53;Exames Especiais - Broncologia (70EE2);76,25%;19;Kanbans fora de validade (amostra);2;30;Mau
+54;Farmácia (52);83,50%;1;Artigos extra acordo;0;;Excelente
+54;Farmácia (52);83,50%;2;Artigos inactivos;0;;Excelente
+54;Farmácia (52);83,50%;3;Kanbans quantidades excessivas (amostra);3;30;Com Oportunidade
+54;Farmácia (52);83,50%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+54;Farmácia (52);83,50%;5;Artigos sem etiqueta de posição;0;;Excelente
+54;Farmácia (52);83,50%;6;Estantes sem identificação visual;0;;Excelente
+54;Farmácia (52);83,50%;7;Kanbans vazios mal arrumados;1;;Com Oportunidade
+54;Farmácia (52);83,50%;8;Artigos em rutura mal identificados;0;;Excelente
+54;Farmácia (52);83,50%;9;Prateleiras danificadas;0;;Excelente
+54;Farmácia (52);83,50%;10;Kanbans/caixas mau estado;0;;Excelente
+54;Farmácia (52);83,50%;11;Caixas sujas;0;;Excelente
+54;Farmácia (52);83,50%;12;Temperatura (0-2);2;;Excelente
+54;Farmácia (52);83,50%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+54;Farmácia (52);83,50%;14;Caixas não adaptadas;0;;Excelente
+54;Farmácia (52);83,50%;15;Norma de picking/elementos (0-4);4;;Excelente
+54;Farmácia (52);83,50%;16;Artigos fora da localização Index;1;;Com Oportunidade
+54;Farmácia (52);83,50%;17;Norma de picking não respeitada;1;;Com Oportunidade
+54;Farmácia (52);83,50%;18;Norma de reposição (amostra);2;9;Com Oportunidade
+54;Farmácia (52);83,50%;19;Kanbans fora de validade (amostra);0;20;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;1;Artigos extra acordo;3;;Mau
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;2;Artigos inactivos;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;3;Kanbans quantidades excessivas (amostra);7;30;Mau
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;4;Estantes c/ dificuldade reabastecimento;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;5;Artigos sem etiqueta de posição;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;6;Estantes sem identificação visual;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;7;Kanbans vazios mal arrumados;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;8;Artigos em rutura mal identificados;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;9;Prateleiras danificadas;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;10;Kanbans/caixas mau estado;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;11;Caixas sujas;0;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;12;Temperatura (0-2);2;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;13;Espaço arrumado e limpo (0-2);2;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;14;Caixas não adaptadas;1;;Com Oportunidade
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;15;Norma de picking/elementos (0-4);4;;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;16;Artigos fora da localização Index;2;;Com Oportunidade
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;17;Norma de picking não respeitada;2;;Com Oportunidade
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;18;Norma de reposição (amostra);0;25;Excelente
+55;Unidade de Cuidados Intermédios Polivale (11120);76,25%;19;Kanbans fora de validade (amostra);1;40;Com Oportunidade
 57;Lab. Análises Clínicas (35LAC);81,50%;1;Artigos extra acordo;1;;Com Oportunidade
 57;Lab. Análises Clínicas (35LAC);81,50%;2;Artigos inactivos;0;;Excelente
 57;Lab. Análises Clínicas (35LAC);81,50%;3;Kanbans quantidades excessivas (amostra);1;40;Com Oportunidade

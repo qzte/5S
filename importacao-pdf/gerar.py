@@ -10,9 +10,17 @@ NOMES={1:"Artigos extra acordo",2:"Artigos inactivos",3:"Kanbans quantidades exc
 17:"Norma de picking não respeitada",18:"Norma de reposição (amostra)",19:"Kanbans fora de validade (amostra)"}
 # ID, serviço, taxa no PDF, {n:(valor,class,target)}; itens omitidos = (0,Excelente)
 LEIT=[
- (53,"Exames Especiais - Broncologia (70EE2)","60,00%",{3:(4,M,30),19:(2,M,30),17:(2,O),1:(1,O),4:(1,O),18:(3,O,13),15:(4,E),12:(2,E),13:(2,E)}),
- (54,"Farmácia (52)","66,00%",{16:(1,O),17:(1,O),3:(3,O,30),18:(2,O,9),7:(1,O),15:(4,E),12:(2,E),13:(2,E),19:(0,E,20)}),
- (55,"Unidade de Cuidados Intermédios Polivale (11120)","60,00%",{1:(3,M),3:(7,M,30),16:(2,O),17:(2,O),14:(1,O),19:(1,O,40),15:(4,E),12:(2,E),18:(0,E,25),13:(2,E)}),
+ (49,"Exames Especiais (70EE)","69,75%",{3:(4,M,20),19:(4,M,20),16:(1,O),17:(2,O),1:(2,O),4:(1,O),18:(2,O,10),13:(1,O),15:(4,E),12:(2,E)}),
+ (50,"Exames Especiais - Cardiologia (70EE3)","90,00%",{1:(2,O),3:(1,O,9),13:(1,O),15:(4,E),12:(2,E),18:(0,E,2),19:(0,E,9)}),
+ (51,"Consulta Externa - Urologia (70CE4)","86,75%",{15:(3,O),17:(3,O),1:(1,O),3:(1,O,20),12:(2,E),18:(0,E,2),13:(2,E),19:(0,E,20)}),
+ (44,"Consulta Externa - Pediatria (70CE1)","76,25%",{12:(0,M),3:(6,M,25),17:(2,O),1:(1,O),18:(2,O,8),19:(1,O,20),15:(4,E),13:(2,E)}),
+ (45,"Patologia Clínica - Matosinhos (20293)","71,75%",{12:(0,M),15:(2,O),16:(1,O),17:(3,O),8:(1,O),6:(1,O),3:(2,O,15),10:(2,O),18:(0,E,1),13:(2,E),19:(0,E,15)}),
+ (46,"UCSP Matosinhos (93)","67,75%",{12:(0,M),3:(5,M,20),10:(20,M),15:(2,O),17:(2,O),8:(1,O),4:(1,O),18:(2,O,15),13:(2,E),19:(0,E,20)}),
+ (47,"Imagiologia (30)","73,00%",{12:(0,M),7:(4,M),15:(3,O),17:(4,O),3:(3,O,20),10:(1,O),18:(1,O,12),13:(2,E),19:(0,E,20)}),
+ (48,"Hospital de Dia (70HD)","79,50%",{12:(0,M),3:(5,M,20),17:(2,O),1:(2,O),5:(1,O),15:(4,E),18:(0,E,18),13:(2,E),19:(0,E,20)}),
+ (53,"Exames Especiais - Broncologia (70EE2)","76,25%",{3:(4,M,30),19:(2,M,30),17:(2,O),1:(1,O),4:(1,O),18:(3,O,13),15:(4,E),12:(2,E),13:(2,E)}),
+ (54,"Farmácia (52)","83,50%",{16:(1,O),17:(1,O),3:(3,O,30),18:(2,O,9),7:(1,O),15:(4,E),12:(2,E),13:(2,E),19:(0,E,20)}),
+ (55,"Unidade de Cuidados Intermédios Polivale (11120)","76,25%",{1:(3,M),3:(7,M,30),16:(2,O),17:(2,O),14:(1,O),19:(1,O,40),15:(4,E),12:(2,E),18:(0,E,25),13:(2,E)}),
  (57,"Lab. Análises Clínicas (35LAC)","81,50%",{12:(0,M),15:(3,O),17:(1,O),1:(1,O),3:(1,O,40),18:(0,E,7),13:(2,E),19:(0,E,20)}),
  (56,"Esterilização (6502)","96,50%",{15:(1,O),12:(2,E),3:(0,E,40),18:(0,E,9),13:(2,E),19:(0,E,20)}),
  (58,"Consulta Externa - Pequena Cirurgia (12398)","84,75%",{12:(0,M),15:(3,O),1:(2,O),3:(3,O,40),18:(0,E,17),13:(2,E),19:(0,E,20)}),
@@ -49,10 +57,13 @@ LEIT=[
  (91,"Medicina M (14M)","83,50%",{16:(1,O),17:(2,O),8:(1,O),3:(2,O,20),7:(1,O),15:(4,E),12:(2,E),18:(0,E,13),13:(2,E),19:(0,E,20)}),
  (92,"Exames Especiais - Gastroenterologia (70EE1)","81,50%",{6:(3,M),17:(4,O),8:(1,O),3:(2,O,20),18:(1,O,11),15:(4,E),12:(2,E),13:(2,E),19:(0,E,20)}),
 ]
+# A app junta auditorias com o mesmo serviço e a mesma data: quando um serviço
+# tem mais de uma auditoria, as seguintes recebem outro dia.
+DATAS={54:"2026-01-02"}
 audits=[];linhas=[]
 for pid,svc,taxa,r in LEIT:
     it=[(r.get(n,(0,E))+(None,))[:3] for n in range(1,20)]
-    audits.append({"id":2026000000+pid,"service":svc,"date":"2026-01-01","note":f"Importada de PDF (ID{pid})",
+    audits.append({"id":2026000000+pid,"service":svc,"date":DATAS.get(pid,"2026-01-01"),"note":f"Importada de PDF (ID{pid})",
       "scores":[x[1] for x in it],"raw":[x[0] for x in it],"tgts":[x[2] for x in it]})
     for n,x in enumerate(it,1):
         linhas.append([pid,svc,taxa,n,NOMES[n],x[0],x[2] or "",["Mau","Com Oportunidade","Excelente"][x[1]]])
