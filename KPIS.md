@@ -223,7 +223,8 @@ Estado de cada acção (`estadoAcao()`): **feita**; **atrasada** se aberta com
 | `kpis.acoes` | `abertas`, `atrasadas`, `feitas30` |
 | `kpis.responsaveis` | Média por responsável, de todo o histórico |
 | `kpis.faixas` | Serviços por faixa, pela nota da **última** auditoria de cada um |
-| `kpis.anual` | Os indicadores do ano corrente (secção 4), mais `pior`, `nAbaixo`, `porAuditar`, `nServicos`; `abaixo` com os 10 piores |
+| `kpis.anual` | Os indicadores do ano corrente (secção 4), mais `pior`, `nAbaixo`, `porAuditar`, `nServicos`; `abaixo` com os 10 piores; desde 4.5.0, `naoAuditados` (`n`, `total`, `pct`) e `pctPorAuditar` em `internos` e `externos` |
+| `kpis.acoesMaisAntiga` | (4.5.0) Serviço e dias da acção em aberto há mais tempo, ou `null` |
 
 ## 8. Exportação para Excel
 

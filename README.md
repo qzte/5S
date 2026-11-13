@@ -316,6 +316,9 @@ fim do prazo de *Desfazer*. O `5s.painel.json` leva-os em `kpis.anual`, com
 ano mais baixa (`pior`), quantos estão abaixo da média (`nAbaixo`), quantos da
 lista não têm auditoria no ano (`porAuditar`) e quantos tem a lista
 (`nServicos`).
+Desde 4.5.0, `kpis.anual` leva também `naoAuditados` (`n`, `total`, `pct`) e a
+`pctPorAuditar` de `internos` e `externos`, e `kpis` leva `acoesMaisAntiga`
+(`servico`, `dias`, ou `null`): o que a página do painel «sem auditoria» mostra.
 
 **Retirado em 4.0.0:** a frequência das auditorias de cada serviço (3.13.0) —
 com o cartão dos prazos no Histórico, o número no separador, o aviso no

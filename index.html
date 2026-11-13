@@ -5596,7 +5596,10 @@ function kpisPainel5s(lista,hoje){
   const ultimas=new Map();todas.forEach(a=>ultimas.set(a.service,total(a)));
   const faixas={excelente:0,oportunidade:0,critico:0};
   ultimas.forEach(p=>{faixas[p>=80?"excelente":p>=50?"oportunidade":"critico"]++;});
+  /* v4.5.0: a acção em aberto há mais tempo, para o painel (null sem acções). */
+  const ia=idadeAcoesAbertas(todas,hoje);
   return{hoje,
+    acoesMaisAntiga:ia.maisAntiga?{servico:ia.maisAntiga.service,dias:ia.maisAntiga.dias}:null,
     media30:ult.length?avg(ult.map(total)):null,n30:ult.length,
     media30Ant:ant.length?avg(ant.map(total)):null,n30Ant:ant.length,
     porMes,
@@ -5626,7 +5629,9 @@ function dadosPainel5s(lista,extra){
    `porAuditar` e `nServicos`. */
 function anualPainel5s(lista,extra){
   const k=kpisAnuais(lista,extra.servicos,extra.tipos,extra.objetivos,Number(extra.hoje.slice(0,4)),extra.hoje),p=k.plano;
-  const g=x=>({total:x.total,auditados:x.auditados});
+  /* v4.5.0: `pctPorAuditar` (internos e externos) e `naoAuditados` (a lista toda),
+     para a página do painel mostrar os serviços sem auditoria no ano. */
+  const g=x=>({total:x.total,auditados:x.auditados,pctPorAuditar:x.pctPorAuditar});
   return{ano:k.ano,n:k.n,media:k.media,
     abaixo:k.abaixo.slice(0,10).map(x=>({nome:x.service,media:x.media,n:x.n})),
     objetivo:p.objetivo||null,pct:p.pct,esperado:p.esperado,desvio:p.desvio,estado:p.estado,
@@ -5634,6 +5639,7 @@ function anualPainel5s(lista,extra){
     internos:g(k.tipos.interno),externos:g(k.tipos.externo),
     /* v4.1.0: para o quadro SERVIÇOS do painel (no lugar dos «serviços críticos»). */
     pior:k.pior?{nome:k.pior.service,media:k.pior.media,n:k.pior.n}:null,
+    naoAuditados:{n:k.porAuditar.length,total:(extra.servicos||[]).length,pct:k.pctPorAuditar},
     nAbaixo:k.abaixo.length,porAuditar:k.porAuditar.length,nServicos:(extra.servicos||[]).length};
 }
 
