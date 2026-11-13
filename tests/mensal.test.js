@@ -3,7 +3,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
-const ctx = buildContext(["resumoMensal", "mesesRelatorio", "nomeMes", "fimDoMes", "mesAnterior",
+const ctx = buildContext(["resumoMensal", "criadaEmDe", "mesesRelatorio", "nomeMes", "fimDoMes", "mesAnterior",
   "byPillar", "byResp", "metricas", "avg", "ordemCron", "somarDias", "diasEntre"],
   ["ITEMS", "itemsOf", "MESES_PT", "memoMetricas"]);
 const { resumoMensal, mesesRelatorio, nomeMes, fimDoMes, mesAnterior } = ctx;
@@ -75,6 +75,16 @@ test("plano de acção: novas, concluídas no mês e em aberto no fim do mês", 
   ];
   const r = plain(resumoMensal(l, "2026-10", ["A"], "2026-11-07"));
   assert.deepStrictEqual(r.acoes, { novas: 1, concluidas: 1, abertas: 3, atrasadas: 1 });
+});
+
+test("acções com data de criação (4.5.0): contam no mês em que foram criadas", () => {
+  const l = [aud(1, "A", "2026-09-10", [0, 0, 0, 0, 0], [
+    { id: 1, estado: "aberta", prazo: "", criadaEm: "2026-10-05" },    /* auditoria de Setembro, acção de Outubro */
+    { id: 2, estado: "aberta", prazo: "", criadaEm: "2026-11-02" },    /* só em Novembro: fora do fim de Outubro */
+    { id: 3, estado: "aberta", prazo: "" }])];                         /* sem data: a da auditoria */
+  const out = plain(resumoMensal(l, "2026-10", ["A"], "2026-11-07")).acoes;
+  assert.deepStrictEqual([out.novas, out.abertas], [1, 2]);
+  assert.strictEqual(plain(resumoMensal(l, "2026-09", ["A"], "2026-11-07")).acoes.novas, 1);
 });
 
 test("mês em curso: acções até hoje, não até ao fim do mês; sem prazos (4.0.0)", () => {
