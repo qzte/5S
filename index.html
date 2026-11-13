@@ -2437,12 +2437,17 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
   /* Serviços internos e externos: os da lista, auditados no ano. */
   const auditados=new Set(porSvc.keys());
   const grupo=t=>{const l=(svcs||[]).filter(s=>tipoDe(tipos,s)===t);
-    return{total:l.length,auditados:l.filter(s=>auditados.has(s)).length,porAuditar:l.filter(s=>!auditados.has(s))};};
+    const por=l.filter(s=>!auditados.has(s));
+    /* v4.5.0: a percentagem por auditar (null sem serviços do tipo). */
+    return{total:l.length,auditados:l.length-por.length,porAuditar:por,
+      pctPorAuditar:l.length?Math.round(por.length/l.length*100):null};};
   /* v4.1.0: o serviço com a média do ano mais baixa (null sem auditorias), e
      os serviços da lista sem auditoria no ano (de qualquer tipo). */
   const pior=servicos.slice().sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service))[0]||null;
   const porAuditar=(svcs||[]).filter(s=>!auditados.has(s));
-  return{ano,ini,ref,emCurso:ref<fim,n,media,minimo,maximo,mediaServicos,faixas,servicos:servicos.length,abaixo,pior,porAuditar,plano,
+  /* v4.5.0: os serviços da lista sem auditoria no ano, em número e em % da lista. */
+  const pctPorAuditar=(svcs||[]).length?Math.round(porAuditar.length/svcs.length*100):null;
+  return{ano,ini,ref,emCurso:ref<fim,n,media,minimo,maximo,mediaServicos,faixas,servicos:servicos.length,abaixo,pior,porAuditar,pctPorAuditar,plano,
     tipos:{interno:grupo("i"),externo:grupo("e"),semTipo:grupo("")}};
 }
 
@@ -3978,6 +3983,8 @@ function renderKpis(){
       p.objetivo?p.pct+"% do objectivo"+(p.faltam?" · faltam "+p.faltam:""):"Defina-o em Config → Objectivo anual"),
     tile("kpi-semanal","Média semanal",p.mediaSemanal==null?"—":numPT(p.mediaSemanal),
       "auditorias por semana"+(p.objetivoSemanal!=null?" · plano: "+numPT(p.objetivoSemanal):"")),
+    tile("kpi-nao-auditados","Serviços não auditados",(services||[]).length?String(k.porAuditar.length):"—",
+      (services||[]).length?k.pctPorAuditar+"% dos "+services.length+" serviço(s) sem auditoria em "+k.ano:"Sem serviços na lista"),
     p.objetivo?tile("kpi-plano","Face ao plano",(p.desvio>0?"+":p.desvio<0?"−":"")+Math.abs(p.desvio),
       `esperadas até ${k.emCurso?"hoje":"ao fim do ano"}: ${p.esperado}<br><span class="pill" style="background:${ESTADO_PLANO[p.estado][1]}">${ESTADO_PLANO[p.estado][0]}</span>`):""
   ].join("");
@@ -3995,7 +4002,8 @@ function renderKpis(){
   const grupo=(id,rot,g)=>{const pc=g.total?Math.round(g.auditados/g.total*100):0;
     return`<div id="${id}"><div class="stat-row"><span>${rot}: <b>${g.auditados}</b> de <b>${g.total}</b> auditado(s)</span><span>${g.total?pc+"%":"—"}</span></div>
       <div class="bar"><i class="${barCls(pc)}" style="width:${pc}%"></i></div>
-      ${g.porAuditar.length?`<small style="color:var(--muted);display:block;margin:-2px 0 8px">Por auditar: ${g.porAuditar.map(esc).join(", ")}</small>`:""}</div>`;};
+      ${g.total?`<small id="${id}-por" style="color:var(--muted);display:block;margin:-2px 0 ${g.porAuditar.length?"0":"8px"}">Sem auditoria: <b>${g.porAuditar.length}</b> (${g.pctPorAuditar}%)</small>`:""}
+      ${g.porAuditar.length?`<small style="color:var(--muted);display:block;margin:0 0 8px">Por auditar: ${g.porAuditar.map(esc).join(", ")}</small>`:""}</div>`;};
   const t=k.tipos;
   const cobertura=`<div class="kpi-sec" id="kpi-tipos"><h4>Serviços auditados em ${k.ano}</h4>`+
     grupo("kpi-int","Internos",t.interno)+grupo("kpi-ext","Externos",t.externo)+
