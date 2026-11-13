@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.5.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1344,7 +1344,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.5.0";
+const APP_VERSION="4.5.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2391,6 +2391,13 @@ function anosIndicadores(lista,objs,hoje){
   return [...as].sort((x,y)=>y-x);
 }
 const umaCasa=x=>Math.round(x*10)/10;
+/* v4.5.1: a função que diz se um serviço da lista foi auditado, dados os nomes dos serviços das auditorias (ver kpisAnuais). */
+function auditadoNoAno(nomes){
+  const lim=n=>norm(n).replace(/\s+/g," ").trim();
+  const exatos=new Set(nomes),cods=new Set(),limpos=new Set();
+  nomes.forEach(n=>{const c=codigoServico(n);if(c)cods.add(c);limpos.add(lim(n));});
+  return s=>exatos.has(s)||(!!codigoServico(s)&&cods.has(codigoServico(s)))||limpos.has(lim(s));
+}
 /* `hoje` em AAAA-MM-DD limita o ano em curso: o plano conta «até hoje». */
 function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
   ano=Number(ano);
@@ -2435,7 +2442,11 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
     plano.necessarioSemanal=resto>0?umaCasa(plano.faltam/resto):null;
   }
   /* Serviços internos e externos: os da lista, auditados no ano. */
-  const auditados=new Set(porSvc.keys());
+  /* v4.5.1: um serviço da lista conta como auditado se alguma auditoria do ano é a ele pelo nome, pelo nome sem maiúsculas,
+     acentos nem espaços a mais, ou pelo CÓDIGO («(11B)» no fim do nome), como a importação da listagem. Só o nome exacto
+     deixava de fora as auditorias de um serviço cuja descrição mudou («Téc.Nefrol.» e «Téc.Nefrol») e os serviços que a
+     lista traz do Excel com outra descrição. */
+  const auditados={has:auditadoNoAno([...porSvc.keys()])};
   const grupo=t=>{const l=(svcs||[]).filter(s=>tipoDe(tipos,s)===t);
     const por=l.filter(s=>!auditados.has(s));
     /* v4.5.0: a percentagem por auditar (null sem serviços do tipo). */

@@ -4,8 +4,8 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
-const ctx = buildContext(["kpisAnuais", "anosIndicadores", "sanitizeTipos", "tipoDe", "sanitizeObjetivos",
-  "objetivoDe", "avg", "ordemCron", "diasEntre", "byPillar", "byResp"], ["ITEMS", "itemsOf", "umaCasa"]);
+const ctx = buildContext(["auditadoNoAno", "codigoServico", "kpisAnuais", "anosIndicadores", "sanitizeTipos", "tipoDe", "sanitizeObjetivos",
+  "objetivoDe", "avg", "ordemCron", "diasEntre", "byPillar", "byResp"], ["norm", "ITEMS", "itemsOf", "umaCasa"]);
 const { kpisAnuais, anosIndicadores, sanitizeTipos, sanitizeObjetivos, objetivoDe, tipoDe } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
 
@@ -122,6 +122,22 @@ test("serviços internos e externos auditados no ano, face aos que existem", () 
   assert.strictEqual(k6.pctPorAuditar, 67, "4 de 6 serviços da lista sem auditoria (4.5.0)");
   const vazio = plain(kpisAnuais(l, [], [], [], 2026, "2026-11-09"));
   assert.deepStrictEqual([vazio.pctPorAuditar, vazio.tipos.interno.pctPorAuditar], [null, null], "sem serviços, sem percentagem");
+});
+
+test("serviço auditado: o nome exacto, o nome sem maiúsculas nem acentos, ou o código (4.5.1)", () => {
+  // A lista (do Excel) e as auditorias (de uma importação) descrevem os mesmos serviços de forma diferente.
+  const lista = ["ACES - UCC S. Mamede (125806)", "Téc.Nefrol. (7788)", "Cirurgia  B (11B)", "Consulta Externa - Geral (70CE)", "Sem auditoria (999)", "Ortopedia"];
+  const l = [aud(1, "UCC S. Mamede (125806)", "2026-02-01", S100),      // outra descrição, mesmo código
+    aud(2, "Téc.Nefrol (7788)", "2026-02-02", S100),                    // descrição mudou, mesmo código
+    aud(3, "cirurgia b (11b)", "2026-02-03", S100),                     // maiúsculas e espaços
+    aud(4, "Consulta Externa - Geral (70CE)", "2026-02-04", S100),      // exacto
+    aud(5, "Ortopedia Adultos", "2026-02-05", S100)];                   // sem código e com outro nome: não casa
+  const tipos = [{ s: lista[0], t: "e" }, { s: lista[1], t: "i" }, { s: lista[2], t: "i" }, { s: lista[3], t: "e" }, { s: lista[4], t: "i" }, { s: lista[5], t: "i" }];
+  const k = plain(kpisAnuais(l, lista, tipos, [], 2026, "2026-11-09"));
+  assert.deepStrictEqual(k.porAuditar, ["Sem auditoria (999)", "Ortopedia"]);
+  assert.deepStrictEqual(k.tipos.interno, { total: 4, auditados: 2, porAuditar: ["Sem auditoria (999)", "Ortopedia"], pctPorAuditar: 50 });
+  assert.deepStrictEqual(k.tipos.externo, { total: 2, auditados: 2, porAuditar: [], pctPorAuditar: 0 });
+  assert.strictEqual(k.pctPorAuditar, 33);
 });
 
 test("pior serviço do ano e serviços por auditar (4.1.0)", () => {
