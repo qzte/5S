@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — KPIs e métricas
-  Referente à versão 4.5.0 do código.
+  Referente à versão 4.5.1 do código.
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
 -->
@@ -155,7 +155,7 @@ filtros da Análise. No ano em curso contam de 1 de Janeiro até hoje.
 | Indicador | Fórmula | Como se lê |
 | --- | --- | --- |
 | **Média total** | média das notas de todas as auditorias do ano | Nível 5S global. É por auditoria: um serviço auditado 3 vezes pesa 3 vezes |
-| **Serviços não auditados** (4.5.0) | `serviços da lista sem auditoria no ano ÷ serviços da lista × 100`, e o número | Complementar da cobertura. Inclui os sem tipo |
+| **Serviços não auditados** (4.5.0) | `serviços da lista sem auditoria no ano ÷ serviços da lista × 100`, e o número. Um serviço conta como auditado se uma auditoria do ano é a ele pelo nome exacto, pelo nome sem maiúsculas, acentos nem espaços a mais, ou pelo código «(…)» no fim do nome (4.5.1) | Complementar da cobertura. Inclui os sem tipo |
 | **Dispersão** (4.5.0) | nota mais baixa e mais alta das auditorias do ano, com serviço e data | Mostra a amplitude que a média esconde |
 | **Média por serviço** (4.4.0) | média das médias de cada serviço no ano | Cada serviço pesa o mesmo; aparece ao lado da média total |
 | **Serviços por faixa** (4.4.0) | serviços com média no ano ≥ 80 (Excelente), 50–79 (Com oportunidade) e < 50 (Crítico) | Critério absoluto, a par do «abaixo da média» |

@@ -5,6 +5,17 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.5.1] — 2026-11-13
+
+### Corrigido
+
+- **Serviços auditados que a cobertura não reconhecia.** Os indicadores do ano (e o `5s.painel.json`) só contavam um serviço da
+  lista como auditado se o nome da auditoria fosse **igual, letra a letra**. Com a lista vinda do Excel e as auditorias com outra
+  descrição do mesmo serviço (importadas de PDF, ou com a descrição mudada), quase todos ficavam «sem auditoria» e a cobertura de
+  internos e externos saía errada (por exemplo, 108 de 109 sem auditoria com 44 auditorias feitas). Passa a bastar o nome sem
+  maiúsculas, acentos nem espaços a mais, ou o **código** no fim do nome («(11B)»), como já faz a importação da listagem.
+  Afecta só as contagens de auditados e por auditar; as notas e as médias não mudam.
+
 ## [4.5.0] — 2026-11-13
 
 ### Adicionado
