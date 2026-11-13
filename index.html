@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.5.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1344,7 +1344,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.4.0";
+const APP_VERSION="4.5.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2221,7 +2221,10 @@ function seguimento(a,ant){
 
    Forma de uma acção:
      {id, r: código do responsável, texto, prazo: "AAAA-MM-DD" | "",
-      estado: "aberta" | "feita", feitaEm: "AAAA-MM-DD" | "", item: nº | null}
+      estado: "aberta" | "feita", feitaEm: "AAAA-MM-DD" | "", item: nº | null,
+      criadaEm?: "AAAA-MM-DD"}
+   `criadaEm` (v4.5.0) só existe nas acções criadas desde então; nas outras, a
+   referência é a data da auditoria (ver criadaEmDe()).
    `item` liga a acção a uma pergunta (o número), quando nasce de uma delas. */
 const MAX_ACOES=100;
 /* Porta única de entrada para acções: importação, alterações no relatório e no
@@ -2236,10 +2239,10 @@ function sanitizeAcoes(x){
     const texto=clean(a.texto,300);
     if(!texto)return;
     const feita=a.estado==="feita";
-    const item=parseInt(a.item,10);
-    limpas.push({id:Number.isInteger(a.id)&&a.id>0?a.id:0,r:isResp(a.r)?a.r:respBase(),texto,
+    const item=parseInt(a.item,10),criada=data(a.criadaEm);
+    limpas.push(Object.assign({id:Number.isInteger(a.id)&&a.id>0?a.id:0,r:isResp(a.r)?a.r:respBase(),texto,
       prazo:data(a.prazo),estado:feita?"feita":"aberta",feitaEm:feita?data(a.feitaEm):"",
-      item:item>0&&item<1000?item:null});
+      item:item>0&&item<1000?item:null},criada?{criadaEm:criada}:{}));
   });
   /* Ids repetidos ou em falta recebem os seguintes ao maior. */
   const vistos=new Set();
@@ -2403,6 +2406,12 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
   /* v4.4.0: a média dos serviços (cada um pesa o mesmo, auditado uma ou dez
      vezes) e quantos estão em cada faixa pela sua média no ano: um critério
      absoluto, ao lado do «abaixo da média», que é relativo. */
+  let minimo=null,maximo=null;
+  doAno.forEach(a=>{
+    const t=total(a);
+    if(!minimo||t<minimo.nota)minimo={nota:t,service:a.service,date:a.date};
+    if(!maximo||t>maximo.nota)maximo={nota:t,service:a.service,date:a.date};
+  });
   const mediaServicos=servicos.length?avg(servicos.map(x=>x.media)):null;
   const faixas={excelente:0,oportunidade:0,critico:0};
   servicos.forEach(x=>{faixas[x.media>=80?"excelente":x.media>=50?"oportunidade":"critico"]++;});
@@ -2428,12 +2437,17 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
   /* Serviços internos e externos: os da lista, auditados no ano. */
   const auditados=new Set(porSvc.keys());
   const grupo=t=>{const l=(svcs||[]).filter(s=>tipoDe(tipos,s)===t);
-    return{total:l.length,auditados:l.filter(s=>auditados.has(s)).length,porAuditar:l.filter(s=>!auditados.has(s))};};
+    const por=l.filter(s=>!auditados.has(s));
+    /* v4.5.0: a percentagem por auditar (null sem serviços do tipo). */
+    return{total:l.length,auditados:l.length-por.length,porAuditar:por,
+      pctPorAuditar:l.length?Math.round(por.length/l.length*100):null};};
   /* v4.1.0: o serviço com a média do ano mais baixa (null sem auditorias), e
      os serviços da lista sem auditoria no ano (de qualquer tipo). */
   const pior=servicos.slice().sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service))[0]||null;
   const porAuditar=(svcs||[]).filter(s=>!auditados.has(s));
-  return{ano,ini,ref,emCurso:ref<fim,n,media,mediaServicos,faixas,servicos:servicos.length,abaixo,pior,porAuditar,plano,
+  /* v4.5.0: os serviços da lista sem auditoria no ano, em número e em % da lista. */
+  const pctPorAuditar=(svcs||[]).length?Math.round(porAuditar.length/svcs.length*100):null;
+  return{ano,ini,ref,emCurso:ref<fim,n,media,minimo,maximo,mediaServicos,faixas,servicos:servicos.length,abaixo,pior,porAuditar,pctPorAuditar,plano,
     tipos:{interno:grupo("i"),externo:grupo("e"),semTipo:grupo("")}};
 }
 
@@ -2478,21 +2492,70 @@ function reincidencias(lista){
   });
   return out.sort((x,y)=>y.seguidas-x.seguidas||x.service.localeCompare(y.service)||x.n-y.n);
 }
-/* Como se fecham as acções: dias entre a auditoria e a conclusão (a data de
-   criação da acção não se guarda, pelo que a da auditoria é a referência), e a
-   parte das que têm prazo que foi concluída até ele. Só entram as feitas com
-   data de conclusão. */
+/* A data de criação de uma acção: a que se guardou (4.5.0) ou, nas anteriores,
+   a da auditoria. */
+function criadaEmDe(au,ac){return ac&&typeof ac.criadaEm==="string"&&ac.criadaEm?ac.criadaEm:au.date;}
+/* Como se fecham as acções: dias entre a criação e a conclusão (nas acções sem
+   data de criação, a da auditoria), e a parte das que têm prazo que foi
+   concluída até ele. Só entram as feitas com data de conclusão. */
 function desempenhoAcoes(lista){
   let n=0,soma=0,comPrazo=0,noPrazo=0;
   (lista||[]).forEach(au=>(au&&Array.isArray(au.acoes)?au.acoes:[]).forEach(ac=>{
     if(!ac||ac.estado!=="feita"||typeof ac.feitaEm!=="string"||!ac.feitaEm)return;
-    const d=diasEntre(au.date,ac.feitaEm);
+    const d=diasEntre(criadaEmDe(au,ac),ac.feitaEm);
     if(!Number.isFinite(d))return;
     n++;soma+=Math.max(0,d);
     if(ac.prazo){comPrazo++;if(ac.feitaEm<=ac.prazo)noPrazo++;}
   }));
   return{fechadas:n,diasMedio:n?umaCasa(soma/n):null,comPrazo,noPrazo,
     pctPrazo:comPrazo?Math.round(noPrazo/comPrazo*100):null};
+}
+
+/* v4.5.0: as acções em aberto — a idade (desde a criação), o atraso das que
+   passaram o prazo e a mais antiga. */
+function idadeAcoesAbertas(lista,hoje){
+  let n=0,soma=0,atrasadas=0,somaAtraso=0,maisAntiga=null;
+  (lista||[]).forEach(au=>(au&&Array.isArray(au.acoes)?au.acoes:[]).forEach(ac=>{
+    if(!ac||ac.estado==="feita")return;
+    const idade=Math.max(0,diasEntre(criadaEmDe(au,ac),hoje));
+    if(!Number.isFinite(idade))return;
+    n++;soma+=idade;
+    if(estadoAcao(ac,hoje)==="atrasada"){atrasadas++;somaAtraso+=diasEntre(ac.prazo,hoje);}
+    if(!maisAntiga||idade>maisAntiga.dias)maisAntiga={service:au.service,texto:ac.texto,dias:idade,auditId:au.id};
+  }));
+  return{abertas:n,idadeMedia:n?umaCasa(soma/n):null,atrasadas,
+    atrasoMedio:atrasadas?umaCasa(somaAtraso/atrasadas):null,maisAntiga};
+}
+/* v4.5.0: a eficácia das acções. De cada acção FEITA ligada a uma pergunta
+   (`item`), cuja pergunta não estava Excelente na auditoria de origem e que foi
+   concluída até à auditoria seguinte ao serviço: se nessa auditoria a pergunta
+   ficou Excelente (resolvida), subiu sem chegar lá (melhorou) ou não subiu. A
+   pergunta emparelha-se pela assinatura (número, tipo e enunciado), não só pelo
+   número, porque o editor pode tê-la mudado. Sem auditoria seguinte, sem
+   ligação a uma pergunta ou sem data de conclusão, a acção não entra. */
+function eficaciaAcoes(lista){
+  const por=new Map();
+  [...(lista||[])].filter(a=>a&&Array.isArray(a.scores)&&typeof a.service==="string").sort(ordemCron)
+    .forEach(a=>{if(!por.has(a.service))por.set(a.service,[]);por.get(a.service).push(a);});
+  let avaliadas=0,resolvidas=0,melhoraram=0,naoMelhoraram=0;
+  por.forEach(auds=>auds.forEach((au,k)=>{
+    const seg=auds[k+1];
+    if(!seg||!Array.isArray(au.acoes))return;
+    const itA=itemsOf(au),itS=itemsOf(seg);
+    au.acoes.forEach(ac=>{
+      if(!ac||ac.estado!=="feita"||!ac.item||typeof ac.feitaEm!=="string"||!ac.feitaEm||ac.feitaEm>seg.date)return;
+      const i=itA.findIndex(it=>it&&it.n===ac.item);
+      if(i<0||au.scores[i]==null||au.scores[i]>=2)return;
+      const sig=assinItem(itA[i]),j=itS.findIndex(it=>assinItem(it)===sig);
+      if(j<0||seg.scores[j]==null)return;
+      avaliadas++;
+      if(seg.scores[j]===2)resolvidas++;
+      else if(seg.scores[j]>au.scores[i])melhoraram++;
+      else naoMelhoraram++;
+    });
+  }));
+  return{avaliadas,resolvidas,melhoraram,naoMelhoraram,
+    pct:avaliadas?Math.round(resolvidas/avaliadas*100):null};
 }
 
 /* ---------- Relatório mensal (v3.20.0) ----------
@@ -2545,15 +2608,17 @@ function resumoMensal(lista,mes,svcs,hoje){
     .map(o=>({n:o.n,t:o.t,c:o.c,vezes:o.vezes,falhas:o.falhas,mau:o.mau,servicos:[...o.servicos].sort()}));
   const faixas={excelente:0,oportunidade:0,critico:0};
   doMes.forEach(a=>{const p=total(a);faixas[p>=80?"excelente":p>=50?"oportunidade":"critico"]++;});
-  /* Plano de acção: as novas (das auditorias do mês), as concluídas no mês e as
+  /* Plano de acção: as novas (criadas no mês; nas sem data de criação, as das
+     auditorias do mês), as concluídas no mês e as
      que estavam em aberto no fim do mês (ou hoje, no mês em curso). */
   const acoes={novas:0,concluidas:0,abertas:0,atrasadas:0};
   todas.forEach(a=>(Array.isArray(a.acoes)?a.acoes:[]).forEach(ac=>{
     if(!ac)return;
-    if(a.date.slice(0,7)===mes)acoes.novas++;
+    const criada=criadaEmDe(a,ac);
+    if(criada.slice(0,7)===mes)acoes.novas++;
     const feita=ac.estado==="feita";
     if(feita&&typeof ac.feitaEm==="string"&&ac.feitaEm.slice(0,7)===mes)acoes.concluidas++;
-    if(a.date>ref)return;
+    if(criada>ref)return;
     if(feita&&!(typeof ac.feitaEm==="string"&&ac.feitaEm>ref))return;
     acoes.abertas++;
     if(ac.prazo&&ac.prazo<ref)acoes.atrasadas++;
@@ -2590,7 +2655,7 @@ function linhasExcel(lista){
     "ID auditoria":a.id,"Serviço":a.service,"Data da auditoria":a.date,
     "Responsável":isResp(ac.r)?RESP[ac.r]:String(ac.r||""),"Acção":ac.texto,
     "Pergunta Nº":ac.item||"","Prazo":ac.prazo||"","Estado":ac.estado==="feita"?"Feita":"Aberta",
-    "Concluída em":ac.feitaEm||""})));
+    "Concluída em":ac.feitaEm||"","Criada em":ac.criadaEm||""})));
   return{auditorias,respostas,acoes};
 }
 
@@ -3021,7 +3086,7 @@ function wirePlano(a){
     const texto=clean(document.getElementById("acao-texto").value,300);
     if(!texto){aviso("Escreva a acção.");document.getElementById("acao-texto").focus();return;}
     const nova={r:document.getElementById("acao-r").value,texto,
-      prazo:document.getElementById("acao-prazo").value,estado:"aberta",
+      prazo:document.getElementById("acao-prazo").value,estado:"aberta",criadaEm:hojeISO(),
       item:parseInt(document.getElementById("acao-item").value,10)||null};
     if(mudarAcoes(a.id,l=>l.concat([nova])))redrawPlano(a);
   };
@@ -3165,9 +3230,15 @@ function renderAcoes(){
     `<b>${r.abertas}</b> em aberto · <b style="color:${r.atrasadas?"var(--red-ink)":"inherit"}">${r.atrasadas}</b> em atraso · <b>${r.feitas30}</b> feita(s) nos últimos 30 dias`:
     "Ainda não há acções. Criam-se no relatório de uma auditoria, em <i>Plano de acção</i> ou com <i>+ Acção</i> nos itens a melhorar.";
   const dp=desempenhoAcoes(audits);
-  document.getElementById("ac-desempenho").textContent=dp.fechadas?
-    "Tempo médio de fecho: "+numPT(dp.diasMedio)+" dias, desde a auditoria ("+dp.fechadas+" feita(s))"+
-    (dp.comPrazo?" · Dentro do prazo: "+dp.pctPrazo+"% ("+dp.noPrazo+" de "+dp.comPrazo+" com prazo)":""):"";
+  const ia=idadeAcoesAbertas(audits,hoje),ef=eficaciaAcoes(audits),linhasDp=[];
+  if(dp.fechadas)linhasDp.push("Tempo médio de fecho: "+numPT(dp.diasMedio)+" dias ("+dp.fechadas+" feita(s))"+
+    (dp.comPrazo?" · Dentro do prazo: "+dp.pctPrazo+"% ("+dp.noPrazo+" de "+dp.comPrazo+" com prazo)":""));
+  if(ia.abertas)linhasDp.push("Em aberto há "+numPT(ia.idadeMedia)+" dias, em média"+
+    (ia.atrasadas?" · atraso médio das "+ia.atrasadas+" em atraso: "+numPT(ia.atrasoMedio)+" dias":"")+
+    " · a mais antiga: "+esc(ia.maisAntiga.service)+", há "+ia.maisAntiga.dias+" dias");
+  if(ef.avaliadas)linhasDp.push("Eficácia: "+ef.pct+"% das acções feitas resolveram a pergunta na auditoria seguinte ("+
+    ef.resolvidas+" de "+ef.avaliadas+")"+(ef.melhoraram?" · "+ef.melhoraram+" melhoraram sem chegar a Excelente":""));
+  document.getElementById("ac-desempenho").innerHTML=linhasDp.join("<br>");
   const l=listaAcoes(audits,acFiltro,hoje);
   document.getElementById("ac-conta").textContent=todas?l.length+" de "+todas+" acção(ões).":"";
   const box=document.getElementById("ac-lista");
@@ -3912,6 +3983,8 @@ function renderKpis(){
       p.objetivo?p.pct+"% do objectivo"+(p.faltam?" · faltam "+p.faltam:""):"Defina-o em Config → Objectivo anual"),
     tile("kpi-semanal","Média semanal",p.mediaSemanal==null?"—":numPT(p.mediaSemanal),
       "auditorias por semana"+(p.objetivoSemanal!=null?" · plano: "+numPT(p.objetivoSemanal):"")),
+    tile("kpi-nao-auditados","Serviços não auditados",(services||[]).length?String(k.porAuditar.length):"—",
+      (services||[]).length?k.pctPorAuditar+"% dos "+services.length+" serviço(s) sem auditoria em "+k.ano:"Sem serviços na lista"),
     p.objetivo?tile("kpi-plano","Face ao plano",(p.desvio>0?"+":p.desvio<0?"−":"")+Math.abs(p.desvio),
       `esperadas até ${k.emCurso?"hoje":"ao fim do ano"}: ${p.esperado}<br><span class="pill" style="background:${ESTADO_PLANO[p.estado][1]}">${ESTADO_PLANO[p.estado][0]}</span>`):""
   ].join("");
@@ -3929,7 +4002,8 @@ function renderKpis(){
   const grupo=(id,rot,g)=>{const pc=g.total?Math.round(g.auditados/g.total*100):0;
     return`<div id="${id}"><div class="stat-row"><span>${rot}: <b>${g.auditados}</b> de <b>${g.total}</b> auditado(s)</span><span>${g.total?pc+"%":"—"}</span></div>
       <div class="bar"><i class="${barCls(pc)}" style="width:${pc}%"></i></div>
-      ${g.porAuditar.length?`<small style="color:var(--muted);display:block;margin:-2px 0 8px">Por auditar: ${g.porAuditar.map(esc).join(", ")}</small>`:""}</div>`;};
+      ${g.total?`<small id="${id}-por" style="color:var(--muted);display:block;margin:-2px 0 ${g.porAuditar.length?"0":"8px"}">Sem auditoria: <b>${g.porAuditar.length}</b> (${g.pctPorAuditar}%)</small>`:""}
+      ${g.porAuditar.length?`<small style="color:var(--muted);display:block;margin:0 0 8px">Por auditar: ${g.porAuditar.map(esc).join(", ")}</small>`:""}</div>`;};
   const t=k.tipos;
   const cobertura=`<div class="kpi-sec" id="kpi-tipos"><h4>Serviços auditados em ${k.ano}</h4>`+
     grupo("kpi-int","Internos",t.interno)+grupo("kpi-ext","Externos",t.externo)+
@@ -3948,7 +4022,8 @@ function renderKpis(){
     <small style="color:var(--muted);display:block;margin-bottom:6px">Não ficaram Excelente em auditorias seguidas ao mesmo serviço, até à última.</small>`+
     reinc.slice(0,8).map(x=>`<div class="kpi-linha"><span><b>${esc(x.service)}</b><br><small style="color:var(--muted)">Nº ${esc(x.n)} · ${esc(x.t||x.c)}</small></span><span class="pill" style="background:var(--red)">${x.seguidas} seguidas</span></div>`).join("")+
     (reinc.length>8?`<small style="color:var(--muted)">E mais ${reinc.length-8}.</small>`:"")+`</div>`:"";
-  box.innerHTML=`<div class="kpi-grelha">${tiles}</div>${ritmo}${abaixo}${faixas}${cobertura}${semHtml}${reincHtml}`;
+  const disp=k.n?`<p id="kpi-dispersao" style="font-size:.78rem;color:var(--muted);margin:4px 0">Nota mais baixa: <b>${k.minimo.nota}</b> (${esc(k.minimo.service)}, ${esc(dataCurta(k.minimo.date))}) · mais alta: <b>${k.maximo.nota}</b> (${esc(k.maximo.service)}, ${esc(dataCurta(k.maximo.date))})</p>`:"";
+  box.innerHTML=`<div class="kpi-grelha">${tiles}</div>${disp}${ritmo}${abaixo}${faixas}${cobertura}${semHtml}${reincHtml}`;
   box.querySelectorAll("[data-kpi-plano]").forEach(b=>b.onclick=()=>{
     const x=k.abaixo[+b.dataset.kpiPlano],a=x&&audits.find(y=>y.id===x.ultimaId);
     if(a){openReport(a);const pa=document.getElementById("plano");if(pa)pa.scrollIntoView();}
@@ -5521,7 +5596,10 @@ function kpisPainel5s(lista,hoje){
   const ultimas=new Map();todas.forEach(a=>ultimas.set(a.service,total(a)));
   const faixas={excelente:0,oportunidade:0,critico:0};
   ultimas.forEach(p=>{faixas[p>=80?"excelente":p>=50?"oportunidade":"critico"]++;});
+  /* v4.5.0: a acção em aberto há mais tempo, para o painel (null sem acções). */
+  const ia=idadeAcoesAbertas(todas,hoje);
   return{hoje,
+    acoesMaisAntiga:ia.maisAntiga?{servico:ia.maisAntiga.service,dias:ia.maisAntiga.dias}:null,
     media30:ult.length?avg(ult.map(total)):null,n30:ult.length,
     media30Ant:ant.length?avg(ant.map(total)):null,n30Ant:ant.length,
     porMes,
@@ -5551,7 +5629,9 @@ function dadosPainel5s(lista,extra){
    `porAuditar` e `nServicos`. */
 function anualPainel5s(lista,extra){
   const k=kpisAnuais(lista,extra.servicos,extra.tipos,extra.objetivos,Number(extra.hoje.slice(0,4)),extra.hoje),p=k.plano;
-  const g=x=>({total:x.total,auditados:x.auditados});
+  /* v4.5.0: `pctPorAuditar` (internos e externos) e `naoAuditados` (a lista toda),
+     para a página do painel mostrar os serviços sem auditoria no ano. */
+  const g=x=>({total:x.total,auditados:x.auditados,pctPorAuditar:x.pctPorAuditar});
   return{ano:k.ano,n:k.n,media:k.media,
     abaixo:k.abaixo.slice(0,10).map(x=>({nome:x.service,media:x.media,n:x.n})),
     objetivo:p.objetivo||null,pct:p.pct,esperado:p.esperado,desvio:p.desvio,estado:p.estado,
@@ -5559,6 +5639,7 @@ function anualPainel5s(lista,extra){
     internos:g(k.tipos.interno),externos:g(k.tipos.externo),
     /* v4.1.0: para o quadro SERVIÇOS do painel (no lugar dos «serviços críticos»). */
     pior:k.pior?{nome:k.pior.service,media:k.pior.media,n:k.pior.n}:null,
+    naoAuditados:{n:k.porAuditar.length,total:(extra.servicos||[]).length,pct:k.pctPorAuditar},
     nAbaixo:k.abaixo.length,porAuditar:k.porAuditar.length,nServicos:(extra.servicos||[]).length};
 }
 

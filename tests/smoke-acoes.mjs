@@ -48,6 +48,7 @@ check(await pg.locator("#plano.page").count() === 1, "com acções, o plano pass
 check(await folhas() === 4, "com plano, o relatório tem 4 folhas");
 let g = await gravadas();
 check(g[0].acoes && g[0].acoes.length === 1 && g[0].acoes[0].texto.endsWith("corredor"), "a acção devia ficar gravada");
+check(/^\d{4}-\d{2}-\d{2}$/.test(g[0].acoes[0].criadaEm || ""), "uma acção nova guarda a data de criação (4.5.0): " + g[0].acoes[0].criadaEm);
 
 /* Uma segunda acção, sem prazo, e removê-la. */
 await pg.locator("#acao-texto").fill("rever a sinalética");
@@ -111,6 +112,8 @@ check(t.length === 3 && /Atrasada A/.test(t[0]) && /Atrasada B/.test(t[1]) && /A
   "por omissão, as em aberto, as mais atrasadas primeiro: " + t.join(" | "));
 check(/3 em aberto · 2 em atraso/.test(await pg.locator("#ac-resumo").textContent()) && /3 de 4/.test(await pg.locator("#ac-conta").textContent()),
   "o resumo e a contagem: " + await pg.locator("#ac-resumo").textContent());
+check(/Em aberto há .* dias, em média/.test(await pg.locator("#ac-desempenho").textContent()),
+  "a idade das acções em aberto (4.5.0): " + await pg.locator("#ac-desempenho").textContent());
 await pg.locator("#ac-estado").selectOption("feitas");
 t = await textos();
 check(t.length === 1 && /Feita B/.test(t[0]), "o filtro das feitas");

@@ -87,10 +87,15 @@ check(/67\/100/.test(await pg.locator("#kpi-media").textContent()), "média tota
 check(/média por serviço: \d+/.test(await pg.locator("#kpi-media").textContent()), "média por serviço (4.4.0)");
 check(await pg.locator("#kpi-faixas .stat-row").count() === 3, "serviços por faixa, no ano (4.4.0)");
 check(await pg.locator("#kpi-sem-auditoria .stat-row").count() >= 1, "serviços há mais tempo sem auditoria (4.4.0)");
+check(/Nota mais baixa: 0.*mais alta: 100/.test(await pg.locator("#kpi-dispersao").textContent()), "a dispersão das notas (4.5.0): " + await pg.locator("#kpi-dispersao").textContent());
 check(/3 de 52/.test(await pg.locator("#kpi-objetivo").textContent()), "auditorias face ao objectivo: " + await pg.locator("#kpi-objetivo").textContent());
 check(await pg.locator("#kpi-semanal").count() === 1 && await pg.locator("#kpi-plano").count() === 1, "média semanal e face ao plano");
 const abaixo = await pg.locator("#kpi-abaixo .kpi-linha").allTextContents();
 check(abaixo.length === 1 && /Loja B/.test(abaixo[0]), "só a Loja B está abaixo da média: " + abaixo.join(" | "));
+check(/Serviços não auditados/.test(await pg.locator("#kpi-nao-auditados").textContent()) && /%/.test(await pg.locator("#kpi-nao-auditados").textContent()),
+  "serviços não auditados (4.5.0): " + await pg.locator("#kpi-nao-auditados").textContent());
+check(/Sem auditoria: 0 \(0%\)/.test(await pg.locator("#kpi-int-por").textContent()) && /Sem auditoria: 1 \(50%\)/.test(await pg.locator("#kpi-ext-por").textContent()),
+  "% de internos e externos sem auditoria (4.5.0): " + await pg.locator("#kpi-int-por").textContent() + " | " + await pg.locator("#kpi-ext-por").textContent());
 check(/Internos: 2 de 2/.test(await pg.locator("#kpi-int").textContent()), "internos: " + await pg.locator("#kpi-int").textContent());
 check(/Externos: 1 de 2/.test(await pg.locator("#kpi-ext").textContent()) && /Por auditar: Loja D/.test(await pg.locator("#kpi-ext").textContent()),
   "externos: " + await pg.locator("#kpi-ext").textContent());
