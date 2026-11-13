@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — KPIs e métricas
-  Referente à versão 4.3.0 do código.
+  Referente à versão 4.4.0 do código.
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
 -->
@@ -155,6 +155,10 @@ filtros da Análise. No ano em curso contam de 1 de Janeiro até hoje.
 | Indicador | Fórmula | Como se lê |
 | --- | --- | --- |
 | **Média total** | média das notas de todas as auditorias do ano | Nível 5S global. É por auditoria: um serviço auditado 3 vezes pesa 3 vezes |
+| **Média por serviço** (4.4.0) | média das médias de cada serviço no ano | Cada serviço pesa o mesmo; aparece ao lado da média total |
+| **Serviços por faixa** (4.4.0) | serviços com média no ano ≥ 80 (Excelente), 50–79 (Com oportunidade) e < 50 (Crítico) | Critério absoluto, a par do «abaixo da média» |
+| **Há mais tempo sem auditoria** (4.4.0) | dias entre a última auditoria de cada serviço e hoje (`ultimaAuditoriaPorServico()`); os 5 piores, nunca auditados primeiro | Até hoje, sem o filtro do ano. Inclui os serviços da lista sem nenhuma auditoria |
+| **Perguntas reincidentes** (4.4.0) | perguntas não Excelente em ≥ 2 auditorias seguidas ao mesmo serviço, até à última (`reincidencias()`); mostra as auditorias seguidas | Problemas que as acções não resolveram. Uma pergunta que falte numa auditoria, ou um Excelente, interrompe a sequência |
 | **Serviços abaixo da média** | serviços com média no ano < média total; `diferença = média do serviço − média total`; do pior para o melhor, com as acções em aberto | Candidatos ao plano de acção. É relativo: há quase sempre alguém abaixo |
 | **Objectivo anual** | `feitas ÷ objectivo × 100` e `faltam = objectivo − feitas` | Progresso do plano de auditorias |
 | **Média semanal** | `feitas ÷ (dias decorridos ÷ 7)`, 1 casa decimal; ao lado `objectivo ÷ (dias do ano ÷ 7)` | Ritmo real contra o ritmo que o objectivo pede |
@@ -197,6 +201,8 @@ Estado de cada acção (`estadoAcao()`): **feita**; **atrasada** se aberta com
 | **Por auditoria** | abertas e atrasadas dessa auditoria (`contaAcoes()`) | Histórico |
 | **Por serviço** | abertas de todas as auditorias ao serviço | *Abaixo da média*, formulário |
 | **Em atraso no serviço** | as da auditoria + as que vinham de auditorias anteriores | Mensagem de envio |
+| **Tempo médio de fecho** (4.4.0) | média dos dias entre a **data da auditoria** e `feitaEm`, nas acções feitas (`desempenhoAcoes()`) | Separador Acções. A data de criação da acção não se guarda: é uma aproximação |
+| **Dentro do prazo** (4.4.0) | acções feitas com prazo e `feitaEm ≤ prazo` ÷ acções feitas com prazo | Separador Acções |
 
 ## 7. Painel e-ink
 
@@ -266,19 +272,14 @@ Sobre a saúde dos dados, não sobre o 5S.
 
 Por ordem de impacto.
 
-1. **Eixos sem perguntas contam como 0 % na Análise e no painel.** Em
-   `renderStats()` e em `dadosPainel5s()`/`kpisPainel5s()`, a média por
-   responsável (e por pilar) inclui as auditorias que **não têm perguntas
-   nesse eixo**, com 0 %. O relatório mensal faz o correcto (`n > 0`). Afecta
-   quem tem auditorias com conjuntos de perguntas diferentes — por exemplo,
-   auditorias anteriores à criação do responsável *Picking* puxam a média
-   dele para baixo. As duas vistas podem mostrar valores diferentes para o
-   mesmo período. **Recomendação:** usar em todo o lado a regra do mensal.
-2. **Média total enviesada pela frequência.** Sendo por auditoria, um serviço
-   bom auditado muitas vezes esconde um mau auditado uma vez (três auditorias
-   a 100 e uma a 38 dão 85; a média dos dois serviços seria 69). Convém ler a
-   média total sempre com a cobertura e com a lista *abaixo da média*, ou
-   acrescentar uma «média por serviço».
+1. **Resolvida em 4.4.0 — eixos sem perguntas.** A Análise e o painel
+   contavam como 0 % as auditorias sem perguntas de um responsável ou pilar
+   (`mediaDoEixo()` passou a excluí-las, como o relatório mensal). As duas
+   vistas já não divergem.
+2. **Média total enviesada pela frequência (atenuada em 4.4.0).** Sendo por
+   auditoria, um serviço bom auditado muitas vezes esconde um mau auditado uma
+   vez (três auditorias a 100 e uma a 38 dão 85; a média dos dois serviços
+   seria 69). A *média por serviço* aparece agora ao lado da média total.
 3. **Responsáveis com poucos itens têm notas aos saltos.** *Picking* (1 item)
    só pode ter 0, 38 ou 100; *Reposição* (2 itens) tem seis valores
    possíveis. No radar, um único item decide o eixo — não comparar
@@ -288,10 +289,9 @@ Por ordem de impacto.
    Excelente. É herança da folha original e é coerente, mas quem lê «38»
    tende a pensar em «muito mau» quando pode ser «tudo quase bem». Vale a
    pena explicar isto a quem recebe os relatórios.
-5. **«Abaixo da média» é relativo.** Um serviço com 88 aparece na lista se a
-   média for 90; e com todos em 40 ninguém aparece. Falta um critério
-   absoluto a par — por exemplo, a faixa (< 80 ou < 50), que o painel já usa
-   em `faixas`.
+5. **«Abaixo da média» é relativo (atenuada em 4.4.0).** Um serviço com 88
+   aparece na lista se a média for 90; e com todos em 40 ninguém aparece. Os
+   *serviços por faixa* dão agora o critério absoluto a par.
 6. **Plano linear.** *Esperadas*, *projecção* e *ritmo necessário* assumem o
    mesmo número de auditorias em todas as semanas (sem férias nem paragens).
    Em Janeiro a projecção é muito instável (poucos dias no denominador), e em
@@ -314,10 +314,9 @@ Por ordem de impacto.
 
 ### O que não se mede
 
-- **Tempo de fecho das acções** (dias entre a auditoria e `feitaEm`) e
-  **taxa de cumprimento do prazo** — os dados existem.
-- **Reincidência**: perguntas que falham em auditorias seguidas ao mesmo
-  serviço (o *seguimento* mostra-o caso a caso, sem indicador agregado).
-- **Antiguidade da última auditoria por serviço** (a frequência por serviço
-  foi retirada em 4.0.0; resta a cobertura anual).
+- **Idade das acções em aberto** (atraso médio, acção mais antiga).
+- **Eficácia das acções:** das ligadas a uma pergunta, quantas viram essa
+  pergunta melhorar na auditoria seguinte.
 - **Dispersão** das notas (mínimo, máximo), que ajudaria a ler as médias.
+- **Data de criação da acção**, que tornaria exactos o tempo de fecho e as
+  «acções novas» do mês.
