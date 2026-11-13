@@ -5,10 +5,10 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
-const ctx = buildContext(["mediaDoEixo", "kpisAnuais", "ultimaAuditoriaPorServico", "reincidencias", "desempenhoAcoes",
+const ctx = buildContext(["auditadoNoAno", "codigoServico", "mediaDoEixo", "kpisAnuais", "ultimaAuditoriaPorServico", "reincidencias", "desempenhoAcoes",
   "criadaEmDe", "idadeAcoesAbertas", "eficaciaAcoes", "estadoAcao",
   "avg", "ordemCron", "diasEntre", "byPillar", "byResp", "tipoDe", "objetivoDe", "assinItem"],
-  ["ITEMS", "itemsOf", "umaCasa", "WEIGHTS", "W_MAX", "wOf", "total", "PILLARS", "RESP", "pctOf"]);
+  ["norm", "ITEMS", "itemsOf", "umaCasa", "WEIGHTS", "W_MAX", "wOf", "total", "PILLARS", "RESP", "pctOf"]);
 const { mediaDoEixo, kpisAnuais, ultimaAuditoriaPorServico, reincidencias, desempenhoAcoes, idadeAcoesAbertas, eficaciaAcoes } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
 
