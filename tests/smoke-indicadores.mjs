@@ -84,6 +84,9 @@ check(/1 auditorias por semana/.test(await pg.locator("#obj-info").textContent()
 await pg.locator("[data-v=stats]").click();
 check(await pg.locator("#an-ano").inputValue() === String(ano), "os indicadores abrem no ano corrente");
 check(/67\/100/.test(await pg.locator("#kpi-media").textContent()), "média total do ano (100, 0, 100): " + await pg.locator("#kpi-media").textContent());
+check(/média por serviço: \d+/.test(await pg.locator("#kpi-media").textContent()), "média por serviço (4.4.0)");
+check(await pg.locator("#kpi-faixas .stat-row").count() === 3, "serviços por faixa, no ano (4.4.0)");
+check(await pg.locator("#kpi-sem-auditoria .stat-row").count() >= 1, "serviços há mais tempo sem auditoria (4.4.0)");
 check(/3 de 52/.test(await pg.locator("#kpi-objetivo").textContent()), "auditorias face ao objectivo: " + await pg.locator("#kpi-objetivo").textContent());
 check(await pg.locator("#kpi-semanal").count() === 1 && await pg.locator("#kpi-plano").count() === 1, "média semanal e face ao plano");
 const abaixo = await pg.locator("#kpi-abaixo .kpi-linha").allTextContents();

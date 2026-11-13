@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.3.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.4.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -563,6 +563,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   <div class="card">
     <h3 style="margin-bottom:6px">Plano de acção de todos os serviços</h3>
     <p id="ac-resumo" style="font-size:.78rem;color:var(--muted);margin-bottom:10px"></p>
+    <p id="ac-desempenho" style="font-size:.78rem;color:var(--muted);margin:-6px 0 10px"></p>
     <div class="row">
       <div><label for="ac-estado">Estado</label><select id="ac-estado">
         <option value="">Em aberto</option>
@@ -1343,7 +1344,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.3.0";
+const APP_VERSION="4.4.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2095,6 +2096,16 @@ function byPillar(a){const IT=itemsOf(a);return PILLARS.map((p,pi)=>{
 function byResp(a){const IT=itemsOf(a);return Object.keys(RESP).map(r=>{
   const sc=IT.map((it,i)=>it.r===r?a.scores[i]:null).filter(s=>s!=null);
   return{name:RESP[r],pct:pctOf(sc),n:sc.length};});}
+/* v4.4.0: a média de um eixo (pilar ou responsável) só conta as auditorias que
+   TÊM perguntas nesse eixo (n > 0). Uma auditoria sem perguntas de um
+   responsável (anterior à criação do Picking, por exemplo) dava pctOf([]) = 0 e
+   puxava a média para baixo; o relatório mensal já as excluía, a Análise e o
+   painel não. `eixos`: uma lista por auditoria, de {pct, n}; `i`: o eixo.
+   Devolve a média, os itens somados e as auditorias que contam. */
+function mediaDoEixo(eixos,i){
+  const com=(eixos||[]).map(e=>e&&e[i]).filter(x=>x&&x.n>0);
+  return{pct:avg(com.map(x=>x.pct)),n:com.reduce((s,x)=>s+x.n,0),auditorias:com.length};
+}
 /* v3.15.0: as métricas de cada auditoria (por pilar e por responsável),
    calculadas UMA vez e guardadas junto dela. A Análise e o painel pediam-nas
    várias vezes por auditoria (uma por eixo). A memória é por objecto
@@ -2389,6 +2400,12 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
   doAno.forEach(a=>{if(!porSvc.has(a.service))porSvc.set(a.service,[]);porSvc.get(a.service).push(a);});
   const servicos=[...porSvc].map(([service,l])=>({service,n:l.length,media:avg(l.map(total)),
     ultimaId:l[l.length-1].id,ultima:total(l[l.length-1])}));
+  /* v4.4.0: a média dos serviços (cada um pesa o mesmo, auditado uma ou dez
+     vezes) e quantos estão em cada faixa pela sua média no ano: um critério
+     absoluto, ao lado do «abaixo da média», que é relativo. */
+  const mediaServicos=servicos.length?avg(servicos.map(x=>x.media)):null;
+  const faixas={excelente:0,oportunidade:0,critico:0};
+  servicos.forEach(x=>{faixas[x.media>=80?"excelente":x.media>=50?"oportunidade":"critico"]++;});
   const abaixo=media==null?[]:servicos.filter(x=>x.media<media)
     .map(x=>Object.assign(x,{diferenca:x.media-media}))
     .sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service));
@@ -2416,8 +2433,66 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
      os serviços da lista sem auditoria no ano (de qualquer tipo). */
   const pior=servicos.slice().sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service))[0]||null;
   const porAuditar=(svcs||[]).filter(s=>!auditados.has(s));
-  return{ano,ini,ref,emCurso:ref<fim,n,media,servicos:servicos.length,abaixo,pior,porAuditar,plano,
+  return{ano,ini,ref,emCurso:ref<fim,n,media,mediaServicos,faixas,servicos:servicos.length,abaixo,pior,porAuditar,plano,
     tipos:{interno:grupo("i"),externo:grupo("e"),semTipo:grupo("")}};
+}
+
+/* ---------- Indicadores de seguimento (v4.4.0) ----------
+   Puras, para serem testadas sem DOM. */
+/* Os serviços pela data da última auditoria: os nunca auditados primeiro, depois
+   os há mais tempo sem auditoria. `svcs` é a lista de serviços; entram também os
+   que têm auditorias e já não estão nela. */
+function ultimaAuditoriaPorServico(lista,svcs,hoje){
+  const ult=new Map();
+  (lista||[]).forEach(a=>{
+    if(!a||typeof a.date!=="string"||typeof a.service!=="string")return;
+    if(!ult.has(a.service)||a.date>ult.get(a.service))ult.set(a.service,a.date);
+  });
+  return [...new Set([...(svcs||[]),...ult.keys()])].map(service=>{
+    const d=ult.get(service)||"",dias=d?Math.max(0,diasEntre(d,hoje)):null;
+    return{service,ultima:d,dias:Number.isFinite(dias)?dias:null};
+  }).sort((x,y)=>(y.dias==null)-(x.dias==null)||(y.dias||0)-(x.dias||0)||x.service.localeCompare(y.service));
+}
+/* Perguntas que não ficaram Excelente em duas ou mais auditorias SEGUIDAS ao
+   mesmo serviço, até à última. As perguntas emparelham-se pela assinatura
+   (como no seguimento); uma pergunta que falte numa auditoria, ou sem
+   classificação, interrompe a sequência. Do mais persistente para o menos. */
+function reincidencias(lista){
+  const por=new Map();
+  [...(lista||[])].filter(a=>a&&Array.isArray(a.scores)&&typeof a.service==="string").sort(ordemCron)
+    .forEach(a=>{if(!por.has(a.service))por.set(a.service,[]);por.get(a.service).push(a);});
+  const out=[];
+  por.forEach((auds,service)=>{
+    let seq=new Map();
+    auds.forEach(a=>{
+      const nova=new Map();
+      itemsOf(a).forEach((it,i)=>{
+        const s=a.scores[i];
+        if(s==null||s>=2)return;
+        const k=assinItem(it),antes=seq.get(k);
+        nova.set(k,{n:it.n,t:it.t||"",c:it.c||"",seguidas:(antes?antes.seguidas:0)+1});
+      });
+      seq=nova;
+    });
+    seq.forEach(o=>{if(o.seguidas>=2)out.push(Object.assign({service},o));});
+  });
+  return out.sort((x,y)=>y.seguidas-x.seguidas||x.service.localeCompare(y.service)||x.n-y.n);
+}
+/* Como se fecham as acções: dias entre a auditoria e a conclusão (a data de
+   criação da acção não se guarda, pelo que a da auditoria é a referência), e a
+   parte das que têm prazo que foi concluída até ele. Só entram as feitas com
+   data de conclusão. */
+function desempenhoAcoes(lista){
+  let n=0,soma=0,comPrazo=0,noPrazo=0;
+  (lista||[]).forEach(au=>(au&&Array.isArray(au.acoes)?au.acoes:[]).forEach(ac=>{
+    if(!ac||ac.estado!=="feita"||typeof ac.feitaEm!=="string"||!ac.feitaEm)return;
+    const d=diasEntre(au.date,ac.feitaEm);
+    if(!Number.isFinite(d))return;
+    n++;soma+=Math.max(0,d);
+    if(ac.prazo){comPrazo++;if(ac.feitaEm<=ac.prazo)noPrazo++;}
+  }));
+  return{fechadas:n,diasMedio:n?umaCasa(soma/n):null,comPrazo,noPrazo,
+    pctPrazo:comPrazo?Math.round(noPrazo/comPrazo*100):null};
 }
 
 /* ---------- Relatório mensal (v3.20.0) ----------
@@ -3089,6 +3164,10 @@ function renderAcoes(){
   document.getElementById("ac-resumo").innerHTML=todas?
     `<b>${r.abertas}</b> em aberto · <b style="color:${r.atrasadas?"var(--red-ink)":"inherit"}">${r.atrasadas}</b> em atraso · <b>${r.feitas30}</b> feita(s) nos últimos 30 dias`:
     "Ainda não há acções. Criam-se no relatório de uma auditoria, em <i>Plano de acção</i> ou com <i>+ Acção</i> nos itens a melhorar.";
+  const dp=desempenhoAcoes(audits);
+  document.getElementById("ac-desempenho").textContent=dp.fechadas?
+    "Tempo médio de fecho: "+numPT(dp.diasMedio)+" dias, desde a auditoria ("+dp.fechadas+" feita(s))"+
+    (dp.comPrazo?" · Dentro do prazo: "+dp.pctPrazo+"% ("+dp.noPrazo+" de "+dp.comPrazo+" com prazo)":""):"";
   const l=listaAcoes(audits,acFiltro,hoje);
   document.getElementById("ac-conta").textContent=todas?l.length+" de "+todas+" acção(ões).":"";
   const box=document.getElementById("ac-lista");
@@ -3797,14 +3876,13 @@ function renderStats(){
   /* Médias das auditorias filtradas, nos mesmos eixos do relatório individual. */
   /* As métricas de cada auditoria, uma vez por desenho (ver metricas()). */
   const ms=lista.map(metricas);
-  const medPilar=PILLARS.map((p,i)=>({name:p,pct:avg(ms.map(m=>m.pilar[i].pct))}));
+  const medPilar=PILLARS.map((p,i)=>({name:p,pct:mediaDoEixo(ms.map(m=>m.pilar),i).pct}));
   /* v3.2.0: um responsável sem perguntas atribuídas (o "Picking" acabado de
      criar, enquanto não lhe for atribuída nenhuma) daria pctOf([])=0 e entraria
      no radar como o pior de todos. Zero perguntas não é zero por cento — o eixo
      fica de fora até haver perguntas, tal como já acontece no relatório. */
   const medResp=Object.values(RESP)
-    .map((r,i)=>({name:r,pct:avg(ms.map(m=>m.resp[i].pct)),
-      n:ms.reduce((s,m)=>s+m.resp[i].n,0)}))
+    .map((r,i)=>{const e=mediaDoEixo(ms.map(m=>m.resp),i);return{name:r,pct:e.pct,n:e.n};})
     .filter(d=>d.n>0);
   document.getElementById("rad-pilar").innerHTML=lista.length?radarSVG(medPilar,"#1f6f50"):"";
   document.getElementById("rad-resp").innerHTML=lista.length?radarSVG(medResp,"#e8500a"):"";
@@ -3829,7 +3907,7 @@ function renderKpis(){
   const ESTADO_PLANO={cumprido:["Objectivo cumprido","var(--green)"],"em-linha":["Em linha com o plano","var(--green)"],atrasado:["Atrás do plano","var(--red)"]};
   const tiles=[
     tile("kpi-media","Média total",k.media==null?"—":k.media+"<small style=\"display:inline;font-size:.9rem\">/100</small>",
-      k.n?k.n+" auditoria(s) a "+k.servicos+" serviço(s)":"Sem auditorias em "+k.ano),
+      k.n?k.n+" auditoria(s) a "+k.servicos+" serviço(s)"+(k.servicos>1?" · média por serviço: "+k.mediaServicos:""):"Sem auditorias em "+k.ano),
     tile("kpi-objetivo","Objectivo anual",p.objetivo?k.n+" de "+p.objetivo:"—",
       p.objetivo?p.pct+"% do objectivo"+(p.faltam?" · faltam "+p.faltam:""):"Defina-o em Config → Objectivo anual"),
     tile("kpi-semanal","Média semanal",p.mediaSemanal==null?"—":numPT(p.mediaSemanal),
@@ -3856,7 +3934,21 @@ function renderKpis(){
   const cobertura=`<div class="kpi-sec" id="kpi-tipos"><h4>Serviços auditados em ${k.ano}</h4>`+
     grupo("kpi-int","Internos",t.interno)+grupo("kpi-ext","Externos",t.externo)+
     (t.semTipo.total?`<small style="color:var(--muted)">${t.semTipo.total} serviço(s) sem tipo (${t.semTipo.auditados} auditado(s)): escolha interno ou externo em Config → Serviços.</small>`:"")+`</div>`;
-  box.innerHTML=`<div class="kpi-grelha">${tiles}</div>${ritmo}${abaixo}${cobertura}`;
+  /* v4.4.0: os serviços por faixa da sua média no ano (critério absoluto). */
+  const fx=k.faixas,faixas=k.servicos?`<div class="kpi-sec" id="kpi-faixas"><h4>Serviços por faixa em ${k.ano}</h4>
+    <div class="stat-row"><span>Excelente (80 ou mais)</span><span><b>${fx.excelente}</b></span></div>
+    <div class="stat-row"><span>Com oportunidade (50 a 79)</span><span><b>${fx.oportunidade}</b></span></div>
+    <div class="stat-row"><span>Crítico (abaixo de 50)</span><span><b>${fx.critico}</b></span></div></div>`:"";
+  /* Seguimento, até hoje e sem o filtro do ano: há quanto tempo cada serviço
+     não é auditado, e as perguntas que falham auditoria após auditoria. */
+  const sem=ultimaAuditoriaPorServico(audits,services,hoje).slice(0,5);
+  const semHtml=sem.length?`<div class="kpi-sec" id="kpi-sem-auditoria"><h4>Há mais tempo sem auditoria</h4>`+
+    sem.map(x=>`<div class="stat-row"><span>${esc(x.service)}</span><span>${x.dias==null?"nunca auditado":"há "+x.dias+(x.dias===1?" dia":" dias")+" · "+esc(dataCurta(x.ultima))}</span></div>`).join("")+`</div>`:"";
+  const reinc=reincidencias(audits),reincHtml=reinc.length?`<div class="kpi-sec" id="kpi-reinc"><h4>Perguntas reincidentes — ${reinc.length} caso(s)</h4>
+    <small style="color:var(--muted);display:block;margin-bottom:6px">Não ficaram Excelente em auditorias seguidas ao mesmo serviço, até à última.</small>`+
+    reinc.slice(0,8).map(x=>`<div class="kpi-linha"><span><b>${esc(x.service)}</b><br><small style="color:var(--muted)">Nº ${esc(x.n)} · ${esc(x.t||x.c)}</small></span><span class="pill" style="background:var(--red)">${x.seguidas} seguidas</span></div>`).join("")+
+    (reinc.length>8?`<small style="color:var(--muted)">E mais ${reinc.length-8}.</small>`:"")+`</div>`:"";
+  box.innerHTML=`<div class="kpi-grelha">${tiles}</div>${ritmo}${abaixo}${faixas}${cobertura}${semHtml}${reincHtml}`;
   box.querySelectorAll("[data-kpi-plano]").forEach(b=>b.onclick=()=>{
     const x=k.abaixo[+b.dataset.kpiPlano],a=x&&audits.find(y=>y.id===x.ultimaId);
     if(a){openReport(a);const pa=document.getElementById("plano");if(pa)pa.scrollIntoView();}
@@ -5424,8 +5516,8 @@ function kpisPainel5s(lista,hoje){
     else{acoes.abertas++;if(e==="atrasada")acoes.atrasadas++;}
   }));
   const ms=todas.map(a=>typeof metricas==="function"?metricas(a).resp:byResp(a));
-  const responsaveis=Object.values(RESP).map((nome,i)=>({nome,pct:avg(ms.map(m=>m[i].pct)),
-    n:ms.reduce((s,m)=>s+m[i].n,0)})).filter(r=>r.n>0).map(r=>({nome:r.nome,pct:r.pct}));
+  const responsaveis=Object.values(RESP).map((nome,i)=>{const e=mediaDoEixo(ms,i);return{nome,pct:e.pct,n:e.n};})
+    .filter(r=>r.n>0).map(r=>({nome:r.nome,pct:r.pct}));
   const ultimas=new Map();todas.forEach(a=>ultimas.set(a.service,total(a)));
   const faixas={excelente:0,oportunidade:0,critico:0};
   ultimas.forEach(p=>{faixas[p>=80?"excelente":p>=50?"oportunidade":"critico"]++;});
@@ -5448,7 +5540,7 @@ function dadosPainel5s(lista,extra){
     total:todas.length,
     media:todas.length?avg(todas.map(total)):null,
     ultima:todas.length?todas[todas.length-1].date:null,
-    pilares:PILLARS.map((p,i)=>({nome:p,pct:todas.length?avg(todas.map(a=>(typeof metricas==="function"?metricas(a).pilar:byPillar(a))[i].pct)):null})),
+    pilares:PILLARS.map((p,i)=>({nome:p,pct:todas.length?mediaDoEixo(todas.map(a=>typeof metricas==="function"?metricas(a).pilar:byPillar(a)),i).pct:null})),
     servicos,
     kpis:extra&&extra.hoje?Object.assign(kpisPainel5s(lista,extra.hoje),
       {anual:anualPainel5s(lista,extra)}):undefined

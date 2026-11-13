@@ -5,6 +5,32 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.4.0] — 2026-11-13
+
+### Adicionado
+
+- **Média por serviço e serviços por faixa**, nos indicadores do ano. A média
+  total é por auditoria; ao lado dela, a média em que cada serviço pesa o mesmo,
+  e quantos serviços estão em Excelente, Com oportunidade e Crítico pela sua
+  média no ano — um critério absoluto, ao lado do «abaixo da média».
+- **Há mais tempo sem auditoria**, nos indicadores do ano: os cinco serviços
+  com a última auditoria mais antiga (ou nunca auditados), com os dias e a data.
+- **Perguntas reincidentes**, nos indicadores do ano: as que não ficaram
+  Excelente em duas ou mais auditorias seguidas ao mesmo serviço, até à última,
+  com o número de auditorias seguidas.
+- **Tempo de fecho e cumprimento do prazo das acções**, no separador Acções:
+  os dias médios entre a auditoria e a conclusão, e a parte das acções com prazo
+  que foi concluída até ele. A data de criação de uma acção não se guarda, pelo
+  que a da auditoria é a referência.
+
+### Corrigido
+
+- **Eixos sem perguntas contavam como 0 %.** Na Análise e no painel, a média por
+  pilar e por responsável incluía, com 0 %, as auditorias que não têm perguntas
+  nesse eixo (anteriores à criação do responsável Picking, por exemplo), e
+  puxava a média para baixo. Passam a contar só as que as têm, como já fazia o
+  relatório mensal. As notas gravadas não mudam.
+
 ## [4.3.0] — 2026-11-11
 
 ### Adicionado
