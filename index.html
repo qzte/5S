@@ -3321,7 +3321,7 @@ function openMensal(mes){
   <div class="page" id="mensal-1">
   <div class="card"><h3 style="margin-bottom:10px">Por serviço</h3>
     ${r.porServico.length?`<table id="mensal-svc"><tr><th>Serviço</th><th>Auditorias</th><th>Média</th><th>Última</th><th>Face ao mês anterior</th></tr>
-    ${r.porServico.map(x=>`<tr><td>${esc(x.service)}</td><td>${x.n}</td>
+    ${r.porServico.map(x=>`<tr${x.n?"":' class="no-print"'}><td>${esc(x.service)}</td><td>${x.n}</td>
       <td>${x.media==null?'<span style="color:var(--muted)">Sem auditoria</span>':`<span class="pill" style="background:${x.media>=80?"var(--green)":x.media>=50?"var(--amber-bg)":"var(--red)"}">${x.media}</span>`}</td>
       <td>${x.ultima==null?"—":x.ultima}</td><td>${deltaHTML(x.delta)}</td></tr>`).join("")}</table>`
     :`<p class="empty">Sem serviços.</p>`}</div>
