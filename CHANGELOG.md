@@ -18,6 +18,10 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
   seguinte ao serviço, e quantas melhoraram sem lá chegar.
 - **Idade das acções em aberto**, no separador Acções: a idade média, o atraso
   médio das que passaram o prazo e a mais antiga.
+- **Serviços não auditados**, nos indicadores do ano: quantos serviços da lista
+  não têm auditoria no ano e que percentagem da lista são. Na cobertura, cada
+  grupo (internos e externos) mostra também a percentagem **sem auditoria**,
+  ao lado da que já foi auditada.
 - **Dispersão das notas**, nos indicadores do ano: a nota mais baixa e a mais
   alta, com o serviço e a data.
 

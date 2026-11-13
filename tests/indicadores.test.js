@@ -115,10 +115,13 @@ test("serviços internos e externos auditados no ano, face aos que existem", () 
   const l = [aud(1, "I1", "2026-02-01", S100), aud(2, "E1", "2026-02-01", S100), aud(3, "I2", "2025-02-01", S100),
     aud(4, "Removido", "2026-02-01", S100)];
   const tipos = [{ s: "I1", t: "i" }, { s: "I2", t: "i" }, { s: "E1", t: "e" }, { s: "E2", t: "e" }, { s: "E3", t: "e" }];
-  const t = plain(kpisAnuais(l, ["I1", "I2", "E1", "E2", "E3", "S"], tipos, [], 2026, "2026-11-09")).tipos;
-  assert.deepStrictEqual(t.interno, { total: 2, auditados: 1, porAuditar: ["I2"] });
-  assert.deepStrictEqual(t.externo, { total: 3, auditados: 1, porAuditar: ["E2", "E3"] });
-  assert.deepStrictEqual(t.semTipo, { total: 1, auditados: 0, porAuditar: ["S"] });
+  const k6 = plain(kpisAnuais(l, ["I1", "I2", "E1", "E2", "E3", "S"], tipos, [], 2026, "2026-11-09")), t = k6.tipos;
+  assert.deepStrictEqual(t.interno, { total: 2, auditados: 1, porAuditar: ["I2"], pctPorAuditar: 50 });
+  assert.deepStrictEqual(t.externo, { total: 3, auditados: 1, porAuditar: ["E2", "E3"], pctPorAuditar: 67 });
+  assert.deepStrictEqual(t.semTipo, { total: 1, auditados: 0, porAuditar: ["S"], pctPorAuditar: 100 });
+  assert.strictEqual(k6.pctPorAuditar, 67, "4 de 6 serviços da lista sem auditoria (4.5.0)");
+  const vazio = plain(kpisAnuais(l, [], [], [], 2026, "2026-11-09"));
+  assert.deepStrictEqual([vazio.pctPorAuditar, vazio.tipos.interno.pctPorAuditar], [null, null], "sem serviços, sem percentagem");
 });
 
 test("pior serviço do ano e serviços por auditar (4.1.0)", () => {
@@ -127,6 +130,7 @@ test("pior serviço do ano e serviços por auditar (4.1.0)", () => {
   const k = plain(kpisAnuais(l, ["A", "B", "C", "D", "E"], [], [], 2026, "2026-11-09"));
   assert.deepStrictEqual([k.pior.service, k.pior.media, k.pior.n], ["B", 38, 1], "empate: pelo nome");
   assert.deepStrictEqual(k.porAuditar, ["D", "E"], "D só foi auditado no ano anterior");
+  assert.strictEqual(k.pctPorAuditar, 40);
   const v = plain(kpisAnuais([], ["A"], [], [], 2026, "2026-11-09"));
   assert.strictEqual(v.pior, null);
   assert.deepStrictEqual(v.porAuditar, ["A"]);

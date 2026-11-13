@@ -302,6 +302,7 @@ os filtros de serviço e período da Análise. No ano em curso contam até hoje.
 | **Serviços por faixa** (4.4.0) | Quantos serviços têm a média do ano em Excelente (≥ 80), Com oportunidade (50–79) e Crítico (< 50) |
 | **Há mais tempo sem auditoria** (4.4.0) | Os cinco serviços com a última auditoria mais antiga, ou nunca auditados (`ultimaAuditoriaPorServico()`); até hoje, sem o filtro do ano |
 | **Perguntas reincidentes** (4.4.0) | Pergunta que não ficou Excelente em duas ou mais auditorias seguidas ao mesmo serviço, até à última (`reincidencias()`) |
+| **Serviços não auditados** (4.5.0) | Serviços da lista sem auditoria no ano, e a sua percentagem da lista; internos e externos mostram também a percentagem sem auditoria |
 | **Dispersão** (4.5.0) | A nota mais baixa e a mais alta do ano, com o serviço e a data |
 
 O **tipo** de cada serviço escolhe-se em *Config → Serviços* (`tipoSvc`, lista
