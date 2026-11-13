@@ -8,7 +8,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
-const ctx = buildContext(["dadosPainel5s", "kpisPainel5s", "byPillar", "byResp", "avg", "ordemCron", "somarDias", "diasEntre",
+const ctx = buildContext(["dadosPainel5s", "kpisPainel5s", "mediaDoEixo", "byPillar", "byResp", "avg", "ordemCron", "somarDias", "diasEntre",
   "estadoAcao", "anualPainel5s", "kpisAnuais", "tipoDe", "objetivoDe"],
   ["ITEMS", "itemsOf", "umaCasa"]);
 const { dadosPainel5s } = ctx;
@@ -134,6 +134,17 @@ test("responsáveis: a média de cada um, só os que têm perguntas", () => {
   const nomes = Object.keys(ctx.RESP);
   assert.ok(nomes.includes("U") && nomes.includes("M"), "os responsáveis de base mudaram");
   assert.deepStrictEqual(k.responsaveis, [{ nome: ctx.RESP.U, pct: 100 }, { nome: ctx.RESP.M, pct: 0 }]);
+});
+
+/* v4.4.0: uma auditoria sem perguntas de um responsável não puxa a média dele para 0 %. */
+test("responsáveis: auditorias sem perguntas do responsável não contam como 0 %", () => {
+  const A = [{ p: 0, r: "U" }, { p: 1, r: "M" }], B = [{ p: 0, r: "U" }, { p: 1, r: "U" }];
+  const l = [{ id: 1, service: "A", date: "2026-11-01", scores: [2, 2], items: A },
+    { id: 2, service: "A", date: "2026-11-02", scores: [2, 2], items: B }];
+  const k = kpis(l);
+  assert.deepStrictEqual(k.responsaveis, [{ nome: ctx.RESP.U, pct: 100 }, { nome: ctx.RESP.M, pct: 100 }]);
+  const d = plain(dadosPainel5s(l));
+  assert.strictEqual(d.pilares[1].pct, 100, "o pilar 1 existe nas duas auditorias");
 });
 
 /* ---- v4.0.0: os indicadores do ano corrente, em `kpis.anual`. ---- */
