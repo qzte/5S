@@ -8,9 +8,9 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
-const ctx = buildContext(["dadosPainel5s", "kpisPainel5s", "mediaDoEixo", "byPillar", "byResp", "avg", "ordemCron", "somarDias", "diasEntre",
+const ctx = buildContext(["auditadoNoAno", "codigoServico", "dadosPainel5s", "kpisPainel5s", "mediaDoEixo", "byPillar", "byResp", "avg", "ordemCron", "somarDias", "diasEntre",
   "estadoAcao", "anualPainel5s", "idadeAcoesAbertas", "criadaEmDe", "kpisAnuais", "tipoDe", "objetivoDe"],
-  ["ITEMS", "itemsOf", "umaCasa"]);
+  ["norm", "ITEMS", "itemsOf", "umaCasa"]);
 const { dadosPainel5s } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
 
