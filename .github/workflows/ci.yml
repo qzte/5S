@@ -81,7 +81,7 @@ jobs:
 
       - name: Instala o ESLint (versões do lockfile)
         timeout-minutes: 5
-        run: npm ci --prefix tools/lint --no-audit --no-fund
+        run: npm ci --ignore-scripts --prefix tools/lint --no-audit --no-fund
 
       - name: node tools/lint/lint.mjs
         run: node tools/lint/lint.mjs
@@ -108,7 +108,7 @@ jobs:
       # smoke test passar a falhar sem que o index.html tenha mudado.
       - name: Instala o Playwright
         timeout-minutes: 5
-        run: npm install --no-save --no-audit --no-fund playwright@1.56.0
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.56.0
 
       - name: Instala o Chromium
         timeout-minutes: 10
@@ -159,7 +159,7 @@ jobs:
       # O axe-core vem de tools/lint, com a versão do lockfile.
       - name: Instala o axe-core
         timeout-minutes: 5
-        run: npm ci --prefix tools/lint --no-audit --no-fund
+        run: npm ci --ignore-scripts --prefix tools/lint --no-audit --no-fund
 
       - name: Acessibilidade (axe-core, modo claro e escuro)
         timeout-minutes: 4

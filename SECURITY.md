@@ -21,6 +21,15 @@ Quatro revisões, por ordem inversa:
 Âmbito das revisões: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
 
+# Nota de 2026-11-15: CI e dependências de desenvolvimento
+
+Só a CI e as ferramentas; a app não mudou (4.5.1).
+
+- **`--ignore-scripts`** nos `npm ci` e no `npm install` do Playwright de `ci.yml`, como nos outros repositórios: nenhum
+  pacote de desenvolvimento corre código de instalação na CI. O Chromium continua a instalar-se por `playwright install`.
+- **ESLint 10.15.0** (`tools/lint`): corrige o aviso moderado do `minimatch` (GHSA-g3hv-75wg-m249) que o 10.14.0 trazia.
+  `npm audit` dá 0. Só desenvolvimento: nada disto chega à app servida.
+
 # Revisão de 4.2.6 (2026-11-11)
 
 Revisto o código acrescentado desde 4.0.0 — sobretudo a importação da listagem
