@@ -1,7 +1,8 @@
 # Auditoria de segurança · Auditoria 5S
 
-Quatro revisões, por ordem inversa:
+Revisões e notas, por ordem inversa:
 
+- **[Revisão de 2026-11-15](#revisão-de-2026-11-15-o-que-o-github-pages-publica)** — o que o Pages publica de facto (ponto 29); CSP por hashes passa a ir para o ar.
 - **[Revisão de 4.2.6](#revisão-de-426-2026-11-11)** — o código desde 4.0.0 (listagem de serviços em Excel); tecto ao tamanho das importações em 4.2.7.
 - **[Nota de 4.0.0](#nota-de-400-2026-11-09-indicadores-do-ano)** — tipo dos serviços e objectivo anual; sai o email dos serviços.
 - **[Nota de 3.26.0](#nota-de-3260-2026-11-09-emails-dos-serviços-e-ficheiro-do-pc)** — emails dos serviços, o ficheiro do PC para o telemóvel e a limpeza das fotos.
@@ -20,6 +21,45 @@ Quatro revisões, por ordem inversa:
 
 Âmbito das revisões: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+# Revisão de 2026-11-15: o que o GitHub Pages publica
+
+Revisto o que está de facto no ar em `qzte.github.io/5S/` (repositório público, Pages a servir a raiz da `main`),
+face ao que este documento e o README diziam.
+
+| # | Gravidade | Assunto | Estado |
+| --- | --- | --- | --- |
+| 29 | Média | O Pages servia a raiz do repositório, com a CSP `'unsafe-inline'` do repositório, em origem partilhada | **Parcialmente corrigido**: `pages.yml` publica `dist/` (CSP por hashes, só os ficheiros da app). A origem partilhada fica |
+
+## 29. Publicação a partir da raiz do repositório (Média)
+
+O README já o admitia (secção «Publicação»), mas as notas de 3.7.0 e 3.10.0 deste documento davam como fechados ou
+cobertos pontos que, no endereço em uso, não o estavam:
+
+- **CSP.** A versão servida era a do repositório, com `script-src 'self' 'unsafe-inline'`. A de hashes (3.10.0) só
+  existia em `dist/`, que ninguém publicava. Um `<script>` injectado por uma falha de escape corria. O ponto 25 mostra
+  que não é teórico: na versão publicada com hashes o `onerror` injectado não corria; na do repositório, sim.
+- **Superfície.** O endereço da app servia o repositório inteiro: testes, CI, `SECURITY.md` (com o que está e não
+  está mitigado) e o `CHANGELOG`. Nada disto é segredo — o repositório é público —, mas não tem de estar na origem
+  da app.
+- **Origem partilhada** (pontos 9 e 21). `qzte.github.io` serve também outros projectos públicos da conta
+  (`ImpresKanban`, `consulta_artigo`); um XSS em qualquer um lê e escreve o `localStorage` e o IndexedDB desta app
+  (auditorias e fotos) e herda a licença da pasta do painel e-ink. A nota de 3.7.0 dava-os por fechados, mas isso
+  era verdade só no alojamento de então.
+
+**Correcção (workflow `pages.yml`).** Em cada push para a `main`, corre `scripts/publicar.sh`, confere que o
+`script-src` publicado não tem `'unsafe-inline'`, e publica `dist/` com as actions oficiais de Pages, fixadas por
+SHA. Se um `<script>` ficar sem hash, o `csp.mjs` falha e nada é publicado. `tests/publicacao.test.js` e
+`tests/smoke-csp.mjs` continuam a verificar o que o `dist/` contém.
+
+**Por fazer, à mão:** *Settings → Pages → Source → GitHub Actions*. Sem isso o GitHub continua a servir a raiz e o
+passo *Publicar* falha.
+
+**Fica aceite: a origem partilhada.** O GitHub Pages não isola caminhos de uma mesma conta. Só um endereço próprio
+(domínio próprio, ou uma conta/organização dedicada à app) o resolve, e isso é uma decisão de alojamento. Até lá,
+os pontos 9 e 21 contam como **abertos** no endereço do GitHub Pages — a nota de 3.7.0 refere-se ao alojamento
+anterior. A mitigação é a de sempre: manter os outros sítios da conta sem conteúdo de terceiros e sem
+`'unsafe-inline'`, e usar para o painel e-ink uma pasta só com os ficheiros dele.
 
 # Nota de 2026-11-15: CI e dependências de desenvolvimento
 
