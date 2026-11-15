@@ -95,7 +95,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
 | | Aviso de nova versão; arranque ~2,5× mais rápido (SheetJS só quando é preciso) | 3.8.0, 3.11.0 |
-| **Segurança e qualidade** | CSP sem `'unsafe-inline'` em `dist/` (hashes; não no GitHub Pages) | 3.10.0 |
+| **Segurança e qualidade** | CSP sem `'unsafe-inline'` em `dist/` (hashes; publicada no GitHub Pages por `pages.yml`) | 3.10.0 |
 | | SheetJS com verificação de integridade (SRI) | 3.11.0 |
 | | Lint na CI; testes de acessibilidade, de offline e de actualização | 3.10.0, 3.15.0 |
 | | Código de acesso próprio do dispositivo | 3.19.0 |
@@ -124,28 +124,25 @@ python3 -m http.server 8000
 
 ## Publicação (GitHub Pages)
 
-A app é publicada no **GitHub Pages**, em `https://qzte.github.io/5S/`, a
-partir da raiz do ramo `main`: cada push (ou merge) para a `main` publica
-sozinho, pelo fluxo *pages build and deployment* do GitHub. Não há passo de
-build: o GitHub Pages serve os ficheiros do repositório tal como estão.
+A app é publicada no **GitHub Pages**, em `https://qzte.github.io/5S/`. O workflow
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) corre em cada push para a `main`: faz
+`bash scripts/publicar.sh` (que copia para `dist/` só os ficheiros da app e troca o
+`'unsafe-inline'` do `script-src` pelo hash de cada `<script>`), confere que a CSP ficou assim e publica a pasta
+`dist/`. Se algum `<script>` ficar sem hash, o passo falha e fica no ar a versão anterior — nunca uma sem a CSP
+apertada.
 
-De 3.7.0 até à 4.2.x a documentação dava como endereço o de outro alojamento
-(construído com `bash scripts/publicar.sh` e a pasta
-`dist`). O endereço em uso é o do GitHub Pages. `scripts/publicar.sh` e
-`scripts/csp.mjs` continuam no repositório e são usados pelos testes
-(`tests/publicacao.test.js`, `tests/smoke-csp.mjs`, `tests/smoke-offline.mjs`),
-mas **não correm no GitHub Pages**. Daí três diferenças face ao que eles
-garantiam:
+**Uma só vez, à mão:** em *Settings → Pages → Build and deployment → Source*, escolher **GitHub Actions**. Com a
+opção antiga («Deploy from a branch»), o GitHub continua a servir a raiz do repositório e o passo *Publicar* do
+workflow falha.
 
-- **A CSP publicada é a do repositório**, com `'unsafe-inline'` no
-  `script-src`: a troca pelos hashes de cada `<script>` (3.10.0) só acontece em
-  `dist/` (ver [Segurança](#segurança)).
-- **O repositório inteiro fica acessível** pelo endereço da app (testes,
-  documentação, CI), e não só os ficheiros que `publicar.sh` copiaria.
-- **A origem é partilhada** com os outros projectos publicados em
-  `qzte.github.io`: o `localStorage`, o IndexedDB e a licença da pasta do
-  painel e-ink são da origem, não do caminho `/5S/` ([SECURITY.md](SECURITY.md),
-  pontos 9 e 21).
+Com isto, face ao que o Pages fazia sozinho:
+
+- **A CSP publicada é a de `dist/`**, sem `'unsafe-inline'` no `script-src`.
+- **Só os ficheiros da app ficam acessíveis** pelo endereço (não os testes, a CI nem a documentação).
+- **A origem continua partilhada** com os outros projectos publicados em `qzte.github.io`: o `localStorage`, o
+  IndexedDB e a licença da pasta do painel e-ink são da origem, não do caminho `/5S/`
+  ([SECURITY.md](SECURITY.md), pontos 9, 21 e 29). Só se resolve com um endereço próprio (domínio próprio ou
+  conta dedicada), que o GitHub Pages permite mas que não depende deste repositório.
 
 ### Dados noutro endereço
 
@@ -680,7 +677,7 @@ vendor/xlsx.full.min.js  SheetJS 0.20.3, carregado só para Excel (3.11.0)
 vendor/html2canvas.min.js, vendor/jspdf.umd.min.js  html2canvas 1.4.1 e jsPDF 4.2.1 (MIT), carregados só para criar o PDF (3.23.0)
 manifest.json      Manifesto PWA
 sw.js              Service worker — cache offline versionada, com allowlist
-scripts/publicar.sh  Prepara dist/ com só os ficheiros da app (usado pelos testes; o GitHub Pages serve a raiz)
+scripts/publicar.sh  Prepara dist/ com só os ficheiros da app (publicado pelo workflow pages.yml)
 scripts/csp.mjs    Na versão publicada, troca 'unsafe-inline' pelos hashes dos <script>
 tools/lint/        Ferramentas de desenvolvimento (ESLint, axe-core), com lockfile próprio
 CHANGELOG.md       Histórico de versões (Keep a Changelog)
@@ -699,9 +696,8 @@ tests/dialogos.mjs Responde à caixa de diálogo da app nos smoke tests
 `index.html` é deliberadamente um ficheiro único: é o que permite instalar,
 copiar e usar a aplicação sem infraestrutura. O custo é um ficheiro grande. O
 `'unsafe-inline'` em `script-src` é o outro custo. `scripts/csp.mjs` troca-o
-pelo hash de cada `<script>` na pasta `dist/` (3.10.0), mas o GitHub Pages serve
-a raiz do repositório, por isso a versão em `qzte.github.io/5S/` mantém o
-`'unsafe-inline'` (ver [Publicação](#publicação-github-pages)).
+pelo hash de cada `<script>` na pasta `dist/` (3.10.0), e é o `dist/` que o
+workflow `pages.yml` publica no GitHub Pages (ver [Publicação](#publicação-github-pages)).
 
 As ferramentas de desenvolvimento (ESLint e axe-core) vivem em `tools/lint/`,
 com o seu `package.json` e lockfile. Na raiz não há `package.json`: a app não
@@ -808,7 +804,7 @@ Auditoria OWASP Top 10 aplicada na versão 1.4.0:
   3.10.0, o `script-src` não tem `'unsafe-inline'`: autoriza só os `<script>`
   embutidos, pelo hash SHA-256 de cada um (`scripts/csp.mjs`), e um `<script>`
   injectado na página não corre; `tests/smoke-csp.mjs` verifica-o num browser.
-  A versão no GitHub Pages é a do repositório, com `'unsafe-inline'`.
+  A versão no GitHub Pages é a de `dist/` (workflow `pages.yml`), com a CSP por hashes.
 - Service worker limitado a uma allowlist da própria origem, contra
   envenenamento da cache.
 - Sem CDN: `referrer` não é enviado e a aplicação é offline de facto.
