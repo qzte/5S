@@ -1,0 +1,18 @@
+# Atualizações automáticas. Um PR por grupo, no máximo uma vez por mês.
+# A app não tem dependências: só as ferramentas de desenvolvimento (tools/lint) e as ações do CI.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /tools/lint
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        patterns: ['*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ['*']
