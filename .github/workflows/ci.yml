@@ -108,7 +108,7 @@ jobs:
       # smoke test passar a falhar sem que o index.html tenha mudado.
       - name: Instala o Playwright
         timeout-minutes: 5
-        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.56.0
+        run: npm install --no-save --no-audit --no-fund --ignore-scripts playwright@1.65.1
 
       - name: Instala o Chromium
         timeout-minutes: 10
