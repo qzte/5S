@@ -5,6 +5,15 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.6.1] — 2026-11-17
+
+### Corrigido
+
+- **Tabela «Pontuação» do relatório sobre 100.** Com os pesos 0 / 2 / 5,25, o máximo de 19 itens é 99,75 pontos, e o
+  total aparecia como «91.25 / 99.75». Os pontos de cada coluna passam a ser convertidos para uma escala de 0 a 100 (o
+  mesmo factor 100 ÷ máximo que a nota já usava): o mesmo exemplo mostra «91.48 / 100», e uma auditoria toda Excelente dá
+  100 / 100. Os pesos, a nota e os dados gravados não mudam; a legenda da tabela indica o máximo bruto.
+
 ## [4.6.0] — 2026-11-17
 
 ### Adicionado
