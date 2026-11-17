@@ -258,6 +258,15 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 | **Partilhar cópia com fotos** | A cópia completa, enviada pelo menu de partilha do telemóvel | Mandá-la logo para a Drive ou o email. Só aparece onde o browser o permite |
 | **Exportar para Excel** | Folhas *Auditorias*, *Respostas* e *Acções* | Análise noutro programa. **Não** é uma cópia: não se importa de volta |
 
+- **Gravar sozinha, na pasta partilhada** (Chrome ou Edge de computador). Em *Configuração →
+  Cópia de segurança na pasta partilhada*, **Escolher pasta**, uma vez. Daí em diante, cada
+  alteração é gravada em `auditoria5s_backup.json` uns segundos depois — o mesmo que *Exportar
+  histórico (JSON)*, **sem fotos**. O lembrete abaixo passa a contar a pasta como cópia feita.
+  Antes de substituir o ficheiro, a versão que lá estava fica em `copias-backup/` (30 dias).
+- **Se outra pessoa gravou a cópia da pasta** depois da versão em que está a trabalhar, a gravação
+  automática **pára** e aparece um aviso, em todos os ecrãs: **Abrir a versão da pasta…** (como
+  *Importar*: **Fundir** junta, **Substituir tudo** troca) ou **Gravar por cima…** (pergunta
+  primeiro; o que a outra pessoa gravou fica em `copias-backup/`). Não grave por cima sem falar com ela.
 - **Lembrete.** A app avisa no topo quando nunca foi feita uma cópia, ou quando
   há auditorias por copiar há uma semana ou mais (ou cinco ou mais).
   *Lembrar amanhã* adia o aviso.
@@ -294,6 +303,8 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 - **Editor de perguntas** — enunciados, pilares, responsáveis e limiares
   (pede o código de acesso). As auditorias já feitas mantêm as perguntas com
   que foram feitas.
+- **Cópia de segurança na pasta partilhada** — a pasta onde a app grava a cópia sozinha (ver
+  [cópias de segurança](#cópias-de-segurança)); pode desligar-se, e «Gravar agora» grava já.
 - **Painel e-ink** — escolha a pasta partilhada onde a app grava o
   `5s.painel.json` (só no Chrome ou Edge de computador).
 
