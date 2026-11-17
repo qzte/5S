@@ -5,6 +5,16 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.6.2] — 2026-11-17
+
+### Corrigido
+
+- **O PDF já não leva folhas sem nada para reportar.** A folha das recomendações por responsável saía sempre, mesmo só
+  com os nomes e «—». Agora, no PDF e na impressão, só entram os responsáveis com recomendação (texto ou foto), e sem
+  nenhuma a folha não sai: uma auditoria sem recomendações, evidências nem plano de acção fica em 2 páginas. No ecrã os
+  blocos continuam todos, para se poder escrever; escrever ou apagar uma recomendação actualiza logo o que vai para o PDF.
+- **Testes:** `tests/smoke-pdf-paginas.mjs` (folhas do PDF da app e da impressão, com e sem recomendações).
+
 ## [4.6.1] — 2026-11-17
 
 ### Corrigido

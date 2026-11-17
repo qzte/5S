@@ -28,11 +28,12 @@ const folhas = async () => {
   return (pdf.toString("latin1").match(/\/Type\s*\/Page[^s]/g) || []).length;
 };
 
-/* ---- 1. Uma auditoria com tudo a 0: há itens a melhorar. Sem plano, 3 folhas. ---- */
+/* ---- 1. Uma auditoria com tudo a 0: há itens a melhorar. Sem plano, 2 folhas
+   (4.6.2: sem recomendações, a folha 3 não sai). ---- */
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
 await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await pg.locator("#plano.page").count() === 0, "sem acções, o plano não é uma folha impressa");
-check(await folhas() === 3, "sem plano, o relatório tem de continuar com 3 folhas");
+check(await folhas() === 2, "sem plano nem recomendações, o relatório tem 2 folhas");
 
 /* ---- 2. "+ Acção" num item a melhorar prepara o formulário. ---- */
 await pg.locator("[data-acao-worst='0']").click();
@@ -45,7 +46,7 @@ await pg.locator("#btn-acao-add").click();
 check(await pg.locator("#plano table tr").count() === 2, "a acção devia aparecer no plano");
 check((await pg.locator("#plano").textContent()).includes("Em atraso"), "com prazo passado, fica em atraso");
 check(await pg.locator("#plano.page").count() === 1, "com acções, o plano passa a folha impressa");
-check(await folhas() === 4, "com plano, o relatório tem 4 folhas");
+check(await folhas() === 3, "com plano, soma-se uma folha (3)");
 let g = await gravadas();
 check(g[0].acoes && g[0].acoes.length === 1 && g[0].acoes[0].texto.endsWith("corredor"), "a acção devia ficar gravada");
 check(/^\d{4}-\d{2}-\d{2}$/.test(g[0].acoes[0].criadaEm || ""), "uma acção nova guarda a data de criação (4.5.0): " + g[0].acoes[0].criadaEm);

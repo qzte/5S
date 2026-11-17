@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.6.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.6.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -388,6 +388,10 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 
   /* Página 3: recomendações por responsável, dois blocos por linha. */
   #view-report .page-3{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}
+  /* v4.6.2: a folha 3 só se imprime com alguma recomendação (texto ou foto);
+     sem ela, a folha 2 não pode deixar uma folha em branco atrás de si. */
+  #view-report .page-2{break-after:auto;page-break-after:auto}
+  #view-report .page-3.page{break-before:page;page-break-before:always}
   #view-report .page-3 h3{font-size:.85rem;margin-bottom:6px}
   #view-report .page-3 .rec-body{display:flex;gap:8px;align-items:flex-start}
   #view-report .page-3 .rec-foto{flex:0 0 42%;height:150px}
@@ -1368,7 +1372,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.6.1";
+const APP_VERSION="4.6.2";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2937,9 +2941,24 @@ function recsHTML(a){
       </div>`;}).join("")}
   </div>`;
 }
+/* v4.6.2: no PDF e na impressão, só os responsáveis com recomendação (texto
+   ou foto); sem nenhuma, a folha 3 não sai. No ecrã fica tudo, para escrever. */
+function marcarRecsVazias(){
+  const pg=document.querySelector("#view-report .page-3");if(!pg)return;
+  let alguma=false;
+  pg.querySelectorAll(".rec-block").forEach(bl=>{
+    const t=bl.querySelector("textarea");
+    const tem=!!bl.querySelector(".rec-foto img")||!!(t&&t.value.trim());
+    bl.classList.toggle("no-print",!tem);
+    if(tem)alguma=true;
+  });
+  pg.classList.toggle("page",alguma);
+  pg.classList.toggle("no-print",!alguma);
+}
 /* Liga os controlos da página 3. O texto é gravado em localStorage; a foto não. */
 function wireRecs(a){
   const box=document.getElementById("view-report");
+  marcarRecsVazias();
   box.querySelectorAll("[data-rec]").forEach(t=>{
     t.oninput=()=>{
       const k=t.dataset.rec;
@@ -2952,6 +2971,7 @@ function wireRecs(a){
       save("audits",audits);
       const pv=t.closest(".rec-body").querySelector(".rec-print");
       if(pv)pv.textContent=alvo.recs[k]||"—";
+      marcarRecsVazias();
     };
   });
   box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>

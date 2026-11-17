@@ -67,7 +67,7 @@ check(await esperar(async () => await pg.locator("#evid img").count() === 1), "o
 check((await pg.locator("#evid").textContent()).includes("caixas vazias no corredor 3"), "e a nota");
 check(await esperar(async () => { const k = await chaves(); return k.includes(id + "#0") && !k.some(x => x.startsWith("rascunho#")); }),
   "a foto devia ficar em <id>#0 e sair do rascunho: " + (await chaves()).join(", "));
-check(await folhas() === 4, "a folha Evidências soma-se às 3 do relatório");
+check(await folhas() === 3, "a folha Evidências soma-se às 2 do relatório (sem recomendações, 4.6.2)");
 
 /* Uma foto também na recomendação ao responsável U, para a cópia de segurança. */
 await pg.locator("[data-file='U']").setInputFiles(imagem);
