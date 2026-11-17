@@ -5,6 +5,17 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.6.4] — 2026-11-17
+
+### Corrigido
+
+- **Legendas do radar todas à mesma distância do gráfico.** O bloco de cada legenda (nome e percentagem) descia sempre a
+  partir de um ponto a 18px do vértice: a do topo quase tocava o vértice e as de baixo ficavam longe. Agora cada bloco
+  fica, do lado de fora, à mesma distância do seu vértice — a do espaço entre os anéis da grelha —, em cima no eixo do
+  topo, por baixo nos de baixo e ao meio nos laterais. A altura do desenho ajusta-se ao número de eixos. Vale para o
+  ecrã, a impressão e o PDF, no relatório da auditoria e no mensal.
+- **Testes:** `tests/smoke-radar.mjs` mede a distância de cada legenda ao seu vértice.
+
 ## [4.6.3] — 2026-11-17
 
 ### Corrigido

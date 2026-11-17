@@ -36,6 +36,24 @@ const r = await pg.evaluate(() => [...document.querySelectorAll("#view-report sv
 check(r.length >= 2, "o relatório devia ter os dois radares (tem " + r.length + ")");
 r.forEach((sob, k) => check(!sob.length, "radar " + (k + 1) + ": textos sobrepostos: " + sob.join("; ")));
 
+/* 4.6.4: cada legenda (nome e %) fica à mesma distância do seu vértice — a do
+   espaçamento entre os anéis da grelha. Antes, a do topo quase tocava o
+   vértice e as de baixo ficavam longe. */
+const g = await pg.evaluate(() => [...document.querySelectorAll("#view-report svg[aria-label^='Gráfico radar']")].map(svg => {
+  const anel = [...svg.querySelectorAll("polygon")].slice(0, 4).map(p => p.getAttribute("points").split(" ").map(q => q.split(",").map(Number)));
+  const passo = Math.hypot(anel[3][0][0] - anel[2][0][0], anel[3][0][1] - anel[2][0][1]);
+  const t = [...svg.querySelectorAll("text")];
+  return anel[3].map(([vx, vy], i) => {
+    const a = t[2 * i].getBBox(), c = t[2 * i + 1].getBBox();
+    const x0 = Math.min(a.x, c.x), x1 = Math.max(a.x + a.width, c.x + c.width);
+    const y0 = Math.min(a.y, c.y), y1 = Math.max(a.y + a.height, c.y + c.height);
+    const dx = Math.max(x0 - vx, 0, vx - x1), dy = Math.max(y0 - vy, 0, vy - y1);
+    return { eixo: t[2 * i].textContent, d: Math.round(Math.hypot(dx, dy) * 10) / 10, passo: Math.round(passo * 10) / 10 };
+  });
+}));
+g.forEach((eixos, k) => eixos.forEach(e => check(Math.abs(e.d - e.passo) <= 4,
+  `radar ${k + 1}, ${e.eixo}: a legenda está a ${e.d} do vértice; devia estar a ${e.passo} (o espaço entre anéis)`)));
+
 await b.close();
 if (erros.length) console.log("ERROS:\n" + erros.join("\n"));
 console.log(falhas.length ? "FALHAS:\n" + falhas.join("\n") : "smoke dos radares OK");
