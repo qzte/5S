@@ -2103,14 +2103,25 @@ function obsOf(a,it,i){
 }
 /* Nota global ponderada — equivalente ao E23 da folha de cálculo. */
 const total=a=>pctOf(a.scores);
-/* Pontos brutos por coluna, como no rodapé F23:H23 do Excel. */
+/* Pontos por coluna, como no rodapé F23:H23 do Excel, mas convertidos para
+   uma escala de 0 a 100. Os pesos brutos (0/2/5,25) dão um máximo de
+   nº itens × 5,25 — 99,75 com os 19 itens originais —, e um total "/ 99,75" no
+   relatório parecia um erro. A nota (pctOf) já divide pelo máximo exacto; aqui
+   cada coluna é multiplicada pelo mesmo factor 100/máximo, para que o total da
+   tabela seja a nota com duas casas e uma auditoria toda Excelente dê 100.
+   `bruto*` guarda os pontos sem conversão. */
 function colTotals(a){
   const c=[0,0,0];
   a.scores.forEach(s=>{c[s]=(c[s]||0)+1;});
+  const bruto=[c[0]*WEIGHTS[0],c[1]*WEIGHTS[1],c[2]*WEIGHTS[2]];
+  const brutoMax=a.scores.length*W_MAX;
+  const f=brutoMax?100/brutoMax:0;
+  const r2=x=>Math.round(x*f*100)/100;
   return{mau:c[0],opor:c[1],exc:c[2],
-    ptsMau:c[0]*WEIGHTS[0],ptsOpor:c[1]*WEIGHTS[1],ptsExc:c[2]*WEIGHTS[2],
-    pts:c[0]*WEIGHTS[0]+c[1]*WEIGHTS[1]+c[2]*WEIGHTS[2],
-    max:a.scores.length*W_MAX};
+    ptsMau:r2(bruto[0]),ptsOpor:r2(bruto[1]),ptsExc:r2(bruto[2]),
+    pts:r2(bruto[0]+bruto[1]+bruto[2]),
+    max:brutoMax?100:0,
+    brutoPts:bruto[0]+bruto[1]+bruto[2],brutoMax:brutoMax};
 }
 /* Cada eixo é normalizado pelo seu próprio nº de itens: Normalização tem 3
    itens e os restantes 4, tal como O4:O8 da folha. */
@@ -3176,7 +3187,8 @@ function openReport(a){
   <div class="page page-2">
   <div class="card"><h3 style="margin-bottom:4px">Pontuação</h3>
     <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px">
-      Mau = 0 pontos · Com oportunidade = 2 pontos · Excelente = ${W_MAX} pontos.</p>
+      Mau = 0 pontos · Com oportunidade = 2 pontos · Excelente = ${W_MAX} pontos.
+      Pontos convertidos para uma escala de 0 a 100 (máximo bruto: ${a.scores.length} itens × ${W_MAX} = ${a.scores.length*W_MAX}).</p>
     ${(()=>{const t=colTotals(a);return`<table>
       <tr><th>Avaliação</th><th>Itens</th><th>Pontos</th></tr>
       <tr><td><span class="pill" style="background:var(--red)">Mau</span></td><td>${t.mau}</td><td>${t.ptsMau}</td></tr>

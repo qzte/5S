@@ -168,6 +168,11 @@ A nota final é a percentagem entre os pontos obtidos e o máximo possível
 cada um pelo seu próprio número de itens, pelo que um eixo com 3 itens não é
 penalizado face a um com 6.
 
+Com 19 itens, o máximo bruto é 19 × 5,25 = 99,75 pontos. Na tabela
+«Pontuação» do relatório, os pontos de cada coluna são convertidos para uma
+escala de 0 a 100 (× 100 ÷ máximo bruto), pelo que o total é a nota com duas
+casas e uma auditoria toda Excelente dá 100 / 100.
+
 **As notas já gravadas nunca são recalculadas.** As classificações (`scores`)
 são guardadas com a auditoria, o que garante que uma alteração posterior aos
 limiares não reescreve o passado.

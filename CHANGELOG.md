@@ -9,6 +9,10 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Corrigido
 
+- **Tabela «Pontuação» do relatório sobre 100.** Com os pesos 0 / 2 / 5,25, o máximo de 19 itens é 99,75 pontos, e o
+  total aparecia como «91.25 / 99.75». Os pontos de cada coluna passam a ser convertidos para uma escala de 0 a 100 (o
+  mesmo factor 100 ÷ máximo que a nota já usava): o mesmo exemplo mostra «91.48 / 100», e uma auditoria toda Excelente dá
+  100 / 100. Os pesos, a nota e os dados gravados não mudam; a legenda da tabela indica o máximo bruto.
 - **O PDF saía sem fotos.** As fotos das recomendações e das evidências chegam do dispositivo depois de o relatório
   aparecer — num telemóvel, logo a seguir a gravar, pode demorar segundos. O PDF pedido nesse intervalo saía sem elas (e
   sem a folha das evidências, quando só tinham foto e não nota) ou falhava com «Unable to find element in cloned
