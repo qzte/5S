@@ -741,6 +741,7 @@ node tests/smoke.mjs               # perguntas de amostra
 node tests/smoke-edicao.mjs        # edição de auditorias anteriores
 node tests/smoke-responsaveis.mjs  # responsáveis editáveis
 node tests/smoke-painel.mjs        # painel e-ink
+node tests/smoke-pasta.mjs         # cópia de segurança automática na pasta partilhada
 node tests/smoke-rascunho.mjs      # rascunho, cópia de segurança, nova versão
 node tests/smoke-historico.mjs     # filtros, análise, seguimento, fotos, Excel, diálogo
 node tests/smoke-csp.mjs           # versão publicada: CSP por hashes (serve dist/ na 8766)
