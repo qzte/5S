@@ -209,6 +209,10 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-pdf-fotos.mjs
 
+      - name: Radares sem textos sobrepostos
+        timeout-minutes: 4
+        run: node tests/smoke-radar.mjs
+
       - name: PDF sem folhas vazias
         timeout-minutes: 4
         run: node tests/smoke-pdf-paginas.mjs

@@ -5,6 +5,16 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.6.3] — 2026-11-17
+
+### Corrigido
+
+- **Radar com a percentagem do eixo do topo «duplicada».** A legenda «100%» da escala, no topo do anel exterior, ficava
+  4px acima da percentagem do eixo do topo (Triagem nos pilares, Utilizadores nos responsáveis), no mesmo sítio: com o
+  eixo a 100% lia-se «100% 100%» sobreposto; com outro valor, uma mancha. A legenda da escala sai — cada eixo já mostra a
+  sua percentagem. Vale para o ecrã, a impressão e o PDF, no relatório da auditoria e no mensal.
+- **Testes:** `tests/smoke-radar.mjs` verifica que nenhum texto dos radares se sobrepõe a outro.
+
 ## [4.6.2] — 2026-11-17
 
 ### Corrigido
