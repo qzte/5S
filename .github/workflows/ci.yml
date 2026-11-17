@@ -138,6 +138,10 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-painel.mjs
 
+      - name: Cópia de segurança na pasta partilhada
+        timeout-minutes: 4
+        run: node tests/smoke-pasta.mjs
+
       - name: Rascunho, cópia de segurança e nova versão
         timeout-minutes: 4
         run: node tests/smoke-rascunho.mjs
