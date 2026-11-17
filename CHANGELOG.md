@@ -5,6 +5,26 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.6.0] — 2026-11-17
+
+### Adicionado
+
+- **Cópia de segurança automática na pasta partilhada.** Em Configuração › Cópia de segurança na pasta partilhada,
+  «Escolher pasta» (Chrome ou Edge de computador; a pasta fica lembrada no navegador). A partir daí, cada alteração às
+  auditorias, serviços, pessoas, tipos, objectivo, responsáveis ou perguntas é gravada sozinha em
+  `auditoria5s_backup.json`, uns 4 segundos depois — o mesmo conteúdo de «Exportar histórico (JSON)», sem fotos (as fotos
+  continuam a ter o seu lembrete e a «Exportar com fotos»). Esquecer a exportação deixa de ser um risco, e o lembrete de
+  exportar passa a contar a pasta como cópia feita. Pode desligar-se; «Gravar agora» grava já.
+- **Nunca grava por cima do trabalho de outra pessoa.** O ficheiro leva um `updatedAt` (a versão). Antes de gravar, a app
+  relê o ficheiro: se foi gravado depois da versão de onde estes dados partiram, **pára** e mostra um aviso, em todas as
+  vistas, com «Abrir a versão da pasta…» (passa pela importação normal: fundir ou substituir; depois de fundir, grava o
+  resultado) e «Gravar por cima…» (pergunta). A pasta também é relida de 2 em 2 minutos e ao voltar ao separador.
+- **Cópias das versões substituídas** em `copias-backup/auditoria5s_backup_AAAA-MM-DD_HH-MM-SS.json`: guardam-se as dos
+  últimos 30 dias (e sempre as 10 mais recentes); das gravações da própria app, uma por hora.
+- Os ficheiros exportados passam a levar `updatedAt` (igual a `exportedAt`); as versões anteriores ignoram o campo.
+- **Testes:** `tests/backup-pasta.test.js` (conflito, cópias) e `tests/smoke-pasta.mjs` (no navegador, com uma pasta de
+  mentira); a importação do JSON passou a `importarJsonTexto()`, que a pasta também usa.
+
 ## [4.5.1] — 2026-11-13
 
 ### Corrigido

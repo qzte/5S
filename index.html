@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.5.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.6.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -427,6 +427,12 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
       uma auditoria por terminar fica guardada e volta a aparecer.</p>
     <button class="btn small" id="btn-recarregar">Recarregar agora</button>
   </div>
+  <div class="card aviso hidden" id="aviso-pasta" role="alert">
+    <div class="stat-row"><span>A cópia da pasta partilhada mudou</span></div>
+    <p class="aviso-txt" id="aviso-pasta-txt"></p>
+    <button class="btn small" id="btn-pasta-abrir">Abrir a versão da pasta…</button>
+    <button class="btn small ghost" id="btn-pasta-porcima">Gravar por cima…</button>
+  </div>
   <div class="card aviso hidden" id="aviso-backup" role="status">
     <div class="stat-row"><span>Cópia de segurança</span></div>
     <p class="aviso-txt" id="aviso-backup-txt"></p>
@@ -634,6 +640,20 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
     <!-- v3.26.0: as fotos que já estão no PC. -->
     <div id="limpeza" class="hidden"></div>
     <p style="font-size:.78rem;color:var(--muted);margin-top:10px">Os dados ficam guardados apenas neste dispositivo. Faça exportações regulares como cópia de segurança.</p>
+  </div>
+  <div class="card" id="card-pasta">
+    <h3 style="margin-bottom:10px">Cópia de segurança na pasta partilhada</h3>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
+      Com a pasta escolhida (uma vez; o navegador lembra-se dela), cada alteração é gravada sozinha em <b>auditoria5s_backup.json</b>
+      uns segundos depois — sem fotos, que continuam a ter a «Exportar com fotos». Se outra pessoa gravou a cópia entretanto,
+      a gravação automática <b>pára e avisa</b>, em vez de apagar o trabalho dela: pode então abrir a versão da pasta (funde ou substitui,
+      como em «Importar») ou gravar por cima. Antes de substituir, a versão que lá estava fica em <b>copias-backup/</b> (30 dias).
+      Só no Chrome ou no Edge de computador.</p>
+    <button class="btn small ghost" id="btn-pasta">Escolher pasta</button>
+    <button class="btn small ghost" id="btn-pasta-agora" disabled>Gravar agora</button>
+    <button class="btn small ghost" style="display:none;border-color:var(--red-ink);color:var(--red-ink)" id="btn-pasta-off">Deixar de gravar</button>
+    <label style="display:block;font-size:.78rem;margin-top:10px"><input type="checkbox" id="chk-pasta-auto" checked> Gravar sozinho, uns segundos depois de cada alteração</label>
+    <div id="pasta-estado" role="status" style="font-size:.78rem;color:var(--muted);margin-top:10px"></div>
   </div>
   <div class="card" id="card-painel">
     <h3 style="margin-bottom:10px">Painel e-ink</h3>
@@ -1161,6 +1181,9 @@ function gravarAudits(lista){
   try{localStorage.setItem(PERGUNTAS_KEY,JSON.stringify(c.sets));}catch(e){}
 }
 let avisoCheio=false;
+/* v4.6.0: o backup automático na pasta partilhada (definido mais abaixo; fica null até lá). */
+let backupPastaRef=null;
+const CHAVES_BACKUP_PASTA=["audits","services","people","tipoSvc","objAud","resps","itemsCfg"];
 const save=(k,v)=>{
   try{
     if(k==="audits")gravarAudits(v);
@@ -1170,6 +1193,7 @@ const save=(k,v)=>{
     if(k==="audits"||k==="itemsCfg"||k==="resps"||k==="services"||k==="tipoSvc"||k==="objAud")agendarPainel();
     /* O número de acções em atraso no separador. */
     if(k==="audits")setTimeout(atualizarBadgeAcoes,0);
+    if(backupPastaRef&&CHAVES_BACKUP_PASTA.includes(k))backupPastaRef.alterado();
     return true;}
   catch(e){
     /* Um só aviso por acção: a importação grava quatro chaves seguidas e
@@ -1344,7 +1368,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.5.1";
+const APP_VERSION="4.6.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4641,10 +4665,13 @@ async function ficheiroCopia(comFotos,tipo){
     try{fotos=await todasAsFotos(audits.map(a=>a.id));}
     catch(e){aviso("Não foi possível ler as fotos deste dispositivo. Exporte sem fotos.");return null;}
   }
+  const exportedAt=new Date().toISOString();
   const payload={
     app:"auditoria5s",
     version:APP_VERSION,
-    exportedAt:new Date().toISOString(),
+    exportedAt,
+    /* v4.6.0: a versão do ficheiro, para a pasta partilhada ver se outra pessoa gravou depois. */
+    updatedAt:exportedAt,
     audits,services,people,
     /* v3.5.0: a lista efectiva, e não só a personalizada — um ficheiro sem ela
        seria lido com os responsáveis de quem importa, e as atribuições das
@@ -4669,7 +4696,7 @@ async function ficheiroCopia(comFotos,tipo){
   /* Com fotos, sem indentação: são centenas de KB de base64 que não ganham nada
      com ela. */
   const blob=new Blob([fotos?JSON.stringify(payload):JSON.stringify(payload,null,2)],{type:"application/json"});
-  return{blob,comFotos:!!fotos,nome:"auditorias5s_"+hojeISO()+(fotos?"_com_fotos":"")+".json"};
+  return{blob,comFotos:!!fotos,exportedAt,nome:"auditorias5s_"+hojeISO()+(fotos?"_com_fotos":"")+".json"};
 }
 
 /* v3.20.0: partilhar a cópia com fotos (Web Share), para a mandar do telemóvel
@@ -4830,187 +4857,199 @@ function sanitizeEnvios(e){
   });
   return Object.keys(out).length?out:undefined;
 }
+/* A importação do JSON, separada do ficheiro: a cópia da pasta partilhada também passa por aqui.
+   `importouTudo` diz, no fim, se os dados foram aplicados e gravados (ou se já lá estava tudo). */
+let importouTudo=false;
+async function importarJsonTexto(texto){
+  importouTudo=false;
+  await importarJsonCorpo(texto);
+  return importouTudo;
+}
+async function importarJsonCorpo(texto){
+  let data;
+  try{data=JSON.parse(texto);}catch(e){aviso("Ficheiro inválido: não é JSON.");return;}
+
+  if(Array.isArray(data))data={audits:data};
+  if(!data||typeof data!=="object"){aviso("Ficheiro inválido: estrutura não reconhecida.");return;}
+  if(!Array.isArray(data.audits)){aviso("Ficheiro inválido: não contém a lista de auditorias.");return;}
+  /* v3.5.0 — os responsáveis do ficheiro entram ANTES da sanitização, e só em
+     memória. sanitizeAudit()/sanitizeItems() validam `r` contra RESP: com a
+     lista de casa, um responsável que só exista no ficheiro cairia no de
+     recurso e a auditoria chegaria com a atribuição trocada. Se a importação
+     for cancelada, `desfazerResps()` repõe tudo como estava. */
+  const respsAntes=respsActuais();
+  const respsFich=sanitizeResps(data.resps);
+  const respsFundidos=fundirResps(respsAntes,respsFich);
+  if(respsFich.length)aplicarResps(respsFundidos);
+  const desfazerResps=()=>{if(respsFich.length)aplicarResps(respsAntes);};
+  const inAudits=data.audits.slice(0,MAX_AUDITS).map(sanitizeAudit).filter(Boolean);
+  const descartadas=Math.min(data.audits.length,MAX_AUDITS)-inAudits.length;
+  const truncadas=Math.max(0,data.audits.length-MAX_AUDITS);
+  if(!inAudits.length){desfazerResps();aviso("Nenhuma auditoria válida encontrada no ficheiro.");return;}
+  const semItens=inAudits.filter(a=>!a.items&&a.scores.length!==ITEMS.length).length;
+  const inSvc=Array.isArray(data.services)?data.services.map(s=>clean(s,200)).filter(Boolean):[];
+  const inPpl=Array.isArray(data.people)?data.people.map(s=>clean(s,200)).filter(Boolean):[];
+  /* As perguntas do ficheiro passam pela MESMA porta que o editor usa. Antes
+     eram gravadas em bruto — era o único caminho que contornava a validação. */
+  const inPerg=sanitizeItems(data.itemsCfg);
+  const temPerg=inPerg.length;
+  const origem=data.version?" (v"+data.version+")":"";
+  /* v3.25.0: o que Fundir faria a cada auditoria do ficheiro, e as acções
+     fechadas no terreno que traz. */
+  const plano=planoFusao(audits,inAudits);
+  const nNovas=plano.filter(x=>x.accao==="nova").length,nAct=plano.filter(x=>x.accao==="actualizar").length;
+  const feitas=sanitizeFeitas(data.acoesFeitas);
+  const nFotos=Array.isArray(data.fotos)?data.fotos.length:0;
+  const deAuditoria=data.tipo==="auditoria"&&inAudits.length===1;
+  /* v3.26.0: o ficheiro «para o telemóvel», do PC. O PC manda: além de
+     fundir as auditorias, traz o tipo dos serviços, o objectivo anual e as perguntas. */
+  const deActualizacao=data.tipo==="actualizacao";
+  const pergDiferentes=temPerg&&JSON.stringify(inPerg)!==JSON.stringify(sanitizeItems(ITEMS));
+  let m;
+  if(deActualizacao){
+    const quandoFich=typeof data.exportedAt==="string"&&Number.isFinite(Date.parse(data.exportedAt))?" de "+quando(data.exportedAt):"";
+    m=await caixa({titulo:"Actualizar com os dados do PC",
+      texto:"Ficheiro do PC"+quandoFich+": "+inAudits.length+" auditoria(s)."+
+        "\n"+(nNovas?nNovas+" nova(s) para este dispositivo. ":"")+(nAct?nAct+" que o PC tem mais recente(s) (finalizadas, acções) são actualizadas. ":"")+
+        (!nNovas&&!nAct?"As auditorias já estão a par. ":"")+
+        "\nO tipo dos serviços, o objectivo anual"+(pergDiferentes?", e as perguntas,":"")+" passam a ser os do PC. As auditorias que só existem neste dispositivo ficam.",
+      botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"F",label:"Actualizar",def:true}]});
+  }else if(deAuditoria){
+    /* Um ficheiro de auditoria (enviado do telemóvel) só se funde: nunca
+       substitui o histórico deste dispositivo. */
+    const a=inAudits[0],pl=plano[0];
+    m=await caixa({titulo:"Importar auditoria",
+      texto:"Auditoria a "+a.service+" de "+dataCurta(a.date)+" ("+total(a)+"/100)"+(nFotos?", com "+nFotos+" foto(s)":"")+
+        (porFinalizar(a)?", por finalizar":"")+"."+
+        (pl.accao==="actualizar"?"\nJá existe neste dispositivo: a do ficheiro é mais recente e substitui-a.":
+         pl.accao==="igual"?"\nJá existe neste dispositivo, igual ou mais recente: fica a que está.":"")+
+        (feitas.length?"\nTraz também as acções feitas no terreno, que são fechadas aqui.":""),
+      botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"F",label:"Importar",def:true}]});
+  }else m=await caixa({titulo:"Importar histórico",
+    texto:"Ficheiro"+origem+": "+inAudits.length+" auditoria(s), "+inSvc.length+" serviço(s), "+inPpl.length+" pessoa(s)."+
+    (descartadas?"\n"+descartadas+" registo(s) inválido(s) serão ignorados.":"")+
+    (truncadas?"\nO ficheiro traz mais de "+MAX_AUDITS+" auditorias: as "+truncadas+" últimas são ignoradas.":"")+
+    (semItens?"\nAtenção: "+semItens+" auditoria(s) sem as perguntas associadas e com nº de respostas diferente do actual — os relatórios podem ficar desalinhados.":"")+
+    "\n\nFundir junta as novas ("+nNovas+") às actuais, sem duplicar"+(nAct?", e actualiza "+nAct+" que o ficheiro tem mais recente(s)":"")+
+    ". Substituir apaga as "+audits.length+" auditoria(s) actuais.",
+    botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"S",label:"Substituir tudo",cls:"ghost perigo"},
+      {v:"F",label:"Fundir",def:true}]});
+  if(m==null){desfazerResps();return;}
+
+  /* v3.14.0: id no ficheiro → id em casa, para as fotos acompanharem cada
+     auditoria importada (ao fundir, um id já ocupado passa ao seguinte). */
+  const mapaIds=new Map();
+  let novas=0,fechadas=0,abrirId=null;const actualizadas=[],trocarFotos=[];
+  if(m==="S"){
+    if(!(await confirmar("Substituir TODOS os dados actuais ("+audits.length+" auditoria(s))? Esta acção não pode ser anulada.",{sim:"Substituir",perigo:true}))){desfazerResps();return;}
+    /* v3.5.1 — o mesmo código de acesso que apagar UMA auditoria pede desde
+       3.3.1. Substituir apaga-as a TODAS de uma vez e é igualmente
+       irreversível: a porta mais destrutiva era a única que não o pedia. */
+    if(!(await pedirPin("Código de acesso para substituir todo o histórico (não é possível anular):"))){desfazerResps();return;}
+    audits=inAudits;
+    inAudits.forEach(a=>mapaIds.set(a.id,a.id));
+    services=inSvc.length?[...new Set(inSvc)]:services;
+    /* O tipo e o objectivo do ficheiro, se os trouxer; senão ficam os de casa. */
+    if(Array.isArray(data.tipoSvc))tipos=sanitizeTipos(data.tipoSvc);
+    if(Array.isArray(data.objAud))objetivos=sanitizeObjetivos(data.objAud);
+    people=[...new Set(inPpl)];
+  }else{
+    /* v3.25.0: as que já existem não são só ignoradas — a do ficheiro
+       substitui a de casa quando é mais recente (`alterada`), e fica com o id
+       de casa. As fotos dela, se o ficheiro as trouxer, substituem as de
+       casa; um ficheiro sem fotos deixa as de casa como estão. */
+    novas=0;
+    plano.forEach(({a,local,accao})=>{
+      if(accao==="nova"){
+        const orig=a.id;
+        while(audits.some(x=>x.id===a.id))a.id++;
+        mapaIds.set(orig,a.id);
+        audits.push(a);novas++;abrirId=abrirId==null?a.id:abrirId;
+      }else if(accao==="actualizar"){
+        const i=audits.indexOf(local);
+        if(i<0)return;
+        audits[i]=Object.assign({},a,{id:local.id});
+        if(Array.isArray(data.fotos)){mapaIds.set(a.id,local.id);trocarFotos.push(local.id);}
+        actualizadas.push(audits[i]);abrirId=abrirId==null?local.id:abrirId;
+      }
+    });
+    if(abrirId==null&&plano[0]&&plano[0].local)abrirId=plano[0].local.id;
+    fechadas=aplicarAcoesFeitas(audits,feitas);
+    services=[...new Set(services.concat(inSvc))];
+    /* Fundir: os de casa mantêm-se; do ficheiro entram os dos serviços (e dos anos) que não os têm. */
+    const tpFich=sanitizeTipos(data.tipoSvc),obFich=sanitizeObjetivos(data.objAud);
+    if(deActualizacao){
+      /* Do PC: para os serviços que o ficheiro traz, vale o do ficheiro
+         (também quando o PC tirou o tipo). */
+      const doFich=new Set(inSvc);
+      if(Array.isArray(data.tipoSvc))tipos=sanitizeTipos(tpFich.concat(tipos.filter(f=>!doFich.has(f.s)&&!tpFich.some(g=>g.s===f.s))));
+      if(Array.isArray(data.objAud))objetivos=sanitizeObjetivos(obFich.concat(objetivos.filter(o=>!obFich.some(g=>g.a===o.a))));
+    }else{
+      tipos=sanitizeTipos(tipos.concat(tpFich.filter(f=>!tipos.some(g=>g.s===f.s))));
+      objetivos=sanitizeObjetivos(objetivos.concat(obFich.filter(o=>!objetivos.some(g=>g.a===o.a))));
+    }
+    people=[...new Set(people.concat(inPpl))];
+    if(!deActualizacao&&!novas&&!actualizadas.length&&!fechadas&&!(deAuditoria?0:inSvc.length+inPpl.length)){desfazerResps();
+      if(deAuditoria&&plano[0].local){aviso("Esta auditoria já está neste dispositivo, igual ou mais recente.");openReport(plano[0].local);}
+      else aviso("Nada de novo a importar: as auditorias já existem.");
+      importouTudo=true;   /* o que a pasta tem já cá estava */
+      return;}
+  }
+  const gravou=save("audits",audits);save("services",services);save("people",people);save("tipoSvc",tipos);save("objAud",objetivos);
+  importouTudo=gravou;
+  /* As fotos das auditorias que o ficheiro substituiu já não têm a quem
+     pertencer. Só depois de a lista nova estar gravada. */
+  if(m==="S"&&gravou)await apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
+  if(gravou&&trocarFotos.length){
+    clearFotos();
+    await Promise.all(trocarFotos.map(id=>apagarFotosDe(id))).catch(()=>{});
+  }
+  /* v3.14.0: as fotos do ficheiro (uma cópia "com fotos"), depois de as
+     auditorias estarem gravadas e as órfãs limpas. */
+  const fotosIn=gravou?fotosParaImportar(data.fotos,mapaIds):[];
+  let fotosOk=0;
+  if(fotosIn.length){
+    try{await gravarFotos(fotosIn);fotosOk=fotosIn.length;}
+    catch(e){aviso("As auditorias foram importadas, mas não foi possível gravar as fotos neste dispositivo.");}
+  }
+  /* Substituir troca a lista pela do ficheiro; fundir acrescenta o que falta e
+     mantém os nomes de casa. Em qualquer dos casos fica GRAVADA, para que a
+     leitura seguinte não volte a cair no de recurso. */
+  if(respsFich.length){
+    const finais=m==="S"?respsFich:respsFundidos;
+    save("resps",finais);loadResps();respDraft=respsActuais();
+  }
+
+  if(gravou&&deAuditoria&&(novas||actualizadas.length||fechadas))registarAlteracao();
+  /* v3.26.0: só se forem diferentes das actuais; do PC, sem perguntar. */
+  if(pergDiferentes&&(deActualizacao||await confirmar("O ficheiro inclui "+inPerg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas."))){
+    save("itemsCfg",inPerg);
+    loadItems();
+  }
+  refreshForm();renderCfg();renderHist();
+  /* Um ficheiro de auditoria abre logo o relatório dela, para a finalizar. */
+  if(deAuditoria&&gravou){
+    const a=audits.find(x=>x.id===abrirId);
+    if(a){openReport(a);
+      aviso("Auditoria importada"+(fotosOk?", com "+fotosOk+" foto(s)":"")+
+        (fechadas?". "+fechadas+" acção(ões) fechada(s) no terreno":"")+".");return;}
+  }
+  if(deActualizacao&&gravou){
+    aviso("Actualizado com os dados do PC: "+(novas?novas+" auditoria(s) nova(s), ":"")+
+      actualizadas.length+" actualizada(s)"+(pergDiferentes?", perguntas do PC":"")+".","Actualizar com os dados do PC");
+    mostrarLimpeza();return;
+  }
+  aviso("Importação concluída: "+audits.length+" auditoria(s) no histórico"+
+    (novas?", "+novas+" nova(s)":"")+(actualizadas.length?", "+actualizadas.length+" actualizada(s)":"")+
+    (fechadas?", "+fechadas+" acção(ões) fechada(s)":"")+
+    (fotosOk?", "+fotosOk+" foto(s) importada(s)":"")+".");
+}
 function importJson(inp){
   const file=inp.files[0];inp.value="";
   if(!file)return;
   if(ficheiroGrande(file,MAX_IMPORT.json))return;
   const rd=new FileReader();
-  rd.onload=async()=>{
-    let data;
-    try{data=JSON.parse(rd.result);}catch(e){aviso("Ficheiro inválido: não é JSON.");return;}
-    if(Array.isArray(data))data={audits:data};
-    if(!data||typeof data!=="object"){aviso("Ficheiro inválido: estrutura não reconhecida.");return;}
-    if(!Array.isArray(data.audits)){aviso("Ficheiro inválido: não contém a lista de auditorias.");return;}
-    /* v3.5.0 — os responsáveis do ficheiro entram ANTES da sanitização, e só em
-       memória. sanitizeAudit()/sanitizeItems() validam `r` contra RESP: com a
-       lista de casa, um responsável que só exista no ficheiro cairia no de
-       recurso e a auditoria chegaria com a atribuição trocada. Se a importação
-       for cancelada, `desfazerResps()` repõe tudo como estava. */
-    const respsAntes=respsActuais();
-    const respsFich=sanitizeResps(data.resps);
-    const respsFundidos=fundirResps(respsAntes,respsFich);
-    if(respsFich.length)aplicarResps(respsFundidos);
-    const desfazerResps=()=>{if(respsFich.length)aplicarResps(respsAntes);};
-    const inAudits=data.audits.slice(0,MAX_AUDITS).map(sanitizeAudit).filter(Boolean);
-    const descartadas=Math.min(data.audits.length,MAX_AUDITS)-inAudits.length;
-    const truncadas=Math.max(0,data.audits.length-MAX_AUDITS);
-    if(!inAudits.length){desfazerResps();aviso("Nenhuma auditoria válida encontrada no ficheiro.");return;}
-    const semItens=inAudits.filter(a=>!a.items&&a.scores.length!==ITEMS.length).length;
-    const inSvc=Array.isArray(data.services)?data.services.map(s=>clean(s,200)).filter(Boolean):[];
-    const inPpl=Array.isArray(data.people)?data.people.map(s=>clean(s,200)).filter(Boolean):[];
-    /* As perguntas do ficheiro passam pela MESMA porta que o editor usa. Antes
-       eram gravadas em bruto — era o único caminho que contornava a validação. */
-    const inPerg=sanitizeItems(data.itemsCfg);
-    const temPerg=inPerg.length;
-    const origem=data.version?" (v"+data.version+")":"";
-    /* v3.25.0: o que Fundir faria a cada auditoria do ficheiro, e as acções
-       fechadas no terreno que traz. */
-    const plano=planoFusao(audits,inAudits);
-    const nNovas=plano.filter(x=>x.accao==="nova").length,nAct=plano.filter(x=>x.accao==="actualizar").length;
-    const feitas=sanitizeFeitas(data.acoesFeitas);
-    const nFotos=Array.isArray(data.fotos)?data.fotos.length:0;
-    const deAuditoria=data.tipo==="auditoria"&&inAudits.length===1;
-    /* v3.26.0: o ficheiro «para o telemóvel», do PC. O PC manda: além de
-       fundir as auditorias, traz o tipo dos serviços, o objectivo anual e as perguntas. */
-    const deActualizacao=data.tipo==="actualizacao";
-    const pergDiferentes=temPerg&&JSON.stringify(inPerg)!==JSON.stringify(sanitizeItems(ITEMS));
-    let m;
-    if(deActualizacao){
-      const quandoFich=typeof data.exportedAt==="string"&&Number.isFinite(Date.parse(data.exportedAt))?" de "+quando(data.exportedAt):"";
-      m=await caixa({titulo:"Actualizar com os dados do PC",
-        texto:"Ficheiro do PC"+quandoFich+": "+inAudits.length+" auditoria(s)."+
-          "\n"+(nNovas?nNovas+" nova(s) para este dispositivo. ":"")+(nAct?nAct+" que o PC tem mais recente(s) (finalizadas, acções) são actualizadas. ":"")+
-          (!nNovas&&!nAct?"As auditorias já estão a par. ":"")+
-          "\nO tipo dos serviços, o objectivo anual"+(pergDiferentes?", e as perguntas,":"")+" passam a ser os do PC. As auditorias que só existem neste dispositivo ficam.",
-        botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"F",label:"Actualizar",def:true}]});
-    }else if(deAuditoria){
-      /* Um ficheiro de auditoria (enviado do telemóvel) só se funde: nunca
-         substitui o histórico deste dispositivo. */
-      const a=inAudits[0],pl=plano[0];
-      m=await caixa({titulo:"Importar auditoria",
-        texto:"Auditoria a "+a.service+" de "+dataCurta(a.date)+" ("+total(a)+"/100)"+(nFotos?", com "+nFotos+" foto(s)":"")+
-          (porFinalizar(a)?", por finalizar":"")+"."+
-          (pl.accao==="actualizar"?"\nJá existe neste dispositivo: a do ficheiro é mais recente e substitui-a.":
-           pl.accao==="igual"?"\nJá existe neste dispositivo, igual ou mais recente: fica a que está.":"")+
-          (feitas.length?"\nTraz também as acções feitas no terreno, que são fechadas aqui.":""),
-        botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"F",label:"Importar",def:true}]});
-    }else m=await caixa({titulo:"Importar histórico",
-      texto:"Ficheiro"+origem+": "+inAudits.length+" auditoria(s), "+inSvc.length+" serviço(s), "+inPpl.length+" pessoa(s)."+
-      (descartadas?"\n"+descartadas+" registo(s) inválido(s) serão ignorados.":"")+
-      (truncadas?"\nO ficheiro traz mais de "+MAX_AUDITS+" auditorias: as "+truncadas+" últimas são ignoradas.":"")+
-      (semItens?"\nAtenção: "+semItens+" auditoria(s) sem as perguntas associadas e com nº de respostas diferente do actual — os relatórios podem ficar desalinhados.":"")+
-      "\n\nFundir junta as novas ("+nNovas+") às actuais, sem duplicar"+(nAct?", e actualiza "+nAct+" que o ficheiro tem mais recente(s)":"")+
-      ". Substituir apaga as "+audits.length+" auditoria(s) actuais.",
-      botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"S",label:"Substituir tudo",cls:"ghost perigo"},
-        {v:"F",label:"Fundir",def:true}]});
-    if(m==null){desfazerResps();return;}
-
-    /* v3.14.0: id no ficheiro → id em casa, para as fotos acompanharem cada
-       auditoria importada (ao fundir, um id já ocupado passa ao seguinte). */
-    const mapaIds=new Map();
-    let novas=0,fechadas=0,abrirId=null;const actualizadas=[],trocarFotos=[];
-    if(m==="S"){
-      if(!(await confirmar("Substituir TODOS os dados actuais ("+audits.length+" auditoria(s))? Esta acção não pode ser anulada.",{sim:"Substituir",perigo:true}))){desfazerResps();return;}
-      /* v3.5.1 — o mesmo código de acesso que apagar UMA auditoria pede desde
-         3.3.1. Substituir apaga-as a TODAS de uma vez e é igualmente
-         irreversível: a porta mais destrutiva era a única que não o pedia. */
-      if(!(await pedirPin("Código de acesso para substituir todo o histórico (não é possível anular):"))){desfazerResps();return;}
-      audits=inAudits;
-      inAudits.forEach(a=>mapaIds.set(a.id,a.id));
-      services=inSvc.length?[...new Set(inSvc)]:services;
-      /* O tipo e o objectivo do ficheiro, se os trouxer; senão ficam os de casa. */
-      if(Array.isArray(data.tipoSvc))tipos=sanitizeTipos(data.tipoSvc);
-      if(Array.isArray(data.objAud))objetivos=sanitizeObjetivos(data.objAud);
-      people=[...new Set(inPpl)];
-    }else{
-      /* v3.25.0: as que já existem não são só ignoradas — a do ficheiro
-         substitui a de casa quando é mais recente (`alterada`), e fica com o id
-         de casa. As fotos dela, se o ficheiro as trouxer, substituem as de
-         casa; um ficheiro sem fotos deixa as de casa como estão. */
-      novas=0;
-      plano.forEach(({a,local,accao})=>{
-        if(accao==="nova"){
-          const orig=a.id;
-          while(audits.some(x=>x.id===a.id))a.id++;
-          mapaIds.set(orig,a.id);
-          audits.push(a);novas++;abrirId=abrirId==null?a.id:abrirId;
-        }else if(accao==="actualizar"){
-          const i=audits.indexOf(local);
-          if(i<0)return;
-          audits[i]=Object.assign({},a,{id:local.id});
-          if(Array.isArray(data.fotos)){mapaIds.set(a.id,local.id);trocarFotos.push(local.id);}
-          actualizadas.push(audits[i]);abrirId=abrirId==null?local.id:abrirId;
-        }
-      });
-      if(abrirId==null&&plano[0]&&plano[0].local)abrirId=plano[0].local.id;
-      fechadas=aplicarAcoesFeitas(audits,feitas);
-      services=[...new Set(services.concat(inSvc))];
-      /* Fundir: os de casa mantêm-se; do ficheiro entram os dos serviços (e dos anos) que não os têm. */
-      const tpFich=sanitizeTipos(data.tipoSvc),obFich=sanitizeObjetivos(data.objAud);
-      if(deActualizacao){
-        /* Do PC: para os serviços que o ficheiro traz, vale o do ficheiro
-           (também quando o PC tirou o tipo). */
-        const doFich=new Set(inSvc);
-        if(Array.isArray(data.tipoSvc))tipos=sanitizeTipos(tpFich.concat(tipos.filter(f=>!doFich.has(f.s)&&!tpFich.some(g=>g.s===f.s))));
-        if(Array.isArray(data.objAud))objetivos=sanitizeObjetivos(obFich.concat(objetivos.filter(o=>!obFich.some(g=>g.a===o.a))));
-      }else{
-        tipos=sanitizeTipos(tipos.concat(tpFich.filter(f=>!tipos.some(g=>g.s===f.s))));
-        objetivos=sanitizeObjetivos(objetivos.concat(obFich.filter(o=>!objetivos.some(g=>g.a===o.a))));
-      }
-      people=[...new Set(people.concat(inPpl))];
-      if(!deActualizacao&&!novas&&!actualizadas.length&&!fechadas&&!(deAuditoria?0:inSvc.length+inPpl.length)){desfazerResps();
-        if(deAuditoria&&plano[0].local){aviso("Esta auditoria já está neste dispositivo, igual ou mais recente.");openReport(plano[0].local);}
-        else aviso("Nada de novo a importar: as auditorias já existem.");
-        return;}
-    }
-    const gravou=save("audits",audits);save("services",services);save("people",people);save("tipoSvc",tipos);save("objAud",objetivos);
-    /* As fotos das auditorias que o ficheiro substituiu já não têm a quem
-       pertencer. Só depois de a lista nova estar gravada. */
-    if(m==="S"&&gravou)await apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
-    if(gravou&&trocarFotos.length){
-      clearFotos();
-      await Promise.all(trocarFotos.map(id=>apagarFotosDe(id))).catch(()=>{});
-    }
-    /* v3.14.0: as fotos do ficheiro (uma cópia "com fotos"), depois de as
-       auditorias estarem gravadas e as órfãs limpas. */
-    const fotosIn=gravou?fotosParaImportar(data.fotos,mapaIds):[];
-    let fotosOk=0;
-    if(fotosIn.length){
-      try{await gravarFotos(fotosIn);fotosOk=fotosIn.length;}
-      catch(e){aviso("As auditorias foram importadas, mas não foi possível gravar as fotos neste dispositivo.");}
-    }
-    /* Substituir troca a lista pela do ficheiro; fundir acrescenta o que falta e
-       mantém os nomes de casa. Em qualquer dos casos fica GRAVADA, para que a
-       leitura seguinte não volte a cair no de recurso. */
-    if(respsFich.length){
-      const finais=m==="S"?respsFich:respsFundidos;
-      save("resps",finais);loadResps();respDraft=respsActuais();
-    }
-
-    if(gravou&&deAuditoria&&(novas||actualizadas.length||fechadas))registarAlteracao();
-    /* v3.26.0: só se forem diferentes das actuais; do PC, sem perguntar. */
-    if(pergDiferentes&&(deActualizacao||await confirmar("O ficheiro inclui "+inPerg.length+" perguntas. Aplicar também as perguntas importadas?\nAs perguntas actuais serão substituídas."))){
-      save("itemsCfg",inPerg);
-      loadItems();
-    }
-    refreshForm();renderCfg();renderHist();
-    /* Um ficheiro de auditoria abre logo o relatório dela, para a finalizar. */
-    if(deAuditoria&&gravou){
-      const a=audits.find(x=>x.id===abrirId);
-      if(a){openReport(a);
-        aviso("Auditoria importada"+(fotosOk?", com "+fotosOk+" foto(s)":"")+
-          (fechadas?". "+fechadas+" acção(ões) fechada(s) no terreno":"")+".");return;}
-    }
-    if(deActualizacao&&gravou){
-      aviso("Actualizado com os dados do PC: "+(novas?novas+" auditoria(s) nova(s), ":"")+
-        actualizadas.length+" actualizada(s)"+(pergDiferentes?", perguntas do PC":"")+".","Actualizar com os dados do PC");
-      mostrarLimpeza();return;
-    }
-    aviso("Importação concluída: "+audits.length+" auditoria(s) no histórico"+
-      (novas?", "+novas+" nova(s)":"")+(actualizadas.length?", "+actualizadas.length+" actualizada(s)":"")+
-      (fechadas?", "+fechadas+" acção(ões) fechada(s)":"")+
-      (fotosOk?", "+fotosOk+" foto(s) importada(s)":"")+".");
-  };
+  rd.onload=()=>importarJsonCorpo(rd.result);
   rd.readAsText(file);
 }
 
@@ -5686,6 +5725,428 @@ function mostrarPainel(i){
 painel.subscrever(mostrarPainel);
 painel.iniciar().then(()=>painel.escrever(dadosDoPainel()));
 
+/* ---------- Backup automático na pasta partilhada (v4.6.0) ---------- */
+// ─────────────────────────────────────────────────────────────────────────────
+// BACKUP AUTOMÁTICO NA PASTA PARTILHADA
+//
+// Cópia adaptada do mecanismo da app «supermercados» (src/app/nucleo/pasta-backup.js
+// e src/app/ui/app/use-backup-na-pasta.js): quem se esquecia de exportar um backup
+// perdia o trabalho, e com várias pessoas na mesma pasta «a última a gravar apaga as
+// outras». Com a pasta escolhida uma vez (fica lembrada neste browser):
+//   · cada alteração é gravada em `auditoria5s_backup.json` uns segundos depois (agrupa edições seguidas);
+//   · antes de gravar relê o ficheiro: se OUTRA pessoa o gravou depois da versão de onde
+//     estes dados partiram (o `updatedAt` do envelope), pára e avisa — nunca grava por cima
+//     em silêncio. «Gravar por cima…» pergunta; «Abrir a versão da pasta…» passa pela
+//     importação normal da app (que pergunta se junta ou substitui);
+//   · antes de substituir o ficheiro, copia a versão que lá está para `copias-backup/`
+//     (com a data dela no nome) e guarda as dos últimos 30 dias;
+//   · de 2 em 2 minutos, e ao voltar ao separador, relê o ficheiro: se mudou, avisa logo.
+// Só no Chrome ou no Edge de computador (File System Access API).
+// ─────────────────────────────────────────────────────────────────────────────
+const PASTA_BASE = 'auditoria5s_backup';
+const PASTA_FICHEIRO = PASTA_BASE + '.json';
+const PASTA_COPIAS = 'copias-backup';
+const PASTA_IDB = 'auditoria5s:pasta-backup';
+const PASTA_CHAVE_AUTO = 'auditoria5s.gravacaoAutomatica';
+const PASTA_CHAVE_BASE = 'auditoria5s.backupBase';
+const PASTA_CHAVE_PENDENTE = 'auditoria5s.backupPendente';
+const PASTA_PAUSA_MS = 4000;
+const PASTA_VIGIA_MS = 2 * 60 * 1000;
+const PASTA_COPIAS_DIAS = 30;
+const PASTA_COPIAS_MINIMO = 10;
+const PASTA_COPIA_PROPRIA_MS = 60 * 60 * 1000;
+const PASTA_PADRAO_COPIA = new RegExp('^' + PASTA_BASE + '_\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.json$');
+
+function pastaDois(n) { return String(n).padStart(2, '0'); }
+
+/** `<base>_2026-11-11_21-30-05.json` — a data local da versão copiada. */
+function nomeDaCopia(data) {
+  const d = data instanceof Date ? data : new Date(data);
+  return PASTA_BASE + '_' + d.getFullYear() + '-' + pastaDois(d.getMonth() + 1) + '-' + pastaDois(d.getDate()) +
+    '_' + pastaDois(d.getHours()) + '-' + pastaDois(d.getMinutes()) + '-' + pastaDois(d.getSeconds()) + '.json';
+}
+
+/** A data (local) que o nome de uma cópia traz, ou null. */
+function dataDaCopia(nome) {
+  const m = /_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})\.json$/.exec(nome);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : null;
+}
+
+/** As cópias a apagar: as com mais de `dias` dias, excepto as `minimo` mais recentes. Ignora o que não for cópia. */
+function copiasParaApagar(nomes, agora = Date.now(), dias = PASTA_COPIAS_DIAS, minimo = PASTA_COPIAS_MINIMO) {
+  const copias = nomes.filter(n => PASTA_PADRAO_COPIA.test(n)).sort();
+  const limite = agora - dias * 86400000;
+  return copias.slice(0, Math.max(0, copias.length - minimo))
+    .filter(n => { const d = dataDaCopia(n); return d !== null && d.getTime() < limite; });
+}
+
+/**
+ * O que o ficheiro da pasta diz de si: quando foi gravado e quantos registos tem.
+ * `updatedAt` é o do envelope, não a data do ficheiro — uma pasta sincronizada
+ * (OneDrive, SharePoint) muda a data do ficheiro ao sincronizar.
+ */
+function resumoDoBackup(texto, lastModified) {
+  let updatedAt = null, count = null;
+  try {
+    const j = JSON.parse(texto);
+    if (typeof j?.updatedAt === 'string' && !Number.isNaN(Date.parse(j.updatedAt))) updatedAt = j.updatedAt;
+    const lista = Array.isArray(j) ? j : (j?.registos || j?.audits);
+    if (Array.isArray(lista)) count = lista.length;
+  } catch (e) { /* não é JSON: fica sem data nem contagem */ }
+  return { updatedAt, count, data: updatedAt ? new Date(updatedAt) : new Date(lastModified || Date.now()) };
+}
+
+/**
+ * Há conflito quando o ficheiro da pasta não é a versão de onde os dados em memória
+ * partiram. Sem versão de partida conhecida, qualquer ficheiro que lá esteja conta:
+ * é preferível perguntar a mais do que sobrepor o trabalho de outra pessoa.
+ */
+function haConflito(actual, versaoDePartida) {
+  if (!actual?.existe) return false;
+  return !versaoDePartida || actual.updatedAt !== versaoDePartida;
+}
+
+/** A versão da pasta, face à de partida: 'mais-recente', 'mais-antiga' ou 'desconhecida'. */
+function idadeFaceAPartida(updatedAtDaPasta, versaoDePartida) {
+  const a = Date.parse(updatedAtDaPasta), b = Date.parse(versaoDePartida);
+  if (Number.isNaN(a) || Number.isNaN(b)) return 'desconhecida';
+  return a > b ? 'mais-recente' : a < b ? 'mais-antiga' : 'desconhecida';
+}
+
+/**
+ * A versão que está na pasta deve ser copiada antes de ser substituída? De outra origem:
+ * sempre. Gravada por esta página (`propria`): só se a última cópia tiver mais de uma hora
+ * (copiar todas enchia a pasta de versões intermédias).
+ */
+function deveCopiar(actual, propria, ultimaCopiaEm, agora = Date.now()) {
+  if (!actual?.existe) return false;
+  if (!propria || actual.updatedAt !== propria) return true;
+  return ultimaCopiaEm === null || ultimaCopiaEm === undefined || agora - ultimaCopiaEm >= PASTA_COPIA_PROPRIA_MS;
+}
+
+function criarPastaBackup() {
+  const suportado = typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+  let handle = null, estado = suportado ? 'sem' : 'indisponivel', erro = '';
+  let ultimaCopiaEm = null;
+  const ouvintes = new Set();
+  const info = () => ({ estado, erro, pasta: handle ? (handle.name || 'pasta escolhida') : '', ficheiro: PASTA_FICHEIRO });
+  const mudar = (novo, msg = '') => {
+    estado = novo; erro = msg;
+    for (const f of ouvintes) { try { f(info()); } catch (e) { /* um ouvinte não estraga os outros */ } }
+  };
+
+  function idb(modo, fn) {
+    return new Promise((resolve, reject) => {
+      if (typeof indexedDB === 'undefined' || !indexedDB) { reject(new Error('sem IndexedDB')); return; }
+      const req = indexedDB.open(PASTA_IDB, 1);
+      req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains('kv')) req.result.createObjectStore('kv'); };
+      req.onerror = () => reject(req.error);
+      req.onsuccess = () => {
+        const db = req.result;
+        try {
+          const tx = db.transaction('kv', modo), r = fn(tx.objectStore('kv'));
+          tx.oncomplete = () => { db.close(); resolve(r?.result); };
+          tx.onerror = tx.onabort = () => { db.close(); reject(tx.error); };
+        } catch (e) { db.close(); reject(e); }
+      };
+    });
+  }
+  const permissao = async pedir => {
+    const opc = { mode: 'readwrite' };
+    try {
+      let p = await handle.queryPermission(opc);
+      if (p !== 'granted' && pedir) p = await handle.requestPermission(opc);
+      return p;
+    } catch (e) { return 'denied'; }
+  };
+  async function escreverFicheiro(dir, nome, texto) {
+    const fh = await dir.getFileHandle(nome, { create: true });
+    const w = await fh.createWritable();
+    try { await w.write(texto); await w.close(); }
+    catch (e) { try { await w.abort(); } catch (e2) { /* já fechado */ } throw e; }
+  }
+
+  return {
+    suportado,
+    info,
+    subscrever(f) { ouvintes.add(f); f(info()); return () => ouvintes.delete(f); },
+    /** Ao abrir a app: volta à pasta de antes, se houver (sem licença — isso precisa de um clique). */
+    async iniciar() {
+      if (!suportado) return info();
+      if (!handle) {
+        try { handle = (await idb('readonly', s => s.get('pasta'))) || null; } catch (e) { handle = null; }
+      }
+      if (!handle) mudar('sem');
+      else mudar(await permissao(false) === 'granted' ? 'ok' : 'licenca');
+      return info();
+    },
+    /** Escolher a pasta (de um clique). `false` se a pessoa cancelou. */
+    async escolher() {
+      if (!suportado) return false;
+      try { handle = await window.showDirectoryPicker({ id: 'pasta-backup', mode: 'readwrite' }); }
+      catch (e) { if (e?.name !== 'AbortError') mudar('erro', e?.message || String(e)); return false; }
+      try { await idb('readwrite', s => s.put(handle, 'pasta')); } catch (e) { /* fica só para esta sessão */ }
+      mudar(await permissao(true) === 'granted' ? 'ok' : 'licenca');
+      return estado === 'ok';
+    },
+    /** Pedir outra vez a licença da pasta lembrada (de um clique). */
+    async darAcesso() {
+      if (!handle) return false;
+      const ok = await permissao(true) === 'granted';
+      mudar(ok ? 'ok' : 'licenca');
+      return ok;
+    },
+    /** Deixar de usar a pasta (esquece-a neste browser). */
+    async esquecer() {
+      handle = null;
+      try { await idb('readwrite', s => s.delete('pasta')); } catch (e) { /* nada a esquecer */ }
+      mudar(suportado ? 'sem' : 'indisponivel');
+    },
+    /** O backup que está na pasta: `{ existe, texto, updatedAt, count, data }`. */
+    async lerActual() {
+      if (estado !== 'ok') throw new Error('sem acesso à pasta');
+      let fh;
+      try { fh = await handle.getFileHandle(PASTA_FICHEIRO); }
+      catch (e) { if (e?.name === 'NotFoundError') return { existe: false }; throw e; }
+      const f = await fh.getFile();
+      if (f.size > 100 * 1024 * 1024) throw new Error('o backup da pasta é grande demais (mais de 100 MB)');
+      const texto = await f.text();
+      return { existe: true, texto, ...resumoDoBackup(texto, f.lastModified) };
+    },
+    /**
+     * Grava o backup na pasta. Se lá houver um, copia-o primeiro para `copias-backup/` e
+     * apaga as cópias a mais. A cópia é feita antes de substituir: se falhar, o ficheiro
+     * da pasta não é tocado. Devolve `{ copia }`.
+     */
+    async gravar(texto, { propria = null, agora = Date.now() } = {}) {
+      if (estado !== 'ok') throw new Error('sem acesso à pasta');
+      let copia = null;
+      const actual = await this.lerActual();
+      if (deveCopiar(actual, propria, ultimaCopiaEm, agora)) {
+        const dir = await handle.getDirectoryHandle(PASTA_COPIAS, { create: true });
+        copia = nomeDaCopia(actual.data);
+        await escreverFicheiro(dir, copia, actual.texto);
+        ultimaCopiaEm = agora;
+        const nomes = [];
+        for await (const nome of dir.keys()) nomes.push(nome);
+        for (const nome of copiasParaApagar(nomes, agora)) {
+          try { await dir.removeEntry(nome); } catch (e) { /* fica para a próxima */ }
+        }
+      }
+      await escreverFicheiro(handle, PASTA_FICHEIRO, texto);
+      return { copia };
+    },
+  };
+}
+
+const pastaLS = {
+  ler(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  gravar(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { /* fica só nesta página */ } },
+};
+const pastaQuando = iso => new Date(iso).toLocaleString('pt-PT');
+const pastaProcessos = n => n === null || n === undefined ? '' : ' (' + n + ' ' + (n === 1 ? 'registo' : 'registos') + ')';
+
+/**
+ * O lado da interface. `op` traz o que é de cada app:
+ *   gerar()               → { texto, updatedAt }: o backup a gravar (async)
+ *   aplicar(texto)        → true se os dados da pasta foram aplicados (async; passa pela importação da app)
+ *   perguntar(texto, opc) → Promise<boolean>
+ *   avisar(texto, tipo)   → mensagem ('ok' | 'aviso' | 'erro')
+ *   aoGravar()            → depois de cada gravação (para os lembretes de backup da app)
+ */
+function criarBackupAutomatico(op) {
+  const pasta = criarPastaBackup();
+  let auto = pastaLS.ler(PASTA_CHAVE_AUTO) !== '0';
+  let aGravar = false, gravadoEm = null, erro = '', mudou = null;
+  let base = pastaLS.ler(PASTA_CHAVE_BASE) || null;     // `updatedAt` da versão de onde estes dados partiram
+  let propria = null;                                      // `updatedAt` da última versão gravada por esta página
+  let pendente = pastaLS.ler(PASTA_CHAVE_PENDENTE) === '1';
+  let versao = 0, timer = null, ocupado = false;
+  const ouvintes = new Set();
+  const estado = () => ({ ...pasta.info(), auto, aGravar, gravadoEm, erro, mudou, pendente });
+  const emitir = () => { for (const f of ouvintes) { try { f(estado()); } catch (e) { /* ignora */ } } };
+  pasta.subscrever(() => emitir());
+
+  const versaoDaPasta = naPasta => ({ updatedAt: naPasta.updatedAt, count: naPasta.count,
+    idade: idadeFaceAPartida(naPasta.updatedAt, base) });
+  const lembrarBase = v => { base = v; pastaLS.gravar(PASTA_CHAVE_BASE, v); };
+  const marcarPendente = v => { pendente = v; pastaLS.gravar(PASTA_CHAVE_PENDENTE, v ? '1' : null); };
+
+  function agendar() {
+    clearTimeout(timer);
+    if (!auto || pasta.info().estado !== 'ok' || !pendente || mudou) return;
+    timer = setTimeout(() => { gravar({ perguntar: false }); }, PASTA_PAUSA_MS);
+  }
+
+  /** Grava na pasta. `perguntar`: a gravação manual pergunta num conflito; a automática pára e avisa. */
+  async function gravar({ perguntar }) {
+    if (ocupado || pasta.info().estado !== 'ok') return false;
+    ocupado = true; aGravar = true; emitir();
+    const versaoAntes = versao;
+    let reagendar = false;
+    const nome = '«' + pasta.info().pasta + '»';
+    try {
+      const { texto, updatedAt } = await op.gerar();
+      const naPasta = await pasta.lerActual();
+      if (haConflito(naPasta, base)) {
+        mudou = versaoDaPasta(naPasta);
+        if (!perguntar) return false;
+        const quando = naPasta.updatedAt ? 'em ' + pastaQuando(naPasta.updatedAt) : 'numa data que o ficheiro não diz';
+        const idade = mudou.idade;
+        const porque = !base ? 'e não se sabe se é a versão de onde estes dados partiram'
+          : idade === 'mais-antiga' ? 'e é mais antigo do que a versão que carregaste'
+          : idade === 'mais-recente' ? 'depois da versão que carregaste — alguém gravou entretanto'
+          : 'e não é a versão que carregaste';
+        const seguir = await op.perguntar(
+          'O backup da pasta ' + nome + ' foi gravado ' + quando + pastaProcessos(naPasta.count) + ', ' + porque + '.\n\n' +
+          'Gravar por cima substitui-o pelos dados que tens aqui: o que essa versão tiver e estes não, deixa de estar no backup. ' +
+          'Ela fica guardada em ' + PASTA_COPIAS + '/, para se poder recuperar.\n\n' +
+          '(Para juntar os dois, cancela e usa «Abrir a versão da pasta…».)',
+          { titulo: 'O backup da pasta mudou', confirmar: 'Gravar por cima' });
+        if (!seguir) { emitir(); return false; }
+      }
+      const { copia } = await pasta.gravar(texto, { propria });
+      propria = updatedAt; lembrarBase(updatedAt);
+      mudou = null; erro = ''; gravadoEm = Date.now();
+      // Só fica «guardado» se nada mudou enquanto se gravava; senão, a gravação seguinte apanha o resto.
+      if (versao === versaoAntes) marcarPendente(false); else reagendar = true;
+      try { op.aoGravar && op.aoGravar(); } catch (e) { /* um lembrete que falha não desfaz a gravação */ }
+      if (perguntar) op.avisar('Backup gravado na pasta ' + nome + '.' + (copia ? '\nA versão anterior ficou em ' + PASTA_COPIAS + '/' + copia + '.' : ''), 'ok');
+      return true;
+    } catch (e) {
+      erro = e?.message || String(e);
+      if (perguntar) op.avisar('Não foi possível gravar na pasta ' + nome + ': ' + erro + '\nO backup não foi gravado — usa a exportação manual.', 'erro');
+      return false;
+    } finally {
+      ocupado = false; aGravar = false; emitir();
+      if (reagendar) agendar();   // numa falha não se repete sozinha: espera pela próxima alteração
+    }
+  }
+
+  /** Vê se a versão da pasta é a de partida; sem ficheiro lá, grava logo. Sem perguntar. */
+  async function verificar() {
+    if (pasta.info().estado !== 'ok' || ocupado) return;
+    try {
+      const naPasta = await pasta.lerActual();
+      if (!naPasta.existe) { marcarPendente(true); await gravar({ perguntar: false }); return; }
+      if (haConflito(naPasta, base)) { mudou = versaoDaPasta(naPasta); emitir(); }
+      else if (pendente) agendar();
+    } catch (e) { erro = e?.message || String(e); emitir(); }
+  }
+
+  /** Trocar (ou juntar) os dados pelos da pasta, pela importação normal da app. */
+  async function abrirDaPasta() {
+    try {
+      const naPasta = await pasta.lerActual();
+      if (!naPasta.existe) throw new Error('não há backup na pasta');
+      if (!await op.aplicar(naPasta.texto)) return false;
+      // A importação gravou os dados (e marcou-os como por gravar): a partir daqui partem desta versão.
+      lembrarBase(naPasta.updatedAt); propria = null; mudou = null;
+      emitir(); agendar();
+      op.avisar('Aberta a versão da pasta' + (naPasta.updatedAt ? ' gravada em ' + pastaQuando(naPasta.updatedAt) : '') + '.', 'info');
+      return true;
+    } catch (e) {
+      op.avisar('Não foi possível abrir o backup da pasta: ' + (e?.message || e), 'erro');
+      return false;
+    }
+  }
+
+  async function vigiar() {
+    if (ocupado || pasta.info().estado !== 'ok' || document.visibilityState === 'hidden') return;
+    if (!base) return;          // sem versão de partida não há «mais recente» a anunciar
+    try {
+      const naPasta = await pasta.lerActual();
+      if (naPasta.existe && naPasta.updatedAt !== base && !(propria && naPasta.updatedAt === propria)) {
+        mudou = versaoDaPasta(naPasta); emitir();
+      }
+    } catch (e) { /* sem acesso agora: a próxima volta tenta outra vez */ }
+  }
+
+  return {
+    suportado: pasta.suportado,
+    estado,
+    subscrever(f) { ouvintes.add(f); f(estado()); return () => ouvintes.delete(f); },
+    /** Ao abrir a app. */
+    async iniciar() {
+      await pasta.iniciar();
+      pasta.subscrever(() => agendar());
+      setInterval(vigiar, PASTA_VIGIA_MS);
+      window.addEventListener('focus', vigiar);
+      document.addEventListener('visibilitychange', vigiar);
+      await verificar();
+      vigiar();
+    },
+    /** Os dados da app mudaram. */
+    alterado() { versao++; if (!pendente) marcarPendente(true); emitir(); agendar(); },
+    setAuto(v) { auto = !!v; pastaLS.gravar(PASTA_CHAVE_AUTO, auto ? '1' : '0'); emitir(); agendar(); },
+    /** «Escolher pasta» / «Dar acesso» (de um clique). */
+    async escolherPasta() {
+      const ok = pasta.info().estado === 'licenca' ? await pasta.darAcesso() : await pasta.escolher();
+      if (ok) await verificar();
+      return ok;
+    },
+    esquecerPasta() { return pasta.esquecer().then(() => { mudou = null; emitir(); }); },
+    /** A pasta tem a versão destes dados (ou vai ter, na gravação automática que já está marcada)? */
+    emDia() { return pasta.info().estado === 'ok' && auto && !mudou && !erro && !!base; },
+    gravarAgora() { return gravar({ perguntar: true }); },
+    abrirDaPasta,
+  };
+}
+
+
+/* ---------- Ligação à app (v4.6.0) ----------
+   O backup da pasta é a «Exportar histórico (JSON)», sem fotos (as fotos continuam a ter o seu
+   lembrete e a «Exportar com fotos»). «Abrir a versão da pasta» passa pela importação normal:
+   fundir ou substituir; depois de fundir, grava o resultado. */
+const backupPasta=criarBackupAutomatico({
+  async gerar(){
+    const c=await ficheiroCopia(false);
+    if(!c)throw new Error("não foi possível gerar a cópia");
+    return{texto:await c.blob.text(),updatedAt:c.exportedAt};
+  },
+  aplicar:texto=>importarJsonTexto(texto),
+  perguntar:(texto,o)=>confirmar(texto,{titulo:o.titulo,sim:o.confirmar,perigo:true}),
+  avisar:(msg,tipo)=>{if(tipo!=="info")aviso(msg,tipo==="erro"?"Backup na pasta":"");},   /* «info»: a importação já disse o que fez */
+  /* A pasta conta como cópia feita: o lembrete de exportar deixa de insistir. */
+  aoGravar:()=>{registarExportacao(false);mostrarAvisoBackup();}
+});
+backupPastaRef=backupPasta;
+function mostrarBackupPasta(e){
+  const el=id=>document.getElementById(id);
+  const txt=el("pasta-estado"),btn=el("btn-pasta");
+  if(!txt||!btn)return;
+  const hora=e.gravadoEm?new Date(e.gravadoEm).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}):"";
+  btn.dataset.estado=e.estado;
+  btn.disabled=e.estado==="indisponivel";
+  btn.textContent=e.estado==="licenca"?"Dar acesso à pasta":e.estado==="ok"?"Escolher outra pasta":"Escolher pasta";
+  el("btn-pasta-agora").disabled=e.estado!=="ok"||e.aGravar;
+  /* style e não a classe .hidden: `.btn.small` fixa display:inline-block e, por ser mais específica, ganha a `.hidden`. */
+  el("btn-pasta-off").style.display=e.pasta?"":"none";
+  el("chk-pasta-auto").checked=e.auto;
+  txt.textContent=({
+    indisponivel:"Este navegador não consegue gravar numa pasta (use o Chrome ou o Edge de computador): use «Exportar histórico (JSON)».",
+    sem:"Nenhuma pasta escolhida: a cópia de segurança só se faz à mão, em «Exportar histórico (JSON)».",
+    licenca:"O navegador pede licença outra vez para gravar na pasta «"+e.pasta+"» (acontece ao reabrir a app).",
+    ok:e.mudou?"Pasta «"+e.pasta+"»: a gravação automática está em pausa, até decidir o que fazer à cópia que lá está."
+      :e.auto?"A gravar "+e.ficheiro+" na pasta «"+e.pasta+"» uns segundos depois de cada alteração"+(hora?" — última vez às "+hora:"")+(e.pendente?" (há alterações por gravar)":"")+"."
+      :"Pasta «"+e.pasta+"»: gravação automática desligada — use «Gravar agora».",
+    erro:"Não foi possível usar a pasta: "+e.erro
+  }[e.estado]||"");
+  if(e.erro&&e.estado==="ok")txt.textContent+=" Último erro: "+e.erro;
+  const av=el("aviso-pasta");
+  if(av){
+    av.classList.toggle("hidden",!e.mudou);
+    if(e.mudou){
+      const quando=e.mudou.updatedAt?new Date(e.mudou.updatedAt).toLocaleString("pt-PT"):"numa data que o ficheiro não diz";
+      const que={"mais-recente":"mais recente do que a versão de onde estes dados partiram","mais-antiga":"mais antigo do que a versão de onde estes dados partiram"}[e.mudou.idade]||"diferente da versão de onde estes dados partiram";
+      el("aviso-pasta-txt").textContent="A cópia da pasta «"+e.pasta+"» foi gravada "+quando+(e.mudou.count==null?"":" ("+e.mudou.count+" auditorias)")+" e é "+que+
+        ". A gravação automática está em pausa para não apagar o trabalho de outra pessoa.";
+    }
+  }
+}
+backupPasta.subscrever(mostrarBackupPasta);
+backupPasta.iniciar().catch(err=>console.warn("Backup na pasta:",err));
+
 /* ---------- Ligação dos controlos estáticos ----------
    Nenhum handler inline no HTML: permite endurecer a CSP e elimina
    qualquer possibilidade de injecção através de atributos de evento. */
@@ -5741,6 +6202,15 @@ on("btn-painel-off","click",async()=>{
   if(!(await confirmar("Deixar de gravar o 5s.painel.json nesta pasta? O ficheiro que já lá está não é apagado.",{sim:"Deixar de gravar"})))return;
   painel.esquecer();
 });
+on("btn-pasta","click",()=>{backupPasta.escolherPasta();});
+on("btn-pasta-agora","click",()=>{backupPasta.gravarAgora();});
+on("btn-pasta-off","click",async()=>{
+  if(!(await confirmar("Deixar de gravar a cópia de segurança nesta pasta? O ficheiro que já lá está não é apagado.",{sim:"Deixar de gravar"})))return;
+  backupPasta.esquecerPasta();
+});
+on("chk-pasta-auto","change",e=>backupPasta.setAuto(e.target.checked));
+on("btn-pasta-abrir","click",()=>{backupPasta.abrirDaPasta();});
+on("btn-pasta-porcima","click",()=>{backupPasta.gravarAgora();});
 on("btn-painel","click",()=>{
   const e=painel.info().estado;
   (e==="licenca"?painel.darAcesso():painel.escolher()).then(()=>painel.escrever(dadosDoPainel()));

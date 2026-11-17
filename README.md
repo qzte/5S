@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.5.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.6.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.5.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.6.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -476,6 +476,22 @@ repõe-nas (validadas uma a uma: só imagens JPEG, PNG ou WebP em `data:`, e cad
 uma acompanha a auditoria a que pertence, mesmo que esta mude de id ao fundir).
 Apagar uma auditoria apaga as fotos dela no fim do prazo de *Desfazer*;
 *Substituir* na importação apaga as das auditorias que deixaram de existir.
+
+### Cópia de segurança na pasta partilhada (4.6.0)
+
+Em Configuração › *Cópia de segurança na pasta partilhada*, **Escolher pasta** (Chrome ou Edge de computador; a pasta fica lembrada
+no navegador). Daí em diante, cada alteração é gravada sozinha em `auditoria5s_backup.json`, uns 4 segundos depois — o conteúdo de
+*Exportar histórico (JSON)*, **sem fotos** (essas continuam a ter o seu lembrete). A pasta conta como cópia feita para o lembrete de exportar.
+
+Com várias pessoas na mesma pasta, a app **nunca grava por cima do trabalho de outra**: o ficheiro leva um `updatedAt` e, antes de gravar,
+a app relê-o. Se foi gravado depois da versão de onde estes dados partiram, a gravação automática pára e aparece um aviso em todas as vistas:
+
+- **Abrir a versão da pasta…** — passa pela importação normal (*Fundir* junta, *Substituir* troca). Depois de fundir, a app grava o resultado;
+- **Gravar por cima…** — pergunta primeiro.
+
+Antes de substituir o ficheiro, a versão que lá estava fica em `copias-backup/auditoria5s_backup_AAAA-MM-DD_HH-MM-SS.json` (guardam-se 30 dias, e sempre as 10
+mais recentes; das gravações da própria app, uma por hora). A pasta é relida de 2 em 2 minutos e ao voltar ao separador. A mecânica é a da app
+*supermercados*; está aqui copiada e adaptada (`criarBackupAutomatico`, `criarPastaBackup`), porque a app é um único `index.html`.
 
 ### Partilhar a cópia (3.20.0)
 
