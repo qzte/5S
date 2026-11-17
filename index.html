@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.6.3 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.6.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1372,7 +1372,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.6.3";
+const APP_VERSION="4.6.4";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2774,9 +2774,23 @@ function radarSVG(dados,cor){
   if(N<3)return`<p class="empty">Radar indisponível: são necessários pelo menos 3 eixos.</p>`;
   /* viewBox mais largo que alto: os rótulos laterais são o que ocupa mais
      espaço, e um quadrado obrigaria a encolher demasiado o desenho. */
-  const W=440,H=330,CX=W/2,CY=H/2+6,R=118;
+  /* v4.6.4: a altura do viewBox sai das legendas (ver abaixo); só ela muda
+     com o nº de eixos. */
+  const W=440,R=118,CX=W/2;
   /* Ângulo do eixo i: começa no topo (-90°) e roda no sentido horário. */
   const ang=i=>(-90+i*360/N)*Math.PI/180;
+  /* v4.6.4: cada legenda (nome e %) fica à mesma distância do seu vértice — a
+     do espaço entre os anéis da grelha (R/4). O bloco de duas linhas (LH de
+     altura; o nome com a base a 9, a % a 21) encosta ao ponto que fica a essa
+     distância, do lado de fora: em cima do ponto no eixo do topo, por baixo no
+     de baixo, ao meio nos laterais. Antes, o bloco descia sempre a partir do
+     ponto: a legenda do topo tocava o vértice e as de baixo ficavam longe. */
+  const GAP=R/4,LH=24;
+  const caixa=i=>{const c=Math.cos(ang(i)),sn=Math.sin(ang(i));
+    return{c,topo:(R+GAP)*sn-LH*(1-sn)/2};};
+  const tops=dados.map((_,i)=>caixa(i).topo);
+  const MARG=4,y0=Math.min(-R,...tops)-MARG,y1=Math.max(R,...tops.map(t=>t+LH))+MARG;
+  const CY=-y0,H=Math.ceil(y1-y0);
   const pt=(i,r)=>[CX+Math.cos(ang(i))*r,CY+Math.sin(ang(i))*r];
   const poly=r=>dados.map((_,i)=>pt(i,r).map(v=>v.toFixed(1)).join(",")).join(" ");
   const malha=[.25,.5,.75,1].map(f=>
@@ -2791,14 +2805,14 @@ function radarSVG(dados,cor){
      acima da percentagem do eixo do topo, no mesmo sítio, e «Utilizadores
      100%» parecia ter o valor duplicado. Cada eixo já mostra a sua %. */
   const rotulos=dados.map((d,i)=>{
-    const[x,y]=pt(i,R+18);
+    const{c,topo}=caixa(i);
+    const x=pt(i,R+GAP)[0],top=CY+topo;
     /* Alinhamento do texto conforme o quadrante, para não sobrepor o desenho. */
-    const cx=Math.cos(ang(i));
-    const anchor=Math.abs(cx)<0.25?"middle":(cx>0?"start":"end");
-    return`<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="${anchor}"
+    const anchor=Math.abs(c)<0.25?"middle":(c>0?"start":"end");
+    return`<text x="${x.toFixed(1)}" y="${(top+9).toFixed(1)}" text-anchor="${anchor}"
       font-size="11" font-weight="700" style="fill:var(--ink)"
       font-family="Archivo,Helvetica,Arial,sans-serif">${esc(d.name)}</text>
-      <text x="${x.toFixed(1)}" y="${(y+16).toFixed(1)}" text-anchor="${anchor}"
+      <text x="${x.toFixed(1)}" y="${(top+21).toFixed(1)}" text-anchor="${anchor}"
       font-size="10" style="fill:var(--muted)"
       font-family="Archivo,Helvetica,Arial,sans-serif">${d.pct}%</text>`;}).join("");
   return`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img"
