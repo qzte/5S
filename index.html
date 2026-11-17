@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.6.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.6.3 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1372,7 +1372,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.6.2";
+const APP_VERSION="4.6.3";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2787,6 +2787,9 @@ function radarSVG(dados,cor){
     .map(v=>v.toFixed(1)).join(",")).join(" ");
   const pontos=dados.map((d,i)=>{const[x,y]=pt(i,R*Math.max(0,Math.min(100,d.pct))/100);
     return`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${cor}"/>`;}).join("");
+  /* v4.6.3: sem a legenda «100%» da escala no topo do anel exterior: ficava 4px
+     acima da percentagem do eixo do topo, no mesmo sítio, e «Utilizadores
+     100%» parecia ter o valor duplicado. Cada eixo já mostra a sua %. */
   const rotulos=dados.map((d,i)=>{
     const[x,y]=pt(i,R+18);
     /* Alinhamento do texto conforme o quadrante, para não sobrepor o desenho. */
@@ -2804,8 +2807,6 @@ function radarSVG(dados,cor){
     ${malha}${raios}
     <polygon points="${serie}" fill="${cor}" fill-opacity=".22" stroke="${cor}" stroke-width="2.5"/>
     ${pontos}
-    <text x="${CX}" y="${(CY-R-6).toFixed(1)}" text-anchor="middle" font-size="9" style="fill:var(--muted)"
-      font-family="Archivo,Helvetica,Arial,sans-serif">100%</text>
     ${rotulos}
   </svg>`;
 }
