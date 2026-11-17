@@ -205,6 +205,10 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-envio.mjs
 
+      - name: PDF com as fotos, pedido logo ao abrir o relatório
+        timeout-minutes: 4
+        run: node tests/smoke-pdf-fotos.mjs
+
       - name: Auditar no telemóvel, finalizar no PC
         timeout-minutes: 4
         run: node tests/smoke-terreno.mjs
