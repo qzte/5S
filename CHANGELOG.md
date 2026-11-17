@@ -5,6 +5,16 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.6.1] — 2026-11-17
+
+### Corrigido
+
+- **O PDF saía sem fotos.** As fotos das recomendações e das evidências chegam do dispositivo depois de o relatório
+  aparecer — num telemóvel, logo a seguir a gravar, pode demorar segundos. O PDF pedido nesse intervalo saía sem elas (e
+  sem a folha das evidências, quando só tinham foto e não nota) ou falhava com «Unable to find element in cloned
+  iframe», porque a folha era trocada a meio. Agora o PDF espera pelas fotos do relatório aberto.
+- **Testes:** `tests/smoke-pdf-fotos.mjs` pede o PDF logo ao abrir o relatório, com a leitura do disco atrasada.
+
 ## [4.6.0] — 2026-11-17
 
 ### Adicionado

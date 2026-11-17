@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.6.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.6.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1368,7 +1368,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.6.0";
+const APP_VERSION="4.6.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -3129,6 +3129,10 @@ function wirePlano(a){
 
 /* ---------- Relatório / PDF ---------- */
 let relatorioId=null;
+/* v4.6.1: as fotos do relatório aberto (recomendações e evidências) chegam do
+   disco depois de ele aparecer e substituem as folhas 3 e das evidências. O
+   PDF espera por esta promessa: pedido antes, saía sem fotos ou falhava a meio. */
+let fotosRelatorio=Promise.resolve();
 /* v3.22.0: o título da página é o nome que o browser propõe para o PDF. Com o
    relatório aberto, leva o serviço e a data (ou o mês); ao sair, volta ao da app. */
 const TITULO_APP="Auditoria 5S · Supermercados Kaizen";
@@ -3209,9 +3213,10 @@ function openReport(a){
   renderPosAuditoria(a);
   /* As fotos chegam depois do relatório, que não fica à espera do disco. Se
      entretanto se abriu outro relatório, as desta auditoria já não interessam. */
+  let fotosRec=Promise.resolve();
   if(outraAuditoria){
     fotosDe=a.id;
-    carregarFotos(a.id).then(m=>{
+    fotosRec=carregarFotos(a.id).then(m=>{
       if(fotosDe!==a.id||!m.size)return;
       m.forEach((url,k)=>{if(!REC_FOTOS.has(k))REC_FOTOS.set(k,url);});
       redrawRecs(a);
@@ -3219,12 +3224,13 @@ function openReport(a){
   }
   wirePlano(a);
   /* v3.14.0: as fotos de evidência chegam depois, como as das recomendações. */
-  carregarEvidAudit(a.id).then(m=>{
+  const fotosEvid=carregarEvidAudit(a.id).then(m=>{
     /* Entretanto pode ter sido aberto o relatório de outra auditoria. */
     if(!document.getElementById("evid")||relatorioId!==a.id)return;
     const tmp=document.createElement("div");tmp.innerHTML=evidHTML(a,m);
     document.getElementById("evid").replaceWith(tmp.firstElementChild);
   }).catch(()=>{});
+  fotosRelatorio=Promise.all([fotosRec,fotosEvid]);
   document.querySelectorAll("#view-report [data-acao-worst]").forEach(b=>b.onclick=()=>{
     const x=worst[+b.dataset.acaoWorst];
     novaAcaoPara(x.it);
@@ -3328,7 +3334,7 @@ function barrasEixo(l){
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("");
 }
 function openMensal(mes){
-  relatorioId=null;clearFotos();
+  relatorioId=null;clearFotos();fotosRelatorio=Promise.resolve();
   document.title=tituloMensal(mes);
   const r=resumoMensal(audits,mes,services,hojeISO());
   const t=r.media==null?null:badge(r.media);
@@ -4336,6 +4342,9 @@ function heroParaPdf(doc){
    seguinte. Devolve um Blob. */
 async function pdfDoRelatorio(){
   await carregarPdf();
+  /* As folhas só se recolhem depois de as fotos chegarem: até lá, as folhas 3
+     e das evidências ainda vão ser trocadas pelas versões com fotos. */
+  await fotosRelatorio;
   const raiz=document.getElementById("view-report");
   const blocos=[...raiz.querySelectorAll(":scope > .score-hero, :scope > .page")];
   const {jsPDF}=window.jspdf;
