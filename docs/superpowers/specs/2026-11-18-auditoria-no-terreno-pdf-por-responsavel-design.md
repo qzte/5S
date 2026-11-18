@@ -201,16 +201,35 @@ sua própria vista, sem mudanças.
   rascunho repõe acções após recarregar; os smoke tests existentes de PDF,
   envio, terreno e evidências actualizados e a passar.
 
-**No PC, pelo utilizador, antes de ir para a `main`:**
+**No PC, pelo utilizador, antes de ir para a `main`: um só ficheiro HTML,
+aberto com duplo clique.**
 
-1. Descarregar o ramo do GitHub (*Code → Download ZIP*, com o ramo escolhido)
-   e descompactar.
-2. Na pasta, correr `python3 -m http.server 8000` (ou `py -m http.server 8000`
-   no Windows) e abrir `http://localhost:8000` no Chrome ou no Edge.
-3. Os dados ficam à parte da app verdadeira. Para testar com dados reais:
-   exportar uma cópia em `qzte.github.io/5S/` e importá-la aqui.
-4. Fazer uma auditoria completa (fotos pelo explorador de ficheiros), finalizar,
-   gerar o PDF, e experimentar o caminho «Enviar para o PC».
+Aberta a partir do disco (`file://`), a app de hoje funciona, menos o PDF e o
+Excel: as bibliotecas em `vendor/` têm SRI, e o Chrome bloqueia a verificação
+de integridade de ficheiros locais («the resource requires the request to be
+CORS enabled»). Por isso:
+
+- `scripts/teste-pc.mjs` (Node, sem dependências) gera
+  `teste/Auditoria5S-teste.html`: o `index.html` do ramo com o html2canvas, o
+  jsPDF e o SheetJS **embutidos** em `<script>` (sem `src` nem `integrity`), o
+  carregador sob demanda a reconhecer que já estão carregados, o registo do
+  service worker e o manifesto desligados, e a versão marcada como «teste» no
+  título e num aviso no topo da app.
+- O ficheiro não é publicado (o `scripts/publicar.sh` não o copia) e é enviado
+  ao utilizador na conversa a cada versão de teste. Um teste automático confirma
+  que o gerado abre por `file://` e cria um PDF.
+- Os dados de um ficheiro aberto do disco ficam à parte dos de
+  `qzte.github.io`. Para testar com dados reais: exportar uma cópia na app
+  verdadeira e importá-la no ficheiro de teste.
+- Não funciona no teste, como em qualquer app aberta do disco: o menu de
+  partilha (a app descarrega o PDF e abre o email já escrito, como já faz no
+  computador) e o funcionamento offline depois de fechada.
+
+Passos:
+
+1. Abrir `Auditoria5S-teste.html` com duplo clique (Chrome ou Edge).
+2. Fazer uma auditoria completa (fotos pelo explorador de ficheiros),
+   finalizar, gerar o PDF, e experimentar o caminho «Enviar para o PC».
 
 O pull request fica em rascunho, marcado para não integrar, até o utilizador
 dizer que testou.
