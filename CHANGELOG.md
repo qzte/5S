@@ -5,6 +5,44 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.8.0] — 2026-11-18
+
+### Acrescentado
+
+- **A auditoria inteira no telemóvel.** Numa pergunta Mau ou Com oportunidade, além da nota e da foto, escreve-se logo
+  a **acção** e o **prazo**. A acção vai para o plano de acção da auditoria, com o responsável da pergunta, e aparece no
+  separador Acções e na auditoria seguinte ao serviço. Ao editar, o campo mostra a acção dessa pergunta, e guardar
+  escreve por cima dela; se a pergunta passar a Excelente, a acção aberta sai. O rascunho também guarda a acção e o prazo.
+- **Quem está presente, por responsável.** No início da auditoria há um campo por responsável (Utilizadores, Manutenção,
+  Reposição, Utilizador e Repositor, Picking e os que se acrescentem). Substitui os campos *Picking* e *Repositor*; as
+  auditorias antigas continuam a mostrar os nomes que tinham. A exportação para Excel ganha uma coluna por responsável.
+- **PDF novo, por responsável.** Folha 1: a nota (maior), as contagens, os radares por pilar 5S e por responsável, a
+  tabela por responsável com quem esteve presente e as acções em aberto de auditorias anteriores. Folhas seguintes: a
+  grelha de verificação agrupada por responsável, só com as perguntas abaixo de Excelente, cada uma com a evidência (foto e
+  nota) e o plano de acção. Nenhuma pergunta se corta entre folhas, e cada folha diz «Folha X de Y». O relatório do ecrã
+  e a impressão não mudam.
+- **Ficheiro de teste para o PC** (`node scripts/teste-pc.mjs`): a app num só ficheiro HTML, com o gerador de PDF e o
+  de Excel lá dentro, que abre com duplo clique, sem servidor. Os dados ficam à parte da app verdadeira. Não é publicado.
+
+### Alterado
+
+- **Finalizar verifica o que falta.** Cada pergunta a melhorar precisa de acção com prazo e de foto ou nota. Se faltar
+  alguma coisa, a app mostra a lista e oferece **Completar agora** (editar, sem código enquanto está por finalizar) ou
+  **Enviar para o PC**. Completa, pede confirmação. Gravar continua a funcionar sempre, com ou sem o que falta.
+- **O cartão «Depois da auditoria» por finalizar** põe **Finalizar** primeiro e **Enviar para o PC** como alternativa,
+  para quando não deu para acabar no serviço.
+
+### Removido
+
+- O PDF desenhado a partir do relatório do ecrã (`pdfDoRelatorio`), substituído pelo PDF por responsável
+  (`pdfDaAuditoria`).
+
+### Testes
+
+- Unitários novos: `presentes`, `acoes-formulario`, `finalizar`, `pdf-grupos`. Smoke test novo: `smoke-teste-pc.mjs`
+  (o ficheiro de teste aberto por `file://` cria o PDF). Actualizados: rascunho, evidências, terreno e as páginas e fotos
+  do PDF.
+
 ## [4.7.1] — 2026-11-18
 
 ### Corrigido

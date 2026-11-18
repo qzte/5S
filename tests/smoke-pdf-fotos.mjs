@@ -1,5 +1,5 @@
-/* Smoke test (4.6.1): o PDF leva as fotos mesmo quando é pedido logo ao abrir
-   o relatório. As fotos das evidências chegam do IndexedDB depois do
+/* Smoke test (4.6.1; desde 4.8.0 com o PDF da auditoria): o PDF leva as fotos
+   mesmo quando é pedido logo ao abrir o relatório. As fotos das evidências chegam do IndexedDB depois do
    relatório; o PDF tem de esperar por elas (4.7.0: as das recomendações
    saíram com elas). Antes, saía
    sem fotos (e sem a folha das evidências, quando só tinham foto) ou falhava
@@ -48,7 +48,7 @@ const r = await pg.evaluate(async () => {
   };
   document.querySelector("[data-rep='0']").click();
   let erro = "";
-  try { await pdfDoRelatorio(); } catch (e) { erro = String(e && e.message || e); }
+  try { await pdfDaAuditoria(audits[0]); } catch (e) { erro = String(e && e.message || e); }
   window.html2canvas = orig; window.fotosIDB = lento;
   return { fotos, erro };
 });

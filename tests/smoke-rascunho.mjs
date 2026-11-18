@@ -39,12 +39,15 @@ check(await rascunho() === null, "sem respostas não devia haver rascunho gravad
 
 /* ---- 2. Meia auditoria sobrevive a recarregar a página. ---- */
 await pg.locator("#f-verif").fill("Beltrano");
+/* v4.8.0: quem está presente, um campo por responsável. */
+await pg.locator("[data-presente='P']").fill("Bruno");
 await pg.locator("[data-pick='0']").fill("1");
 await pg.locator("[data-pick='1']").fill("2");
 check(await rascunho() !== null, "o rascunho devia ser gravado a cada alteração");
 check(await visivel("#draft-banner"), "o aviso de rascunho devia aparecer");
 await pg.reload();
 check(await pg.locator("#f-verif").inputValue() === "Beltrano", "o verificador devia voltar depois de recarregar");
+check(await pg.locator("[data-presente='P']").inputValue() === "Bruno", "o nome de quem está presente devia voltar depois de recarregar");
 check(await pg.locator("[data-pick='0']").inputValue() === "1", "a resposta 0 devia voltar");
 check(await pg.locator("[data-pick='1']").inputValue() === "2", "a resposta 1 devia voltar");
 check(/2\/19 itens/.test(await pg.locator("#f-live").inputValue()), "a nota em directo devia contar as 2 respostas");
@@ -67,8 +70,15 @@ check(!(await visivel("#draft-banner")), "descartar devia esconder o aviso");
 
 /* ---- 5. Gravar a auditoria tira-a do rascunho. ---- */
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
+await pg.locator("[data-presente='U']").fill("Ana");
 await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await rascunho() === null, "uma auditoria gravada não pode continuar no rascunho");
+const gravada = await pg.evaluate(() => JSON.parse(localStorage.getItem("audits")).slice(-1)[0]);
+check(gravada.presentes && gravada.presentes.U === "Ana" && !("pick" in gravada && gravada.pick),
+  "a auditoria devia gravar quem esteve presente por responsável: " + JSON.stringify(gravada.presentes));
+check(/Utilizadores: Ana/.test(await pg.locator("#view-report .score-hero").textContent()),
+  "o relatório devia dizer quem esteve presente");
+check(await pg.locator("[data-presente='U']").inputValue() === "", "depois de gravar, os nomes deviam ficar vazios");
 await pg.locator("[data-v=audit]").click();
 check(await pg.locator("[data-pick='0']").inputValue() === "", "depois de gravar, o formulário devia vir vazio");
 check(!(await visivel("#draft-banner")), "depois de gravar, não devia haver aviso de rascunho");

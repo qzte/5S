@@ -24,3 +24,6 @@ auditorias5s_*.json
 perguntas5s_*.json
 *.xlsx
 *.xls
+
+# Ficheiro HTML único para testar no PC (scripts/teste-pc.mjs)
+teste/

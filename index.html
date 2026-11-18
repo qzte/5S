@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.7.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.8.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -140,6 +140,9 @@ input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-
   font-family:inherit;font-size:1rem;background:var(--field);color:var(--ink);margin-bottom:12px}
 input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green)}
 .row{display:flex;gap:10px}.row>*{flex:1}
+/* v4.8.0: quem está presente, um campo por responsável (duas colunas; uma no telemóvel estreito). */
+.presentes{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+@media (max-width:360px){.presentes{grid-template-columns:1fr}}
 .pillar{margin:22px 0 8px;display:flex;align-items:center;gap:10px}
 .pillar h2{font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--green-ink)}
 .pillar .n{background:var(--green);color:#fff;width:26px;height:26px;border-radius:50%;
@@ -167,6 +170,69 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 .tip .tip-body ul{margin:6px 0 0;padding-left:16px}
 .tip .tip-body li{margin:2px 0}
 @media print{.tip{display:none}}
+/* ---------- PDF da auditoria por responsável (v4.8.0) ----------
+   A vista #view-pdf fica fora do ecrã e só tem conteúdo enquanto o PDF é
+   criado. Cores fixas (o PDF sai sempre em claro), largura de uma folha A4 a
+   96 ppp. Cada .pdf-folha começa folha nova; cada .pdf-unidade nunca se corta. */
+#view-pdf{position:fixed;left:-12000px;top:0;width:794px;background:#fff;color:#1c2321;
+  font:12px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#view-pdf:empty{display:none}
+#view-pdf .pdf-folha,#view-pdf .pdf-unidade{width:794px;padding:0 40px;background:#fff;box-sizing:border-box}
+#view-pdf .pdf-folha{padding-top:4px;padding-bottom:8px}
+#view-pdf .pdf-unidade{padding-bottom:8px}
+#view-pdf h4{margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#1d6b57}
+.pdf-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:1px solid #d6dbd8;padding-bottom:12px}
+.pdf-svc{font-size:22px;font-weight:700;line-height:1.2}
+.pdf-sub{color:#66706c;font-size:11.5px}
+.pdf-score{text-align:right;flex:0 0 auto}
+.pdf-big{font-size:76px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.pdf-big small{font-size:24px;color:#66706c;font-weight:400}
+.pdf-delta{font-size:13px;margin-top:4px}
+.pdf-delta.sobe{color:#2e7d32}.pdf-delta.desce{color:#c62828}
+.pdf-pill{display:inline-block;font-size:10.5px;font-weight:600;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.pdf-score .pdf-pill{font-size:13px;padding:3px 12px}
+.pdf-pill.mau{background:#fdecea;color:#c62828}.pdf-pill.op{background:#fff4e0;color:#9a5b00}.pdf-pill.exc{background:#e8f5e9;color:#2e7d32}
+.pdf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.pdf-kpis div{border:1px solid #d6dbd8;border-radius:6px;padding:8px 10px}
+.pdf-kpis b{display:block;font-size:26px;font-variant-numeric:tabular-nums;line-height:1.2}
+.pdf-kpis span{color:#66706c;font-size:11px}
+.pdf-radares{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.pdf-radares>div{border:1px solid #d6dbd8;border-radius:6px;padding:6px 8px}
+.pdf-radares h4{margin:2px 0 4px!important}
+.pdf-tab{width:100%;border-collapse:collapse}
+.pdf-tab th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#66706c;border-bottom:1px solid #1c2321;padding:4px 6px}
+.pdf-tab td{border-bottom:1px solid #d6dbd8;padding:5px 6px;vertical-align:top}
+.pdf-tab .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pdf-barra{display:inline-block;width:60px;height:6px;background:#d6dbd8;border-radius:3px;margin-right:6px;vertical-align:middle;overflow:hidden}
+.pdf-barra i{display:block;height:100%}
+.pdf-barra i.mau{background:#c62828}.pdf-barra i.op{background:#d98a00}.pdf-barra i.exc{background:#2e7d32}
+.pdf-leg{color:#66706c;font-size:10px;margin-top:10px}
+.pdf-grupo-cab{display:flex;align-items:baseline;gap:10px;background:#eef3f0;border-bottom:2px solid #1c2321;padding:6px 8px;margin-top:6px}
+.pdf-grupo-cab b{font-size:14px}
+.pdf-grupo-cab .pres{color:#66706c;flex:1}
+.pdf-grupo-cab .nota{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.pdf-grupo-cab .nota small{font-size:11px;color:#66706c;font-weight:400}
+.pdf-grupo-cab .nota.mau{color:#c62828}.pdf-grupo-cab .nota.op{color:#9a5b00}.pdf-grupo-cab .nota.exc{color:#2e7d32}
+.pdf-grupo-cab .cont{color:#66706c;font-size:11px}
+.pdf-item{border-left:4px solid #d98a00;border-bottom:1px solid #d6dbd8;padding:6px 8px}
+.pdf-item.mau{border-left-color:#c62828}
+.pdf-item-top{display:flex;gap:10px;align-items:baseline}
+.pdf-item-top .num{font-variant-numeric:tabular-nums;color:#66706c;min-width:22px}
+.pdf-item-top .tit{flex:1}
+.pdf-item-top .obs{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pdf-crit{color:#66706c;font-size:11px;margin-left:32px}
+.pdf-ev{display:grid;grid-template-columns:150px 1fr;gap:10px;margin:6px 0 2px 32px}
+.pdf-ev img{width:150px;height:112px;object-fit:cover;border-radius:3px;display:block}
+.pdf-semfoto{width:150px;height:112px;border:1px dashed #c9d0cc;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#98a29e;font-size:11px}
+.pdf-rot{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:#1d6b57;font-weight:700}
+.pdf-nota{margin:2px 0 6px;font-style:italic}
+.pdf-acao{background:#f3f6f4;border-radius:4px;padding:6px 8px;margin-top:4px}
+.pdf-acao .tx{font-weight:600}
+.pdf-acao .meta{display:flex;gap:16px;font-size:11px;margin-top:2px}
+.pdf-acao .meta span span{color:#66706c}
+.pdf-semacao{color:#c62828;font-size:11px}
+.pdf-ok{color:#2e7d32;font-weight:600;padding:6px 8px;border-bottom:1px solid #d6dbd8}
+
 .opts{display:flex;gap:8px;margin-top:8px}
 .opt{flex:1;border:1.5px solid var(--line);border-radius:9px;padding:9px 4px;text-align:center;
   font-family:var(--f-sans);font-size:.72rem;font-weight:700;cursor:pointer;background:var(--field);
@@ -248,6 +314,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 /* v3.14.0: evidência por pergunta. */
 .evid{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 .evid input{margin-bottom:6px}
+/* v4.8.0: acção (larga) e prazo (estreito) na mesma linha. */
+.evid-acao>[data-acao]{flex:2}.evid-acao>[data-prazo]{flex:1;min-width:0}
 .evid-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .evid-acts .btn{margin:0}
 .evid-foto img{display:block;width:88px;height:66px;object-fit:cover;border-radius:6px}
@@ -465,10 +533,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
       <div><label>Data</label><input type="date" id="f-date"></div>
       <div><label>Nota (auto)</label><input id="f-live" disabled value="—"></div>
     </div>
-    <div class="row">
-      <div><label>Picking</label><input id="f-pick" placeholder="Nome" list="dl-people"></div>
-      <div><label>Repositor</label><input id="f-repo" placeholder="Nome" list="dl-people"></div>
-    </div>
+    <!-- v4.8.0: quem está presente, um campo por responsável (desenhado em renderForm). -->
+    <div class="presentes" id="f-presentes" role="group" aria-label="Quem está presente, por responsável"></div>
     <div class="row">
       <div><label>Verificador</label><input id="f-verif" placeholder="Nome" list="dl-people"></div>
       <div><label>Nota / observação</label><input id="f-note" placeholder="Opcional" maxlength="200"></div>
@@ -575,6 +641,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 
 <!-- ============ RELATÓRIO ============ -->
 <section id="view-report" class="hidden"></section>
+<!-- v4.8.0: o PDF da auditoria é desenhado a partir desta vista, fora do ecrã (pdfDaAuditoria). -->
+<div id="view-pdf" aria-hidden="true"></div>
 
 <!-- ============ CONFIG ============ -->
 <section id="view-cfg" class="hidden">
@@ -1262,17 +1330,25 @@ function inteiroOuNull(v,min){
    há nada que valha a pena guardar — nenhuma resposta e nenhum nome ou
    observação escritos (o serviço e a data vêm sempre preenchidos de origem e
    não contam). */
-function montarRascunho(campos,IT,raw,tgts,agora,notas){
+function montarRascunho(campos,IT,raw,tgts,agora,notas,acoes){
   const c=campos||{};
   const r=IT.map((_,i)=>inteiroOuNull(raw&&raw[i],0));
   const t=IT.map((_,i)=>inteiroOuNull(tgts&&tgts[i],1));
   /* v3.14.0: a nota de evidência de cada pergunta. */
   const n=IT.map((_,i)=>clean(notas&&notas[i],300));
-  const cab={pick:clean(c.pick,120),repo:clean(c.repo,120),verif:clean(c.verif,120),note:clean(c.note,200)};
-  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&r.every(v=>v==null)&&n.every(v=>!v))return null;
+  /* v4.8.0: a acção e o prazo escritos em cada pergunta. */
+  const ac=IT.map((_,i)=>acaoLimpa(acoes&&acoes[i]));
+  const cab={pick:clean(c.pick,120),repo:clean(c.repo,120),verif:clean(c.verif,120),note:clean(c.note,200),
+    presentes:sanitizePresentes(c.presentes)};
+  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&!cab.presentes&&r.every(v=>v==null)&&n.every(v=>!v)&&ac.every(a=>!a.texto&&!a.prazo))return null;
   return Object.assign({v:1,savedAt:agora,service:clean(c.service,200),
     date:/^\d{4}-\d{2}-\d{2}$/.test(c.date)?c.date:""},cab,
-    {sig:IT.map(assinItem),raw:r,tgts:t,notas:n});
+    {sig:IT.map(assinItem),raw:r,tgts:t,notas:n,acoes:ac});
+}
+/* {texto, prazo} de uma acção escrita no formulário, limpa (v4.8.0). */
+function acaoLimpa(x){
+  const p=x&&x.prazo;
+  return{texto:clean(x&&x.texto,300),prazo:typeof p==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(p)?p:""};
 }
 /* Lê um rascunho guardado e alinha-o com as perguntas `IT` actuais. O que vem
    do localStorage é validado na forma, como o resto (ver loadArr). `perdidas`
@@ -1281,8 +1357,9 @@ function lerRascunho(x,IT){
   if(!x||typeof x!=="object"||Array.isArray(x)||x.v!==1)return null;
   if(!Array.isArray(x.sig)||!Array.isArray(x.raw)||!Array.isArray(x.tgts))return null;
   const usados=new Set();
-  const raw=[],tgts=[],notas=[];
+  const raw=[],tgts=[],notas=[],acoes=[];
   const ns=Array.isArray(x.notas)?x.notas:[];
+  const acs=Array.isArray(x.acoes)?x.acoes:[];
   IT.forEach((it,i)=>{
     const s=assinItem(it);
     let j=-1;
@@ -1291,6 +1368,7 @@ function lerRascunho(x,IT){
     raw[i]=j>=0?inteiroOuNull(x.raw[j],0):null;
     tgts[i]=j>=0?inteiroOuNull(x.tgts[j],1):null;
     notas[i]=j>=0?clean(ns[j],300):"";
+    acoes[i]=acaoLimpa(j>=0?acs[j]:null);
   });
   let perdidas=0;
   x.raw.forEach((v,k)=>{if(!usados.has(k)&&inteiroOuNull(v,0)!=null)perdidas++;});
@@ -1298,7 +1376,7 @@ function lerRascunho(x,IT){
     service:clean(x.service,200),
     date:typeof x.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)?x.date:"",
     pick:clean(x.pick,120),repo:clean(x.repo,120),verif:clean(x.verif,120),note:clean(x.note,200),
-    raw,tgts,notas,perdidas};
+    presentes:sanitizePresentes(x.presentes),raw,tgts,notas,acoes,perdidas};
 }
 
 /* ---------- Lembrete de cópia de segurança (v3.8.0) ----------
@@ -1357,7 +1435,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.7.1";
+const APP_VERSION="4.8.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1570,6 +1648,24 @@ function ligarCaixaServico(){
   });
 }
 
+/* v4.8.0: um campo por responsável, pela lista de responsáveis. Redesenhar
+   (renderForm corre também a meio de uma auditoria) mantém o que já estava
+   escrito. */
+function desenharPresentes(){
+  const box=document.getElementById("f-presentes");if(!box)return;
+  const antes=lerPresentesForm();
+  box.innerHTML=Object.keys(RESP).map(k=>`<div><label for="f-pres-${esc(k)}">${esc(RESP[k])}</label>
+    <input id="f-pres-${esc(k)}" data-presente="${esc(k)}" placeholder="Nome" list="dl-people" maxlength="120"></div>`).join("");
+  porPresentesForm(antes);
+}
+function lerPresentesForm(){
+  const o={};
+  document.querySelectorAll("[data-presente]").forEach(el=>{o[el.dataset.presente]=el.value;});
+  return o;
+}
+function porPresentesForm(p){
+  document.querySelectorAll("[data-presente]").forEach(el=>{el.value=p&&p[el.dataset.presente]||"";});
+}
 function renderForm(){
   /* A auditoria em edição é determinada ANTES de desenhar os itens: em edição
      cada item mostra um selector de responsável em vez do nome fixo. */
@@ -1581,6 +1677,7 @@ function renderForm(){
   fecharListaServicos();
   desenharServicos();
   document.getElementById("dl-people").innerHTML=people.map(p=>`<option value="${esc(p)}">`).join("");
+  desenharPresentes();
   const box=document.getElementById("items");box.innerHTML="";
   let curP=-1;
   fitems().forEach((it,i)=>{
@@ -1608,7 +1705,11 @@ function renderForm(){
         style="margin:8px 0 0" data-pick="${i}" aria-label="Pergunta ${esc(it.n)}: resposta (0 a ${esc(it.max)})">`}
       <div class="prev hidden" data-prev="${i}"></div>
       <div class="evid hidden" data-evid="${i}">
-        <input data-nota="${i}" maxlength="300" placeholder="Nota: o que se viu (opcional)" aria-label="Pergunta ${esc(it.n)}: nota de evidência">
+        <input data-nota="${i}" maxlength="300" placeholder="Nota: o que se viu" aria-label="Pergunta ${esc(it.n)}: nota de evidência">
+        <div class="row evid-acao">
+          <input data-acao="${i}" maxlength="300" placeholder="Acção: o que fazer" aria-label="Pergunta ${esc(it.n)}: acção">
+          <input type="date" data-prazo="${i}" aria-label="Pergunta ${esc(it.n)}: prazo da acção" title="Prazo da acção">
+        </div>
         <div class="evid-acts">
           <span class="evid-foto" data-efoto="${i}"></span>
           <input type="file" accept="image/*" capture="environment" data-efile="${i}" hidden>
@@ -1635,6 +1736,10 @@ function renderForm(){
      responsável, sem reescrever as auditorias todas nem o checklist actual. */
   /* v3.14.0: evidência por pergunta — nota e foto. */
   box.querySelectorAll("[data-nota]").forEach(el=>el.oninput=()=>{notaVals[+el.dataset.nota]=el.value;});
+  /* v4.8.0: a acção e o prazo de cada pergunta a melhorar. */
+  const acaoDe=i=>acaoVals[i]||(acaoVals[i]={texto:"",prazo:""});
+  box.querySelectorAll("[data-acao]").forEach(el=>el.oninput=()=>{acaoDe(+el.dataset.acao).texto=el.value;});
+  box.querySelectorAll("[data-prazo]").forEach(el=>el.oninput=el.onchange=()=>{acaoDe(+el.dataset.prazo).prazo=el.value;});
   box.querySelectorAll("[data-eadd]").forEach(b=>b.onclick=()=>
     box.querySelector("[data-efile='"+b.dataset.eadd+"']").click());
   box.querySelectorAll("[data-efile]").forEach(inp=>inp.onchange=()=>{
@@ -1735,8 +1840,7 @@ function preencherForm(a){
   sel.value=a.service;
   mostrarServicoEscolhido();
   document.getElementById("f-date").value=a.date;
-  document.getElementById("f-pick").value=a.pick||"";
-  document.getElementById("f-repo").value=a.repo||"";
+  porPresentesForm(a.presentes);
   document.getElementById("f-verif").value=a.verif||"";
   document.getElementById("f-note").value=a.note||"";
   answers={};rawVals={};tgtVals={};
@@ -1748,6 +1852,8 @@ function preencherForm(a){
     const el=document.querySelector("[data-nota='"+i+"']");
     if(el)el.value=t;
   });
+  /* v4.8.0: a acção de cada pergunta é a primeira do plano ligada a ela. */
+  porAcoesForm(fitems().map(it=>acaoDoItem(a.acoes,it.n)));
   fitems().forEach((it,i)=>{
     const tEl=document.querySelector("[data-tgt='"+i+"']");
     const tgt=a.tgts&&a.tgts[i]!=null?a.tgts[i]:null;
@@ -1790,6 +1896,18 @@ let rawVals={};let tgtVals={};
    assíncrona — a gravação espera por ela e junta tudo, para que gravar logo a
    seguir a abrir não apague o que ainda estava a chegar. */
 let notaVals={},fotosForm=new Map(),fotosRemovidas=new Set(),evidCarga=null;
+/* v4.8.0: `acaoVals`: i → {texto, prazo}, a acção escrita em cada pergunta. */
+let acaoVals={};
+/* Põe no formulário as acções (i → {texto, prazo}) e o estado que as guarda. */
+function porAcoesForm(lista){
+  acaoVals={};
+  (lista||[]).forEach((a,i)=>{
+    if(!a||!a.texto&&!a.prazo)return;
+    acaoVals[i]={texto:a.texto,prazo:a.prazo};
+    const t=document.querySelector("[data-acao='"+i+"']"),p=document.querySelector("[data-prazo='"+i+"']");
+    if(t)t.value=a.texto;if(p)p.value=a.prazo;
+  });
+}
 const RASC_FOTO="rascunho#";
 function mostrarEvid(i){
   const box=document.querySelector("[data-evid='"+i+"']");
@@ -1890,13 +2008,14 @@ function endEdit(){editId=null;FORM_ITEMS=null;editSujo=false;}
    depois deixaria um travessão sobre um formulário cheio. */
 function refreshForm(){
   answers={};rawVals={};tgtVals={};
-  notaVals={};fotosForm=new Map();fotosRemovidas=new Set();evidCarga=null;evidToken++;
+  notaVals={};acaoVals={};fotosForm=new Map();fotosRemovidas=new Set();evidCarga=null;evidToken++;
   document.getElementById("f-live").value="—";
   /* Os campos do cabeçalho também são limpos (v3.3.0): até aqui sobreviviam à
      gravação, e a observação da auditoria anterior aparecia já escrita na
      seguinte. Em modo de edição renderForm() volta a preenchê-los a partir da
      auditoria, pelo que a limpeza tem de vir antes. */
-  ["f-pick","f-repo","f-verif","f-note"].forEach(id=>{
+  porPresentesForm(null);
+  ["f-verif","f-note"].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value="";});
   /* v4.2.6: a auditoria seguinte também começa sem serviço. */
   const sel=document.getElementById("f-service");if(sel)sel.value="";
@@ -1914,8 +2033,9 @@ function colherFormulario(){
      limpo à entrada e a data de um <input type=date>. */
   return{service:document.getElementById("f-service").value,
     date:document.getElementById("f-date").value,
-    pick:clean(document.getElementById("f-pick").value,120),
-    repo:clean(document.getElementById("f-repo").value,120),
+    /* v4.8.0: `pick` e `repo` deixam de vir do formulário; os de uma auditoria
+       antiga ficam no registo ao editar (aplicarEdicao junta por cima). */
+    presentes:sanitizePresentes(lerPresentesForm()),
     verif:clean(document.getElementById("f-verif").value,120),
     note:clean(document.getElementById("f-note").value,200),
     scores:IT.map((_,i)=>answers[i]),
@@ -1956,9 +2076,9 @@ function guardarRascunho(){
   if(editId!=null)return;
   const IT=fitems(),val=id=>document.getElementById(id).value;
   const raw=IT.map((_,i)=>{const el=document.querySelector("[data-pick='"+i+"']");return el?el.value:null;});
-  const d=montarRascunho({service:val("f-service"),date:val("f-date"),pick:val("f-pick"),
-    repo:val("f-repo"),verif:val("f-verif"),note:val("f-note")},IT,raw,IT.map((_,i)=>tgtOf(i)),
-    new Date().toISOString(),IT.map((_,i)=>notaVals[i]||""));
+  const d=montarRascunho({service:val("f-service"),date:val("f-date"),presentes:lerPresentesForm(),
+    verif:val("f-verif"),note:val("f-note")},IT,raw,IT.map((_,i)=>tgtOf(i)),
+    new Date().toISOString(),IT.map((_,i)=>notaVals[i]||""),IT.map((_,i)=>acaoVals[i]));
   if(!d&&fotosForm.size)limparFotosRascunho();
   try{
     if(d)localStorage.setItem(RASCUNHO_KEY,JSON.stringify(d));
@@ -1998,8 +2118,7 @@ function aplicarRascunho(d){
     mostrarServicoEscolhido();
   }
   if(d.date)document.getElementById("f-date").value=d.date;
-  document.getElementById("f-pick").value=d.pick;
-  document.getElementById("f-repo").value=d.repo;
+  porPresentesForm(d.presentes);
   document.getElementById("f-verif").value=d.verif;
   document.getElementById("f-note").value=d.note;
   notaVals={};
@@ -2016,6 +2135,7 @@ function aplicarRascunho(d){
     if(tEl&&d.tgts[i]!=null)el.max=d.tgts[i];
     if(d.raw[i]!=null){el.value=d.raw[i];pick(i,el);}
   });
+  porAcoesForm(d.acoes);
   atualizarLive();
 }
 /* v3.22.0: outra auditoria ao mesmo serviço no mesmo dia (sem contar a que se
@@ -2040,6 +2160,9 @@ document.getElementById("btn-save").onclick=async()=>{
      guardar. */
   if(!/^\d{4}-\d{2}-\d{2}$/.test(dados.date)){aviso("Indique a data da auditoria.");
     document.getElementById("f-date").focus();return;}
+  /* v4.8.0: as acções escritas nas perguntas entram no plano de acção. */
+  const emEd=editId!=null?audits.find(x=>x.id===editId):null;
+  dados.acoes=acoesDoFormulario(emEd&&emEd.acoes||[],IT,dados.scores,acaoVals,dados.date);
   const rep=auditoriaRepetida(audits,dados.service,dados.date,editId);
   if(rep&&!(await confirmar("Já existe uma auditoria a "+dados.service+" em "+dataCurta(dados.date)+" ("+total(rep)+
     "/100). Gravar esta também? Se é a mesma auditoria, cancele e edite a que já está no Histórico.",
@@ -2285,6 +2408,35 @@ function sanitizeAcoes(x){
   let prox=limpas.reduce((m,a)=>Math.max(m,a.id),0)+1;
   limpas.forEach(a=>{if(!a.id||vistos.has(a.id))a.id=prox++;vistos.add(a.id);});
   return limpas;
+}
+/* v4.8.0: as acções escritas dentro das perguntas passam para o plano de acção
+   da auditoria. `antes`: as acções que a auditoria já tem (vazio numa nova).
+   Por pergunta Mau ou Oportunidade com texto, escreve por cima da PRIMEIRA
+   acção ligada a ela (`item`), ou acrescenta uma, com o responsável da
+   pergunta; sem texto, tira essa primeira se estiver aberta. Numa pergunta
+   Excelente saem as acções abertas ligadas a ela (as feitas ficam). As acções
+   sem pergunta não mudam. `vals`: índice → {texto, prazo}. */
+function acoesDoFormulario(antes,IT,scores,vals,data){
+  let lista=(Array.isArray(antes)?antes:[]).filter(Boolean).map(x=>Object.assign({},x));
+  const v=vals||{};
+  (IT||[]).forEach((it,i)=>{
+    const n=it&&it.n;if(!n)return;
+    const s=scores&&scores[i];
+    if(s===0||s===1){
+      const {texto,prazo}=acaoLimpa(v[i]);
+      const k=lista.findIndex(a=>a.item===n);
+      if(texto){
+        if(k>=0)lista[k]=Object.assign(lista[k],{texto,prazo});
+        else lista.push({r:it.r,texto,prazo,estado:"aberta",criadaEm:data,item:n});
+      }else if(k>=0&&lista[k].estado!=="feita")lista.splice(k,1);
+    }else lista=lista.filter(a=>!(a.item===n&&a.estado!=="feita"));
+  });
+  return sanitizeAcoes(lista);
+}
+/* A acção que o formulário mostra numa pergunta, ao editar: a primeira ligada a ela. */
+function acaoDoItem(acoes,n){
+  const a=(Array.isArray(acoes)?acoes:[]).find(x=>x&&x.item===n);
+  return{texto:a&&a.texto||"",prazo:a&&a.prazo||""};
 }
 /* "feita", "atrasada" (prazo passado e ainda aberta) ou "aberta". */
 function estadoAcao(ac,hoje){
@@ -2685,6 +2837,8 @@ function linhasExcel(lista){
     const p=total(a);
     const o={"ID":a.id,"Serviço":a.service,"Data":a.date,"Nota":p,"Classificação":badge(p)[1],
       "Picking":a.pick||"","Repositor":a.repo||"","Verificador":a.verif||"","Observação":a.note||""};
+    /* v4.8.0: quem esteve presente, uma coluna por responsável. */
+    Object.keys(RESP).forEach(k=>{o["Presente: "+RESP[k]]=a.presentes&&a.presentes[k]||"";});
     byPillar(a).forEach(x=>{o["Pilar: "+x.name]=x.n?x.pct:"";});
     byResp(a).forEach(x=>{o["Resp.: "+x.name]=x.n?x.pct:"";});
     return o;
@@ -3061,10 +3215,6 @@ function wirePlano(a){
 
 /* ---------- Relatório / PDF ---------- */
 let relatorioId=null;
-/* v4.6.1: as fotos de evidência do relatório aberto chegam do disco depois de
-   ele aparecer e substituem a folha das evidências. O
-   PDF espera por esta promessa: pedido antes, saía sem fotos ou falhava a meio. */
-let fotosRelatorio=Promise.resolve();
 /* v3.22.0: o título da página é o nome que o browser propõe para o PDF. Com o
    relatório aberto, leva o serviço e a data (ou o mês); ao sair, volta ao da app. */
 const TITULO_APP="Auditoria 5S · Supermercados Kaizen";
@@ -3080,7 +3230,7 @@ function openReport(a){
   <div class="card score-hero"><div class="lbl">Auditoria 5S · ${esc(a.service)} · ${esc(a.date)}</div>
     <div class="big">${total(a)}<span style="font-size:1.2rem">/100</span></div>
     <span class="badge ${bc}">${bt}</span>
-    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">Picking: ${esc(a.pick||"—")} · Repositor: ${esc(a.repo||"—")} · Verificador: ${esc(a.verif||"—")}</div>
+    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">${textoPresentes(a)?esc(textoPresentes(a))+" · ":""}Verificador: ${esc(a.verif||"—")}</div>
     ${a.note?`<div style="font-size:.78rem;margin-top:6px;color:#9db8a9">Nota: ${esc(a.note)}</div>`:""}
   </div>
   <div class="card no-print" id="pos-aud"></div>
@@ -3148,13 +3298,12 @@ function openReport(a){
   wirePlano(a);
   /* v3.14.0: as fotos de evidência chegam depois do relatório, que não fica à
      espera do disco. */
-  const fotosEvid=carregarEvidAudit(a.id).then(m=>{
+  carregarEvidAudit(a.id).then(m=>{
     /* Entretanto pode ter sido aberto o relatório de outra auditoria. */
     if(!document.getElementById("evid")||relatorioId!==a.id)return;
     const tmp=document.createElement("div");tmp.innerHTML=evidHTML(a,m);
     document.getElementById("evid").replaceWith(tmp.firstElementChild);
   }).catch(()=>{});
-  fotosRelatorio=fotosEvid;
   document.querySelectorAll("#view-report [data-acao-worst]").forEach(b=>b.onclick=()=>{
     const x=worst[+b.dataset.acaoWorst];
     novaAcaoPara(x.it);
@@ -3258,7 +3407,7 @@ function barrasEixo(l){
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("");
 }
 function openMensal(mes){
-  relatorioId=null;fotosRelatorio=Promise.resolve();
+  relatorioId=null;
   document.title=tituloMensal(mes);
   const r=resumoMensal(audits,mes,services,hojeISO());
   const t=r.media==null?null:badge(r.media);
@@ -3412,15 +3561,19 @@ function renderPosAuditoria(a){
     box.innerHTML=`<h3 style="margin-bottom:4px">Depois da auditoria</h3>
       <p style="font-size:.78rem;color:var(--muted)">Por finalizar. Depois de finalizada: PDF, envio ao serviço e cópia de segurança.</p>
       <ol class="passos">
-        <li class="${pc?"feito":""}"><div><b>Enviar para o PC</b><br>
-          <small>${pc?ok("Enviada "+quando(pc)):"Só esta auditoria, com as fotos. Abre o menu de partilha: envie-a para o seu email. No PC, abra-a em Histórico → Importar ficheiro."}</small></div>
-          <button class="btn small ${pc?"ghost":""}" id="pa-pc">Enviar para o PC</button></li>
         <li><div><b>Finalizar</b><br>
-          <small>Complete o plano de acção e, em <i>Editar auditoria</i> (sem código enquanto está por finalizar), a observação, as notas e as fotos. Depois, carregue em Finalizar.</small></div>
-          <button class="btn small ghost" id="pa-fim">Finalizar auditoria</button></li>
+          <small>Com tudo completo: acção com prazo e foto ou nota em cada pergunta a melhorar. Falta alguma coisa? Complete em <i>Editar auditoria</i> (sem código enquanto está por finalizar).</small></div>
+          <button class="btn small" id="pa-fim">Finalizar auditoria</button></li>
+        <li class="${pc?"feito":""}"><div><b>Não deu para acabar aqui?</b><br>
+          <small>${pc?ok("Enviada para o PC "+quando(pc)):"Envie-a para o PC, só esta auditoria, com as fotos: abre o menu de partilha, mande-a para o seu email, e no PC abra-a em Histórico → Importar ficheiro."}</small></div>
+          <button class="btn small ghost" id="pa-pc">Enviar para o PC</button></li>
       </ol>${rodape}`;
-    document.getElementById("pa-pc").onclick=e=>ocupado(e.currentTarget,"A preparar o ficheiro…",()=>enviarParaPC(a));
-    document.getElementById("pa-fim").onclick=()=>finalizarAuditoria(a.id);
+    const paraPC=btn=>ocupado(btn,"A preparar o ficheiro…",()=>enviarParaPC(a));
+    document.getElementById("pa-pc").onclick=e=>paraPC(e.currentTarget);
+    document.getElementById("pa-fim").onclick=async e=>{
+      const btn=e.currentTarget;
+      if(await finalizarAuditoria(a.id)==="pc")paraPC(btn);
+    };
     return;
   }
   const st=estadoPassos(a,backupInfo());
@@ -3444,11 +3597,11 @@ function renderPosAuditoria(a){
   /* v3.24.0: pelo menu de partilha, para a cópia sair logo do telemóvel. */
   document.getElementById("pa-copia").onclick=e=>ocupado(e.currentTarget,"A preparar a cópia…",()=>partilharCopia(true));
   document.getElementById("pa-pdf").onclick=e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
-    const blob=await pdfDoRelatorio();
+    const blob=await pdfDaAuditoria(a);
     if(await descarregar(blob,nomePdf(a)))marcarEnvio(a.id,"pdf");
   });
   const enviar=via=>e=>ocupado(e.currentTarget,"A criar o PDF…",async()=>{
-    const blob=await pdfDoRelatorio();
+    const blob=await pdfDaAuditoria(a);
     const f=new File([blob],nomePdf(a),{type:"application/pdf"});
     const titulo=tituloPdf(a),texto=resumoEnvio(a,audits,hojeISO(),via);
     const r=await partilharFicheiro(f,titulo,texto);
@@ -3674,8 +3827,46 @@ async function mostrarLimpeza(){
     mostrarLimpeza();mostrarArmaz();
   };
 }
-function finalizarAuditoria(id){
+/* v4.8.0: o que falta para finalizar. Cada pergunta Mau ou Com oportunidade
+   precisa de uma acção desta auditoria ligada a ela, com prazo, e de foto ou
+   nota. `comFoto`: Set dos índices das perguntas com foto gravada. Devolve só
+   as perguntas a que falta alguma coisa. */
+function faltasParaFinalizar(a,comFoto){
+  const IT=itemsOf(a),notas=Array.isArray(a.notas)?a.notas:[],acoes=Array.isArray(a.acoes)?a.acoes:[];
+  const fotos=comFoto&&typeof comFoto.has==="function"?comFoto:new Set();
+  const out=[];
+  IT.forEach((it,i)=>{
+    const s=a.scores[i];
+    if(s!==0&&s!==1)return;
+    const dela=acoes.filter(ac=>ac&&ac.item===it.n);
+    const faltas=[];
+    if(!dela.length)faltas.push("sem acção");
+    else if(!dela.some(ac=>ac.prazo))faltas.push("acção sem prazo");
+    if(!fotos.has(i)&&!notas[i])faltas.push("sem foto nem nota");
+    if(faltas.length)out.push({n:it.n,t:it.t,faltas});
+  });
+  return out;
+}
+/* v4.8.0: antes de finalizar, verifica o que falta (faltasParaFinalizar). Com
+   faltas, mostra-as e oferece completar já (editar, sem código enquanto está
+   por finalizar) ou enviar para o PC; devolve "pc" para quem chama tratar do
+   envio. Sem faltas, pede confirmação. */
+async function finalizarAuditoria(id){
   const a=audits.find(x=>x.id===id);if(!a)return;
+  let fotos;
+  try{fotos=await carregarEvidAudit(id);}catch(e){fotos=new Map();}
+  const faltas=faltasParaFinalizar(a,new Set(fotos.keys()));
+  if(faltas.length){
+    const v=await caixa({titulo:"Falta completar",
+      texto:"Para finalizar, cada pergunta a melhorar precisa de acção com prazo e de foto ou nota.\n\n"+
+        faltas.map(f=>"Nº "+f.n+" "+f.t+": "+f.faltas.join(", ")).join("\n"),
+      botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"pc",label:"Enviar para o PC",cls:"ghost"},
+        {v:"ed",label:"Completar agora",def:true}]});
+    if(v==="ed")editAudit(a);
+    return v==="pc"?"pc":undefined;
+  }
+  if(!(await confirmar("Finalizar a auditoria a "+a.service+" de "+dataCurta(a.date)+
+    "? Depois de finalizada, editar pede o código de acesso.",{titulo:"Finalizar auditoria",sim:"Finalizar"})))return;
   const antes=Object.assign({},a);
   delete a.fase;a.finalizada=new Date().toISOString();a.finalizadaPor=idDispositivo();tocar(a);
   if(!save("audits",audits)){Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,antes);return;}
@@ -4246,64 +4437,159 @@ function svgParaImagem(doc){
     svg.replaceWith(img);
   });
 }
-/* v4.2.9: no PDF, o resultado (91/100) subia para cima do nome da auditoria.
-   Com line-height:1, o html2canvas desenha os algarismos grandes acima da
-   caixa da linha, sobretudo quando a letra do dispositivo é outra. Na cópia,
-   a linha do resultado ganha altura e o mesmo espaço em cima e em baixo, e
-   fica ao centro entre o nome e a classificação. */
-function heroParaPdf(doc){
-  const st=doc.createElement("style");
-  st.textContent=".score-hero .lbl{margin:0}"+
-    ".score-hero .big{line-height:1.3;margin:10px 0}"+
-    ".score-hero .badge{margin-top:0}";
-  doc.head.appendChild(st);
+/* ---------- PDF da auditoria por responsável (v4.8.0) ---------- */
+/* A ordem dos grupos no PDF: a pedida, e depois os responsáveis acrescentados. */
+const ORDEM_PDF=["U","P","R","U+R","M"];
+/* Os grupos da grelha do PDF: um por responsável com perguntas na auditoria.
+   `falhas`: só as perguntas Mau ou Com oportunidade, cada uma com a nota de
+   evidência e as acções desta auditoria ligadas a ela; `outras`: as acções do
+   responsável sem pergunta; `nota`: a do radar por responsável. */
+function gruposPdf(a){
+  const IT=itemsOf(a),notas=Array.isArray(a.notas)?a.notas:[],acoes=Array.isArray(a.acoes)?a.acoes:[];
+  const pres=a.presentes&&typeof a.presentes==="object"?a.presentes:{};
+  const ordem=ORDEM_PDF.filter(k=>isResp(k)).concat(Object.keys(RESP).filter(k=>!ORDEM_PDF.includes(k)));
+  return ordem.map(r=>{
+    const idx=IT.map((it,i)=>it.r===r?i:-1).filter(i=>i>=0);
+    if(!idx.length)return null;
+    const falhas=idx.filter(i=>a.scores[i]===0||a.scores[i]===1)
+      .map(i=>({i,it:IT[i],s:a.scores[i],obs:obsOf(a,IT[i],i),nota:notas[i]||"",
+        acoes:acoes.filter(ac=>ac&&ac.item===IT[i].n)}))
+      .sort((x,y)=>x.it.n-y.it.n);
+    return{r,nome:RESP[r],presente:pres[r]||"",nota:pctOf(idx.map(i=>a.scores[i])),total:idx.length,
+      falhas,excelentes:idx.length-falhas.length,outras:acoes.filter(ac=>ac&&!ac.item&&ac.r===r)};
+  }).filter(Boolean);
 }
-/* PDF A4 do relatório aberto (o de uma auditoria ou o mensal). Cada .page
-   começa folha nova, como na impressão; o cabeçalho vai com a primeira. Uma
-   folha um pouco maior que o A4 encolhe para caber; muito maior, continua na
-   seguinte. Devolve um Blob. */
-async function pdfDoRelatorio(){
-  await carregarPdf();
-  /* As folhas só se recolhem depois de as fotos chegarem: até lá, a folha
-     das evidências ainda vai ser trocada pela versão com fotos. */
-  await fotosRelatorio;
-  const raiz=document.getElementById("view-report");
-  const blocos=[...raiz.querySelectorAll(":scope > .score-hero, :scope > .page, :scope > .pdf-cont")];
+/* O HTML do PDF: a folha de resumo e a grelha, em unidades que nunca se cortam
+   entre folhas. `fotos`: índice da pergunta → data URL. */
+function pdfHTML(a,lista,fotos,hoje){
+  const p=total(a),[,faixa]=badge(p);
+  const cls=v=>v>=80?"exc":v>=50?"op":"mau";
+  const ant=anteriorDe(a,lista),dif=ant?p-total(ant):null;
+  const c=[0,0,0];a.scores.forEach(x=>{c[x]=(c[x]||0)+1;});
+  const grupos=gruposPdf(a),acoes=Array.isArray(a.acoes)?a.acoes:[];
+  const pend=acoesPendentes(lista,a.service,hoje,a);
+  const pill=s=>`<span class="pdf-pill ${["mau","op","exc"][s]}">${esc(LBL[s])}</span>`;
+  const linhaAcao=ac=>{const e=estadoAcao(ac,hoje);
+    return`<div class="pdf-acao"><div class="pdf-rot">Plano de acção</div><div class="tx">${esc(ac.texto)}</div>
+      <div class="meta"><span><span>Responsável</span> ${esc(isResp(ac.r)?RESP[ac.r]:ac.r)}</span>
+      <span><span>Prazo</span> ${esc(dataCurta(ac.prazo))||"—"}</span><span><span>Estado</span> ${esc(ESTADO_ACAO[e][0])}</span></div></div>`;};
+  const pres=textoPresentes(a);
+  const resumo=`<section class="pdf-folha">
+    <div class="pdf-hero"><div><div class="pdf-svc">${esc(a.service)}</div>
+      <div class="pdf-sub">Auditoria de ${esc(dataCurta(a.date))}${a.verif?" · Verificador: "+esc(a.verif):""}</div>
+      ${pres?`<div class="pdf-sub">${esc(pres)}</div>`:""}
+      ${a.note?`<div class="pdf-sub">Observação: ${esc(a.note)}</div>`:""}</div>
+      <div class="pdf-score"><div class="pdf-big">${p}<small>/100</small></div>
+        <span class="pdf-pill ${cls(p)}">${esc(faixa)}</span>
+        ${ant?`<div class="pdf-delta ${dif>=0?"sobe":"desce"}">${dif>0?"▲ "+dif:dif<0?"▼ "+(-dif):"= 0"} face a ${esc(dataCurta(ant.date))} (${total(ant)})</div>`:""}</div></div>
+    <div class="pdf-kpis"><div><b>${c[2]}</b><span>Excelente</span></div><div><b>${c[1]}</b><span>Com oportunidade</span></div>
+      <div><b>${c[0]}</b><span>Mau</span></div><div><b>${acoes.length}</b><span>Acções nesta auditoria</span></div></div>
+    <div class="pdf-radares"><div><h4>Por pilar 5S</h4>${radarSVG(byPillar(a),"#1f6f50")}</div>
+      <div><h4>Por responsável</h4>${radarSVG(byResp(a).filter(r=>r.n>0),"#e8500a")}</div></div>
+    <h4>Por responsável</h4>
+    <table class="pdf-tab"><tr><th>Responsável</th><th>Presente</th><th class="n">Perguntas</th><th class="n">A melhorar</th><th class="n">Nota</th></tr>
+      ${grupos.map(g=>`<tr><td><b>${esc(g.nome)}</b></td><td>${esc(g.presente)||"—"}</td><td class="n">${g.total}</td>
+        <td class="n">${g.falhas.length||"—"}</td><td class="n"><span class="pdf-barra"><i class="${cls(g.nota)}" style="width:${g.nota}%"></i></span>${g.nota}</td></tr>`).join("")}</table>
+    ${pend.length?`<h4>Acções em aberto de auditorias anteriores</h4>
+      <table class="pdf-tab"><tr><th>Responsável</th><th>Acção</th><th>Prazo</th><th>Estado</th></tr>
+      ${pend.map(x=>`<tr><td><b>${esc(isResp(x.acao.r)?RESP[x.acao.r]:x.acao.r)}</b></td><td>${esc(x.acao.texto)}</td>
+        <td>${esc(dataCurta(x.acao.prazo))||"—"}</td><td><span class="pdf-pill ${x.estado==="atrasada"?"mau":"op"}">${esc(ESTADO_ACAO[x.estado][0])}</span></td></tr>`).join("")}</table>`:""}
+    <p class="pdf-leg">${esc(legendaPontuacao(a))} Faixas: Crítico abaixo de 50, Com oportunidade de 50 a 79, Excelente 80 ou mais.</p>
+  </section>`;
+  const unidades=[];
+  let titulo=`<h4>Grelha de verificação, por responsável · só as perguntas abaixo de Excelente</h4>`;
+  grupos.forEach(g=>{
+    let cab=`<div class="pdf-grupo-cab"><b>${esc(g.nome)}</b><span class="pres">${esc(g.presente)}</span>
+      <span class="nota ${cls(g.nota)}">${g.nota}<small>/100</small></span>
+      <span class="cont">${g.falhas.length} a melhorar · ${g.excelentes} Excelente(s)</span></div>`;
+    const juntar=corpo=>{unidades.push(`<div class="pdf-unidade">${titulo}${cab}${corpo}</div>`);titulo="";cab="";};
+    if(!g.falhas.length&&!g.outras.length)juntar(`<div class="pdf-ok">✓ Todas as perguntas deste responsável ficaram Excelentes.</div>`);
+    g.falhas.forEach(f=>{
+      const foto=fotos&&fotos.get(f.i);
+      juntar(`<div class="pdf-item ${f.s===0?"mau":"op"}">
+        <div class="pdf-item-top"><span class="num">${esc(f.it.n)}</span><b class="tit">${esc(f.it.t)}</b>
+          <span class="obs">${esc(f.obs)}</span>${pill(f.s)}</div>
+        <div class="pdf-crit">${esc(f.it.c)}</div>
+        <div class="pdf-ev">${foto?`<img src="${esc(foto)}" alt="">`:`<div class="pdf-semfoto">Sem foto</div>`}
+          <div><div class="pdf-rot">Evidência</div><p class="pdf-nota">${esc(f.nota)||"—"}</p>
+          ${f.acoes.length?f.acoes.map(linhaAcao).join(""):`<div class="pdf-semacao">Sem acção definida.</div>`}</div></div></div>`);
+    });
+    if(g.outras.length)juntar(`<div class="pdf-item op"><div class="pdf-item-top"><b class="tit">Outras acções</b></div>
+      <div style="margin-left:32px">${g.outras.map(linhaAcao).join("")}</div></div>`);
+  });
+  return resumo+unidades.join("");
+}
+/* Junta os blocos num PDF A4, cada um desenhado pelo html2canvas. `o.nova(el)`:
+   o bloco começa folha nova (só o primeiro destes pode ficar por baixo do que
+   já está na folha, se lá couber). Os outros continuam a folha; se lá não
+   cabem mas cabem numa folha, começam inteiros na seguinte. Uma folha um pouco
+   maior que o A4 encolhe para caber; muito maior, continua aos bocados.
+   `o.topo`/`o.baixo`: margens em mm (o PDF da auditoria deixa espaço para o
+   cabeçalho e o rodapé). Devolve o documento jsPDF. */
+async function pdfDeBlocos(blocos,op){
+  const o=Object.assign({M:10,topo:10,baixo:10,gap:4,nova:()=>false,onclone:null},op||{});
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
-  const M=10,W=210-2*M,H=297-2*M;
-  let y=M,vazia=true,primeira=true;
+  const M=o.M,W=210-2*M,T=o.topo,B=297-o.baixo,H=B-T;
+  let y=T,vazia=true,primeira=true;
   for(const el of blocos){
     const cv=await window.html2canvas(el,{scale:1.6,backgroundColor:"#ffffff",windowWidth:794,logging:false,
-      onclone:d=>{modoImpressao(d);svgParaImagem(d);heroParaPdf(d);}});
+      onclone:o.onclone||undefined});
     if(!cv.width||!cv.height)continue;
     let w=W,h=cv.height*W/cv.width;
     if(h>H&&h<=H*1.3){w=W*H/h;h=H;}
-    /* Cada folha do relatório começa folha nova; só a primeira pode ficar por
-       baixo do cabeçalho, se lá couber. */
-    if(el.classList.contains("page")){
-      if(!vazia&&!(primeira&&h<=M+H-y)){doc.addPage();y=M;}
+    if(o.nova(el)){
+      if(!vazia&&!(primeira&&h<=B-y)){doc.addPage();y=T;}
       primeira=false;
     }
-    /* v4.7.0: um bloco que continua a folha anterior (o plano de acção) e lá
-       não cabe, mas cabe numa folha, começa inteiro na seguinte — sem cortes. */
-    else if(!vazia&&h<=H&&h>M+H-y){doc.addPage();y=M;}
-    if(h<=M+H-y){
+    /* v4.7.0: um bloco que continua a folha anterior e lá não cabe, mas cabe
+       numa folha, começa inteiro na seguinte — sem cortes. */
+    else if(!vazia&&h<=H&&h>B-y){doc.addPage();y=T;}
+    if(h<=B-y){
       doc.addImage(cv.toDataURL("image/jpeg",0.82),"JPEG",M+(W-w)/2,y,w,h);
-      y+=h+4;vazia=false;continue;
+      y+=h+o.gap;vazia=false;continue;
     }
     /* Mais alto que uma folha: aos bocados. */
     const pxPorMm=cv.width/W;let feito=0;
     while(feito<cv.height){
-      if(!vazia&&y>M){doc.addPage();y=M;}
-      const alt=Math.min(cv.height-feito,Math.floor((M+H-y)*pxPorMm));
+      if(!vazia&&y>T){doc.addPage();y=T;}
+      const alt=Math.min(cv.height-feito,Math.floor((B-y)*pxPorMm));
       const parte=document.createElement("canvas");parte.width=cv.width;parte.height=alt;
       parte.getContext("2d").drawImage(cv,0,feito,cv.width,alt,0,0,cv.width,alt);
       doc.addImage(parte.toDataURL("image/jpeg",0.82),"JPEG",M,y,W,alt/pxPorMm);
-      feito+=alt;y+=alt/pxPorMm+4;vazia=false;
+      feito+=alt;y+=alt/pxPorMm+o.gap;vazia=false;
     }
   }
-  return doc.output("blob");
+  return doc;
+}
+/* v4.8.0: o PDF da auditoria, por responsável (pdfHTML), desenhado a partir da
+   vista #view-pdf, fora do ecrã. A grelha começa na folha 2; cada pergunta
+   (com a evidência e o plano) nunca se corta entre folhas. Cabeçalho e
+   «Folha X de Y» em cada folha. Devolve um Blob. */
+async function pdfDaAuditoria(a){
+  await carregarPdf();
+  let fotos;
+  try{fotos=await carregarEvidAudit(a.id);}catch(e){fotos=new Map();}
+  const box=document.getElementById("view-pdf");
+  box.innerHTML=pdfHTML(a,audits,fotos,hojeISO());
+  const grelha=box.querySelector(":scope > .pdf-unidade");
+  if(grelha)grelha.classList.add("pdf-nova");
+  try{
+    await Promise.all([...box.querySelectorAll("img")].map(i=>i.decode?i.decode().catch(()=>{}):null));
+    const blocos=[...box.querySelectorAll(":scope > .pdf-folha, :scope > .pdf-unidade")];
+    const doc=await pdfDeBlocos(blocos,{topo:16,baixo:14,gap:0,
+      nova:el=>el.classList.contains("pdf-folha")||el.classList.contains("pdf-nova"),
+      onclone:d=>{modoImpressao(d);svgParaImagem(d);}});
+    const n=doc.getNumberOfPages();
+    for(let k=1;k<=n;k++){
+      doc.setPage(k);
+      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(102,112,108);
+      doc.text("Auditoria 5S · "+a.service+" · "+dataCurta(a.date),10,10);
+      doc.setDrawColor(29,107,87);doc.setLineWidth(0.5);doc.line(10,12,200,12);
+      doc.text("Folha "+k+" de "+n,200,290,{align:"right"});
+    }
+    return doc.output("blob");
+  }finally{box.innerHTML="";}
 }
 /* Resumo da auditoria, para o texto do email ou da mensagem do Teams. */
 function resumoEnvio(a,lista,hoje,via){
@@ -4761,6 +5047,8 @@ function sanitizeAudit(x){
     service,date,
     pick:clean(x.pick,120),
     repo:clean(x.repo,120),verif:clean(x.verif,120),
+    /* v4.8.0: quem esteve presente, por responsável. */
+    presentes:sanitizePresentes(x.presentes),
     note:clean(x.note,200),
     scores,raw,tgts,
     /* v1.7.0: recsOf() normaliza para as 4 chaves conhecidas e aplica clean(),
@@ -4781,6 +5069,23 @@ function sanitizeAudit(x){
     alterada:dataISO(x.alterada),
     items:items||undefined
   };
+}
+/* v4.8.0: quem esteve presente na auditoria, por responsável — {código: nome}.
+   Só códigos de responsáveis conhecidos e nomes não vazios; sem nenhum,
+   undefined (fica de fora do registo). */
+function sanitizePresentes(x){
+  if(!x||typeof x!=="object"||Array.isArray(x))return undefined;
+  const out={};
+  Object.keys(x).forEach(k=>{if(!isResp(k))return;const n=clean(x[k],120);if(n)out[k]=n;});
+  return Object.keys(out).length?out:undefined;
+}
+/* O texto de quem esteve presente, para o relatório e o PDF: pela ordem da
+   lista de responsáveis. As auditorias anteriores a 4.8.0 têm `pick` e `repo`. */
+function textoPresentes(a){
+  const p=a&&a.presentes;
+  if(p&&typeof p==="object"&&Object.keys(p).length)
+    return Object.keys(RESP).filter(k=>p[k]).map(k=>RESP[k]+": "+p[k]).join(" · ");
+  return [a&&a.pick?"Picking: "+a.pick:"",a&&a.repo?"Repositor: "+a.repo:""].filter(Boolean).join(" · ");
 }
 /* {pdf, email, teams, pc}: datas ISO; o resto cai. Vazio, fica de fora. */
 function sanitizeEnvios(e){
