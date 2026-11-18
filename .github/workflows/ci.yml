@@ -209,6 +209,11 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-pdf-fotos.mjs
 
+      # 4.8.0: o ficheiro HTML único para testar no PC, aberto por file://.
+      - name: Ficheiro de teste para o PC (duplo clique)
+        timeout-minutes: 5
+        run: node tests/smoke-teste-pc.mjs
+
       - name: Radares sem textos sobrepostos
         timeout-minutes: 4
         run: node tests/smoke-radar.mjs
