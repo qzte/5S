@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — KPIs e métricas
-  Referente à versão 4.5.1 do código.
+  Referente à versão 4.8.0 do código.
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
 -->
@@ -33,7 +33,8 @@ indicador vale e das suas limitações. As referências são às funções de
 | Nível | Métricas | Função | Onde se vê |
 | --- | --- | --- | --- |
 | Pergunta | Classificação (Mau / Oportunidade / Excelente) | `classify()` | Formulário, relatório |
-| Auditoria | Nota 0–100, faixa, contagens por classe, nota por pilar e por responsável | `pctOf()`, `total()`, `badge()`, `colTotals()`, `byPillar()`, `byResp()` | Formulário, relatório, histórico, mensagem de envio |
+| Auditoria | Nota 0–100, faixa, contagens por classe, nota por pilar e por responsável | `pctOf()`, `total()`, `badge()`, `colTotals()`, `byPillar()`, `byResp()`, `gruposPdf()` | Formulário, relatório, PDF por responsável (4.8.0), histórico, mensagem de envio |
+| Finalização (4.8.0) | O que falta em cada pergunta a melhorar: acção, prazo, foto ou nota | `faltasParaFinalizar()` | Caixa «Falta completar», ao finalizar |
 | Entre auditorias | Variação face à anterior, seguimento pergunta a pergunta | `anteriorDe()`, `seguimento()` | Histórico, relatório |
 | Período (filtro) | Evolução, média por serviço, por pilar, por responsável | `seriesEvolucao()`, `renderStats()` | Análise |
 | Ano | Média total, serviços abaixo da média, objectivo, ritmo, cobertura interno/externo | `kpisAnuais()` | Análise → *Indicadores do ano* |
@@ -110,6 +111,7 @@ oportunidade: 4 · Excelente: 13»).
 (denominador próprio). Nas perguntas de origem: Triagem 4 itens, Arrumação 4,
 Limpeza 4, Normalização 3, Disciplina 4. É o radar *Por pilar* do relatório, e
 o «pilar mais fraco» da mensagem de envio (o de menor nota, se < 100).
+Desde 4.8.0 é também o radar *Por pilar 5S* da folha 1 do PDF.
 
 ### 1.6 Nota por responsável
 
@@ -118,11 +120,38 @@ Utilizadores 8 itens, Manutenção 5, Utilizador e Repositor 3, Reposição 2,
 Picking 1. Um responsável sem perguntas fica fora do radar (zero perguntas não
 é zero por cento).
 
+Desde 4.8.0, o PDF da auditoria arruma-se por esta nota: a folha 1 tem o radar
+*Por responsável* e uma tabela com a nota, as perguntas, as perguntas a
+melhorar e quem esteve presente (`presentes`); a grelha agrupa as perguntas
+por responsável (`gruposPdf()`), pela ordem Utilizadores, Picking, Reposição,
+Utilizador e Repositor, Manutenção e depois os acrescentados, e cada grupo
+mostra a mesma nota, «N a melhorar · M Excelente(s)». Um responsável sem
+perguntas na auditoria não tem grupo, pela mesma razão do radar.
+
 ### 1.7 Itens a melhorar e evidências
 
 Lista dos itens que não ficaram Excelente (`s < 2`), com o valor observado — a
-base das recomendações e do botão *+ Acção*. Os itens em Mau ou Oportunidade
-podem levar nota e foto de evidência.
+base do botão *+ Acção* e, desde 4.8.0, das perguntas que o PDF mostra (só as
+abaixo de Excelente, cada uma com a evidência e o plano de acção). Os itens em
+Mau ou Oportunidade levam nota e foto de evidência e, desde 4.8.0, a acção e o
+prazo, escritos na própria pergunta.
+
+### 1.8 Completude para finalizar (4.8.0)
+
+`faltasParaFinalizar(a, comFoto)`: para cada pergunta Mau ou Oportunidade,
+o que falta para a auditoria poder ser finalizada:
+
+| Falta | Quando |
+| --- | --- |
+| «sem acção» | nenhuma acção da auditoria ligada à pergunta (`item` = número) |
+| «acção sem prazo» | há acções ligadas, nenhuma com prazo |
+| «sem foto nem nota» | a pergunta não tem foto gravada nem nota de evidência |
+
+Não é um número que se mostre: é uma condição. Uma auditoria só passa a
+*finalizada* com a lista vazia, pelo que, desde 4.8.0, **toda a auditoria
+finalizada tem evidência e acção com prazo em cada pergunta a melhorar**. Gravar
+não depende disto; as auditorias finalizadas antes de 4.8.0 não foram
+verificadas.
 
 ## 2. Comparação entre auditorias
 
@@ -208,6 +237,14 @@ Estado de cada acção (`estadoAcao()`): **feita**; **atrasada** se aberta com
 | **Eficácia** (4.5.0) | das acções feitas, ligadas a uma pergunta, que não estava Excelente, e concluídas até à auditoria seguinte ao serviço: % em que a pergunta ficou Excelente nessa auditoria; mostra também as que melhoraram sem chegar lá (`eficaciaAcoes()`) | Separador Acções. A pergunta emparelha-se pela assinatura (número, tipo, enunciado) |
 | **Dentro do prazo** (4.4.0) | acções feitas com prazo e `feitaEm ≤ prazo` ÷ acções feitas com prazo | Separador Acções |
 
+Desde 4.8.0, a acção escreve-se na própria pergunta, no formulário
+(`acoesDoFormulario()`): fica ligada à pergunta (`item`), com o responsável
+dela e `criadaEm` = data da auditoria. Como só uma acção ligada conta para
+finalizar, as acções das auditorias novas passam quase todas a ter pergunta, e
+por isso a entrar na **eficácia** e no seguimento por pergunta. O PDF mostra cada
+acção junto da sua pergunta; as acções sem pergunta, no fim do grupo do seu
+responsável.
+
 ## 7. Painel e-ink
 
 `5s.painel.json`, recalculado a cada gravação e de hora a hora.
@@ -232,7 +269,8 @@ Não calcula indicadores novos; entrega os dados para análise própria
 (`linhasExcel()`):
 
 - **Auditorias** — uma linha por auditoria: nota, classificação e uma coluna
-  por pilar e por responsável.
+  por pilar e por responsável; desde 4.8.0, também uma coluna «Presente: …» por
+  responsável, com quem esteve presente.
 - **Respostas** — uma linha por resposta: valor, auditados, classificação,
   pilar, responsável (formato de tabela dinâmica).
 - **Acções** — uma linha por acção: responsável, prazo, estado, conclusão.
@@ -271,7 +309,12 @@ Sobre a saúde dos dados, não sobre o 5S.
 - **Normalização por eixo.** Um pilar com 3 itens não é penalizado face a um
   com 4.
 - **Funções puras e testadas** (`indicadores`, `mensal`, `acoes`, `painel`,
-  `historico`), e estabilidade histórica das notas.
+  `historico`; desde 4.8.0 também `finalizar`, `acoes-formulario` e
+  `pdf-grupos`), e estabilidade histórica das notas.
+- **Dados completos nas auditorias finalizadas (4.8.0).** Finalizar exige, em
+  cada pergunta a melhorar, acção com prazo e foto ou nota. Os indicadores do
+  plano de acção deixam de depender de alguém se lembrar de escrever as acções
+  depois.
 
 ### Limitações e riscos de leitura
 
@@ -317,12 +360,23 @@ Por ordem de impacto.
 10. **Cobertura só conta serviços da lista com tipo.** Auditorias a serviços
     removidos entram na média mas não na cobertura; os sem tipo não entram em
     interno nem externo.
+11. **Histórico misto quanto às acções (4.8.0).** As auditorias finalizadas
+    desde 4.8.0 têm, por construção, acção com prazo em cada pergunta a
+    melhorar; as anteriores podem não ter nenhuma. Comparar o número de acções,
+    o «dentro do prazo» ou a eficácia entre períodos antes e depois de 4.8.0
+    mostra em parte a mudança de regra, e não só a do terreno.
+12. **Uma acção basta para finalizar (4.8.0).** A verificação confirma que há
+    acção com prazo, não que ela resolve a causa. Uma acção genérica («rever»)
+    cumpre a regra; a eficácia, na auditoria seguinte, é que o mostra.
 
 ### O que não se mede
 
 - **Eficácia por serviço ou por responsável**: hoje é um só número global.
 - **Acções sem ligação a uma pergunta** não entram na eficácia, e só se avalia
-  a auditoria seguinte (não se segue a pergunta mais adiante).
+  a auditoria seguinte (não se segue a pergunta mais adiante). Desde 4.8.0
+  quase todas as acções novas têm pergunta, porque se escrevem nela.
+- **Quem esteve presente** (4.8.0) é registado, mas não entra em nenhum
+  indicador (por exemplo, a nota de um responsável com e sem alguém presente).
 - **Dispersão por serviço** e desvio-padrão das notas.
 - **Reincidência após acção feita**: perguntas que voltam a falhar depois de
   uma acção concluída.
