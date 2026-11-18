@@ -76,6 +76,47 @@ async function pagina() {
   await ctx.close();
 }
 
+/* ---- 3. Como o Chrome no Android: canShare diz que sim a tudo, mas share()
+   recusa o .json (não está na lista de tipos que o Chrome partilha) e aceita o
+   .txt. A cópia tem de ir como .txt à primeira, sem descarregar. ---- */
+{
+  const ctx = await b.newContext({ acceptDownloads: true });
+  await ctx.addInitScript(() => { delete window.showSaveFilePicker; });
+  await ctx.addInitScript(() => {
+    window.__partilhas = [];
+    navigator.canShare = d => !!(d && d.files);
+    navigator.share = async d => {
+      const f = d.files[0];
+      if (!/\.(txt|pdf)$/.test(f.name)) throw new DOMException("Permission denied", "NotAllowedError");
+      window.__partilhas.push({ nome: f.name, tipo: f.type, fotos: (JSON.parse(await f.text()).fotos || []).length });
+    };
+  });
+  const pg = await ctx.newPage();
+  pg.on("pageerror", e => erros.push(String(e)));
+  pg.on("console", m => { if (m.type() === "error" && !BENIGNO.test(m.text())) erros.push(m.text()); });
+  const vistos = [];
+  await ligarDialogos(pg, d => { vistos.push(d); return undefined; });
+  await pg.goto(URL);
+  await pg.evaluate(async () => {
+    const it = ITEMS.map(x => Object.assign({}, x));
+    localStorage.setItem("audits", JSON.stringify([{ id: 5, service: "Loja A", date: "2026-11-10", verif: "F",
+      scores: it.map((_, i) => i ? 2 : 0), raw: it.map(() => null), tgts: it.map(() => null), items: it }]));
+    await fotosIDB("readwrite", st => st.put("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "5#0"));
+  });
+  await pg.reload();
+  await pg.locator("[data-v=cfg]").click();
+  let descarregou = false;
+  pg.on("download", () => { descarregou = true; });
+  await pg.locator("#btn-partilhar").click();
+  await pg.waitForFunction(() => window.__partilhas.length === 1, null, { timeout: 10000 }).catch(() => {});
+  await semDialogo(pg).catch(() => {});
+  const p = await pg.evaluate(() => window.__partilhas[0]);
+  check(p && /_com_fotos\.txt$/.test(p.nome) && p.tipo === "text/plain" && p.fotos === 1,
+    "no Chrome do Android, a cópia devia ir como .txt à primeira: " + JSON.stringify(p) + " | " + vistos.map(d => d.texto).join(" | "));
+  check(!descarregou, "partilhada, não devia descarregar");
+  await ctx.close();
+}
+
 await b.close();
 console.log(erros.length ? "ERROS JS:\n" + erros.join("\n") : "sem erros de JS");
 console.log(falhas.length ? "FALHAS:\n" + falhas.join("\n") : "smoke da partilha da cópia com fotos OK");
