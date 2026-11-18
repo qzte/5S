@@ -35,3 +35,18 @@ test("auditoria sem itens não divide por zero", () => {
   assert.strictEqual(t.pts, 0);
   assert.strictEqual(t.max, 0);
 });
+
+/* 4.7.1: a legenda da tabela usa a mesma escala que os pontos — o valor de cada
+   item sobre 100 e o total máximo 100 —, e não o máximo bruto (99,75). */
+test("legenda da pontuação na escala de 0 a 100", () => {
+  const { legendaPontuacao } = buildContext(["colTotals", "legendaPontuacao"], []);
+  const l = legendaPontuacao({ scores: Array(19).fill(2) });
+  assert.doesNotMatch(l, /99[.,]75|5[.,]25|bruto/);
+  assert.match(l, /Mau = 0/);
+  assert.match(l, /Com oportunidade ≈ 2\.01/);
+  assert.match(l, /Excelente ≈ 5\.26/);
+  assert.match(l, /19 itens/);
+  assert.match(l, /máximo: 100/);
+  /* Com 20 itens, Excelente vale exactamente 5 — sem «≈». */
+  assert.match(legendaPontuacao({ scores: Array(20).fill(2) }), /Excelente = 5 /);
+});

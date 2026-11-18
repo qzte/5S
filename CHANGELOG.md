@@ -5,6 +5,20 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.7.1] — 2026-11-18
+
+### Corrigido
+
+- **Legenda da tabela «Pontuação» na escala de 0 a 100.** Os pontos da tabela já estavam sobre 100 (4.6.1), mas a legenda
+  continuava com os pesos brutos (Com oportunidade = 2, Excelente = 5,25) e o «máximo bruto: 19 itens × 5,25 = 99,75»,
+  que se lia como o total máximo da auditoria. Agora diz quanto vale cada item nessa escala e o total máximo: «Pontos por
+  item, na escala de 0 a 100: Mau = 0 · Com oportunidade ≈ 2.01 · Excelente ≈ 5.26 (19 itens; total máximo: 100).» —
+  no ecrã, na impressão e no PDF.
+- **Plano de acção: o responsável em destaque.** A coluna *Resp.* ia em letra pequena (menor que o texto da acção); passa
+  a negrito e, no PDF e na impressão, um pouco maior que a acção, para se ver logo qual é a equipa.
+- **Testes:** `tests/pontuacao.test.js` verifica a legenda (`legendaPontuacao()`); `tests/smoke-pdf-paginas.mjs`, o
+  tamanho e o negrito do responsável no plano.
+
 ## [4.7.0] — 2026-11-18
 
 ### Alterado

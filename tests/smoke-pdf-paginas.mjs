@@ -82,6 +82,16 @@ check(r.paginas === 2, "com plano curto, o PDF devia ter 2 folhas (tem " + r.pag
 const iPlano = r.blocos.indexOf("plano");
 check(iPlano >= 0 && r.onde[iPlano] === 2, "o plano devia ir na folha 2 (vai na " + r.onde[iPlano] + ")");
 check(await impressao() === 2, "na impressão, também 2 folhas");
+/* 4.7.1: no plano, o responsável destaca-se — pelo menos do tamanho do texto
+   da acção, e a negrito —, para se ver logo qual é a equipa. */
+await pg.emulateMedia({ media: "print" });
+const fonte = await pg.evaluate(() => { const tr = document.querySelector("#plano tr:nth-child(2)");
+  /* O elemento onde está o nome: a própria célula, ou o que o envolve. */
+  const r = getComputedStyle(tr.cells[0].firstElementChild || tr.cells[0]), a = getComputedStyle(tr.cells[1]);
+  return { resp: parseFloat(r.fontSize), peso: +r.fontWeight, accao: parseFloat(a.fontSize) }; });
+await pg.emulateMedia({ media: "screen" });
+check(fonte.resp >= fonte.accao && fonte.peso >= 600,
+  "no plano, o responsável devia ter pelo menos o tamanho da acção e ir a negrito: " + JSON.stringify(fonte));
 
 /* ---- 2. Plano comprido: começa inteiro na folha 3. ---- */
 await carregar(30, SC);

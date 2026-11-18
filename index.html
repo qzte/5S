@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.7.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -243,6 +243,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .acao-linha{padding:8px 0;border-top:1px solid var(--line);font-weight:400;font-size:.82rem}
 .acao-linha:first-of-type{border-top:0}
 .acao-form{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+#plano .ac-resp{font-weight:700;color:var(--ink)}
 #plano .ed-del{background:none;color:var(--red-ink);padding:2px 0;margin-top:4px;text-decoration:underline}
 /* v3.14.0: evidência por pergunta. */
 .evid{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
@@ -350,6 +351,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   #view-report #plano td,#view-report #plano th{padding:2px 4px;line-height:1.2}
   #view-report #plano .pill{font-size:.55rem;padding:1px 5px}
   #view-report #plano small{font-size:.55rem}
+  #view-report #plano .ac-resp{font-size:.7rem}
   /* v3.14.0: as evidências, também numa folha própria. */
   #view-report #evid.page{break-before:page;page-break-before:always;break-after:auto}
   #view-report #evid .evid-grelha{grid-template-columns:1fr 1fr}
@@ -1355,7 +1357,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.7.0";
+const APP_VERSION="4.7.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2109,6 +2111,18 @@ function colTotals(a){
     pts:r2(bruto[0]+bruto[1]+bruto[2]),
     max:brutoMax?100:0,
     brutoPts:bruto[0]+bruto[1]+bruto[2],brutoMax:brutoMax};
+}
+/* v4.7.1: a legenda da tabela «Pontuação», na mesma escala que os pontos da
+   tabela (0 a 100): quanto vale cada item nessa escala e o total máximo, 100.
+   Antes dizia os pesos brutos (2 e 5,25) e o «máximo bruto» de 99,75, que se lia
+   como o total máximo da auditoria. «≈» quando o valor está arredondado. */
+function legendaPontuacao(a){
+  const n=a.scores.length;
+  if(!n)return"Sem itens.";
+  const f=100/(n*W_MAX);
+  const v=w=>{const x=w*f,r=Math.round(x*100)/100;return(Math.abs(x-r)<1e-9?"= ":"≈ ")+r;};
+  return"Pontos por item, na escala de 0 a 100: Mau "+v(WEIGHTS[0])+" · Com oportunidade "+v(WEIGHTS[1])+
+    " · Excelente "+v(W_MAX)+" ("+n+" itens; total máximo: 100).";
 }
 /* Cada eixo é normalizado pelo seu próprio nº de itens: Normalização tem 3
    itens e os restantes 4, tal como O4:O8 da folha. */
@@ -2947,7 +2961,8 @@ const ESTADO_ACAO={feita:["Feita","var(--green)"],atrasada:["Em atraso","var(--r
 function dataCurta(d){return d?d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(2,4):"";}
 function linhaAcao(ac,hoje,ctl){
   const e=estadoAcao(ac,hoje),[rot,cor]=ESTADO_ACAO[e];
-  return`<tr><td><small>${esc(isResp(ac.r)?RESP[ac.r]:ac.r)}</small></td>
+  /* v4.7.1: o responsável em destaque (classe ac-resp), para se ver logo a equipa. */
+  return`<tr><td class="ac-resp">${esc(isResp(ac.r)?RESP[ac.r]:ac.r)}</td>
     <td>${esc(ac.texto)}${ac.item?`<br><small style="color:var(--muted)">Pergunta nº ${esc(ac.item)}</small>`:""}</td>
     <td>${esc(dataCurta(ac.prazo))||"—"}</td>
     <td><span class="pill" style="background:${cor}">${rot}</span>${e==="feita"&&ac.feitaEm?`<br><small style="color:var(--muted)">${esc(dataCurta(ac.feitaEm))}</small>`:""}</td>
@@ -3089,8 +3104,7 @@ function openReport(a){
   <div class="page page-2">
   <div class="card"><h3 style="margin-bottom:4px">Pontuação</h3>
     <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px">
-      Mau = 0 pontos · Com oportunidade = 2 pontos · Excelente = ${W_MAX} pontos.
-      Pontos convertidos para uma escala de 0 a 100 (máximo bruto: ${a.scores.length} itens × ${W_MAX} = ${a.scores.length*W_MAX}).</p>
+      ${esc(legendaPontuacao(a))}</p>
     ${(()=>{const t=colTotals(a);return`<table>
       <tr><th>Avaliação</th><th>Itens</th><th>Pontos</th></tr>
       <tr><td><span class="pill" style="background:var(--red)">Mau</span></td><td>${t.mau}</td><td>${t.ptsMau}</td></tr>
