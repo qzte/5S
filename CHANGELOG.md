@@ -14,7 +14,10 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
   que se lia como o total máximo da auditoria. Agora diz quanto vale cada item nessa escala e o total máximo: «Pontos por
   item, na escala de 0 a 100: Mau = 0 · Com oportunidade ≈ 2.01 · Excelente ≈ 5.26 (19 itens; total máximo: 100).» —
   no ecrã, na impressão e no PDF.
-- **Testes:** `tests/pontuacao.test.js` verifica a legenda (`legendaPontuacao()`).
+- **Plano de acção: o responsável em destaque.** A coluna *Resp.* ia em letra pequena (menor que o texto da acção); passa
+  a negrito e, no PDF e na impressão, um pouco maior que a acção, para se ver logo qual é a equipa.
+- **Testes:** `tests/pontuacao.test.js` verifica a legenda (`legendaPontuacao()`); `tests/smoke-pdf-paginas.mjs`, o
+  tamanho e o negrito do responsável no plano.
 
 ## [4.7.0] — 2026-11-18
 
