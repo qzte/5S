@@ -1,9 +1,11 @@
-/* Smoke test (4.7.0): as folhas do PDF da auditoria.
-   - Sem recomendações por responsável: a secção saiu do relatório (ecrã e PDF).
-   - A grelha de verificação, no PDF e na impressão, só leva as perguntas abaixo
-     de Excelente; no ecrã continua inteira.
-   - O plano de acção vem logo a seguir à grelha: na folha 2, se couber; se não
-     couber, começa inteiro na folha seguinte (nunca cortado a meio). */
+/* Smoke test (4.7.0; PDF da auditoria desde 4.8.0): as folhas da impressão do
+   relatório e do PDF da auditoria.
+   - Sem recomendações por responsável: a secção saiu do relatório.
+   - A grelha de verificação, na impressão, só leva as perguntas abaixo de
+     Excelente; no ecrã continua inteira. O plano vem logo a seguir.
+   - 4.8.0: o PDF da auditoria (pdfDaAuditoria) tem o resumo na folha 1 e a
+     grelha por responsável a partir da folha 2; nenhuma pergunta (com a
+     evidência e o plano) se corta entre folhas; «Folha X de Y» em cada uma. */
 import pw from "playwright";
 const { chromium } = pw;
 
@@ -38,19 +40,23 @@ const abrir = async () => {
   await pg.locator("[data-v=history]").click();
   await pg.locator("[data-rep='0']").click();
 };
-/* As folhas do PDF da app: o que vai em cada uma (pelos blocos desenhados) e
-   em que folha começa o plano. */
-const pdfDaApp = () => pg.evaluate(async () => {
+/* O PDF da auditoria (4.8.0): os blocos desenhados, em que folha cai cada
+   imagem, quantas folhas, e os textos do cabeçalho e do rodapé. */
+const pdfDaApp = (id) => pg.evaluate(async (id) => {
   await carregarPdf();
   const orig = window.html2canvas, blocos = [];
-  window.html2canvas = (el, o) => { blocos.push(el.id || el.className); return orig(el, o); };
-  const origAdd = window.jspdf.jsPDF.API.addImage, onde = [];
-  window.jspdf.jsPDF.API.addImage = function (...a) { onde.push(this.getNumberOfPages()); return origAdd.apply(this, a); };
-  const bl = await pdfDoRelatorio();
-  window.html2canvas = orig; window.jspdf.jsPDF.API.addImage = origAdd;
-  const txt = new TextDecoder("latin1").decode(new Uint8Array(await bl.arrayBuffer()));
-  return { blocos, onde, paginas: (txt.match(/\/Type\s*\/Page[^s]/g) || []).length };
-});
+  window.html2canvas = (el, o) => { blocos.push(el.className + "|" + el.textContent.replace(/\s+/g, " ").slice(0, 160)); return orig(el, o); };
+  const Orig = window.jspdf.jsPDF, API = Orig.API, origAdd = API.addImage, onde = [], textos = [];
+  API.addImage = function (...a) { onde.push(this.getCurrentPageInfo().pageNumber); return origAdd.apply(this, a); };
+  /* text() é criado em cada documento: troca-se o construtor por um que o embrulha. */
+  window.jspdf.jsPDF = function (...a) { const d = new Orig(...a), t = d.text;
+    d.text = function (s, ...r) { textos.push(String(s)); return t.call(this, s, ...r); }; return d; };
+  try {
+    const bl = await pdfDaAuditoria(audits.find(a => a.id === id));
+    const txt = new TextDecoder("latin1").decode(new Uint8Array(await bl.arrayBuffer()));
+    return { blocos, onde, textos, paginas: (txt.match(/\/Type\s*\/Page[^s]/g) || []).length, vazia: !document.getElementById("view-pdf").innerHTML };
+  } finally { window.html2canvas = orig; API.addImage = origAdd; window.jspdf.jsPDF = Orig; }
+}, id);
 const impressao = async () => { await pg.emulateMedia({ media: "print" });
   const n = paginasPdf(await pg.pdf({ format: "A4" })); await pg.emulateMedia({ media: "screen" }); return n; };
 /* Linhas da grelha visíveis com o CSS de impressão. */
@@ -77,10 +83,6 @@ check(/11 itens com Excelente/.test(grelhaTxt), "devia dizer quantos itens com E
 /* No ecrã, o plano vem antes das evidências e logo a seguir à folha 2. */
 check(await pg.evaluate(() => document.querySelector("#view-report .page-2").nextElementSibling.id === "plano"),
   "o plano de acção devia vir logo a seguir à grelha");
-let r = await pdfDaApp();
-check(r.paginas === 2, "com plano curto, o PDF devia ter 2 folhas (tem " + r.paginas + "): " + r.blocos.join(" | "));
-const iPlano = r.blocos.indexOf("plano");
-check(iPlano >= 0 && r.onde[iPlano] === 2, "o plano devia ir na folha 2 (vai na " + r.onde[iPlano] + ")");
 check(await impressao() === 2, "na impressão, também 2 folhas");
 /* 4.7.1: no plano, o responsável destaca-se — pelo menos do tamanho do texto
    da acção, e a negrito —, para se ver logo qual é a equipa. */
@@ -93,13 +95,35 @@ await pg.emulateMedia({ media: "screen" });
 check(fonte.resp >= fonte.accao && fonte.peso >= 600,
   "no plano, o responsável devia ter pelo menos o tamanho da acção e ir a negrito: " + JSON.stringify(fonte));
 
-/* ---- 2. Plano comprido: começa inteiro na folha 3. ---- */
-await carregar(30, SC);
-await abrir();
-r = await pdfDaApp();
-const i2 = r.blocos.indexOf("plano");
-check(i2 >= 0 && r.onde[i2] === 3 && r.onde.filter(p => p === 3).length === 1 && r.paginas === 3,
-  "com muitas acções, o plano devia começar inteiro na folha 3 (folhas: " + r.onde.join(",") + "; " + r.paginas + " páginas)");
+/* ---- 2. O PDF da auditoria por responsável (4.8.0). ---- */
+/* Como a maqueta: 7 perguntas a melhorar (3 Utilizadores, 1 Picking, 1
+   Reposição, 1 Utilizador e Repositor, 1 Manutenção), cada uma com acção, e
+   uma com foto. */
+await pg.evaluate(async () => {
+  const it = ITEMS.map(x => Object.assign({}, x));
+  const mal = { 1: 1, 3: 1, 5: 1, 7: 0, 8: 0, 11: 1, 19: 0 };
+  const sc = it.map(x => x.n in mal ? mal[x.n] : 2);
+  const acoes = Object.keys(mal).map((n, k) => ({ id: k + 1, r: it.find(x => x.n === +n).r, item: +n,
+    texto: "Acção da pergunta " + n, prazo: "2026-12-0" + (k + 1), estado: "aberta" }));
+  localStorage.setItem("audits", JSON.stringify([{ id: 7, service: "Loja A", date: "2026-11-18", verif: "Rui",
+    scores: sc, raw: it.map(() => 1), tgts: it.map(x => x.tp === "amostra" ? 10 : null), items: it,
+    notas: it.map(x => x.n in mal ? "Visto na pergunta " + x.n : ""), acoes, presentes: { U: "Ana", P: "Bruno" } }]));
+  const c = document.createElement("canvas"); c.width = 320; c.height = 240;
+  c.getContext("2d").fillRect(0, 0, 320, 240);
+  await fotosIDB("readwrite", st => st.put(c.toDataURL("image/jpeg", .7), "7#6"));
+});
+await pg.reload();
+let r = await pdfDaApp(7);
+check(r.paginas === 3, "o PDF da maqueta devia ter 3 folhas (tem " + r.paginas + "): " + r.blocos.join(" || "));
+check(r.onde.length === r.blocos.length, "nenhum bloco devia ser cortado entre folhas (" + r.onde.length + " imagens para " + r.blocos.length + " blocos)");
+check(/pdf-folha/.test(r.blocos[0]) && r.onde[0] === 1, "o resumo vai na folha 1");
+check(r.onde[1] === 2 && /Grelha de verificação/.test(r.blocos[1]) && /Utilizadores/.test(r.blocos[1]),
+  "a grelha começa na folha 2, com o grupo dos Utilizadores: " + r.blocos[1]);
+const ordem = r.blocos.slice(1).map(x => (/(Utilizadores|Picking|Reposição|Utilizador e Repositor|Manutenção)/.exec(x) || [])[1]).filter((x, k, l) => x && x !== l[k - 1]);
+check(JSON.stringify(ordem) === JSON.stringify(["Utilizadores", "Picking", "Reposição", "Utilizador e Repositor", "Manutenção"]),
+  "os grupos pela ordem pedida: " + ordem.join(", "));
+check(r.textos.includes("Folha 3 de 3") && r.textos.includes("Folha 1 de 3"), "cada folha tem «Folha X de Y»: " + r.textos.join(" | "));
+check(r.vazia, "a vista do PDF fica vazia depois de o criar");
 
 /* ---- 3. Tudo Excelente: a grelha diz isso, sem linhas. ---- */
 await carregar(0, SC.map(() => 2));
