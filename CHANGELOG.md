@@ -43,6 +43,17 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
   (o ficheiro de teste aberto por `file://` cria o PDF). Actualizados: rascunho, evidências, terreno e as páginas e fotos
   do PDF.
 
+### Segurança (ficheiro de teste para o PC)
+
+Acrescentado depois da publicação da 4.8.0, só no ficheiro de teste: a app publicada não muda.
+
+- **O ficheiro de teste avisa e apaga** ([SECURITY.md](SECURITY.md), ponto 30): o aviso amarelo diz para testar com
+  dados de exemplo — aberto do disco, o que se grava fica ao alcance de outros HTML abertos do disco — e o botão
+  **Apagar dados de teste** apaga as auditorias, as fotos e as definições do ficheiro de teste.
+- **Só bibliotecas verificadas** (ponto 31): `scripts/teste-pc.mjs` recusa gerar o ficheiro se o SHA-384 do
+  html2canvas, do jsPDF ou do SheetJS não for o `integrity` do `index.html`. `tests/pdf-libs.test.js` fixa as duas
+  bibliotecas do PDF, como `tests/sheetjs.test.js` já fazia ao SheetJS; `tests/teste-pc.test.js` testa o script.
+
 ### Documentação
 
 Acrescentada depois da publicação da 4.8.0, sem mudanças no código da app: o guia novo chega à app (*Config → Ajuda*)

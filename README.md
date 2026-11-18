@@ -636,6 +636,13 @@ manifesto nem service worker, com «[TESTE]» no título e um aviso no topo. Abr
 com duplo clique. Os dados de um ficheiro aberto do disco ficam à parte dos de
 `qzte.github.io`. Não é publicado nem vai para o repositório.
 
+O script só embute cada biblioteca se o SHA-384 for o `integrity` declarado no
+`index.html` (o que o browser verifica na app publicada); se não for, sai com
+erro e não gera o ficheiro. **Teste com dados de exemplo:** o browser guarda os
+dados de um ficheiro aberto do disco num espaço partilhado com todos os HTML
+abertos do disco. No fim, carregue em **Apagar dados de teste**, no aviso
+amarelo ([SECURITY.md](SECURITY.md), pontos 30 e 31).
+
 ## Auditar no telemóvel, finalizar no PC (3.25.0)
 
 > **Desde 4.8.0 este é o caminho alternativo**, para quando não dá para acabar a
