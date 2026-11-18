@@ -3501,15 +3501,19 @@ function renderPosAuditoria(a){
     box.innerHTML=`<h3 style="margin-bottom:4px">Depois da auditoria</h3>
       <p style="font-size:.78rem;color:var(--muted)">Por finalizar. Depois de finalizada: PDF, envio ao serviço e cópia de segurança.</p>
       <ol class="passos">
-        <li class="${pc?"feito":""}"><div><b>Enviar para o PC</b><br>
-          <small>${pc?ok("Enviada "+quando(pc)):"Só esta auditoria, com as fotos. Abre o menu de partilha: envie-a para o seu email. No PC, abra-a em Histórico → Importar ficheiro."}</small></div>
-          <button class="btn small ${pc?"ghost":""}" id="pa-pc">Enviar para o PC</button></li>
         <li><div><b>Finalizar</b><br>
-          <small>Complete o plano de acção e, em <i>Editar auditoria</i> (sem código enquanto está por finalizar), a observação, as notas e as fotos. Depois, carregue em Finalizar.</small></div>
-          <button class="btn small ghost" id="pa-fim">Finalizar auditoria</button></li>
+          <small>Com tudo completo: acção com prazo e foto ou nota em cada pergunta a melhorar. Falta alguma coisa? Complete em <i>Editar auditoria</i> (sem código enquanto está por finalizar).</small></div>
+          <button class="btn small" id="pa-fim">Finalizar auditoria</button></li>
+        <li class="${pc?"feito":""}"><div><b>Não deu para acabar aqui?</b><br>
+          <small>${pc?ok("Enviada para o PC "+quando(pc)):"Envie-a para o PC, só esta auditoria, com as fotos: abre o menu de partilha, mande-a para o seu email, e no PC abra-a em Histórico → Importar ficheiro."}</small></div>
+          <button class="btn small ghost" id="pa-pc">Enviar para o PC</button></li>
       </ol>${rodape}`;
-    document.getElementById("pa-pc").onclick=e=>ocupado(e.currentTarget,"A preparar o ficheiro…",()=>enviarParaPC(a));
-    document.getElementById("pa-fim").onclick=()=>finalizarAuditoria(a.id);
+    const paraPC=btn=>ocupado(btn,"A preparar o ficheiro…",()=>enviarParaPC(a));
+    document.getElementById("pa-pc").onclick=e=>paraPC(e.currentTarget);
+    document.getElementById("pa-fim").onclick=async e=>{
+      const btn=e.currentTarget;
+      if(await finalizarAuditoria(a.id)==="pc")paraPC(btn);
+    };
     return;
   }
   const st=estadoPassos(a,backupInfo());
@@ -3763,8 +3767,46 @@ async function mostrarLimpeza(){
     mostrarLimpeza();mostrarArmaz();
   };
 }
-function finalizarAuditoria(id){
+/* v4.8.0: o que falta para finalizar. Cada pergunta Mau ou Com oportunidade
+   precisa de uma acção desta auditoria ligada a ela, com prazo, e de foto ou
+   nota. `comFoto`: Set dos índices das perguntas com foto gravada. Devolve só
+   as perguntas a que falta alguma coisa. */
+function faltasParaFinalizar(a,comFoto){
+  const IT=itemsOf(a),notas=Array.isArray(a.notas)?a.notas:[],acoes=Array.isArray(a.acoes)?a.acoes:[];
+  const fotos=comFoto&&typeof comFoto.has==="function"?comFoto:new Set();
+  const out=[];
+  IT.forEach((it,i)=>{
+    const s=a.scores[i];
+    if(s!==0&&s!==1)return;
+    const dela=acoes.filter(ac=>ac&&ac.item===it.n);
+    const faltas=[];
+    if(!dela.length)faltas.push("sem acção");
+    else if(!dela.some(ac=>ac.prazo))faltas.push("acção sem prazo");
+    if(!fotos.has(i)&&!notas[i])faltas.push("sem foto nem nota");
+    if(faltas.length)out.push({n:it.n,t:it.t,faltas});
+  });
+  return out;
+}
+/* v4.8.0: antes de finalizar, verifica o que falta (faltasParaFinalizar). Com
+   faltas, mostra-as e oferece completar já (editar, sem código enquanto está
+   por finalizar) ou enviar para o PC; devolve "pc" para quem chama tratar do
+   envio. Sem faltas, pede confirmação. */
+async function finalizarAuditoria(id){
   const a=audits.find(x=>x.id===id);if(!a)return;
+  let fotos;
+  try{fotos=await carregarEvidAudit(id);}catch(e){fotos=new Map();}
+  const faltas=faltasParaFinalizar(a,new Set(fotos.keys()));
+  if(faltas.length){
+    const v=await caixa({titulo:"Falta completar",
+      texto:"Para finalizar, cada pergunta a melhorar precisa de acção com prazo e de foto ou nota.\n\n"+
+        faltas.map(f=>"Nº "+f.n+" "+f.t+": "+f.faltas.join(", ")).join("\n"),
+      botoes:[{v:null,label:"Cancelar",cls:"ghost"},{v:"pc",label:"Enviar para o PC",cls:"ghost"},
+        {v:"ed",label:"Completar agora",def:true}]});
+    if(v==="ed")editAudit(a);
+    return v==="pc"?"pc":undefined;
+  }
+  if(!(await confirmar("Finalizar a auditoria a "+a.service+" de "+dataCurta(a.date)+
+    "? Depois de finalizada, editar pede o código de acesso.",{titulo:"Finalizar auditoria",sim:"Finalizar"})))return;
   const antes=Object.assign({},a);
   delete a.fase;a.finalizada=new Date().toISOString();a.finalizadaPor=idDispositivo();tocar(a);
   if(!save("audits",audits)){Object.keys(a).forEach(k=>delete a[k]);Object.assign(a,antes);return;}

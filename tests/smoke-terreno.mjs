@@ -81,7 +81,12 @@ await escolherServico(pg);   /* 4.2.6: a auditoria nova começa sem serviço */
 check(!(await pg.locator("#acoes-abertas").isHidden()), "o formulário mostra a acção em aberto do serviço");
 await pg.locator("#acoes-abertas [data-acao-feita]").click();
 check(await pg.evaluate(() => audits[0].acoes[0].estado) === "feita", "a acção fica feita no terreno");
-for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
+/* Todas Excelentes (4.8.0: nas escalas e nos elementos, o máximo; 0 seria Mau),
+   menos a pergunta 1. */
+for (const el of await pg.locator("[data-pick]").all()) {
+  const max = Number(await el.getAttribute("max"));
+  await el.fill(max <= 4 ? String(max) : "0");
+}
 await pg.locator("[data-pick='0']").fill("9");  /* contagem: 9 a mais é Mau */
 await pg.locator("[data-nota='0']").fill("caixas no corredor");
 await pg.locator("[data-efile='0']").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: png });
@@ -91,7 +96,7 @@ await semDialogo(pg);
 const nova = await pg.evaluate(() => audits[audits.length - 1]);
 check(nova.fase === "terreno" && !!nova.alterada, "a auditoria nova fica por finalizar, com a data de alteração");
 let p = await passos(pg);
-check(p.length === 2 && /Enviar para o PC/.test(p[0]) && /Finalizar/.test(p[1]), "por finalizar, os passos são enviar e finalizar: " + p.join(" | "));
+check(p.length === 2 && /Finalizar/.test(p[0]) && /Enviar para o PC/.test(p[1]), "por finalizar, os passos são finalizar e, em alternativa, enviar para o PC (4.8.0): " + p.join(" | "));
 check(await pg.locator("#pa-pdf").count() === 0, "o PDF só depois de finalizada");
 check(await esperar(pg, async () => (await chavesFotos(pg)).includes(nova.id + "#0")), "a foto fica gravada com a auditoria");
 await pg.locator("#pa-pc").click();
@@ -104,7 +109,7 @@ check(fich.tipo === "auditoria" && fich.audits.length === 1 && fich.audits[0].id
 check(fich.fotos.length === 1 && fich.fotos[0].k === nova.id + "#0", "com a foto dela: " + JSON.stringify(fich.fotos.map(f => f.k)));
 check(fich.acoesFeitas.length === 1 && fich.acoesFeitas[0].texto === "Retirar caixas", "e a acção fechada no terreno");
 await pg.waitForFunction(() => /✓ Enviada/.test(document.querySelector("#pos-aud").textContent), null, { timeout: 5000 }).catch(() => {});
-check(/✓ Enviada/.test((await passos(pg))[0]), "o passo de enviar fica feito");
+check(/✓ Enviada/.test((await passos(pg))[1]), "o passo de enviar fica feito");
 /* 3.27.0: tudo o que mudou no telemóvel foi para o PC (a auditoria nova e a
    acção fechada na anterior): o envio conta como cópia de segurança. */
 const bkTel = await pg.evaluate(() => JSON.parse(localStorage.getItem("backup")));
@@ -134,7 +139,7 @@ check(estado.acao === "feita", "a acção fechada no terreno fica fechada no PC"
 check(estado.ult.fase === "terreno" && estado.ult.envios && estado.ult.envios.pc, "por finalizar, com o envio registado");
 check(await esperar(pg, async () => await pg.locator("#evid img").count() === 1), "a foto de evidência veio com ela");
 p = await passos(pg);
-check(/✓ Enviada/.test(p[0]) && /Finalizar/.test(p[1]), "no PC, o cartão mostra o envio feito e o passo de finalizar: " + p.join(" | "));
+check(/Finalizar/.test(p[0]) && /✓ Enviada/.test(p[1]), "no PC, o cartão mostra o passo de finalizar e o envio feito: " + p.join(" | "));
 
 /* Completar: editar sem código e finalizar (4.7.0: sem recomendações). */
 const antesPin = pc.vistos.length;
@@ -144,7 +149,26 @@ check(!pc.vistos.slice(antesPin).some(d => d.temCampo), "sem pedir o código");
 await pg.locator("#f-note").fill("completada no PC");
 await escolherServico(pg); await pg.locator("#btn-save").click();
 await semDialogo(pg);
+/* 4.8.0: a pergunta Mau tem foto e nota, mas não tem acção — finalizar mostra o
+   que falta, e «Completar agora» (o botão por omissão) abre a edição sem código. */
+const antesFalta = pc.vistos.length;
 await pg.locator("#pa-fim").click();
+await semDialogo(pg);
+const falta = pc.vistos.slice(antesFalta).find(d => d.titulo === "Falta completar");
+check(falta && /Nº 1 .*: sem acção$/.test(falta.texto) && !/Nº \d+ [^\n]*sem foto nem nota/.test(falta.texto) && !/Nº 1[0-9]/.test(falta.texto),
+  "finalizar sem acção mostra o que falta: " + (falta && falta.texto));
+check(await pg.evaluate(() => audits[audits.length - 1].fase) === "terreno", "com faltas, não finaliza");
+check(!(await pg.locator("#edit-banner").isHidden()), "«Completar agora» abre a edição");
+check(!pc.vistos.slice(antesFalta).some(d => d.temCampo), "sem pedir o código");
+await pg.locator("[data-acao='0']").fill("Retirar as caixas do corredor");
+await pg.locator("[data-prazo='0']").fill("2026-12-01");
+await escolherServico(pg); await pg.locator("#btn-save").click();
+await semDialogo(pg);
+const antesConf = pc.vistos.length;
+await pg.locator("#pa-fim").click();
+await semDialogo(pg);
+check(pc.vistos.slice(antesConf).some(d => d.titulo === "Finalizar auditoria"), "completa, finalizar pede confirmação");
+await pg.waitForFunction(() => !!document.querySelector("#pa-pdf"), null, { timeout: 5000 }).catch(() => {});
 p = await passos(pg);
 check(p.length === 3 && /PDF do relatório/.test(p[0]) && /Enviar/.test(p[1]) && /Cópia de segurança/.test(p[2]),
   "finalizada, o cartão passa ao PDF, ao envio e à cópia: " + p.join(" | "));
