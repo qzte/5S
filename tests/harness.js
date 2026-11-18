@@ -54,7 +54,7 @@ function extractConst(src, name) {
 const BASE_CONSTS = ["ESC_MAP", "esc", "clean", "PILLARS", "RESP_BASE", "RESP",
   "isResp", "respBase", "respKeys", "WEIGHTS", "W_MAX", "wOf", "total"];
 /* v4.8.0: sanitizePresentes é usada por sanitizeAudit e pelo rascunho. */
-const BASE_FNS = ["pctOf", "sanitizePresentes"];
+const BASE_FNS = ["pctOf", "sanitizePresentes", "acaoLimpa"];
 
 function buildContext(fnNames, constNames) {
   const parts = [];

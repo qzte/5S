@@ -251,6 +251,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 /* v3.14.0: evidência por pergunta. */
 .evid{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 .evid input{margin-bottom:6px}
+/* v4.8.0: acção (larga) e prazo (estreito) na mesma linha. */
+.evid-acao>[data-acao]{flex:2}.evid-acao>[data-prazo]{flex:1;min-width:0}
 .evid-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .evid-acts .btn{margin:0}
 .evid-foto img{display:block;width:88px;height:66px;object-fit:cover;border-radius:6px}
@@ -1263,18 +1265,25 @@ function inteiroOuNull(v,min){
    há nada que valha a pena guardar — nenhuma resposta e nenhum nome ou
    observação escritos (o serviço e a data vêm sempre preenchidos de origem e
    não contam). */
-function montarRascunho(campos,IT,raw,tgts,agora,notas){
+function montarRascunho(campos,IT,raw,tgts,agora,notas,acoes){
   const c=campos||{};
   const r=IT.map((_,i)=>inteiroOuNull(raw&&raw[i],0));
   const t=IT.map((_,i)=>inteiroOuNull(tgts&&tgts[i],1));
   /* v3.14.0: a nota de evidência de cada pergunta. */
   const n=IT.map((_,i)=>clean(notas&&notas[i],300));
+  /* v4.8.0: a acção e o prazo escritos em cada pergunta. */
+  const ac=IT.map((_,i)=>acaoLimpa(acoes&&acoes[i]));
   const cab={pick:clean(c.pick,120),repo:clean(c.repo,120),verif:clean(c.verif,120),note:clean(c.note,200),
     presentes:sanitizePresentes(c.presentes)};
-  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&!cab.presentes&&r.every(v=>v==null)&&n.every(v=>!v))return null;
+  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&!cab.presentes&&r.every(v=>v==null)&&n.every(v=>!v)&&ac.every(a=>!a.texto&&!a.prazo))return null;
   return Object.assign({v:1,savedAt:agora,service:clean(c.service,200),
     date:/^\d{4}-\d{2}-\d{2}$/.test(c.date)?c.date:""},cab,
-    {sig:IT.map(assinItem),raw:r,tgts:t,notas:n});
+    {sig:IT.map(assinItem),raw:r,tgts:t,notas:n,acoes:ac});
+}
+/* {texto, prazo} de uma acção escrita no formulário, limpa (v4.8.0). */
+function acaoLimpa(x){
+  const p=x&&x.prazo;
+  return{texto:clean(x&&x.texto,300),prazo:typeof p==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(p)?p:""};
 }
 /* Lê um rascunho guardado e alinha-o com as perguntas `IT` actuais. O que vem
    do localStorage é validado na forma, como o resto (ver loadArr). `perdidas`
@@ -1283,8 +1292,9 @@ function lerRascunho(x,IT){
   if(!x||typeof x!=="object"||Array.isArray(x)||x.v!==1)return null;
   if(!Array.isArray(x.sig)||!Array.isArray(x.raw)||!Array.isArray(x.tgts))return null;
   const usados=new Set();
-  const raw=[],tgts=[],notas=[];
+  const raw=[],tgts=[],notas=[],acoes=[];
   const ns=Array.isArray(x.notas)?x.notas:[];
+  const acs=Array.isArray(x.acoes)?x.acoes:[];
   IT.forEach((it,i)=>{
     const s=assinItem(it);
     let j=-1;
@@ -1293,6 +1303,7 @@ function lerRascunho(x,IT){
     raw[i]=j>=0?inteiroOuNull(x.raw[j],0):null;
     tgts[i]=j>=0?inteiroOuNull(x.tgts[j],1):null;
     notas[i]=j>=0?clean(ns[j],300):"";
+    acoes[i]=acaoLimpa(j>=0?acs[j]:null);
   });
   let perdidas=0;
   x.raw.forEach((v,k)=>{if(!usados.has(k)&&inteiroOuNull(v,0)!=null)perdidas++;});
@@ -1300,7 +1311,7 @@ function lerRascunho(x,IT){
     service:clean(x.service,200),
     date:typeof x.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)?x.date:"",
     pick:clean(x.pick,120),repo:clean(x.repo,120),verif:clean(x.verif,120),note:clean(x.note,200),
-    presentes:sanitizePresentes(x.presentes),raw,tgts,notas,perdidas};
+    presentes:sanitizePresentes(x.presentes),raw,tgts,notas,acoes,perdidas};
 }
 
 /* ---------- Lembrete de cópia de segurança (v3.8.0) ----------
@@ -1629,7 +1640,11 @@ function renderForm(){
         style="margin:8px 0 0" data-pick="${i}" aria-label="Pergunta ${esc(it.n)}: resposta (0 a ${esc(it.max)})">`}
       <div class="prev hidden" data-prev="${i}"></div>
       <div class="evid hidden" data-evid="${i}">
-        <input data-nota="${i}" maxlength="300" placeholder="Nota: o que se viu (opcional)" aria-label="Pergunta ${esc(it.n)}: nota de evidência">
+        <input data-nota="${i}" maxlength="300" placeholder="Nota: o que se viu" aria-label="Pergunta ${esc(it.n)}: nota de evidência">
+        <div class="row evid-acao">
+          <input data-acao="${i}" maxlength="300" placeholder="Acção: o que fazer" aria-label="Pergunta ${esc(it.n)}: acção">
+          <input type="date" data-prazo="${i}" aria-label="Pergunta ${esc(it.n)}: prazo da acção" title="Prazo da acção">
+        </div>
         <div class="evid-acts">
           <span class="evid-foto" data-efoto="${i}"></span>
           <input type="file" accept="image/*" capture="environment" data-efile="${i}" hidden>
@@ -1656,6 +1671,10 @@ function renderForm(){
      responsável, sem reescrever as auditorias todas nem o checklist actual. */
   /* v3.14.0: evidência por pergunta — nota e foto. */
   box.querySelectorAll("[data-nota]").forEach(el=>el.oninput=()=>{notaVals[+el.dataset.nota]=el.value;});
+  /* v4.8.0: a acção e o prazo de cada pergunta a melhorar. */
+  const acaoDe=i=>acaoVals[i]||(acaoVals[i]={texto:"",prazo:""});
+  box.querySelectorAll("[data-acao]").forEach(el=>el.oninput=()=>{acaoDe(+el.dataset.acao).texto=el.value;});
+  box.querySelectorAll("[data-prazo]").forEach(el=>el.oninput=el.onchange=()=>{acaoDe(+el.dataset.prazo).prazo=el.value;});
   box.querySelectorAll("[data-eadd]").forEach(b=>b.onclick=()=>
     box.querySelector("[data-efile='"+b.dataset.eadd+"']").click());
   box.querySelectorAll("[data-efile]").forEach(inp=>inp.onchange=()=>{
@@ -1768,6 +1787,8 @@ function preencherForm(a){
     const el=document.querySelector("[data-nota='"+i+"']");
     if(el)el.value=t;
   });
+  /* v4.8.0: a acção de cada pergunta é a primeira do plano ligada a ela. */
+  porAcoesForm(fitems().map(it=>acaoDoItem(a.acoes,it.n)));
   fitems().forEach((it,i)=>{
     const tEl=document.querySelector("[data-tgt='"+i+"']");
     const tgt=a.tgts&&a.tgts[i]!=null?a.tgts[i]:null;
@@ -1810,6 +1831,18 @@ let rawVals={};let tgtVals={};
    assíncrona — a gravação espera por ela e junta tudo, para que gravar logo a
    seguir a abrir não apague o que ainda estava a chegar. */
 let notaVals={},fotosForm=new Map(),fotosRemovidas=new Set(),evidCarga=null;
+/* v4.8.0: `acaoVals`: i → {texto, prazo}, a acção escrita em cada pergunta. */
+let acaoVals={};
+/* Põe no formulário as acções (i → {texto, prazo}) e o estado que as guarda. */
+function porAcoesForm(lista){
+  acaoVals={};
+  (lista||[]).forEach((a,i)=>{
+    if(!a||!a.texto&&!a.prazo)return;
+    acaoVals[i]={texto:a.texto,prazo:a.prazo};
+    const t=document.querySelector("[data-acao='"+i+"']"),p=document.querySelector("[data-prazo='"+i+"']");
+    if(t)t.value=a.texto;if(p)p.value=a.prazo;
+  });
+}
 const RASC_FOTO="rascunho#";
 function mostrarEvid(i){
   const box=document.querySelector("[data-evid='"+i+"']");
@@ -1910,7 +1943,7 @@ function endEdit(){editId=null;FORM_ITEMS=null;editSujo=false;}
    depois deixaria um travessão sobre um formulário cheio. */
 function refreshForm(){
   answers={};rawVals={};tgtVals={};
-  notaVals={};fotosForm=new Map();fotosRemovidas=new Set();evidCarga=null;evidToken++;
+  notaVals={};acaoVals={};fotosForm=new Map();fotosRemovidas=new Set();evidCarga=null;evidToken++;
   document.getElementById("f-live").value="—";
   /* Os campos do cabeçalho também são limpos (v3.3.0): até aqui sobreviviam à
      gravação, e a observação da auditoria anterior aparecia já escrita na
@@ -1980,7 +2013,7 @@ function guardarRascunho(){
   const raw=IT.map((_,i)=>{const el=document.querySelector("[data-pick='"+i+"']");return el?el.value:null;});
   const d=montarRascunho({service:val("f-service"),date:val("f-date"),presentes:lerPresentesForm(),
     verif:val("f-verif"),note:val("f-note")},IT,raw,IT.map((_,i)=>tgtOf(i)),
-    new Date().toISOString(),IT.map((_,i)=>notaVals[i]||""));
+    new Date().toISOString(),IT.map((_,i)=>notaVals[i]||""),IT.map((_,i)=>acaoVals[i]));
   if(!d&&fotosForm.size)limparFotosRascunho();
   try{
     if(d)localStorage.setItem(RASCUNHO_KEY,JSON.stringify(d));
@@ -2037,6 +2070,7 @@ function aplicarRascunho(d){
     if(tEl&&d.tgts[i]!=null)el.max=d.tgts[i];
     if(d.raw[i]!=null){el.value=d.raw[i];pick(i,el);}
   });
+  porAcoesForm(d.acoes);
   atualizarLive();
 }
 /* v3.22.0: outra auditoria ao mesmo serviço no mesmo dia (sem contar a que se
@@ -2061,6 +2095,9 @@ document.getElementById("btn-save").onclick=async()=>{
      guardar. */
   if(!/^\d{4}-\d{2}-\d{2}$/.test(dados.date)){aviso("Indique a data da auditoria.");
     document.getElementById("f-date").focus();return;}
+  /* v4.8.0: as acções escritas nas perguntas entram no plano de acção. */
+  const emEd=editId!=null?audits.find(x=>x.id===editId):null;
+  dados.acoes=acoesDoFormulario(emEd&&emEd.acoes||[],IT,dados.scores,acaoVals,dados.date);
   const rep=auditoriaRepetida(audits,dados.service,dados.date,editId);
   if(rep&&!(await confirmar("Já existe uma auditoria a "+dados.service+" em "+dataCurta(dados.date)+" ("+total(rep)+
     "/100). Gravar esta também? Se é a mesma auditoria, cancele e edite a que já está no Histórico.",
@@ -2306,6 +2343,35 @@ function sanitizeAcoes(x){
   let prox=limpas.reduce((m,a)=>Math.max(m,a.id),0)+1;
   limpas.forEach(a=>{if(!a.id||vistos.has(a.id))a.id=prox++;vistos.add(a.id);});
   return limpas;
+}
+/* v4.8.0: as acções escritas dentro das perguntas passam para o plano de acção
+   da auditoria. `antes`: as acções que a auditoria já tem (vazio numa nova).
+   Por pergunta Mau ou Oportunidade com texto, escreve por cima da PRIMEIRA
+   acção ligada a ela (`item`), ou acrescenta uma, com o responsável da
+   pergunta; sem texto, tira essa primeira se estiver aberta. Numa pergunta
+   Excelente saem as acções abertas ligadas a ela (as feitas ficam). As acções
+   sem pergunta não mudam. `vals`: índice → {texto, prazo}. */
+function acoesDoFormulario(antes,IT,scores,vals,data){
+  let lista=(Array.isArray(antes)?antes:[]).filter(Boolean).map(x=>Object.assign({},x));
+  const v=vals||{};
+  (IT||[]).forEach((it,i)=>{
+    const n=it&&it.n;if(!n)return;
+    const s=scores&&scores[i];
+    if(s===0||s===1){
+      const {texto,prazo}=acaoLimpa(v[i]);
+      const k=lista.findIndex(a=>a.item===n);
+      if(texto){
+        if(k>=0)lista[k]=Object.assign(lista[k],{texto,prazo});
+        else lista.push({r:it.r,texto,prazo,estado:"aberta",criadaEm:data,item:n});
+      }else if(k>=0&&lista[k].estado!=="feita")lista.splice(k,1);
+    }else lista=lista.filter(a=>!(a.item===n&&a.estado!=="feita"));
+  });
+  return sanitizeAcoes(lista);
+}
+/* A acção que o formulário mostra numa pergunta, ao editar: a primeira ligada a ela. */
+function acaoDoItem(acoes,n){
+  const a=(Array.isArray(acoes)?acoes:[]).find(x=>x&&x.item===n);
+  return{texto:a&&a.texto||"",prazo:a&&a.prazo||""};
 }
 /* "feita", "atrasada" (prazo passado e ainda aberta) ou "aberta". */
 function estadoAcao(ac,hoje){

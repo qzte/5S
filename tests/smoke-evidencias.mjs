@@ -50,6 +50,9 @@ check(await pg.locator("[data-evid='0']").isHidden(), "sem resposta, não há ca
 await pg.locator("[data-pick='0']").fill("9");
 check(!(await pg.locator("[data-evid='0']").isHidden()), "em Mau, aparece o campo de evidência");
 await pg.locator("[data-nota='0']").fill("caixas vazias no corredor 3");
+/* v4.8.0: a acção e o prazo escrevem-se na própria pergunta. */
+await pg.locator("[data-acao='0']").fill("Retirar as caixas do corredor 3");
+await pg.locator("[data-prazo='0']").fill("2026-12-01");
 await pg.locator("[data-efile='0']").setInputFiles(imagem);
 check(await esperar(async () => await pg.locator("[data-efoto='0'] img").count() === 1), "a foto devia aparecer no formulário");
 check(await esperar(async () => (await chaves()).some(k => k.startsWith("rascunho#"))), "a foto devia ir para o rascunho no disco");
@@ -57,6 +60,8 @@ check(await esperar(async () => (await chaves()).some(k => k.startsWith("rascunh
 /* ---- 2. Recarregar: nota e foto voltam. ---- */
 await pg.reload();
 check(await pg.locator("[data-nota='0']").inputValue() === "caixas vazias no corredor 3", "a nota devia voltar com o rascunho");
+check(await pg.locator("[data-acao='0']").inputValue() === "Retirar as caixas do corredor 3" &&
+  await pg.locator("[data-prazo='0']").inputValue() === "2026-12-01", "a acção e o prazo deviam voltar com o rascunho");
 check(await esperar(async () => await pg.locator("[data-efoto='0'] img").count() === 1), "a foto devia voltar com o rascunho");
 
 /* ---- 3. Gravar: folha Evidências, fotos passam para a auditoria. ---- */
@@ -68,6 +73,11 @@ check((await pg.locator("#evid").textContent()).includes("caixas vazias no corre
 check(await esperar(async () => { const k = await chaves(); return k.includes(id + "#0") && !k.some(x => x.startsWith("rascunho#")); }),
   "a foto devia ficar em <id>#0 e sair do rascunho: " + (await chaves()).join(", "));
 check(await folhas() === 3, "a folha Evidências soma-se às 2 do relatório (sem recomendações, 4.6.2)");
+const acoes1 = await pg.evaluate(() => audits[0].acoes);
+check(acoes1.length === 1 && acoes1[0].texto === "Retirar as caixas do corredor 3" && acoes1[0].prazo === "2026-12-01" &&
+  acoes1[0].item === 1 && acoes1[0].estado === "aberta", "a acção da pergunta devia entrar no plano: " + JSON.stringify(acoes1));
+check(/Retirar as caixas do corredor 3[\s\S]*Pergunta nº 1/.test(await pg.locator("#plano").textContent()),
+  "o plano do relatório devia mostrar a acção, ligada à pergunta 1");
 
 /* Uma foto da recomendação ao responsável U, gravada antes de 4.7.0 (as
    recomendações saíram do relatório): tem de continuar na cópia de segurança. */
@@ -78,10 +88,15 @@ check(await esperar(async () => (await chaves()).includes(id + "|U")), "a foto a
 await pg.locator("#btn-edit").click();
 await semDialogo(pg);
 check(await pg.locator("[data-nota='0']").inputValue() === "caixas vazias no corredor 3", "em edição, a nota vem preenchida");
+check(await pg.locator("[data-acao='0']").inputValue() === "Retirar as caixas do corredor 3", "em edição, a acção vem preenchida");
+await pg.locator("[data-acao='0']").fill("Retirar e arrumar as caixas");
 check(await esperar(async () => await pg.locator("[data-efoto='0'] img").count() === 1), "em edição, a foto vem do disco");
 await pg.locator("[data-erm='0']").click();
 await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await esperar(async () => !(await chaves()).includes(id + "#0")), "remover e gravar devia apagar a foto de evidência");
+const acoes2 = await pg.evaluate(() => audits[0].acoes);
+check(acoes2.length === 1 && acoes2[0].id === acoes1[0].id && acoes2[0].texto === "Retirar e arrumar as caixas",
+  "editar a acção devia escrever por cima da mesma: " + JSON.stringify(acoes2));
 check(await pg.locator("#evid img").count() === 0 && (await pg.locator("#evid").textContent()).includes("corredor 3"),
   "o relatório fica com a nota, sem a foto");
 await pg.locator("#btn-edit").click();
