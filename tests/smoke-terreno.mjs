@@ -136,7 +136,7 @@ check(await esperar(pg, async () => await pg.locator("#evid img").count() === 1)
 p = await passos(pg);
 check(/✓ Enviada/.test(p[0]) && /Finalizar/.test(p[1]), "no PC, o cartão mostra o envio feito e o passo de finalizar: " + p.join(" | "));
 
-/* Completar: editar sem código, uma recomendação, e finalizar. */
+/* Completar: editar sem código e finalizar (4.7.0: sem recomendações). */
 const antesPin = pc.vistos.length;
 await pg.locator("#btn-edit").click();
 check(!(await pg.locator("#edit-banner").isHidden()), "por finalizar, edita-se sem código");
@@ -144,14 +144,13 @@ check(!pc.vistos.slice(antesPin).some(d => d.temCampo), "sem pedir o código");
 await pg.locator("#f-note").fill("completada no PC");
 await escolherServico(pg); await pg.locator("#btn-save").click();
 await semDialogo(pg);
-await pg.locator("[data-rec='U']").fill("Arrumar o corredor 3.");
 await pg.locator("#pa-fim").click();
 p = await passos(pg);
 check(p.length === 3 && /PDF do relatório/.test(p[0]) && /Enviar/.test(p[1]) && /Cópia de segurança/.test(p[2]),
   "finalizada, o cartão passa ao PDF, ao envio e à cópia: " + p.join(" | "));
 check(/✓ Finalizada/.test(await pg.locator("#pos-aud").textContent()), "e diz que foi finalizada");
 estado = await pg.evaluate(() => audits[audits.length - 1]);
-check(!estado.fase && estado.finalizada && estado.note === "completada no PC" && estado.recs.U === "Arrumar o corredor 3.",
+check(!estado.fase && estado.finalizada && estado.note === "completada no PC",
   "finalizada, com o que se acrescentou no PC");
 await pg.locator("#btn-back").click();
 check(!/por finalizar/.test(await pg.locator("#hist-list .card").first().textContent()), "o Histórico deixa de dizer por finalizar");

@@ -81,7 +81,7 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
   const [dp] = await Promise.all([pg.waitForEvent("download", { timeout: 30000 }), pg.locator("#pa-pdf").click()]);
   check(dp.suggestedFilename() === "Auditoria 5S - Loja A - 2026-10-20.pdf", "o nome do PDF: " + dp.suggestedFilename());
   const pdf = fs.readFileSync(await dp.path());
-  check(pdf.subarray(0, 5).toString() === "%PDF-" && paginasPdf(pdf) >= 3 && pdf.length > 50000,
+  check(pdf.subarray(0, 5).toString() === "%PDF-" && paginasPdf(pdf) >= 2 && pdf.length > 50000,
     `o PDF devia ser um PDF com as folhas do relatório (${paginasPdf(pdf)} páginas, ${pdf.length} bytes)`);
   await pg.waitForFunction(() => /Descarregado/.test(document.querySelector("#pos-aud").textContent));
   check(!!(await auditoria(pg, 2)).envios.pdf, "o PDF fica registado na auditoria");

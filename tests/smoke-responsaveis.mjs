@@ -72,8 +72,8 @@ check(guardados[5].k === "L" && guardados[5].n === "Logística",
 await pg.locator("[data-v=audit]").click();
 for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
 await escolherServico(pg); await pg.locator("#btn-save").click();
-check(await pg.locator("[data-rec]").count() === 6,
-  "o relatório devia ter um bloco de recomendações por responsável");
+/* 4.7.0: o relatório deixou de ter um bloco de recomendações por responsável;
+   o responsável novo chega ao radar quando tiver perguntas (mais abaixo). */
 await pg.locator("#btn-edit").click();
 await semDialogo(pg);
 const opcoes = await pg.locator("[data-edresp='0'] option").allTextContents();

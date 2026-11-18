@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.6.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.6.4** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.7.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -52,7 +52,7 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 | **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço; edição (sob PIN) e remoção (com *Desfazer*). Diz se cada auditoria já foi **enviada** ou está **por enviar** (3.23.0). |
 | **Análise** | Os [indicadores do ano](#indicadores-do-ano-400): média total e serviços abaixo dela, objectivo anual e média semanal, internos e externos auditados (4.0.0). Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. E o **relatório mensal**, de todos os serviços, para imprimir em PDF (3.20.0). |
 | **Acções** | O plano de acção de todos os serviços: resumo, filtros por estado, responsável e serviço, as em atraso primeiro; marcar como feita e abrir o relatório de origem (3.21.0). |
-| **Relatório** | Folhas imprimíveis: resumo com radares e histórico do serviço, grelha completa dos itens, e recomendações por responsável com foto e texto — só as que têm texto ou foto, e a folha só sai se houver alguma (4.6.2). Mais as **Evidências** e o **plano de acção**, cada uma numa folha, quando os há. No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior, e no topo o cartão [Depois da auditoria](#depois-da-auditoria-3230): cópia de segurança pelo menu de partilha, **PDF** criado pela app (com o nome do serviço e da data) e envio **por email ou para o Teams** (3.23.0, 3.24.0). |
+| **Relatório** | Folhas imprimíveis: resumo com radares e histórico do serviço; na segunda, a pontuação, a grelha só com as perguntas abaixo de Excelente e, a seguir, o **plano de acção** quando o há (se não couber, passa inteiro para a folha seguinte) (4.7.0). Mais as **Evidências**, numa folha, quando as há. As recomendações por responsável saíram do relatório em 4.7.0 (as já escritas ficam gravadas e nas cópias). No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior, e no topo o cartão [Depois da auditoria](#depois-da-auditoria-3230): cópia de segurança pelo menu de partilha, **PDF** criado pela app (com o nome do serviço e da data) e envio **por email ou para o Teams** (3.23.0, 3.24.0). |
 | **Configuração** | Serviços e o **tipo** de cada um (interno ou externo), o **objectivo anual** de auditorias, responsáveis, cópia de segurança (com ou sem fotos, descarregada ou partilhada) e importação de `.json` ou `.txt`, exportação e importação de Excel, espaço ocupado e estado do armazenamento, **código de acesso** próprio, editor de perguntas e a pasta do **painel e-ink**. |
 
 Segue o **modo escuro** do sistema no ecrã (a impressão é sempre clara), e todas
@@ -230,8 +230,8 @@ perguntas originais.
 
 ## Responsáveis
 
-Quem responde por cada pergunta. São os eixos do radar *Por responsável* e os
-blocos de recomendações do relatório, e editam-se em *Configuração →
+Quem responde por cada pergunta. São os eixos do radar *Por responsável* (até
+4.6.x, também os blocos de recomendações do relatório), e editam-se em *Configuração →
 Responsáveis* (3.5.0). De origem são cinco: Utilizadores, Manutenção, Reposição,
 Utilizador e Repositor, e Picking.
 

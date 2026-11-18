@@ -51,8 +51,9 @@ await escolherServico(pg); await pg.locator("#btn-save").click();
 const notaOriginal = await pg.locator("#view-report .big").textContent();
 check(/^\d+\/100$/.test(notaOriginal), "o relatório devia mostrar a nota sobre 100");
 
-/* Uma recomendação, para confirmar que a edição não a leva. */
-await pg.locator("[data-rec='U']").fill("arrumar o corredor 3");
+/* Uma recomendação — gravada antes de 4.7.0, que as tirou do relatório —, para
+   confirmar que a edição não a leva. */
+await pg.evaluate(() => { const a = audits.find(x => x.id === relatorioId); a.recs = { U: "arrumar o corredor 3" }; save("audits", audits); });
 const idOriginal = (await audit0()).id;
 
 /* ---- 2. Editar a partir do relatório (pede o código de acesso). ---- */

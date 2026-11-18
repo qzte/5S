@@ -49,10 +49,15 @@ await pg.evaluate(() => {
 await pg.reload();
 check(!(await visivel("#aviso-backup")), "com a cópia em dia e sem fotos, não há aviso");
 
-/* ---- 1. Uma foto nova: aviso das fotos, e o botão exporta com fotos. ---- */
-await pg.locator("[data-v=history]").click();
-await pg.locator("[data-rep='0']").click();
-await pg.locator("[data-file='U']").setInputFiles(imagem);
+/* ---- 1. Uma foto nova: aviso das fotos, e o botão exporta com fotos.
+   4.7.0: a foto é de evidência, numa auditoria nova (as recomendações, que
+   também tinham foto, saíram do relatório). ---- */
+await pg.locator("[data-v=audit]").click();
+await pg.locator("[data-pick='0']").fill("9");
+await pg.locator("[data-efile='0']").setInputFiles(imagem);
+await esperar(async () => await pg.locator("[data-efoto='0'] img").count() === 1);
+for (const el of await pg.locator("[data-pick]").all()) if (!(await el.inputValue())) await el.fill("0");
+await escolherServico(pg); await pg.locator("#btn-save").click();
 check(await esperar(async () => (await backup()).pendFotos === 1), "a foto devia contar para a cópia: " + JSON.stringify(await backup()));
 check(await esperar(() => visivel("#aviso-backup")), "uma foto nunca copiada devia fazer aparecer o aviso");
 check(/^Há 1 foto .* nunca entrou numa cópia/.test(await aviso()), "o aviso devia falar da foto: " + await aviso());

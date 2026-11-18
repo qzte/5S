@@ -10,7 +10,9 @@ const HTML = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 
 test("todo o <img src=\"${…}\"> interpola por esc()", () => {
   const todos = HTML.match(/<img src="\$\{[^}]*\}/g) || [];
-  assert.ok(todos.length >= 3, "esperavam-se as três imagens de fotos");
+  /* 4.7.0: duas — a evidência no formulário e no relatório (a das
+     recomendações saiu com elas). */
+  assert.ok(todos.length >= 2, "esperavam-se as duas imagens de fotos");
   const sem = todos.filter(m => !m.startsWith('<img src="${esc('));
   assert.deepStrictEqual(sem, [], "src sem esc(): " + sem.join(", "));
 });

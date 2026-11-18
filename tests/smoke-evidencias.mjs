@@ -69,9 +69,10 @@ check(await esperar(async () => { const k = await chaves(); return k.includes(id
   "a foto devia ficar em <id>#0 e sair do rascunho: " + (await chaves()).join(", "));
 check(await folhas() === 3, "a folha Evidências soma-se às 2 do relatório (sem recomendações, 4.6.2)");
 
-/* Uma foto também na recomendação ao responsável U, para a cópia de segurança. */
-await pg.locator("[data-file='U']").setInputFiles(imagem);
-check(await esperar(async () => (await chaves()).includes(id + "|U")), "a foto da recomendação devia ficar gravada");
+/* Uma foto da recomendação ao responsável U, gravada antes de 4.7.0 (as
+   recomendações saíram do relatório): tem de continuar na cópia de segurança. */
+await pg.evaluate(id => fotosIDB("readwrite", st => st.put("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", id + "|U")), id);
+check(await esperar(async () => (await chaves()).includes(id + "|U")), "a foto antiga da recomendação devia estar no disco");
 
 /* ---- 4. Edição: remover a foto, gravar; voltar a pô-la. ---- */
 await pg.locator("#btn-edit").click();
@@ -116,8 +117,8 @@ check(await esperar(async () => (await chaves()).length === 2, 8000), "importar 
 await semDialogo(pg);
 await pg.locator("[data-v=history]").click();
 await pg.locator("[data-rep='0']").click();
-check(await esperar(async () => await pg.locator("#evid img").count() === 1 && await pg.locator("[data-foto='U'] img").count() === 1),
-  "o relatório da auditoria importada devia ter as duas fotos");
+check(await esperar(async () => await pg.locator("#evid img").count() === 1),
+  "o relatório da auditoria importada devia ter a foto de evidência");
 
 await b.close();
 console.log(erros.length ? "ERROS JS:\n" + erros.join("\n") : "sem erros de JS");

@@ -83,8 +83,8 @@ que falta, e marca com ✓ o que já foi feito.
 Enquanto a auditoria está **por finalizar**:
 
 1. **Enviar para o PC** — ver [Do telemóvel para o PC](#do-telemóvel-para-o-pc).
-2. **Finalizar auditoria** — depois de completar as recomendações, o plano de
-   acção e o que faltar. Se fizer tudo no mesmo dispositivo, carregue logo
+2. **Finalizar auditoria** — depois de completar o plano de acção e o que
+   faltar. Se fizer tudo no mesmo dispositivo, carregue logo
    aqui.
 
 Depois de finalizada:
@@ -119,7 +119,7 @@ Para auditar no serviço com o telemóvel e acabar o trabalho no computador:
 3. **No PC**: guarde o anexo do email, abra a app, e em **Histórico →
    Importar ficheiro** escolha o ficheiro. Abre o relatório da auditoria, com
    as fotos, e as acções fechadas no terreno ficam fechadas também no PC.
-   Complete as recomendações (texto e foto), o plano de acção e, em **Editar
+   Complete o plano de acção e, em **Editar
    auditoria** — que não pede o código enquanto está por finalizar —, a
    observação, as notas e as fotos. Carregue em **Finalizar auditoria**.
 4. **PDF e email ao serviço**: *Descarregar PDF* e *Enviar por email*; o
@@ -154,10 +154,8 @@ guardar, o ficheiro já vem com o nome do serviço e a data:
 | Folha | Conteúdo |
 | --- | --- |
 | 1 | Nota, radares por pilar 5S e por responsável, histórico das últimas auditorias ao serviço |
-| 2 | Pontuação e grelha completa das 19 perguntas |
-| 3 | Recomendações por responsável, com texto e foto |
+| 2 | Pontuação e grelha de verificação só com as perguntas abaixo de Excelente (as Excelentes ficam numa linha, pelo número); a seguir, o **plano de acção** — as acções desta auditoria e as que vinham em aberto, só quando há. Se o plano não couber, passa inteiro para a folha seguinte |
 | Evidências | As perguntas Mau ou Oportunidade com nota ou foto — só quando há |
-| Plano de acção | As acções desta auditoria e as que vinham em aberto — só quando há |
 
 No ecrã (não vão para o PDF) há ainda:
 
@@ -165,13 +163,13 @@ No ecrã (não vão para o PDF) há ainda:
   o botão **+ Acção**.
 - **Seguimento da auditoria anterior** — o que melhorou, o que se mantém por
   resolver e o que piorou face à auditoria anterior ao mesmo serviço.
+- A **grelha de verificação** completa, com as perguntas Excelentes também.
 
-O texto e as fotos das **recomendações** escrevem-se aqui e ficam gravados com a
-auditoria. **Editar auditoria** reabre-a no formulário (pede o código de acesso).
+**Editar auditoria** reabre-a no formulário (pede o código de acesso).
 
 ## Plano de acção
 
-As recomendações dizem o que melhorar; uma **acção** é um passo concreto, com
+Uma **acção** é um passo concreto, com
 **responsável**, **prazo** e **estado**, que se segue até estar feito.
 
 - **Criar.** No relatório, carregue em **+ Acção** num dos *Itens a melhorar* —
@@ -297,9 +295,9 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 - **Objectivo anual de auditorias** — quantas auditorias fazer em cada ano, de
   todos os serviços. Escolha o ano e escreva o número; apague-o para ficar sem
   objectivo.
-- **Responsáveis** — quem responde por cada pergunta; são os eixos do radar e
-  os blocos de recomendações. Um responsável com perguntas, recomendações ou
-  acções atribuídas não pode ser removido.
+- **Responsáveis** — quem responde por cada pergunta; são os eixos do radar.
+  Um responsável com perguntas, recomendações antigas ou acções atribuídas não
+  pode ser removido.
 - **Editor de perguntas** — enunciados, pilares, responsáveis e limiares
   (pede o código de acesso). As auditorias já feitas mantêm as perguntas com
   que foram feitas.
