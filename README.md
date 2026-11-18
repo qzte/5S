@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.7.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.7.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.7.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -171,7 +171,9 @@ penalizado face a um com 6.
 Com 19 itens, o máximo bruto é 19 × 5,25 = 99,75 pontos. Na tabela
 «Pontuação» do relatório, os pontos de cada coluna são convertidos para uma
 escala de 0 a 100 (× 100 ÷ máximo bruto), pelo que o total é a nota com duas
-casas e uma auditoria toda Excelente dá 100 / 100.
+casas e uma auditoria toda Excelente dá 100 / 100. A legenda da tabela diz
+quanto vale cada item nessa escala (com 19 itens, Com oportunidade ≈ 2,01 e
+Excelente ≈ 5,26) e o total máximo, 100 (4.7.1).
 
 **As notas já gravadas nunca são recalculadas.** As classificações (`scores`)
 são guardadas com a auditoria, o que garante que uma alteração posterior aos
