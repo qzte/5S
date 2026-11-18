@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.8.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.8.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1435,7 +1435,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.8.0";
+const APP_VERSION="4.8.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4935,27 +4935,52 @@ function ficheiroPartilha(blob,nome){
 function podePartilharFicheiros(){
   return typeof navigator.share==="function"&&!!ficheiroPartilha(new Blob(["{}"]),"teste.json");
 }
+/* v4.8.1: o Chrome recusa partilhar ficheiros com mais de 50 MiB
+   (kMaxSharedFileBytes), com NotAllowedError — o mesmo erro de quando passa
+   tempo demais desde o toque, pelo que o segundo toque também falhava e a cópia
+   ficava por fazer. Acima deste limite (com margem) a cópia é descarregada. */
+const LIMITE_PARTILHA=45*1024*1024;
+function modoPartilhaCopia(tamanho,podePartilhar){
+  return podePartilhar&&tamanho<=LIMITE_PARTILHA?"partilhar":"descarregar";
+}
+const mbDe=n=>Math.round(n/1048576)+" MB";
 /* v3.24.0: com `descarregarSemPartilha` (o passo 1 do «Depois da auditoria»),
-   onde o browser não partilha ficheiros descarrega-se a cópia em vez de avisar. */
+   onde o browser não partilha ficheiros descarrega-se a cópia em vez de avisar.
+   v4.8.1: grande demais para o menu de partilha, ou recusada por ele, a cópia é
+   descarregada, e a mensagem diz porquê. */
 async function partilharCopia(descarregarSemPartilha){
   const c=await ficheiroCopia(true);if(!c)return;
   const f=ficheiroPartilha(c.blob,c.nome);
-  if(!f||typeof navigator.share!=="function"){
-    if(descarregarSemPartilha===true){if(await descarregar(c.blob,c.nome))registarExportacao(c.comFotos);return;}
+  const podePartilhar=!!f&&typeof navigator.share==="function";
+  if(!podePartilhar&&descarregarSemPartilha!==true){
     aviso("Este navegador não consegue partilhar ficheiros. Use «Exportar com fotos (JSON)» e envie o ficheiro descarregado.");return;}
+  /* Descarrega a cópia (para as Transferências, ou onde a pessoa escolher). */
+  const guardar=async motivo=>{
+    if(!(await descarregar(c.blob,c.nome)))return;
+    registarExportacao(c.comFotos);
+    if(motivo)aviso(motivo+"\n\nA cópia ("+c.nome+") foi descarregada: envie-a de lá para a Drive, o OneDrive ou o email, "+
+      "ou guarde-a noutro sítio.","Cópia de segurança");
+  };
+  if(modoPartilhaCopia(c.blob.size,podePartilhar)==="descarregar"){
+    await guardar(podePartilhar?"A cópia com fotos tem "+mbDe(c.blob.size)+", mais do que o menu de partilha aceita (50 MB).":"");
+    return;
+  }
   const dados={files:[f],title:"Cópia de segurança · Auditoria 5S",
     text:"Cópia de segurança da Auditoria 5S, com fotos ("+audits.length+" auditoria(s)). Para recuperar: Configuração → Dados → Importar cópia de segurança."};
   const partilhar=()=>navigator.share(dados).then(()=>{registarExportacao(true);return true;});
+  const recusada=e=>guardar("O menu de partilha não aceitou a cópia ("+mbDe(c.blob.size)+"; "+(e&&e.name||"erro")+").");
   try{await partilhar();}
   catch(e){
     if(e&&e.name==="AbortError")return;  /* a pessoa fechou o menu de partilha */
     /* Ler muitas fotos pode demorar mais do que o browser deixa entre o toque e
        a partilha (NotAllowedError): pede-se outro toque, já com o ficheiro pronto. */
-    if(e&&e.name==="NotAllowedError"&&await confirmar("A cópia está pronta para partilhar.",{titulo:"Partilhar cópia",sim:"Partilhar"})){
-      try{await partilhar();}catch(e2){if(!(e2&&e2.name==="AbortError"))aviso("Não foi possível partilhar a cópia. Use «Exportar com fotos (JSON)».");}
+    if(e&&e.name==="NotAllowedError"){
+      if(!(await confirmar("A cópia está pronta para partilhar.",{titulo:"Partilhar cópia",sim:"Partilhar"})))return;
+      try{await partilhar();}
+      catch(e2){if(!(e2&&e2.name==="AbortError"))await recusada(e2);}
       return;
     }
-    aviso("Não foi possível partilhar a cópia. Use «Exportar com fotos (JSON)».");
+    await recusada(e);
   }
 }
 

@@ -37,8 +37,8 @@ e as dependências de desenvolvimento.
 
 | # | Gravidade | Assunto | Estado |
 | --- | --- | --- | --- |
-| 30 | Baixa | O ficheiro de teste aberto do disco guarda os dados na origem `file://`, partilhada por todos os HTML locais | **Por corrigir** (proposta abaixo) |
-| 31 | Info | `teste-pc.mjs` embute as bibliotecas sem verificar o SRI; só o SheetJS tem teste que fixa o hash | **Por corrigir** (proposta abaixo) |
+| 30 | Baixa | O ficheiro de teste aberto do disco guarda os dados na origem `file://`, partilhada por todos os HTML locais | **Corrigido** (aviso e botão *Apagar dados de teste*) |
+| 31 | Info | `teste-pc.mjs` embute as bibliotecas sem verificar o SRI; só o SheetJS tem teste que fixa o hash | **Corrigido** (o script verifica o SRI; `tests/pdf-libs.test.js`) |
 | 32 | Info | As bibliotecas de `vendor/` não são vigiadas pelo Dependabot | Aceite; verificação manual |
 
 Sem achados de gravidade alta ou média. O que foi confirmado:
@@ -96,6 +96,14 @@ exemplo e, se tiver importado dados reais, apagá-los no fim; o README
 (*Testar no PC*) diz o mesmo; e, se se quiser ir mais longe, um botão no aviso
 que apaga os dados de teste (`localStorage.clear()` e o IndexedDB das fotos).
 
+**Corrigido** (só no ficheiro de teste; a app publicada não muda): o aviso
+amarelo diz para testar com dados de exemplo e explica porquê, e o botão
+**Apagar dados de teste** pede confirmação, limpa o `localStorage`, apaga as
+bases IndexedDB da origem e recarrega. O README (*Testar no PC*) diz o mesmo.
+`tests/teste-pc.test.js` confirma o texto e o botão no ficheiro gerado, e
+`tests/smoke-teste-pc.mjs` carrega no botão e confirma que não ficam
+auditorias nem fotos.
+
 ## 31. `teste-pc.mjs` embute as bibliotecas sem verificar o SRI (Info)
 
 Na app publicada, o browser só corre o html2canvas, o jsPDF e o SheetJS se o
@@ -108,6 +116,14 @@ não têm.
 **Proposta:** o script calcula o SHA-384 de cada ficheiro e falha se não for o
 `integrity` declarado no `index.html` (`XLSX_SRI`, `PDF_LIBS`); e um teste
 unitário faz o mesmo para as duas bibliotecas do PDF, como o do SheetJS.
+
+**Corrigido:** `scripts/teste-pc.mjs` calcula o SHA-384 de cada biblioteca e
+recusa gerar o ficheiro (sai com erro, sem o escrever) se não for o
+`integrity` do `index.html`; `tests/teste-pc.test.js` estraga cada uma numa
+cópia do repositório e confirma a recusa. `tests/pdf-libs.test.js` fixa o
+html2canvas e o jsPDF pelo SHA-256 e pelo tamanho, e confirma que o `sri` de
+`PDF_LIBS` é o SHA-384 de cada ficheiro, como `tests/sheetjs.test.js` faz ao
+SheetJS.
 
 ## 32. `vendor/` fora do Dependabot (Info)
 

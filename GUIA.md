@@ -380,6 +380,11 @@ de origem** desfaz a escolha.
 do ecrã, nos 10 segundos seguintes. Depois disso, só uma cópia de segurança a
 recupera.
 
+**A cópia com fotos foi descarregada em vez de partilhada.** O menu de partilha
+do telemóvel não aceita ficheiros com mais de 50 MB, e a cópia com as fotos de
+todas as auditorias pode passar disso. A app descarrega-a e diz porquê: envie-a
+das Transferências para a Drive, o OneDrive ou o email.
+
 **Partilhei a cópia e o ficheiro acaba em .txt.** É o Chrome, que não partilha
 ficheiros .json. O conteúdo é o mesmo: importe-o tal como está.
 

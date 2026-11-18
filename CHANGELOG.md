@@ -5,6 +5,20 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.8.1] — 2026-11-18
+
+### Corrigido
+
+- **«Não foi possível partilhar a cópia» com a cópia com fotos.** O Chrome recusa partilhar ficheiros com mais de 50 MB,
+  com o mesmo erro de quando passa tempo demais desde o toque; a app pedia outro toque, falhava de novo e a cópia ficava
+  por fazer. Com a 4.8.0 (foto ou nota em cada pergunta a melhorar) a cópia com as fotos de todas as auditorias chega lá
+  mais depressa. Agora, em *Partilhar cópia com fotos* e em *Guardar cópia com fotos* (no fim da auditoria):
+  - acima de 45 MB, a cópia é **descarregada** logo, e a app diz o tamanho;
+  - se o menu de partilha a recusar por outro motivo, é descarregada na mesma, e a app diz o motivo (o nome do erro);
+  - descarregada, conta como cópia de segurança com fotos. Cancelar o menu de partilha continua a não contar.
+- **Testes:** `tests/copia-partilha.test.js` (o limite e a decisão, `modoPartilhaCopia()`) e
+  `tests/smoke-copia-partilha.mjs` (o menu de partilha recusa a cópia; e uma cópia acima do limite).
+
 ## [4.8.0] — 2026-11-18
 
 ### Acrescentado
@@ -42,6 +56,17 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Unitários novos: `presentes`, `acoes-formulario`, `finalizar`, `pdf-grupos`. Smoke test novo: `smoke-teste-pc.mjs`
   (o ficheiro de teste aberto por `file://` cria o PDF). Actualizados: rascunho, evidências, terreno e as páginas e fotos
   do PDF.
+
+### Segurança (ficheiro de teste para o PC)
+
+Acrescentado depois da publicação da 4.8.0, só no ficheiro de teste: a app publicada não muda.
+
+- **O ficheiro de teste avisa e apaga** ([SECURITY.md](SECURITY.md), ponto 30): o aviso amarelo diz para testar com
+  dados de exemplo — aberto do disco, o que se grava fica ao alcance de outros HTML abertos do disco — e o botão
+  **Apagar dados de teste** apaga as auditorias, as fotos e as definições do ficheiro de teste.
+- **Só bibliotecas verificadas** (ponto 31): `scripts/teste-pc.mjs` recusa gerar o ficheiro se o SHA-384 do
+  html2canvas, do jsPDF ou do SheetJS não for o `integrity` do `index.html`. `tests/pdf-libs.test.js` fixa as duas
+  bibliotecas do PDF, como `tests/sheetjs.test.js` já fazia ao SheetJS; `tests/teste-pc.test.js` testa o script.
 
 ### Documentação
 

@@ -55,6 +55,24 @@ check(r.n === 1, "a auditoria devia ficar gravada");
 check(r.tipo === "application/pdf" && r.tam > 10000, "o PDF devia ser criado sem ficheiros à parte: " + JSON.stringify(r));
 check(r.xlsx === "ok", "o leitor de Excel devia estar disponível: " + r.xlsx);
 
+/* SECURITY.md, ponto 30: o aviso diz para testar com dados de exemplo, e o botão
+   apaga os dados de teste (o localStorage e as fotos no IndexedDB). */
+check(/dados de exemplo/.test(await pg.locator("#aviso-teste").textContent()), "o aviso devia dizer para testar com dados de exemplo");
+await pg.evaluate(() => fotosIDB("readwrite", st => st.put("data:image/png;base64,AAAA", "1#0")));
+let confirmou = "";
+pg.once("dialog", d => { confirmou = d.message(); d.accept(); });
+await Promise.all([pg.waitForEvent("load"), pg.locator("#btn-apagar-teste").click()]);
+check(/Apagar todas as auditorias/.test(confirmou), "apagar devia pedir confirmação: " + confirmou);
+const depois = await pg.evaluate(async () => ({
+  audits: localStorage.getItem("audits"),
+  fotos: await new Promise(res => { const q = indexedDB.open("auditoria5s-fotos", 1);
+    q.onupgradeneeded = () => q.result.createObjectStore("fotos");
+    q.onsuccess = () => { const c = q.result.transaction("fotos").objectStore("fotos").count();
+      c.onsuccess = () => { q.result.close(); res(c.result); }; }; })
+}));
+check(!depois.audits || JSON.parse(depois.audits).length === 0, "depois de apagar não devia haver auditorias: " + depois.audits);
+check(depois.fotos === 0, "depois de apagar não devia haver fotos: " + depois.fotos);
+
 await b.close();
 if (erros.length) console.log("ERROS:\n" + erros.join("\n"));
 console.log(falhas.length ? "FALHAS:\n" + falhas.join("\n") : "smoke do ficheiro de teste para o PC OK");
