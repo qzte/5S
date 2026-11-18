@@ -707,6 +707,7 @@ CHANGELOG.md       Histórico de versões (Keep a Changelog)
 SECURITY.md        Revisões de segurança (3.1.0, 3.5.0, 3.6.0) e notas das versões seguintes
 KPIS.md            Todos os KPIs e métricas: fórmulas, leitura e avaliação
 GUIA.md            Guia de utilização, para quem usa a app
+FLUXO.md           Fluxograma (Mermaid) de uma auditoria, do telemóvel ao PDF, com os pontos a rever
 guia.html          O guia, publicado com a app (Config → Ajuda) — gerado de GUIA.md
 scripts/guia.mjs   Gera guia.html a partir de GUIA.md (Markdown mínimo, sem dependências)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
