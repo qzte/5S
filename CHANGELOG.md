@@ -5,6 +5,30 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.7.0] — 2026-11-18
+
+### Alterado
+
+- **PDF mais curto: a grelha de verificação só leva as perguntas abaixo de Excelente.** No PDF e na impressão, a grelha
+  mostra só as perguntas com Mau ou Com oportunidade; o título diz quantas são («8 de 19») e uma linha por baixo diz quais
+  ficaram Excelente («11 itens com Excelente não listados: nº 1, 3, …»). Tudo Excelente: «Todos os 19 itens com
+  Excelente». No ecrã, a grelha continua completa.
+- **O plano de acção vem logo a seguir à grelha**, no ecrã e no PDF. No PDF fica na folha 2 se lá couber; se não, passa
+  inteiro para a folha seguinte, sem ser cortado a meio. No ecrã fica junto de *Itens a melhorar* e do botão **+ Acção**.
+  Uma auditoria típica com plano passa de 4 folhas para 2.
+
+### Removido
+
+- **Recomendações por responsável** (texto e foto) saem do relatório e do PDF: deixa de se poder escrevê-las. As que já
+  existem continuam gravadas com as auditorias, na exportação e nas cópias de segurança (as fotos também), e um
+  responsável com uma recomendação antiga continua a não poder ser removido.
+
+### Testes
+
+- `tests/smoke-pdf-paginas.mjs` reescrito: grelha impressa só com as perguntas abaixo de Excelente, plano na folha 2, plano
+  comprido inteiro na folha 3, tudo Excelente, e sem recomendações. Os testes que escreviam recomendações ou lhes punham
+  foto passam a usar dados gravados antes de 4.7.0 ou fotos de evidência.
+
 ## [4.6.4] — 2026-11-17
 
 ### Corrigido

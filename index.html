@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.6.4 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.7.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -328,19 +328,9 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
    página 2 já assinala todas as não conformidades na coluna Aval., pelo que
    repeti-las obrigaria a uma terceira folha sem acrescentar informação. */
 @page{size:A4 portrait;margin:10mm}
-/* ---------- Recomendações por responsável (v1.7.0) ---------- */
-.rec-block .rec-body{display:flex;gap:12px;align-items:flex-start;margin-top:6px}
-.rec-block .rec-foto{flex:0 0 40%;min-height:110px;border:1px dashed var(--photo-line);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--photo-bg)}
-.rec-block .rec-foto img{width:100%;height:100%;object-fit:cover;display:block}
-.rec-block .rec-vazio{font-size:.75rem;color:var(--muted)}
-.rec-block .rec-txt{flex:1 1 auto;min-width:0}
-.rec-block textarea{width:100%;font:inherit;font-size:.85rem;padding:8px;border-radius:8px;
-  border:1px solid var(--line);background:var(--field-2);color:var(--ink);resize:vertical}
-.rec-block .rec-acts{display:flex;gap:8px;margin-top:8px}
-/* No ecrã mostra-se o textarea; na impressão mostra-se o texto simples. */
-.rec-print{display:none;white-space:pre-wrap}
-@media print{.rec-print{display:block}}
+/* v4.7.0: o que só aparece no PDF e na impressão. */
+.so-print{display:none}
+@media print{.so-print{display:revert}}
 
 @media print{
   nav,header,.no-print{display:none!important}
@@ -354,12 +344,17 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   #view-report .page{break-after:page;page-break-after:always}
   #view-report .page:last-of-type{break-after:auto;page-break-after:auto}
   /* v3.12.0: o plano de acção é um <section>, numa folha própria. */
-  #view-report #plano.page{break-before:page;page-break-before:always;break-after:auto}
+  /* v4.7.0: o plano segue a grelha, na mesma folha se couber; um cartão não se
+     parte, por isso se não couber passa inteiro para a folha seguinte. */
+  #view-report #plano h3{font-size:.8rem;margin-bottom:6px}
+  #view-report #plano td,#view-report #plano th{padding:2px 4px;line-height:1.2}
+  #view-report #plano .pill{font-size:.55rem;padding:1px 5px}
+  #view-report #plano small{font-size:.55rem}
   /* v3.14.0: as evidências, também numa folha própria. */
   #view-report #evid.page{break-before:page;page-break-before:always;break-after:auto}
   #view-report #evid .evid-grelha{grid-template-columns:1fr 1fr}
   #view-report #evid .evid-item{font-size:.68rem}
-  #view-report #plano table{font-size:.7rem}
+  #view-report #plano table{font-size:.62rem;width:100%}
 
   /* v3.20.0: relatório mensal em duas folhas. Na primeira, a tabela dos
      serviços em largura total e os pilares e responsáveis lado a lado. As
@@ -386,21 +381,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   #view-report .page-1>.hist-block{flex:1 1 100%}
   #view-report .page-1>.hist-block svg{max-width:440px!important}
 
-  /* Página 3: recomendações por responsável, dois blocos por linha. */
-  #view-report .page-3{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start}
-  /* v4.6.2: a folha 3 só se imprime com alguma recomendação (texto ou foto);
-     sem ela, a folha 2 não pode deixar uma folha em branco atrás de si. */
+  /* A folha 2 não força quebra: o plano de acção segue-a (4.7.0). */
   #view-report .page-2{break-after:auto;page-break-after:auto}
-  #view-report .page-3.page{break-before:page;page-break-before:always}
-  #view-report .page-3 h3{font-size:.85rem;margin-bottom:6px}
-  #view-report .page-3 .rec-body{display:flex;gap:8px;align-items:flex-start}
-  #view-report .page-3 .rec-foto{flex:0 0 42%;height:150px}
-  /* Sem foto não se imprime moldura nenhuma: o bloco fica só com o texto,
-     em vez de uma caixa tracejada vazia no PDF. */
-  #view-report .page-3 .rec-foto:not(:has(img)){display:none}
-  #view-report .page-3 .rec-foto{border:none;background:none}
-  #view-report .page-3 .rec-foto img{width:100%;height:100%;object-fit:cover;border-radius:6px}
-  #view-report .page-3 .rec-txt{flex:1 1 auto;font-size:.68rem;line-height:1.35}
 
   /* Página 2: resultados. Compactar para caber os 19 itens numa folha. */
   #view-report .page-2{font-size:.66rem}
@@ -409,6 +391,7 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   #view-report .page-2 h3{font-size:.8rem;margin-bottom:6px}
   #view-report .page-2 .pill{font-size:.55rem;padding:1px 5px}
   #view-report .page-2 small{font-size:.55rem}
+  #view-report .page-2 .grelha-exc{font-size:.6rem;color:var(--muted);margin-top:4px}
   /* Nunca partir uma linha da tabela a meio. */
   #view-report table tr{break-inside:avoid}
 }
@@ -693,8 +676,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
   <div class="card">
     <h3 style="margin-bottom:10px">Responsáveis</h3>
     <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
-      Quem responde por cada pergunta. São os eixos do radar "Por responsável" e os blocos de
-      recomendações do relatório, pela ordem em que aparecem aqui.<br>
+      Quem responde por cada pergunta. São os eixos do radar "Por responsável", pela ordem em
+      que aparecem aqui.<br>
       O <b>código</b> é a referência que cada pergunta guarda: fixa-se ao criar e não muda mais.
       O <b>nome</b> é só o que se lê, e pode ser corrigido a qualquer momento.
       As alterações só se aplicam ao carregar em <i>Guardar responsáveis</i>, com código de acesso.</p>
@@ -1360,7 +1343,7 @@ function avisoFotos(info,agora){
   if(!pend)return null;
   const at=Date.parse(b.atFotos);
   if(!Number.isFinite(at))
-    return (pend===1?"Há 1 foto":"Há "+pend+" fotos")+" (evidências e recomendações) que nunca "+
+    return (pend===1?"Há 1 foto":"Há "+pend+" fotos")+" de evidência que nunca "+
       (pend===1?"entrou":"entraram")+" numa cópia de segurança: a cópia normal não leva fotos. "+
       "Exporte com fotos e guarde o ficheiro noutro sítio.";
   const dias=Math.max(0,Math.floor((agora-at)/864e5));
@@ -1372,7 +1355,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.6.4";
+const APP_VERSION="4.7.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2710,10 +2693,9 @@ function linhasExcel(lista){
 }
 
 /* ---------- Recomendações por responsável (v1.7.0) ----------
-   Um bloco fixo por chave de RESP (cinco desde 3.2.0). O TEXTO é guardado com a
-   auditoria (campo opcional `recs`); a FOTO é efémera e vive apenas em memória
-   enquanto a vista Relatório está aberta (ver REC_FOTOS), nunca em localStorage
-   nem na exportação JSON. */
+   Um texto por chave de RESP, guardado com a auditoria (campo opcional `recs`).
+   v4.7.0: deixaram de aparecer no relatório e no PDF, e de se poder escrever;
+   as que já existem continuam gravadas, nas cópias e na exportação. */
 /* Deixou de ser uma constante em 3.5.0: a lista de responsáveis é editável, e
    uma cópia tirada no arranque ficaria a apontar para a de ontem. */
 const respKeys=()=>Object.keys(RESP);
@@ -2835,10 +2817,9 @@ function radarSVG(dados,cor){
    IndexedDB tem uma quota muito maior e está coberto pelo mesmo pedido de
    armazenamento persistente. Continuam FORA da exportação JSON: um ficheiro
    de cópia com fotos passaria facilmente as dezenas de MB.
-   REC_FOTOS é a cópia em memória das fotos do relatório aberto. */
-const REC_FOTOS=new Map();
-let fotosDe=null; /* id da auditoria a que REC_FOTOS pertence */
-function clearFotos(){REC_FOTOS.clear();fotosDe=null;}
+   v4.7.0: as recomendações por responsável saíram do relatório. As fotos que
+   já tinham ficam no disco e nas cópias de segurança (chave "<id>|<resp>"),
+   mas a app deixa de as mostrar. */
 const FOTOS_DB="auditoria5s-fotos";
 /* Abre a base, corre `fn(store)` numa transacção e resolve com o que `fn`
    devolver — o resultado do pedido, se for um IDBRequest — quando a transacção
@@ -2858,20 +2839,7 @@ function fotosIDB(modo,fn){
 }
 /* Chave: "<id da auditoria>|<código do responsável>". O id é um número, sem
    "|", pelo que o prefixo "<id>|" identifica as fotos de uma auditoria. */
-const fotoChave=(id,k)=>String(id)+"|"+k;
 const fotosIntervalo=id=>IDBKeyRange.bound(String(id)+"|",String(id)+"|\uffff");
-function carregarFotos(id){
-  return fotosIDB("readonly",st=>{
-    const out=new Map(),cur=st.openCursor(fotosIntervalo(id));
-    cur.onsuccess=()=>{const c=cur.result;if(!c)return;
-      if(typeof c.value==="string"&&c.value.startsWith("data:image/"))
-        out.set(String(c.key).slice(String(id).length+1),c.value);
-      c.continue();};
-    return out;
-  });
-}
-const guardarFoto=(id,k,url)=>fotosIDB("readwrite",st=>st.put(url,fotoChave(id,k)));
-const apagarFoto=(id,k)=>fotosIDB("readwrite",st=>st.delete(fotoChave(id,k)));
 /* v3.14.0: as fotos de evidência (por pergunta) vivem em "<id>#<n>". */
 const evidIntervalo=id=>IDBKeyRange.bound(String(id)+"#",String(id)+"#\uffff");
 const apagarFotosDe=id=>fotosIDB("readwrite",st=>{st.delete(fotosIntervalo(id));st.delete(evidIntervalo(id));});
@@ -2924,104 +2892,6 @@ function shrinkImage(file,cb){
   rd.onerror=()=>cb(null);
   rd.readAsDataURL(file);
 }
-/* Página 3: um bloco por responsabilidade, dois por linha. */
-function recsHTML(a){
-  const r=recsOf(a);
-  return`<div class="page page-3">
-    <div class="card no-print" style="grid-column:1/-1">
-      <h3 style="margin-bottom:4px">Recomendações por responsável</h3>
-      <p style="font-size:.75rem;color:var(--muted)">O texto e as fotos ficam guardados com a auditoria,
-        neste dispositivo. As fotos não entram na exportação JSON.</p>
-    </div>
-    ${respKeys().map(k=>{
-      const foto=REC_FOTOS.get(k);
-      return`<div class="card rec-block">
-        <h3>${esc(RESP[k])}</h3>
-        <div class="rec-body">
-          <div class="rec-foto" data-foto="${esc(k)}">
-            ${foto?`<img src="${esc(foto)}" alt="Foto: ${esc(RESP[k])}">`
-                  :`<span class="rec-vazio no-print">Sem foto</span>`}
-          </div>
-          <div class="rec-txt">
-            <div class="rec-print">${esc(r[k])||'<span style="color:var(--muted)">—</span>'}</div>
-            <textarea class="no-print" rows="4" maxlength="600" data-rec="${esc(k)}"
-              placeholder="Recomendação para ${esc(RESP[k])}…">${esc(r[k])}</textarea>
-          </div>
-        </div>
-        <div class="rec-acts no-print">
-          <input type="file" accept="image/*" capture="environment" data-file="${esc(k)}" hidden>
-          <button class="btn small ghost" data-add="${esc(k)}">${foto?"Trocar foto":"Adicionar foto"}</button>
-          ${foto?`<button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" data-rmf="${esc(k)}">Remover</button>`:""}
-        </div>
-      </div>`;}).join("")}
-  </div>`;
-}
-/* v4.6.2: no PDF e na impressão, só os responsáveis com recomendação (texto
-   ou foto); sem nenhuma, a folha 3 não sai. No ecrã fica tudo, para escrever. */
-function marcarRecsVazias(){
-  const pg=document.querySelector("#view-report .page-3");if(!pg)return;
-  let alguma=false;
-  pg.querySelectorAll(".rec-block").forEach(bl=>{
-    const t=bl.querySelector("textarea");
-    const tem=!!bl.querySelector(".rec-foto img")||!!(t&&t.value.trim());
-    bl.classList.toggle("no-print",!tem);
-    if(tem)alguma=true;
-  });
-  pg.classList.toggle("page",alguma);
-  pg.classList.toggle("no-print",!alguma);
-}
-/* Liga os controlos da página 3. O texto é gravado em localStorage; a foto não. */
-function wireRecs(a){
-  const box=document.getElementById("view-report");
-  marcarRecsVazias();
-  box.querySelectorAll("[data-rec]").forEach(t=>{
-    t.oninput=()=>{
-      const k=t.dataset.rec;
-      const alvo=audits.find(x=>x.id===a.id);
-      if(!alvo)return;
-      alvo.recs=Object.assign({},recsOf(alvo));
-      alvo.recs[k]=clean(t.value,600);
-      a.recs=alvo.recs;
-      tocar(alvo);a.alterada=alvo.alterada;
-      save("audits",audits);
-      const pv=t.closest(".rec-body").querySelector(".rec-print");
-      if(pv)pv.textContent=alvo.recs[k]||"—";
-      marcarRecsVazias();
-    };
-  });
-  box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>
-    box.querySelector('[data-file="'+CSS.escape(b.dataset.add)+'"]').click());
-  box.querySelectorAll("[data-file]").forEach(inp=>inp.onchange=()=>{
-    const k=inp.dataset.file,f=inp.files[0];inp.value="";
-    if(!f)return;
-    shrinkImage(f,url=>{
-      if(!url){aviso("Não foi possível ler a imagem.");return;}
-      REC_FOTOS.set(k,url);redrawRecs(a);
-      guardarFoto(a.id,k,url).then(()=>{registarFotos(1);fotoAlterada(a);}).catch(()=>aviso(
-        "A foto aparece neste relatório, mas não foi possível guardá-la no dispositivo: "+
-        "ao sair do relatório perde-se."));
-    });
-  });
-  box.querySelectorAll("[data-rmf]").forEach(b=>b.onclick=()=>{
-    const k=b.dataset.rmf;
-    REC_FOTOS.delete(k);redrawRecs(a);
-    apagarFoto(a.id,k).then(()=>fotoAlterada(a)).catch(()=>{});});
-}
-/* v3.25.0: uma foto das recomendações também é uma alteração à auditoria. */
-function fotoAlterada(a){
-  const alvo=audits.find(x=>x.id===a.id);if(!alvo)return;
-  tocar(alvo);a.alterada=alvo.alterada;save("audits",audits);
-}
-/* Redesenha só a página 3, para não perder o scroll nem recalcular os gráficos. */
-function redrawRecs(a){
-  const old=document.querySelector("#view-report .page-3");
-  if(!old)return;
-  const tmp=document.createElement("div");
-  tmp.innerHTML=recsHTML(a);
-  old.replaceWith(tmp.firstElementChild);
-  wireRecs(a);
-}
-
 /* v3.9.0: cartão de seguimento face à auditoria anterior ao mesmo serviço.
    Fica fora da impressão, como "Itens a melhorar": a folha 2 está medida para
    caber os 19 itens. */
@@ -3068,10 +2938,11 @@ function evidHTML(a,fotos){
 }
 
 /* ---------- Plano de acção: relatório (v3.12.0) ----------
-   Folha própria (a 4.ª), impressa só quando há acções — desta auditoria ou em
-   aberto de auditorias anteriores ao serviço. É um <section> e não um <div>:
-   a regra de impressão que tira a quebra de página depois da última folha usa
-   `div:last-of-type`, e assim a folha 3 continua a ser a última <div>. */
+   Impresso só quando há acções — desta auditoria ou em aberto de auditorias
+   anteriores ao serviço. É um <section> e não um <div>: a regra de impressão
+   que tira a quebra de página depois da última folha usa `div:last-of-type`.
+   v4.7.0: vem logo a seguir à grelha, no ecrã e no PDF (classe pdf-cont): na
+   folha 2 se lá couber; se não, começa inteiro na folha seguinte. */
 const ESTADO_ACAO={feita:["Feita","var(--green)"],atrasada:["Em atraso","var(--red)"],aberta:["Aberta","var(--amber-bg)"]};
 function dataCurta(d){return d?d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(2,4):"";}
 function linhaAcao(ac,hoje,ctl){
@@ -3089,7 +2960,7 @@ function planoHTML(a){
   const pend=acoesPendentes(audits,a.service,hoje,a);
   const impresso=acoes.length||pend.length;
   const feito=(auditId,ac)=>`<label class="chk"><input type="checkbox" data-acao-feita="${auditId}:${ac.id}"${ac.estado==="feita"?" checked":""}> Feita</label>`;
-  return`<section id="plano" class="${impresso?"page page-4":"no-print"}">
+  return`<section id="plano" class="${impresso?"pdf-cont":"no-print"}">
   <div class="card"><h3 style="margin-bottom:4px">Plano de acção · ${esc(a.service)} · ${esc(a.date)}</h3>
     <p class="no-print" style="font-size:.75rem;color:var(--muted);margin-bottom:10px">Passos concretos, com responsável e prazo.
       Ficam em aberto até serem marcados como feitos — aqui, ou na próxima auditoria a este serviço.</p>
@@ -3175,8 +3046,8 @@ function wirePlano(a){
 
 /* ---------- Relatório / PDF ---------- */
 let relatorioId=null;
-/* v4.6.1: as fotos do relatório aberto (recomendações e evidências) chegam do
-   disco depois de ele aparecer e substituem as folhas 3 e das evidências. O
+/* v4.6.1: as fotos de evidência do relatório aberto chegam do disco depois de
+   ele aparecer e substituem a folha das evidências. O
    PDF espera por esta promessa: pedido antes, saía sem fotos ou falhava a meio. */
 let fotosRelatorio=Promise.resolve();
 /* v3.22.0: o título da página é o nome que o browser propõe para o PDF. Com o
@@ -3187,10 +3058,6 @@ function tituloMensal(mes){return "Relatório mensal 5S - "+nomeMes(mes);}
 function openReport(a){
   document.title=tituloPdf(a);
   relatorioId=a.id;
-  /* Limpo ANTES de desenhar: recsHTML() lê REC_FOTOS, e mostraria por instantes
-     as fotos do relatório aberto antes deste. */
-  const outraAuditoria=fotosDe!==a.id;
-  if(outraAuditoria)clearFotos();
   const [bc,bt]=badge(total(a));
   const worst=itemsOf(a).map((it,i)=>({it,s:a.scores[i],raw:obsOf(a,it,i)})).filter(x=>x.s<2);
   document.getElementById("view-report").innerHTML=`
@@ -3231,16 +3098,24 @@ function openReport(a){
       <tr><td><span class="pill" style="background:var(--green)">Excelente</span></td><td>${t.exc}</td><td>${t.ptsExc}</td></tr>
       <tr><td><b>Total</b></td><td><b>${a.scores.length}</b></td><td><b>${t.pts} / ${t.max}</b></td></tr>
     </table>`;})()}</div>
-  <div class="card"><h3 style="margin-bottom:10px">Grelha de verificação</h3>
-    <table><tr><th>Nº</th><th>Item</th><th>Resp.</th><th>Obs.</th><th>Aval.</th></tr>
-    ${itemsOf(a).map((it,i)=>{const s=a.scores[i];
+  ${(()=>{
+    /* v4.7.0: no PDF e na impressão, só as perguntas abaixo de Excelente; as
+       de Excelente ficam nomeadas numa linha por baixo. No ecrã, todas. */
+    const IT=itemsOf(a),exc=IT.filter((_,i)=>a.scores[i]===2),n=IT.length-exc.length;
+    return`<div class="card"><h3 style="margin-bottom:10px">Grelha de verificação<span class="so-print"
+      style="font-weight:400;font-size:.85em;color:var(--muted)"> — itens abaixo de Excelente (${n} de ${IT.length})</span></h3>
+    ${n?"":`<p class="so-print">Todos os ${IT.length} itens com Excelente.</p>`}
+    <table${n?"":' class="no-print"'}><tr><th>Nº</th><th>Item</th><th>Resp.</th><th>Obs.</th><th>Aval.</th></tr>
+    ${IT.map((it,i)=>{const s=a.scores[i];
       const cor=s===2?"var(--green)":s===1?"var(--amber-bg)":"var(--red)";
-      return`<tr><td>${esc(it.n)}</td>
+      return`<tr${s===2?' class="no-print"':""}><td>${esc(it.n)}</td>
       <td>${esc(it.t)}<br><small style="color:var(--muted)">${esc(it.c)}</small></td>
       <td><small>${esc(it.r)}</small></td>
       <td>${esc(obsOf(a,it,i))}</td>
       <td><span class="pill" style="background:${cor}">${esc(LBL[s])}</span></td></tr>`;}).join("")}
-    </table></div>
+    </table>
+    ${n&&exc.length?`<p class="so-print grelha-exc">${exc.length} ${exc.length>1?"itens":"item"} com Excelente não ${exc.length>1?"listados":"listado"}: nº ${exc.map(it=>esc(it.n)).join(", ")}.</p>`:""}
+    </div>`;})()}
   <div class="card no-print"><h3 style="margin-bottom:10px">Itens a melhorar (${worst.length})</h3>
     ${worst.length?`<table><tr><th>Nº</th><th>Item</th><th>Obs.</th><th>Avaliação</th><th><span class="sr-only">Acção</span></th></tr>${worst.map((x,k)=>
       `<tr><td>${esc(x.it.n)}</td><td>${esc(x.it.t)}<br><small style="color:var(--muted)">${esc(x.it.c)}</small></td>
@@ -3250,34 +3125,22 @@ function openReport(a){
       :`<p>Sem não-conformidades. 🎉</p>`}</div>
   ${seguimentoHTML(a)}
   </div>
-  ${recsHTML(a)}
-  ${evidHTML(a,new Map())}
   ${planoHTML(a)}
+  ${evidHTML(a,new Map())}
   <button class="btn no-print" id="btn-print">Gerar PDF</button>
   <button class="btn ghost no-print" id="btn-edit">Editar auditoria</button>
   <button class="btn ghost no-print" id="btn-back">Voltar</button>`;
-  wireRecs(a);
   renderPosAuditoria(a);
-  /* As fotos chegam depois do relatório, que não fica à espera do disco. Se
-     entretanto se abriu outro relatório, as desta auditoria já não interessam. */
-  let fotosRec=Promise.resolve();
-  if(outraAuditoria){
-    fotosDe=a.id;
-    fotosRec=carregarFotos(a.id).then(m=>{
-      if(fotosDe!==a.id||!m.size)return;
-      m.forEach((url,k)=>{if(!REC_FOTOS.has(k))REC_FOTOS.set(k,url);});
-      redrawRecs(a);
-    }).catch(()=>{});
-  }
   wirePlano(a);
-  /* v3.14.0: as fotos de evidência chegam depois, como as das recomendações. */
+  /* v3.14.0: as fotos de evidência chegam depois do relatório, que não fica à
+     espera do disco. */
   const fotosEvid=carregarEvidAudit(a.id).then(m=>{
     /* Entretanto pode ter sido aberto o relatório de outra auditoria. */
     if(!document.getElementById("evid")||relatorioId!==a.id)return;
     const tmp=document.createElement("div");tmp.innerHTML=evidHTML(a,m);
     document.getElementById("evid").replaceWith(tmp.firstElementChild);
   }).catch(()=>{});
-  fotosRelatorio=Promise.all([fotosRec,fotosEvid]);
+  fotosRelatorio=fotosEvid;
   document.querySelectorAll("#view-report [data-acao-worst]").forEach(b=>b.onclick=()=>{
     const x=worst[+b.dataset.acaoWorst];
     novaAcaoPara(x.it);
@@ -3286,7 +3149,7 @@ function openReport(a){
   document.getElementById("btn-edit").onclick=()=>editAudit(a);
   /* v3.21.0: aberto do separador Acções, «Voltar» volta para lá. */
   const voltar=(document.querySelector(".tab.active")||{dataset:{}}).dataset.v==="acoes"?"acoes":"history";
-  document.getElementById("btn-back").onclick=()=>{clearFotos();document.querySelector('[data-v='+voltar+']').click();};
+  document.getElementById("btn-back").onclick=()=>document.querySelector('[data-v='+voltar+']').click();
   ["audit","history","stats","acoes","cfg"].forEach(v=>document.getElementById("view-"+v).classList.add("hidden"));
   document.getElementById("view-report").classList.remove("hidden");
   window.scrollTo(0,0);
@@ -3381,7 +3244,7 @@ function barrasEixo(l){
     <div class="bar"><i class="${barCls(p.pct)}" style="width:${p.pct}%"></i></div>`).join("");
 }
 function openMensal(mes){
-  relatorioId=null;clearFotos();fotosRelatorio=Promise.resolve();
+  relatorioId=null;fotosRelatorio=Promise.resolve();
   document.title=tituloMensal(mes);
   const r=resumoMensal(audits,mes,services,hojeISO());
   const t=r.media==null?null:badge(r.media);
@@ -3539,7 +3402,7 @@ function renderPosAuditoria(a){
           <small>${pc?ok("Enviada "+quando(pc)):"Só esta auditoria, com as fotos. Abre o menu de partilha: envie-a para o seu email. No PC, abra-a em Histórico → Importar ficheiro."}</small></div>
           <button class="btn small ${pc?"ghost":""}" id="pa-pc">Enviar para o PC</button></li>
         <li><div><b>Finalizar</b><br>
-          <small>Complete as recomendações, o plano de acção e, em <i>Editar auditoria</i> (sem código enquanto está por finalizar), a observação, as notas e as fotos. Depois, carregue em Finalizar.</small></div>
+          <small>Complete o plano de acção e, em <i>Editar auditoria</i> (sem código enquanto está por finalizar), a observação, as notas e as fotos. Depois, carregue em Finalizar.</small></div>
           <button class="btn small ghost" id="pa-fim">Finalizar auditoria</button></li>
       </ol>${rodape}`;
     document.getElementById("pa-pc").onclick=e=>ocupado(e.currentTarget,"A preparar o ficheiro…",()=>enviarParaPC(a));
@@ -3794,7 +3657,6 @@ async function mostrarLimpeza(){
       "As auditorias ficam; as fotos só existirão no PC.",{titulo:"Libertar espaço",sim:"Apagar fotos",perigo:true})))return;
     try{await Promise.all(com.map(a=>apagarFotosDe(a.id)));}
     catch(e){aviso("Não foi possível apagar as fotos.");}
-    clearFotos();
     mostrarLimpeza();mostrarArmaz();
   };
 }
@@ -3896,7 +3758,6 @@ async function editAudit(a){
   FORM_ITEMS=IT.map(normItem);
   renderForm();
   editSujo=false;
-  clearFotos();
   document.querySelector('[data-v=audit]').click();
   window.scrollTo(0,0);
 }
@@ -4389,11 +4250,11 @@ function heroParaPdf(doc){
    seguinte. Devolve um Blob. */
 async function pdfDoRelatorio(){
   await carregarPdf();
-  /* As folhas só se recolhem depois de as fotos chegarem: até lá, as folhas 3
-     e das evidências ainda vão ser trocadas pelas versões com fotos. */
+  /* As folhas só se recolhem depois de as fotos chegarem: até lá, a folha
+     das evidências ainda vai ser trocada pela versão com fotos. */
   await fotosRelatorio;
   const raiz=document.getElementById("view-report");
-  const blocos=[...raiz.querySelectorAll(":scope > .score-hero, :scope > .page")];
+  const blocos=[...raiz.querySelectorAll(":scope > .score-hero, :scope > .page, :scope > .pdf-cont")];
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:"mm",format:"a4",orientation:"portrait",compress:true});
   const M=10,W=210-2*M,H=297-2*M;
@@ -4410,6 +4271,9 @@ async function pdfDoRelatorio(){
       if(!vazia&&!(primeira&&h<=M+H-y)){doc.addPage();y=M;}
       primeira=false;
     }
+    /* v4.7.0: um bloco que continua a folha anterior (o plano de acção) e lá
+       não cabe, mas cabe numa folha, começa inteiro na seguinte — sem cortes. */
+    else if(!vazia&&h<=H&&h>M+H-y){doc.addPage();y=M;}
     if(h<=M+H-y){
       doc.addImage(cv.toDataURL("image/jpeg",0.82),"JPEG",M+(W-w)/2,y,w,h);
       y+=h+4;vazia=false;continue;
@@ -5057,7 +4921,6 @@ async function importarJsonCorpo(texto){
      pertencer. Só depois de a lista nova estar gravada. */
   if(m==="S"&&gravou)await apagarFotosOrfas(audits.map(a=>a.id)).catch(()=>{});
   if(gravou&&trocarFotos.length){
-    clearFotos();
     await Promise.all(trocarFotos.map(id=>apagarFotosDe(id))).catch(()=>{});
   }
   /* v3.14.0: as fotos do ficheiro (uma cópia "com fotos"), depois de as

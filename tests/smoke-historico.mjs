@@ -110,18 +110,21 @@ check(await pg.locator("#seguimento tr").count() === 20, "uma linha por pergunta
 
 /* ---- 5. Fotos: sobrevivem a sair do relatório e a recarregar. ---- */
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
-await pg.locator("[data-file='U']").setInputFiles({ name: "f.png", mimeType: "image/png", buffer: png });
-await pg.waitForSelector("[data-foto='U'] img");
+/* 4.7.0: uma foto de evidência da pergunta 1 (Mau) — as recomendações, que
+   também tinham foto, saíram do relatório. */
+await pg.evaluate(png => { const a = audits.find(x => x.id === relatorioId);
+  return fotosIDB("readwrite", st => st.put("data:image/png;base64," + png, a.id + "#0")); }, png.toString("base64"));
 check(await fotosSao(1), "a foto devia ficar gravada no IndexedDB");
 await pg.locator("#btn-back").click();
 await pg.locator("[data-rep='1']").click();
-check(await pg.locator("[data-foto='U'] img").count() === 0, "a foto de uma auditoria não pode aparecer noutra");
+await pg.waitForTimeout(300);
+check(await pg.locator("#evid img").count() === 0, "a foto de uma auditoria não pode aparecer noutra");
 await pg.locator("#btn-back").click();
 await pg.reload();
 await pg.locator("[data-v=history]").click();
 await pg.locator("[data-rep='0']").click();
-await pg.waitForSelector("[data-foto='U'] img", { timeout: 5000 }).catch(() => {});
-check(await pg.locator("[data-foto='U'] img").count() === 1, "depois de recarregar, a foto devia voltar ao relatório");
+await pg.waitForSelector("#evid img", { timeout: 5000 }).catch(() => {});
+check(await pg.locator("#evid img").count() === 1, "depois de recarregar, a foto devia voltar ao relatório");
 
 /* ---- 6. Exportar para Excel. ---- */
 await pg.locator("[data-v=cfg]").click();
@@ -151,8 +154,8 @@ check(await nFotos() === 1, "durante o prazo de desfazer, as fotos ficam");
 await pg.locator("#toast-btn").click();
 check(await nAudits() === 3, "desfazer devia repor a auditoria");
 await pg.locator("[data-rep='0']").click();
-await pg.waitForSelector("[data-foto='U'] img", { timeout: 5000 }).catch(() => {});
-check(await pg.locator("[data-foto='U'] img").count() === 1, "desfazer devia repor também a foto");
+await pg.waitForSelector("#evid img", { timeout: 5000 }).catch(() => {});
+check(await pg.locator("#evid img").count() === 1, "desfazer devia repor também a foto");
 await pg.locator("#btn-back").click();
 await pg.locator("[data-del='0']").click();
 await pg.evaluate(() => concluirApagar());

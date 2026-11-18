@@ -1,6 +1,7 @@
 /* Smoke test (4.6.1): o PDF leva as fotos mesmo quando é pedido logo ao abrir
-   o relatório. As fotos das recomendações e das evidências chegam do
-   IndexedDB depois do relatório; o PDF tem de esperar por elas. Antes, saía
+   o relatório. As fotos das evidências chegam do IndexedDB depois do
+   relatório; o PDF tem de esperar por elas (4.7.0: as das recomendações
+   saíram com elas). Antes, saía
    sem fotos (e sem a folha das evidências, quando só tinham foto) ou falhava
    com «Unable to find element in cloned iframe», porque a folha era
    substituída a meio. A leitura do disco é atrasada de propósito, para a
@@ -27,7 +28,6 @@ await pg.evaluate(async () => {
   localStorage.setItem("audits", JSON.stringify([{ id: 2, service: "Loja A", date: "2026-10-20", verif: "F",
     scores: it.map((_, i) => i === 0 ? 0 : 2), raw: it.map(() => null), tgts: it.map(() => null), items: it, recs: { U: "Arrumar." } }]));
   localStorage.setItem("services", JSON.stringify(["Loja A"]));
-  await guardarFoto(2, respKeys()[0], foto("#c00"));
   await fotosIDB("readwrite", st => st.put(foto("#00c"), "2#0"));
 });
 await pg.reload();
@@ -53,7 +53,7 @@ const r = await pg.evaluate(async () => {
   return { fotos, erro };
 });
 check(!r.erro, "o PDF pedido logo ao abrir não devia falhar: " + r.erro);
-check(r.fotos === 2, "o PDF devia levar a foto da recomendação e a da evidência (levou " + r.fotos + ")");
+check(r.fotos === 1, "o PDF devia levar a foto da evidência (levou " + r.fotos + ")");
 
 await b.close();
 if (erros.length) console.log("ERROS:\n" + erros.join("\n"));
