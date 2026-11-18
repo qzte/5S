@@ -15,9 +15,10 @@ app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver
 [README](README.md); para o que mudou em cada versão, o [CHANGELOG](CHANGELOG.md).
 
 - [Antes de começar](#antes-de-começar)
+- [O fluxo de uma auditoria](#o-fluxo-de-uma-auditoria)
 - [Fazer uma auditoria](#fazer-uma-auditoria)
 - [Depois da auditoria](#depois-da-auditoria)
-- [Do telemóvel para o PC](#do-telemóvel-para-o-pc)
+- [Quando não dá para acabar no serviço](#quando-não-dá-para-acabar-no-serviço)
 - [O relatório](#o-relatório)
 - [Plano de acção](#plano-de-acção)
 - [Histórico](#histórico)
@@ -46,6 +47,28 @@ Os dados ficam **só neste dispositivo**. Não há conta nem servidor: quem tive
 telemóvel tem as auditorias, e quem o perder perde-as — a menos que tenha uma
 [cópia de segurança](#cópias-de-segurança).
 
+## O fluxo de uma auditoria
+
+A auditoria faz-se **toda no telemóvel, no serviço**. O PC só entra quando não
+dá para a acabar lá.
+
+1. **Escolher o serviço** e escrever **quem está presente** por cada
+   responsável.
+2. **Responder às perguntas.**
+   - **Excelente**: passa à seguinte, não é preciso mais nada.
+   - **Mau** ou **Com oportunidade**: tirar a **foto** (ou, sem foto, escrever
+     o que se viu), escrever a **acção** e o **prazo**.
+3. **Guardar auditoria.**
+4. **Finalizar auditoria.** A app confirma que cada pergunta a melhorar tem
+   acção com prazo e foto ou nota. Se faltar alguma coisa, diz o quê.
+5. **Descarregar o PDF** — arrumado por responsável, cada pergunta com a foto
+   e o plano de acção — e **enviar por email e/ou Teams**.
+6. **Guardar cópia com fotos.**
+
+Não deu para acabar no serviço? Depois de guardar, **Enviar para o PC**, e no
+PC completa-se, finaliza-se e envia-se o PDF (ver
+[Quando não dá para acabar no serviço](#quando-não-dá-para-acabar-no-serviço)).
+
 ## Fazer uma auditoria
 
 No separador **Auditar**:
@@ -73,12 +96,14 @@ No separador **Auditar**:
    acção, com o responsável da pergunta. Numa pergunta Excelente não é preciso
    mais nada.
 6. Carregue em **Guardar auditoria**. Abre o relatório, e a auditoria fica
-   **por finalizar** (ver [Do telemóvel para o PC](#do-telemóvel-para-o-pc)). Se já houver uma
+   **por finalizar** (ver [Depois da auditoria](#depois-da-auditoria)). Gravar
+   funciona sempre, mesmo que falte alguma acção, foto ou nota: o que falta só
+   impede de finalizar. Se já houver uma
    auditoria ao mesmo serviço nesse dia, a app pergunta antes de gravar outra:
    se é a mesma, cancele e edite a do Histórico.
 
-**Pode fechar a app a meio.** A auditoria por terminar — respostas, nomes, notas
-e fotos — fica guardada no dispositivo a cada alteração, e volta ao reabrir. O
+**Pode fechar a app a meio.** A auditoria por terminar — respostas, nomes,
+notas, acções, prazos e fotos — fica guardada no dispositivo a cada alteração, e volta ao reabrir. O
 cartão *Auditoria por terminar* diz quando foi guardada; **Descartar e começar
 de novo** apaga-a. Só entra no Histórico ao carregar em *Guardar auditoria*.
 
@@ -95,7 +120,7 @@ Enquanto a auditoria está **por finalizar**:
    **Completar agora** (abre a auditoria para editar, sem código) ou **Enviar
    para o PC**. Com tudo completo, pede confirmação e finaliza.
 2. **Não deu para acabar aqui? Enviar para o PC** — ver
-   [Do telemóvel para o PC](#do-telemóvel-para-o-pc).
+   [Quando não dá para acabar no serviço](#quando-não-dá-para-acabar-no-serviço).
 
 Depois de finalizada:
 
@@ -116,23 +141,27 @@ abre-se o email já escrito (anexe o PDF à mão) ou o resumo fica copiado para
 colar no Teams. O Histórico mostra, em cada auditoria, se está **por
 finalizar**, já foi **enviada** ou está **por enviar**.
 
-## Do telemóvel para o PC
+## Quando não dá para acabar no serviço
 
-Para auditar no serviço com o telemóvel e acabar o trabalho no computador:
+O caminho normal é finalizar no
+telemóvel (ver [O fluxo de uma auditoria](#o-fluxo-de-uma-auditoria)). Se lá
+não deu — faltou tempo, uma acção por decidir, uma foto —, acaba-se no
+computador:
 
 1. **No serviço, com o telemóvel**: responda às perguntas, feche as acções que
-   ficaram resolvidas e tire as fotos **dentro da app** (botão **Foto** nas
-   perguntas Mau ou Oportunidade) — assim vão já ligadas à pergunta. Carregue
-   em **Guardar auditoria**.
-2. **Enviar para o PC**: no cartão *Depois da auditoria*, carregue em **Enviar
-   para o PC** e escolha o email. Vai um ficheiro só com esta auditoria e as
+   ficaram resolvidas, tire as fotos **dentro da app** (botão **Foto** nas
+   perguntas Mau ou Oportunidade) — assim vão já ligadas à pergunta — e escreva
+   as acções e os prazos que já souber. Carregue em **Guardar auditoria**.
+2. **Enviar para o PC**: no cartão *Depois da auditoria*, em *Não deu para
+   acabar aqui?*, carregue em **Enviar para o PC** e escolha o email (também
+   aparece na caixa *Falta completar* ao finalizar). Vai um ficheiro só com esta auditoria e as
    suas fotos (no Chrome termina em `.txt`; não faz mal).
 3. **No PC**: guarde o anexo do email, abra a app, e em **Histórico →
    Importar ficheiro** escolha o ficheiro. Abre o relatório da auditoria, com
    as fotos, e as acções fechadas no terreno ficam fechadas também no PC.
-   Complete o plano de acção e, em **Editar
-   auditoria** — que não pede o código enquanto está por finalizar —, a
-   observação, as notas e as fotos. Carregue em **Finalizar auditoria**.
+   Em **Editar auditoria** — que não pede o código enquanto está por
+   finalizar —, complete as acções e os prazos, as notas e as fotos. Carregue
+   em **Finalizar auditoria**: a verificação é a mesma do telemóvel.
 4. **PDF e email ao serviço**: *Descarregar PDF* e *Enviar por email*; o
    destinatário escolhe-se no Outlook ou no Gmail.
 5. **Cópia de segurança**: *Guardar cópia com fotos*, no PC.
@@ -188,10 +217,14 @@ No ecrã (não vão para o PDF) há ainda:
 Uma **acção** é um passo concreto, com
 **responsável**, **prazo** e **estado**, que se segue até estar feito.
 
-- **Criar.** No relatório, carregue em **+ Acção** num dos *Itens a melhorar* —
-  o responsável e o número da pergunta vêm preenchidos — ou escreva-a
-  directamente em *Plano de acção*, com responsável e prazo, e carregue em
-  **Acrescentar acção**.
+- **Criar.** Na própria pergunta, ao auditar: numa pergunta Mau ou
+  Oportunidade, escreva a **acção** e o **prazo**. Ao guardar, a acção entra no
+  plano, com o responsável da pergunta. É esta acção que conta para
+  finalizar. Para mais do que uma acção na mesma pergunta, no relatório,
+  carregue em **+ Acção** num dos *Itens a melhorar* — o responsável e o
+  número da pergunta vêm preenchidos. Também pode escrevê-la directamente em
+  *Plano de acção* e carregar em **Acrescentar acção**, mas, sem número de
+  pergunta, essa não conta para finalizar.
 - **Seguir.** A acção fica **Aberta** até ser marcada como feita. Passado o
   prazo, passa a **Em atraso**, a vermelho. O Histórico mostra quantas acções
   cada auditoria tem em aberto.
@@ -352,7 +385,7 @@ ficheiros .json. O conteúdo é o mesmo: importe-o tal como está.
 
 **As acções que criei no PC não aparecem no telemóvel.** O telemóvel só as
 conhece depois de importar o ficheiro *Enviar para o telemóvel* do PC. Ver
-[Do telemóvel para o PC](#do-telemóvel-para-o-pc).
+[Do telemóvel para o PC](#quando-não-dá-para-acabar-no-serviço).
 
 **Mudei de telemóvel.** No antigo, *Exportar com fotos (JSON)*. No novo, abra a
 app, *Importar cópia de segurança* e escolha *Substituir tudo*.
@@ -360,8 +393,20 @@ app, *Importar cópia de segurança* e escolha *Substituir tudo*.
 **O telemóvel fechou a app a meio da auditoria.** Abra-a outra vez: as respostas
 estão lá (cartão *Auditoria por terminar*).
 
-**Não vejo o campo de nota e foto numa pergunta.** Só aparece quando a resposta
-a classifica como Mau ou Oportunidade.
+**Não vejo os campos de nota, acção, prazo e foto numa pergunta.** Só aparecem
+quando a resposta a classifica como Mau ou Oportunidade.
+
+**Ao finalizar, a app diz «Falta completar».** Em cada pergunta Mau ou
+Oportunidade tem de haver uma acção com prazo e uma foto ou uma nota. A caixa
+diz em que perguntas falta o quê. **Completar agora** abre a auditoria para
+editar (sem código); **Enviar para o PC** manda-a para acabar no computador.
+
+**Não consegui tirar foto.** Escreva na nota o que viu: com nota, a foto deixa
+de ser precisa para finalizar.
+
+**A acção que escrevi no plano não conta.** Uma acção escrita directamente em
+*Plano de acção* não está ligada a nenhuma pergunta. Escreva-a na própria
+pergunta (em *Editar auditoria*) ou use **+ Acção** em *Itens a melhorar*.
 
 **Onde estão a frequência e os prazos das auditorias?** Saíram em 4.0.0, com o
 email de cada serviço. O ritmo das auditorias segue-se agora pelo objectivo

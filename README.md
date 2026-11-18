@@ -18,6 +18,15 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - **Código:** https://github.com/qzte/5S
 - **Guia de utilização:** [GUIA.md](GUIA.md) — como usar a app no dia-a-dia, para quem audita.
   Também está dentro da app, em *Config → Ajuda* (3.16.0). Este README é a documentação técnica.
+- **Fluxograma:** [FLUXO.md](FLUXO.md) — o caminho de uma auditoria, do telemóvel ao PDF, e os pontos a rever.
+
+**O fluxo de uma auditoria** (4.8.0) faz-se todo no telemóvel, no serviço:
+escolher o serviço e quem está presente por responsável → responder às
+perguntas (Excelente passa à seguinte; Mau ou Com oportunidade pede foto ou
+nota, acção e prazo) → guardar → finalizar (só com acção, prazo e foto ou nota
+em cada pergunta a melhorar) → PDF por responsável → email e/ou Teams → cópia
+de segurança. O PC fica para quando não dá para acabar no serviço. Ver
+[Auditoria completa no telemóvel](#auditoria-completa-no-telemóvel-e-pdf-por-responsável-480).
 
 ## Índice
 
@@ -35,7 +44,9 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 - [Plano de acção](#plano-de-acção)
 - [Dados e privacidade](#dados-e-privacidade)
 - [Depois da auditoria](#depois-da-auditoria-3230)
-- [Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250)
+- [Auditoria completa no telemóvel e PDF por responsável](#auditoria-completa-no-telemóvel-e-pdf-por-responsável-480) — o fluxo actual
+  - [Testar no PC](#testar-no-pc)
+- [Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250) — hoje, a alternativa
 - [Relatório mensal](#relatório-mensal-3200)
 - [Importação de Excel](#importação-de-excel)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -82,6 +93,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | Frequência e prazos por serviço (retirados em 4.0.0) | 3.13.0 |
 | | [Evidência por pergunta](#evidência-por-pergunta): nota e foto | 3.14.0 |
 | | Data da auditoria em hora local; aviso de auditoria repetida; «Remover foto» só com foto | 3.22.0 |
+| | [Auditoria completa no telemóvel](#auditoria-completa-no-telemóvel-e-pdf-por-responsável-480): quem está presente por responsável, acção e prazo na pergunta, finalizar com verificação | 4.8.0 |
 | **Consultar** | Histórico com filtros e variação; Análise por serviço e período; exportação para Excel | 3.9.0 |
 | | Histórico e Análise rápidos com milhares de auditorias | 3.15.0 |
 | | Página de KPIs no painel e-ink | 3.17.0 |
@@ -90,8 +102,11 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | | PDF com o nome do serviço e da data | 3.22.0 |
 | | [Depois da auditoria](#depois-da-auditoria-3230): cópia, PDF criado pela app, envio por email ou Teams | 3.23.0 |
 | | [Indicadores do ano](#indicadores-do-ano-400): média total, abaixo da média, objectivo anual, internos e externos | 4.0.0 |
+| | PDF por responsável: radares e grelha com a evidência e o plano de cada pergunta abaixo de Excelente | 4.8.0 |
 | **Dois dispositivos** | [Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250): auditoria por finalizar, envio só dela para o PC, importação que actualiza | 3.25.0 |
 | | Enviar para o telemóvel (dados do PC, sem fotos), libertar espaço no telemóvel | 3.26.0 |
+| | O PC passa a ser a alternativa, para quando não dá para acabar no serviço | 4.8.0 |
+| | [Testar no PC](#testar-no-pc) com um só ficheiro HTML, aberto com duplo clique | 4.8.0 |
 | **Usar** | Modo escuro e acessibilidade (WCAG 2 AA) | 3.10.0 |
 | | [Caixas de diálogo](#caixas-de-diálogo) da app em vez das do browser | 3.9.0, 3.13.0 |
 | | Aviso de nova versão; arranque ~2,5× mais rápido (SheetJS só quando é preciso) | 3.8.0, 3.11.0 |
@@ -349,25 +364,35 @@ O relatório ganha a folha **Evidências** (só quando há alguma), com a foto, 
 pergunta, a classificação e a nota de cada uma. A nota vai também para a folha
 *Respostas* da exportação para Excel.
 
+Desde 4.8.0, a mesma caixa tem também a **acção** e o **prazo** (ver
+[Plano de acção](#plano-de-acção)), e a evidência deixa de ser opcional para
+finalizar: cada pergunta Mau ou Oportunidade precisa de foto **ou** nota. No
+PDF por responsável, a foto e a nota vão ao lado da pergunta, com o plano.
+
 ## Plano de acção
 
 Desde 3.12.0, cada auditoria pode ter um **plano de acção**: passos concretos,
-cada um com **responsável**, **prazo** e **estado** (aberta ou feita). As
-recomendações por responsável (texto e foto, folha 3) continuam como estavam;
-as acções são o que se pode seguir até ficar resolvido.
+cada um com **responsável**, **prazo** e **estado** (aberta ou feita), que se
+seguem até ficarem resolvidos. (As recomendações por responsável saíram do
+relatório em 4.7.0.)
 
-- **Criar.** No relatório, na secção *Plano de acção*, ou com **+ Acção** num
-  dos *Itens a melhorar* — o responsável e o número da pergunta vêm
-  preenchidos.
+- **Criar.** Desde 4.8.0, na própria pergunta, ao auditar: numa pergunta Mau ou
+  Oportunidade escrevem-se a acção e o prazo, e ao gravar entram no plano com
+  o responsável da pergunta e o seu número (`item`). Só uma acção ligada à
+  pergunta conta para finalizar. No relatório continua a haver **+ Acção** num
+  dos *Itens a melhorar* (responsável e número preenchidos), para mais acções
+  na mesma pergunta, e a secção *Plano de acção*, para acções sem pergunta.
 - **Seguir.** Uma acção fica **em aberto** até ser marcada como feita (com a
   data). Passado o prazo, aparece **em atraso**. O Histórico mostra quantas
   acções cada auditoria tem em aberto.
 - **Fechar no terreno.** O formulário de uma auditoria nova mostra as acções em
   aberto das auditorias anteriores ao serviço escolhido: quem audita verifica
   no local e marca as que ficaram resolvidas.
-- **Imprimir.** O plano é a 4.ª folha do relatório, com as acções da auditoria
-  e as que vinham em aberto de antes. Sem acções, o relatório continua com 3
-  folhas.
+- **No PDF.** Desde 4.8.0, cada acção vai no PDF por responsável junto da
+  pergunta a que pertence, com a evidência; as acções sem pergunta vão no fim
+  do grupo do seu responsável; as que vinham em aberto de antes, na folha 1.
+  Na impressão do relatório do ecrã (*Gerar PDF*), o plano vem logo a seguir à
+  grelha (4.7.0).
 
 Desde 4.5.0, uma acção nova guarda a data de criação (`criadaEm`, opcional: nas
 anteriores, a referência é a data da auditoria). Com ela o separador Acções mostra o
@@ -531,6 +556,11 @@ ser importado de volta, e por isso não conta para o lembrete de exportação.
 
 ## Depois da auditoria (3.23.0)
 
+> **Desde 4.8.0**, enquanto a auditoria está por finalizar, o cartão põe
+> **Finalizar** primeiro (com a verificação) e **Enviar para o PC** como
+> alternativa, e o PDF é o [PDF por responsável](#auditoria-completa-no-telemóvel-e-pdf-por-responsável-480).
+> O resto desta secção continua válido para os passos depois de finalizada.
+
 O relatório de cada auditoria abre com o cartão **Depois da auditoria**, com os
 três passos que se seguem a gravar, e diz quais já foram feitos:
 
@@ -566,7 +596,18 @@ pedir a cópia de segurança. Fechar o menu de partilha sem enviar não conta.
 ## Auditoria completa no telemóvel e PDF por responsável (4.8.0)
 
 O caminho normal passa a ser fazer tudo no serviço, com o telemóvel; o PC fica
-para quando a auditoria não fica acabada lá.
+para quando a auditoria não fica acabada lá. O fluxograma completo está no
+[FLUXO.md](FLUXO.md).
+
+1. **Serviço e quem está presente** — um nome por responsável.
+2. **Perguntas** — Excelente passa à seguinte; Mau ou Com oportunidade pede
+   foto (ou nota), acção e prazo.
+3. **Guardar auditoria** — grava sempre, «por finalizar».
+4. **Finalizar** — só com acção, prazo e foto ou nota em cada pergunta a
+   melhorar; com faltas, *Completar agora* ou *Enviar para o PC*.
+5. **PDF por responsável**, **email e/ou Teams**, **cópia com fotos**.
+
+Os pormenores técnicos:
 
 - **Quem está presente**: um campo por responsável no início (`presentes:
   {código: nome}`, `sanitizePresentes()`), no lugar de *Picking* e *Repositor*.
@@ -596,6 +637,11 @@ com duplo clique. Os dados de um ficheiro aberto do disco ficam à parte dos de
 `qzte.github.io`. Não é publicado nem vai para o repositório.
 
 ## Auditar no telemóvel, finalizar no PC (3.25.0)
+
+> **Desde 4.8.0 este é o caminho alternativo**, para quando não dá para acabar a
+> auditoria no serviço: o normal é finalizar no telemóvel (ver
+> [acima](#auditoria-completa-no-telemóvel-e-pdf-por-responsável-480)). No PC,
+> finalizar faz a mesma verificação.
 
 O fluxo: no serviço, com o telemóvel, responde-se às perguntas e tiram-se as
 fotos; a auditoria vai por email para o PC; no PC completa-se, gera-se o PDF,
