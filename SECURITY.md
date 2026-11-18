@@ -2,6 +2,7 @@
 
 Revisões e notas, por ordem inversa:
 
+- **[Revisão de 4.8.0](#revisão-de-480-2026-11-18)** — o código desde 4.2.7: pasta partilhada (4.6.0), PDF por responsável, nomes e acções no formulário, ficheiro de teste para o PC (4.8.0).
 - **[Revisão de 2026-11-15](#revisão-de-2026-11-15-o-que-o-github-pages-publica)** — o que o Pages publica de facto (ponto 29); CSP por hashes passa a ir para o ar.
 - **[Revisão de 4.2.6](#revisão-de-426-2026-11-11)** — o código desde 4.0.0 (listagem de serviços em Excel); tecto ao tamanho das importações em 4.2.7.
 - **[Nota de 4.0.0](#nota-de-400-2026-11-09-indicadores-do-ano)** — tipo dos serviços e objectivo anual; sai o email dos serviços.
@@ -21,6 +22,102 @@ Revisões e notas, por ordem inversa:
 
 Âmbito das revisões: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+# Revisão de 4.8.0 (2026-11-18)
+
+Revisto o código acrescentado desde 4.2.7 — a exportação com escolha da pasta
+(4.3.0), os indicadores (4.4.0, 4.5.0), o backup automático na pasta partilhada
+(4.6.0) e, em 4.8.0, os nomes por responsável, a acção e o prazo no formulário,
+a verificação ao finalizar, o PDF por responsável (`#view-pdf`) e o ficheiro
+HTML único para testar no PC (`scripts/teste-pc.mjs`) — e, de novo, as
+interpolações em `innerHTML`, as portas de entrada, as bibliotecas de terceiros
+e as dependências de desenvolvimento.
+
+## Resumo
+
+| # | Gravidade | Assunto | Estado |
+| --- | --- | --- | --- |
+| 30 | Baixa | O ficheiro de teste aberto do disco guarda os dados na origem `file://`, partilhada por todos os HTML locais | **Por corrigir** (proposta abaixo) |
+| 31 | Info | `teste-pc.mjs` embute as bibliotecas sem verificar o SRI; só o SheetJS tem teste que fixa o hash | **Por corrigir** (proposta abaixo) |
+| 32 | Info | As bibliotecas de `vendor/` não são vigiadas pelo Dependabot | Aceite; verificação manual |
+
+Sem achados de gravidade alta ou média. O que foi confirmado:
+
+- **XSS no código novo.** As interpolações acrescentadas desde 4.2.7 passam por
+  `esc()` (nomes de serviço, perguntas, notas, acções, responsáveis, quem está
+  presente, e o `src` das fotos no PDF) ou são números calculados, classes e
+  cores fixas. Os radares escapam os nomes dos eixos. Os textos da pasta
+  partilhada e do painel (nome da pasta, mensagens de erro, data e contagem da
+  cópia) vão para o ecrã por `textContent`.
+- **Portas de entrada.** `presentes` passa por `sanitizePresentes()` (só códigos
+  de responsáveis conhecidos — `isResp`, sem `__proto__` —, nomes por `clean()`);
+  a acção e o prazo do formulário e do rascunho por `acaoLimpa()` e depois
+  `sanitizeAcoes()`; as fotos que o PDF usa vêm do IndexedDB só se forem
+  `data:image/…`, e as importadas passam por `fotosParaImportar()` (sem SVG).
+- **Pasta partilhada (4.6.0).** O backup lido da pasta tem tecto de 100 MB e
+  entra pela mesma importação dos ficheiros (`importarJsonTexto()` →
+  `sanitizeAudit()`…); o resumo (`resumoDoBackup()`) só aceita uma data que
+  `Date.parse` leia e um número. Escrever na pasta é uma escolha explícita do
+  utilizador (licença do browser), e é por ela que os dados saem do
+  armazenamento do browser — para o disco ou para uma pasta sincronizada.
+- **PDF.** O cabeçalho e o rodapé das folhas são escritos com `doc.text()` do
+  jsPDF, que escapa os parênteses e as barras do texto (o nome do serviço não
+  injecta objectos PDF). A app usa só `addImage`, `text`, `line`, `setPage` e
+  `output`: nenhuma das funções afectadas pelos avisos de 2026 do jsPDF
+  (`addJS`, AcroForm, GIF, metadados XMP, «nova janela»), corrigidos até 4.2.1,
+  que é a versão em `vendor/`.
+- **Integridade das bibliotecas.** O SHA-384 de `vendor/html2canvas.min.js`,
+  `vendor/jspdf.umd.min.js` e `vendor/xlsx.full.min.js` coincide com o
+  `integrity` declarado no `index.html`.
+- **Dependências de desenvolvimento.** `npm audit` em `tools/lint`: 0
+  vulnerabilidades.
+- **CSP, service worker e publicação** sem alterações de risco: a CSP do
+  `<meta>` é a mesma, o `publicar.sh` não copia `teste/` nem `scripts/`, e o
+  ficheiro de teste não vai para o repositório (`.gitignore`).
+
+Continuam como estavam: os cabeçalhos HTTP do ponto 4 (mitigado em JS), a
+origem partilhada em `qzte.github.io` (ponto 29), o código de acesso como trava
+e não como controlo (nota de 3.19.0) e os dados não cifrados no dispositivo.
+
+## 30. Ficheiro de teste: dados na origem `file://` (Baixa)
+
+`teste/Auditoria5S-teste.html` abre-se do disco. No Chrome e no Edge, todas as
+páginas `file://` partilham o mesmo `localStorage` e o mesmo IndexedDB. As
+auditorias e as fotos gravadas no ficheiro de teste — e o desenho da 4.8.0
+sugere importar lá uma cópia real, para testar com dados verdadeiros — ficam
+legíveis por qualquer outro HTML que se abra do disco no mesmo perfil do
+browser (um anexo
+de email guardado, por exemplo), e ficam lá depois do teste. O risco é local
+(é preciso abrir um HTML hostil no mesmo PC), mas os dados são nomes de pessoas
+e fotos dos serviços.
+
+**Proposta:** o aviso amarelo do ficheiro de teste diz para testar com dados de
+exemplo e, se tiver importado dados reais, apagá-los no fim; o README
+(*Testar no PC*) diz o mesmo; e, se se quiser ir mais longe, um botão no aviso
+que apaga os dados de teste (`localStorage.clear()` e o IndexedDB das fotos).
+
+## 31. `teste-pc.mjs` embute as bibliotecas sem verificar o SRI (Info)
+
+Na app publicada, o browser só corre o html2canvas, o jsPDF e o SheetJS se o
+SHA-384 coincidir com o `integrity` do carregador. No ficheiro de teste as três
+vão embutidas, e essa verificação deixa de existir: um `vendor/` alterado na
+cópia local do repositório entraria sem aviso. Só o SheetJS tem um teste
+(`tests/sheetjs.test.js`) que fixa o hash do ficheiro; o html2canvas e o jsPDF
+não têm.
+
+**Proposta:** o script calcula o SHA-384 de cada ficheiro e falha se não for o
+`integrity` declarado no `index.html` (`XLSX_SRI`, `PDF_LIBS`); e um teste
+unitário faz o mesmo para as duas bibliotecas do PDF, como o do SheetJS.
+
+## 32. `vendor/` fora do Dependabot (Info)
+
+O Dependabot vigia as GitHub Actions e `tools/lint`, mas não os ficheiros em
+`vendor/`, que não vêm de um `package.json`. O jsPDF teve seis avisos em 2026
+(CVE-2026-24737, -24043, -25535, -25755, -25940, -31938), todos corrigidos até
+4.2.1, a versão em uso; o html2canvas 1.4.1 não tem avisos conhecidos, mas
+também não tem manutenção desde 2022. Fica aceite: rever os avisos do jsPDF e do
+SheetJS à mão em cada revisão de segurança, e ao actualizar trocar o ficheiro e o
+`integrity` em conjunto.
 
 # Revisão de 2026-11-15: o que o GitHub Pages publica
 
