@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Guia de utilização
   Para quem audita e para quem acompanha as auditorias. O README.md é a
   documentação técnica (dados, segurança, testes, publicação).
-  Escrito para a versão 3.27.0. Publicado com a app como guia.html, gerado
+  Escrito para a versão 4.8.0. Publicado com a app como guia.html, gerado
   por scripts/guia.mjs — depois de mudar este ficheiro: node scripts/guia.mjs É documentação: não muda com a versão do código
   a não ser que o funcionamento descrito mude.
 -->
@@ -56,16 +56,23 @@ No separador **Auditar**:
    já feitas. Toque no serviço (ou use as setas e Enter). *Esc* fecha a lista
    sem mudar o serviço. A caixa começa vazia em cada auditoria nova: sem
    serviço escolhido, a app não grava.
-2. **Acções em aberto neste serviço.** Se auditorias anteriores deixaram acções
+2. **Quem está presente.** Por baixo, um campo por responsável (Utilizadores,
+   Manutenção, Reposição, Utilizador e Repositor, Picking): escreva o nome de
+   quem acompanha a auditoria por cada um. Vão para o relatório e para o PDF.
+3. **Acções em aberto neste serviço.** Se auditorias anteriores deixaram acções
    por fazer, aparecem num cartão no topo. Verifique no local e marque **Feita**
    nas que ficaram resolvidas (ver [Plano de acção](#plano-de-acção)).
-3. **Responda às 19 perguntas.** A nota vai sendo calculada em *Nota (auto)*.
+4. **Responda às 19 perguntas.** A nota vai sendo calculada em *Nota (auto)*.
    Em cada pergunta que a última auditoria ao serviço não deu como Excelente,
    aparece o que lhe deu, para saber o que procurar.
-4. **Evidência.** Numa pergunta classificada **Mau** ou **Oportunidade**
-   aparecem um campo de nota e o botão **Foto**: escreva o que viu e fotografe.
-   *Trocar foto* e *Remover foto* fazem o que dizem.
-5. Carregue em **Guardar auditoria**. Abre o relatório, e a auditoria fica
+5. **Evidência e acção.** Numa pergunta classificada **Mau** ou
+   **Oportunidade** aparecem a nota, a **acção**, o **prazo** e o botão
+   **Foto**: escreva o que viu, o que é preciso fazer e até quando, e
+   fotografe. Sem foto, a nota passa a ser obrigatória para finalizar.
+   *Trocar foto* e *Remover foto* fazem o que dizem. A acção entra no plano de
+   acção, com o responsável da pergunta. Numa pergunta Excelente não é preciso
+   mais nada.
+6. Carregue em **Guardar auditoria**. Abre o relatório, e a auditoria fica
    **por finalizar** (ver [Do telemóvel para o PC](#do-telemóvel-para-o-pc)). Se já houver uma
    auditoria ao mesmo serviço nesse dia, a app pergunta antes de gravar outra:
    se é a mesma, cancele e edite a do Histórico.
@@ -82,15 +89,19 @@ que falta, e marca com ✓ o que já foi feito.
 
 Enquanto a auditoria está **por finalizar**:
 
-1. **Enviar para o PC** — ver [Do telemóvel para o PC](#do-telemóvel-para-o-pc).
-2. **Finalizar auditoria** — depois de completar o plano de acção e o que
-   faltar. Se fizer tudo no mesmo dispositivo, carregue logo
-   aqui.
+1. **Finalizar auditoria** — o passo normal, ali mesmo no serviço. Cada
+   pergunta a melhorar precisa de acção com prazo e de foto ou nota. Se faltar
+   alguma coisa, a app diz o quê («Nº 7 Caixas: sem acção») e oferece
+   **Completar agora** (abre a auditoria para editar, sem código) ou **Enviar
+   para o PC**. Com tudo completo, pede confirmação e finaliza.
+2. **Não deu para acabar aqui? Enviar para o PC** — ver
+   [Do telemóvel para o PC](#do-telemóvel-para-o-pc).
 
 Depois de finalizada:
 
 1. **Descarregar PDF** — o relatório num ficheiro, com o nome do serviço e da
-   data. A app cria-o sozinha; demora um ou dois segundos.
+   data, arrumado por responsável (ver [O relatório](#o-relatório)). A app
+   cria-o sozinha; demora um ou dois segundos.
 2. **Enviar por email** ou **Enviar para o Teams** — abre o menu de partilha
    com o PDF e um resumo da auditoria (nota, comparação com a anterior, pior
    pilar, acções). Escolha lá o Outlook, o Gmail ou o Teams, e a pessoa, a
@@ -148,14 +159,19 @@ cópia de segurança de lá).
 
 ## O relatório
 
-Abre ao gravar, ou em **Histórico → Relatório**. **Gerar PDF** imprime-o; ao
-guardar, o ficheiro já vem com o nome do serviço e a data:
+Abre ao gravar, ou em **Histórico → Relatório**.
+
+O **PDF** (*Descarregar PDF* e os envios por email ou Teams) está arrumado por
+responsável:
 
 | Folha | Conteúdo |
 | --- | --- |
-| 1 | Nota, radares por pilar 5S e por responsável, histórico das últimas auditorias ao serviço |
-| 2 | Pontuação e grelha de verificação só com as perguntas abaixo de Excelente (as Excelentes ficam numa linha, pelo número); a seguir, o **plano de acção** — as acções desta auditoria e as que vinham em aberto, só quando há. Se o plano não couber, passa inteiro para a folha seguinte |
-| Evidências | As perguntas Mau ou Oportunidade com nota ou foto — só quando há |
+| 1 | Nota, contagens, radares por pilar 5S e por responsável, a nota de cada responsável com quem esteve presente, e as acções que vinham em aberto de auditorias anteriores |
+| 2 e seguintes | A grelha de verificação, por responsável (Utilizadores, Picking, Reposição, Utilizador e Repositor, Manutenção), só com as perguntas abaixo de Excelente. Cada pergunta leva a evidência (foto e nota) e o plano de acção (acção, responsável, prazo, estado), e nunca fica cortada entre folhas. As Excelentes contam-se no cabeçalho de cada responsável |
+
+**Gerar PDF**, no fundo do relatório, imprime o relatório do ecrã como antes:
+folha 1 com os radares e o histórico do serviço, folha 2 com a pontuação, a
+grelha e o plano de acção, e as evidências numa folha à parte.
 
 No ecrã (não vão para o PDF) há ainda:
 

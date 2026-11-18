@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.7.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.8.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.7.1** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.8.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -48,11 +48,11 @@ Funciona **100 % offline**, instalável como PWA, e **nenhum dado sai do disposi
 
 | Vista | O que faz |
 | --- | --- |
-| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço (numa só caixa onde se **pesquisa** pelo nome ou pelo código, na lista e nas auditorias já feitas, 4.2.0 e 4.2.1), data, Picking, Repositor, Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**. Mostra as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. Data em hora local, e aviso antes de gravar uma segunda auditoria ao mesmo serviço no mesmo dia (3.22.0). |
+| **Nova auditoria** | 19 itens (3 deles por amostra), nota calculada em tempo real, cabeçalho com serviço (numa só caixa onde se **pesquisa** pelo nome ou pelo código, na lista e nas auditorias já feitas, 4.2.0 e 4.2.1), data, **quem está presente por responsável** (4.8.0), Verificador e observação. Em cada pergunta, o que a última auditoria ao serviço lhe deu, se não foi Excelente; nas que ficam Mau ou Oportunidade, **nota e foto de evidência**, e a **acção com o prazo** (4.8.0). Mostra as **acções em aberto** para fechar no terreno. Gravada a cada alteração como **rascunho**, que sobrevive a um separador fechado. Data em hora local, e aviso antes de gravar uma segunda auditoria ao mesmo serviço no mesmo dia (3.22.0). |
 | **Histórico** | Todas as auditorias guardadas, filtráveis por serviço, datas e faixa de nota, com a variação face à anterior ao mesmo serviço; edição (sob PIN) e remoção (com *Desfazer*). Diz se cada auditoria já foi **enviada** ou está **por enviar** (3.23.0). |
 | **Análise** | Os [indicadores do ano](#indicadores-do-ano-400): média total e serviços abaixo dela, objectivo anual e média semanal, internos e externos auditados (4.0.0). Evolução da nota (uma linha por serviço, no tempo), comparação entre serviços, radar por pilar 5S e radar por responsável — filtrável por serviço e período, em SVG nativo, sem bibliotecas de gráficos. E o **relatório mensal**, de todos os serviços, para imprimir em PDF (3.20.0). |
 | **Acções** | O plano de acção de todos os serviços: resumo, filtros por estado, responsável e serviço, as em atraso primeiro; marcar como feita e abrir o relatório de origem (3.21.0). |
-| **Relatório** | Folhas imprimíveis: resumo com radares e histórico do serviço; na segunda, a pontuação, a grelha só com as perguntas abaixo de Excelente e, a seguir, o **plano de acção** quando o há (se não couber, passa inteiro para a folha seguinte) (4.7.0). Mais as **Evidências**, numa folha, quando as há. As recomendações por responsável saíram do relatório em 4.7.0 (as já escritas ficam gravadas e nas cópias). No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior, e no topo o cartão [Depois da auditoria](#depois-da-auditoria-3230): cópia de segurança pelo menu de partilha, **PDF** criado pela app (com o nome do serviço e da data) e envio **por email ou para o Teams** (3.23.0, 3.24.0). |
+| **Relatório** | Folhas imprimíveis: resumo com radares e histórico do serviço; na segunda, a pontuação, a grelha só com as perguntas abaixo de Excelente e, a seguir, o **plano de acção** quando o há (se não couber, passa inteiro para a folha seguinte) (4.7.0). Mais as **Evidências**, numa folha, quando as há. As recomendações por responsável saíram do relatório em 4.7.0 (as já escritas ficam gravadas e nas cópias). No ecrã, também os itens a melhorar e o seguimento face à auditoria anterior, e no topo o cartão [Depois da auditoria](#depois-da-auditoria-3230): cópia de segurança pelo menu de partilha, **PDF** criado pela app (com o nome do serviço e da data) e envio **por email ou para o Teams** (3.23.0, 3.24.0). Desde 4.8.0 o PDF da app é o [PDF por responsável](#auditoria-completa-no-telemóvel-e-pdf-por-responsável-480): resumo com radares e a grelha agrupada por responsável, com a evidência e o plano de cada pergunta abaixo de Excelente. |
 | **Configuração** | Serviços e o **tipo** de cada um (interno ou externo), o **objectivo anual** de auditorias, responsáveis, cópia de segurança (com ou sem fotos, descarregada ou partilhada) e importação de `.json` ou `.txt`, exportação e importação de Excel, espaço ocupado e estado do armazenamento, **código de acesso** próprio, editor de perguntas e a pasta do **painel e-ink**. |
 
 Segue o **modo escuro** do sistema no ecrã (a impressão é sempre clara), e todas
@@ -563,6 +563,38 @@ teams}`, com a data), e portanto nas cópias de segurança; o Histórico mostra
 «enviada (email, Teams) a …» ou «por enviar». Registar um envio não volta a
 pedir a cópia de segurança. Fechar o menu de partilha sem enviar não conta.
 
+## Auditoria completa no telemóvel e PDF por responsável (4.8.0)
+
+O caminho normal passa a ser fazer tudo no serviço, com o telemóvel; o PC fica
+para quando a auditoria não fica acabada lá.
+
+- **Quem está presente**: um campo por responsável no início (`presentes:
+  {código: nome}`, `sanitizePresentes()`), no lugar de *Picking* e *Repositor*.
+  As auditorias antigas mantêm `pick` e `repo` (`textoPresentes()`).
+- **Acção dentro da pergunta**: nas perguntas Mau ou Com oportunidade, acção e
+  prazo. `acoesDoFormulario()` passa-as para `acoes` da auditoria (com `item` =
+  número da pergunta e o responsável dela); ao editar, escreve por cima da
+  primeira acção ligada à pergunta (`acaoDoItem()`). O rascunho guarda-as.
+- **Finalizar** (`faltasParaFinalizar()`): cada pergunta a melhorar precisa de
+  acção com prazo e de foto ou nota. Com faltas, a app lista-as e oferece
+  *Completar agora* ou *Enviar para o PC*. Gravar nunca é bloqueado.
+- **PDF** (`pdfDaAuditoria()`): desenhado a partir de uma vista própria,
+  `#view-pdf`, fora do ecrã (`pdfHTML()`, `gruposPdf()`), pelo mesmo html2canvas
+  + jsPDF (`pdfDeBlocos()`). Folha 1: nota, contagens, radares, tabela por
+  responsável, acções em aberto anteriores. Depois, a grelha por responsável
+  (Utilizadores, Picking, Reposição, Utilizador e Repositor, Manutenção, e os
+  acrescentados), só abaixo de Excelente; cada pergunta nunca se corta entre
+  folhas. «Folha X de Y» em cada folha.
+
+### Testar no PC
+
+`node scripts/teste-pc.mjs` gera `teste/Auditoria5S-teste.html`: a app num só
+ficheiro, com o html2canvas, o jsPDF e o SheetJS embutidos (as cópias em
+`vendor/` têm SRI, que o browser não verifica em ficheiros locais), sem
+manifesto nem service worker, com «[TESTE]» no título e um aviso no topo. Abre
+com duplo clique. Os dados de um ficheiro aberto do disco ficam à parte dos de
+`qzte.github.io`. Não é publicado nem vai para o repositório.
+
 ## Auditar no telemóvel, finalizar no PC (3.25.0)
 
 O fluxo: no serviço, com o telemóvel, responde-se às perguntas e tiram-se as
@@ -710,6 +742,7 @@ GUIA.md            Guia de utilização, para quem usa a app
 FLUXO.md           Fluxograma (Mermaid) de uma auditoria, do telemóvel ao PDF, com os pontos a rever
 guia.html          O guia, publicado com a app (Config → Ajuda) — gerado de GUIA.md
 scripts/guia.mjs   Gera guia.html a partir de GUIA.md (Markdown mínimo, sem dependências)
+scripts/teste-pc.mjs  Gera teste/Auditoria5S-teste.html, a app num só ficheiro para testar no PC (4.8.0)
 tests/harness.js   Extrai as funções puras do index.html para teste em Node
 tests/sheetjs.*    Integridade do SheetJS (SHA-256 fixado, e o SRI do carregador)
 tests/*.test.js    Testes unitários (node:test)

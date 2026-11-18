@@ -2,7 +2,7 @@
   Auditoria 5S · Supermercados Kaizen — Fluxo de uma auditoria
   Fluxograma (Mermaid, que o GitHub desenha) do caminho de uma auditoria, do
   formulário no telemóvel ao PDF enviado e à cópia de segurança. Escrito para a
-  versão 4.7.1. Os nomes entre parênteses são funções de index.html.
+  versão 4.8.0. Os nomes entre parênteses são funções de index.html.
 -->
 
 # Fluxo de uma auditoria
@@ -49,9 +49,10 @@ flowchart TB
         D1{"Há rascunho<br/>guardado?"}
         R1["Repor o rascunho<br/>respostas, notas e fotos"]
         P1["Escolher o serviço<br/>obrigatório desde 4.2.6"]
+        P1b["Quem está presente<br/>um nome por responsável (4.8.0)"]
         P2["Acções em aberto do serviço<br/>marcar Feita no local"]
         P3["Responder às perguntas<br/>classify(): Mau · Oportunidade · Excelente"]
-        P4["Mau ou Oportunidade<br/>nota de evidência + foto"]
+        P4["Mau ou Oportunidade<br/>nota + foto + acção e prazo (4.8.0)"]
         DS[("Rascunho automático<br/>localStorage + IndexedDB")]
         P5["Guardar auditoria"]
         D2{"Serviço, todas as<br/>respostas e data?"}
@@ -62,13 +63,14 @@ flowchart TB
         P7["Relatório e plano de acção<br/>itens a melhorar → + Acção"]
         D4{"Finalizar neste<br/>dispositivo?"}
         F1[/"Enviar para o PC (enviarParaPC)<br/>.json: auditoria + fotos<br/>+ acções feitas no terreno"/]
-        M1["⚠3 Finalizar auditoria<br/>sem confirmação"]
+        V1{"Acção com prazo e<br/>foto ou nota em todas?"}
+        M1["Finalizar auditoria<br/>com confirmação (4.8.0)"]
         U1["⚠1 Importar actualização do PC<br/>sem fotos · o mais recente ganha"]
 
         S1 --> D1
         D1 -- Sim --> R1 --> P1
         D1 -- Não --> P1
-        P1 --> P2 --> P3 --> P4 --> P5
+        P1 --> P1b --> P2 --> P3 --> P4 --> P5
         P3 -. a cada alteração .-> DS
         P4 -. a cada alteração .-> DS
         P5 --> D2
@@ -79,7 +81,10 @@ flowchart TB
         Q1 -- Gravar também --> P6
         D3 -- Não --> P6
         P6 --> P7 --> D4
-        D4 -- Sim --> M1
+        D4 -- Sim --> V1
+        V1 -- Sim --> M1
+        V1 -- "Não: Completar agora" --> P4
+        V1 -- "Não: Enviar para o PC" --> F1
         D4 -- Não --> F1
     end
 
@@ -89,13 +94,13 @@ flowchart TB
         I2["⚠1 ⚠2 Fundir (planoFusao)<br/>nova · actualizar se mais recente<br/>igual: fica a de casa"]
         I3["Fechar acções feitas no terreno<br/>(aplicarAcoesFeitas), nunca reabre"]
         I4["⚠5 Completar a auditoria<br/>Editar sem código · plano de acção<br/>observação, notas e fotos"]
-        I5["⚠3 Finalizar auditoria<br/>(finalizarAuditoria)"]
+        I5["Finalizar auditoria<br/>(finalizarAuditoria, com a mesma verificação)"]
         I1 --> I2 --> I3 --> I4 --> I5
     end
 
     subgraph FIM["Depois de finalizada"]
         direction LR
-        B1["⚠4 Descarregar PDF<br/>(pdfDoRelatorio) · regista o envio"]
+        B1["⚠4 Descarregar PDF por responsável<br/>(pdfDaAuditoria) · regista o envio"]
         B2["Enviar por email<br/>ou para o Teams"]
         B3["Guardar cópia<br/>com fotos"]
         B4(["Concluída"])
@@ -110,7 +115,7 @@ flowchart TB
     classDef risco fill:#fde8dc,stroke:#c2410c,stroke-width:2px,color:#1c2321
     classDef chave fill:#1d6b57,stroke:#1d6b57,color:#ffffff
     classDef auto fill:#f5f6f4,stroke:#5d6865,stroke-dasharray:4 3,color:#1c2321
-    class P6,M1,U1,I2,I4,I5,B1 risco
+    class P6,U1,I2,I4,B1 risco
     class P5 chave
     class DS auto
 ```
@@ -121,7 +126,7 @@ flowchart TB
 | --- | --- | --- | --- | --- | --- |
 | 1 | A fusão substitui o registo inteiro pela versão mais recente. | `planoFusao()`, importação | Se o telemóvel e o PC alteram a mesma auditoria depois do envio, uma das alterações perde-se sem aviso. | Fundir as acções por id; avisar quando as duas versões mudaram desde o envio. | Alta |
 | 2 | «Mais recente» é decidido pelo relógio de cada dispositivo. | `maisRecente()`, campo `alterada` | Um telemóvel com a hora adiantada pode passar por cima de uma auditoria já finalizada no PC. | Uma auditoria finalizada nunca é substituída por uma por finalizar. | Alta |
-| 3 | Finalizar não pede confirmação nem verifica o plano. | `finalizarAuditoria()`, botão `pa-fim` | Finaliza-se por engano, ou com perguntas Mau sem nenhuma acção. Depois disso, editar já pede o código. | Confirmação, com aviso de «plano de acção vazio». | Média |
+| 3 | ~~Finalizar não pede confirmação nem verifica o plano.~~ **Resolvido em 4.8.0:** verifica acção, prazo e foto ou nota em cada pergunta a melhorar, e pede confirmação. | `finalizarAuditoria()`, `faltasParaFinalizar()` | — | — | — |
 | 4 | Descarregar o PDF ou enviar muda a data de alteração. | `marcarEnvio()` → `tocar()` | Um simples PDF no PC torna essa versão «mais recente» e agrava o ponto 1. | Registar o envio sem mexer em `alterada`, como já faz `envios.pc`. | Média |
 | 5 | A edição de uma auditoria gravada não tem rascunho. | `guardarRascunho()` sai se `editId` | Se o sistema fechar o separador no telemóvel, o que se editou perde-se. | Rascunho também em edição, com a chave do id. | Média |
 | 6 | As fotos gravam-se depois, em segundo plano. | `gravarEvidencias()` | Se falhar, a auditoria fica sem fotos e só aparece um aviso. | Manter as fotos do rascunho até a gravação delas se confirmar. | Baixa |
