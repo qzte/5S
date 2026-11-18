@@ -140,6 +140,9 @@ input,select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-
   font-family:inherit;font-size:1rem;background:var(--field);color:var(--ink);margin-bottom:12px}
 input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green)}
 .row{display:flex;gap:10px}.row>*{flex:1}
+/* v4.8.0: quem está presente, um campo por responsável (duas colunas; uma no telemóvel estreito). */
+.presentes{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+@media (max-width:360px){.presentes{grid-template-columns:1fr}}
 .pillar{margin:22px 0 8px;display:flex;align-items:center;gap:10px}
 .pillar h2{font-size:.95rem;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--green-ink)}
 .pillar .n{background:var(--green);color:#fff;width:26px;height:26px;border-radius:50%;
@@ -465,10 +468,8 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
       <div><label>Data</label><input type="date" id="f-date"></div>
       <div><label>Nota (auto)</label><input id="f-live" disabled value="—"></div>
     </div>
-    <div class="row">
-      <div><label>Picking</label><input id="f-pick" placeholder="Nome" list="dl-people"></div>
-      <div><label>Repositor</label><input id="f-repo" placeholder="Nome" list="dl-people"></div>
-    </div>
+    <!-- v4.8.0: quem está presente, um campo por responsável (desenhado em renderForm). -->
+    <div class="presentes" id="f-presentes" role="group" aria-label="Quem está presente, por responsável"></div>
     <div class="row">
       <div><label>Verificador</label><input id="f-verif" placeholder="Nome" list="dl-people"></div>
       <div><label>Nota / observação</label><input id="f-note" placeholder="Opcional" maxlength="200"></div>
@@ -1268,8 +1269,9 @@ function montarRascunho(campos,IT,raw,tgts,agora,notas){
   const t=IT.map((_,i)=>inteiroOuNull(tgts&&tgts[i],1));
   /* v3.14.0: a nota de evidência de cada pergunta. */
   const n=IT.map((_,i)=>clean(notas&&notas[i],300));
-  const cab={pick:clean(c.pick,120),repo:clean(c.repo,120),verif:clean(c.verif,120),note:clean(c.note,200)};
-  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&r.every(v=>v==null)&&n.every(v=>!v))return null;
+  const cab={pick:clean(c.pick,120),repo:clean(c.repo,120),verif:clean(c.verif,120),note:clean(c.note,200),
+    presentes:sanitizePresentes(c.presentes)};
+  if(!cab.pick&&!cab.repo&&!cab.verif&&!cab.note&&!cab.presentes&&r.every(v=>v==null)&&n.every(v=>!v))return null;
   return Object.assign({v:1,savedAt:agora,service:clean(c.service,200),
     date:/^\d{4}-\d{2}-\d{2}$/.test(c.date)?c.date:""},cab,
     {sig:IT.map(assinItem),raw:r,tgts:t,notas:n});
@@ -1298,7 +1300,7 @@ function lerRascunho(x,IT){
     service:clean(x.service,200),
     date:typeof x.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)?x.date:"",
     pick:clean(x.pick,120),repo:clean(x.repo,120),verif:clean(x.verif,120),note:clean(x.note,200),
-    raw,tgts,notas,perdidas};
+    presentes:sanitizePresentes(x.presentes),raw,tgts,notas,perdidas};
 }
 
 /* ---------- Lembrete de cópia de segurança (v3.8.0) ----------
@@ -1570,6 +1572,24 @@ function ligarCaixaServico(){
   });
 }
 
+/* v4.8.0: um campo por responsável, pela lista de responsáveis. Redesenhar
+   (renderForm corre também a meio de uma auditoria) mantém o que já estava
+   escrito. */
+function desenharPresentes(){
+  const box=document.getElementById("f-presentes");if(!box)return;
+  const antes=lerPresentesForm();
+  box.innerHTML=Object.keys(RESP).map(k=>`<div><label for="f-pres-${esc(k)}">${esc(RESP[k])}</label>
+    <input id="f-pres-${esc(k)}" data-presente="${esc(k)}" placeholder="Nome" list="dl-people" maxlength="120"></div>`).join("");
+  porPresentesForm(antes);
+}
+function lerPresentesForm(){
+  const o={};
+  document.querySelectorAll("[data-presente]").forEach(el=>{o[el.dataset.presente]=el.value;});
+  return o;
+}
+function porPresentesForm(p){
+  document.querySelectorAll("[data-presente]").forEach(el=>{el.value=p&&p[el.dataset.presente]||"";});
+}
 function renderForm(){
   /* A auditoria em edição é determinada ANTES de desenhar os itens: em edição
      cada item mostra um selector de responsável em vez do nome fixo. */
@@ -1581,6 +1601,7 @@ function renderForm(){
   fecharListaServicos();
   desenharServicos();
   document.getElementById("dl-people").innerHTML=people.map(p=>`<option value="${esc(p)}">`).join("");
+  desenharPresentes();
   const box=document.getElementById("items");box.innerHTML="";
   let curP=-1;
   fitems().forEach((it,i)=>{
@@ -1735,8 +1756,7 @@ function preencherForm(a){
   sel.value=a.service;
   mostrarServicoEscolhido();
   document.getElementById("f-date").value=a.date;
-  document.getElementById("f-pick").value=a.pick||"";
-  document.getElementById("f-repo").value=a.repo||"";
+  porPresentesForm(a.presentes);
   document.getElementById("f-verif").value=a.verif||"";
   document.getElementById("f-note").value=a.note||"";
   answers={};rawVals={};tgtVals={};
@@ -1896,7 +1916,8 @@ function refreshForm(){
      gravação, e a observação da auditoria anterior aparecia já escrita na
      seguinte. Em modo de edição renderForm() volta a preenchê-los a partir da
      auditoria, pelo que a limpeza tem de vir antes. */
-  ["f-pick","f-repo","f-verif","f-note"].forEach(id=>{
+  porPresentesForm(null);
+  ["f-verif","f-note"].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value="";});
   /* v4.2.6: a auditoria seguinte também começa sem serviço. */
   const sel=document.getElementById("f-service");if(sel)sel.value="";
@@ -1914,8 +1935,9 @@ function colherFormulario(){
      limpo à entrada e a data de um <input type=date>. */
   return{service:document.getElementById("f-service").value,
     date:document.getElementById("f-date").value,
-    pick:clean(document.getElementById("f-pick").value,120),
-    repo:clean(document.getElementById("f-repo").value,120),
+    /* v4.8.0: `pick` e `repo` deixam de vir do formulário; os de uma auditoria
+       antiga ficam no registo ao editar (aplicarEdicao junta por cima). */
+    presentes:sanitizePresentes(lerPresentesForm()),
     verif:clean(document.getElementById("f-verif").value,120),
     note:clean(document.getElementById("f-note").value,200),
     scores:IT.map((_,i)=>answers[i]),
@@ -1956,8 +1978,8 @@ function guardarRascunho(){
   if(editId!=null)return;
   const IT=fitems(),val=id=>document.getElementById(id).value;
   const raw=IT.map((_,i)=>{const el=document.querySelector("[data-pick='"+i+"']");return el?el.value:null;});
-  const d=montarRascunho({service:val("f-service"),date:val("f-date"),pick:val("f-pick"),
-    repo:val("f-repo"),verif:val("f-verif"),note:val("f-note")},IT,raw,IT.map((_,i)=>tgtOf(i)),
+  const d=montarRascunho({service:val("f-service"),date:val("f-date"),presentes:lerPresentesForm(),
+    verif:val("f-verif"),note:val("f-note")},IT,raw,IT.map((_,i)=>tgtOf(i)),
     new Date().toISOString(),IT.map((_,i)=>notaVals[i]||""));
   if(!d&&fotosForm.size)limparFotosRascunho();
   try{
@@ -1998,8 +2020,7 @@ function aplicarRascunho(d){
     mostrarServicoEscolhido();
   }
   if(d.date)document.getElementById("f-date").value=d.date;
-  document.getElementById("f-pick").value=d.pick;
-  document.getElementById("f-repo").value=d.repo;
+  porPresentesForm(d.presentes);
   document.getElementById("f-verif").value=d.verif;
   document.getElementById("f-note").value=d.note;
   notaVals={};
@@ -2685,6 +2706,8 @@ function linhasExcel(lista){
     const p=total(a);
     const o={"ID":a.id,"Serviço":a.service,"Data":a.date,"Nota":p,"Classificação":badge(p)[1],
       "Picking":a.pick||"","Repositor":a.repo||"","Verificador":a.verif||"","Observação":a.note||""};
+    /* v4.8.0: quem esteve presente, uma coluna por responsável. */
+    Object.keys(RESP).forEach(k=>{o["Presente: "+RESP[k]]=a.presentes&&a.presentes[k]||"";});
     byPillar(a).forEach(x=>{o["Pilar: "+x.name]=x.n?x.pct:"";});
     byResp(a).forEach(x=>{o["Resp.: "+x.name]=x.n?x.pct:"";});
     return o;
@@ -3080,7 +3103,7 @@ function openReport(a){
   <div class="card score-hero"><div class="lbl">Auditoria 5S · ${esc(a.service)} · ${esc(a.date)}</div>
     <div class="big">${total(a)}<span style="font-size:1.2rem">/100</span></div>
     <span class="badge ${bc}">${bt}</span>
-    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">Picking: ${esc(a.pick||"—")} · Repositor: ${esc(a.repo||"—")} · Verificador: ${esc(a.verif||"—")}</div>
+    <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">${textoPresentes(a)?esc(textoPresentes(a))+" · ":""}Verificador: ${esc(a.verif||"—")}</div>
     ${a.note?`<div style="font-size:.78rem;margin-top:6px;color:#9db8a9">Nota: ${esc(a.note)}</div>`:""}
   </div>
   <div class="card no-print" id="pos-aud"></div>
@@ -4761,6 +4784,8 @@ function sanitizeAudit(x){
     service,date,
     pick:clean(x.pick,120),
     repo:clean(x.repo,120),verif:clean(x.verif,120),
+    /* v4.8.0: quem esteve presente, por responsável. */
+    presentes:sanitizePresentes(x.presentes),
     note:clean(x.note,200),
     scores,raw,tgts,
     /* v1.7.0: recsOf() normaliza para as 4 chaves conhecidas e aplica clean(),
@@ -4781,6 +4806,23 @@ function sanitizeAudit(x){
     alterada:dataISO(x.alterada),
     items:items||undefined
   };
+}
+/* v4.8.0: quem esteve presente na auditoria, por responsável — {código: nome}.
+   Só códigos de responsáveis conhecidos e nomes não vazios; sem nenhum,
+   undefined (fica de fora do registo). */
+function sanitizePresentes(x){
+  if(!x||typeof x!=="object"||Array.isArray(x))return undefined;
+  const out={};
+  Object.keys(x).forEach(k=>{if(!isResp(k))return;const n=clean(x[k],120);if(n)out[k]=n;});
+  return Object.keys(out).length?out:undefined;
+}
+/* O texto de quem esteve presente, para o relatório e o PDF: pela ordem da
+   lista de responsáveis. As auditorias anteriores a 4.8.0 têm `pick` e `repo`. */
+function textoPresentes(a){
+  const p=a&&a.presentes;
+  if(p&&typeof p==="object"&&Object.keys(p).length)
+    return Object.keys(RESP).filter(k=>p[k]).map(k=>RESP[k]+": "+p[k]).join(" · ");
+  return [a&&a.pick?"Picking: "+a.pick:"",a&&a.repo?"Repositor: "+a.repo:""].filter(Boolean).join(" · ");
 }
 /* {pdf, email, teams, pc}: datas ISO; o resto cai. Vazio, fica de fora. */
 function sanitizeEnvios(e){
