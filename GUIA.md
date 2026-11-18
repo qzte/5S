@@ -155,7 +155,7 @@ computador:
 2. **Enviar para o PC**: no cartão *Depois da auditoria*, em *Não deu para
    acabar aqui?*, carregue em **Enviar para o PC** e escolha o email (também
    aparece na caixa *Falta completar* ao finalizar). Vai um ficheiro só com esta auditoria e as
-   suas fotos (no Chrome termina em `.txt`; não faz mal).
+   suas fotos (termina em `.txt`; não faz mal).
 3. **No PC**: guarde o anexo do email, abra a app, e em **Histórico →
    Importar ficheiro** escolha o ficheiro. Abre o relatório da auditoria, com
    as fotos, e as acções fechadas no terreno ficam fechadas também no PC.
@@ -385,8 +385,9 @@ do telemóvel não aceita ficheiros com mais de 50 MB, e a cópia com as fotos d
 todas as auditorias pode passar disso. A app descarrega-a e diz porquê: envie-a
 das Transferências para a Drive, o OneDrive ou o email.
 
-**Partilhei a cópia e o ficheiro acaba em .txt.** É o Chrome, que não partilha
-ficheiros .json. O conteúdo é o mesmo: importe-o tal como está.
+**Partilhei a cópia e o ficheiro acaba em .txt.** É de propósito: o Chrome não
+partilha ficheiros .json, e a app partilha-os sempre como .txt. O conteúdo é o
+mesmo: importe-o tal como está.
 
 **As acções que criei no PC não aparecem no telemóvel.** O telemóvel só as
 conhece depois de importar o ficheiro *Enviar para o telemóvel* do PC. Ver

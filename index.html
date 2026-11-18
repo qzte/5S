@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.8.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.8.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1435,7 +1435,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.8.1";
+const APP_VERSION="4.8.2";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4921,16 +4921,19 @@ async function ficheiroCopia(comFotos,tipo){
 
 /* v3.20.0: partilhar a cópia com fotos (Web Share), para a mandar do telemóvel
    para a Drive, o email ou outra app sem passar pelas Transferências. O Chrome
-   só partilha ficheiros de uma lista de extensões, onde .json não está: nesse
-   caso o ficheiro vai como .txt, com o mesmo conteúdo, e a importação aceita-o
-   (o que conta é o conteúdo, que é verificado). O Safari partilha o .json. */
+   só partilha ficheiros de uma lista de extensões, onde .json não está: o
+   ficheiro vai como .txt, com o mesmo conteúdo, e a importação aceita-o (o que
+   conta é o conteúdo, que é verificado). Até 4.8.1 ia como .json onde canShare()
+   o aceitava (Safari); desde 4.8.2 vai sempre como .txt (ver abaixo). */
+/* v4.8.2: sempre como .txt. O Chrome do Android responde que sim a canShare()
+   com um .json, mas share() recusa-o (NotAllowedError, «Permission denied»):
+   o .json não está na lista de tipos que o Chrome partilha, e canShare() no
+   Android não a consulta. O .txt está nessa lista em todos os browsers, e a
+   importação aceita-o. */
 function ficheiroPartilha(blob,nome){
   if(!navigator.canShare||typeof File!=="function")return null;
-  const pode=f=>{try{return navigator.canShare({files:[f]});}catch(e){return false;}};
-  const json=new File([blob],nome,{type:"application/json"});
-  if(pode(json))return json;
   const txt=new File([blob],nome.replace(/\.json$/,".txt"),{type:"text/plain"});
-  return pode(txt)?txt:null;
+  try{return navigator.canShare({files:[txt]})?txt:null;}catch(e){return null;}
 }
 function podePartilharFicheiros(){
   return typeof navigator.share==="function"&&!!ficheiroPartilha(new Blob(["{}"]),"teste.json");

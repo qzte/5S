@@ -5,6 +5,21 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.8.2] — 2026-11-18
+
+### Corrigido
+
+- **A cópia com fotos não se partilhava no Chrome do Android** («O menu de partilha não aceitou a cópia (0 MB;
+  NotAllowedError)»). A app perguntava ao browser se podia partilhar o `.json` e, se sim, partilhava-o; senão, ia como
+  `.txt`. O Chrome do Android responde que sim a qualquer tipo, mas depois recusa o `.json`, que não está na lista de
+  tipos que deixa partilhar. Por isso o PDF (`.pdf`) passava e a cópia não. Agora os ficheiros partilhados — a cópia
+  com fotos, *Enviar para o PC* e *Enviar para o telemóvel* — vão sempre como `.txt`, que todos os browsers partilham;
+  a importação já os aceitava. Os ficheiros descarregados continuam `.json`.
+- A 4.8.1 atribuiu este erro ao tamanho da cópia (o limite de 50 MB do Chrome). Esse limite existe e a 4.8.1 trata-o,
+  mas não era a causa aqui: a cópia tinha menos de 1 MB.
+- **Teste:** `tests/smoke-copia-partilha.mjs` ganha o caso do Chrome do Android (`canShare` diz que sim a tudo, `share`
+  recusa o `.json`): a cópia tem de sair como `.txt` à primeira, sem descarregar.
+
 ## [4.8.1] — 2026-11-18
 
 ### Corrigido
