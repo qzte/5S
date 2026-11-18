@@ -38,21 +38,24 @@ finalizadas.
 
 ## Fluxograma
 
-Os nós a laranja, com ⚠ e um número, são os [pontos a rever](#pontos-a-rever).
-As setas a tracejado são caminhos opcionais.
+O caminho normal (4.8.0) é fazer tudo no telemóvel, no serviço: nomes por
+responsável, acção e prazo em cada pergunta a melhorar, finalizar e enviar o
+PDF. O PC fica para quando não dá para acabar lá. Os nós com contorno verde
+grosso são o que mudou na 4.8.0; os nós a laranja, com ⚠ e um número, são os
+[pontos a rever](#pontos-a-rever). As setas a tracejado são caminhos opcionais.
 
 ```mermaid
 flowchart TB
-    subgraph TEL["Telemóvel · no serviço"]
+    subgraph TEL["Telemóvel · no serviço (caminho normal)"]
         direction TB
         S1(["Nova auditoria (Auditar)"])
         D1{"Há rascunho<br/>guardado?"}
-        R1["Repor o rascunho<br/>respostas, notas e fotos"]
+        R1["Repor o rascunho<br/>respostas, nomes, acções, fotos"]
         P1["Escolher o serviço<br/>obrigatório desde 4.2.6"]
         P1b["Quem está presente<br/>um nome por responsável (4.8.0)"]
         P2["Acções em aberto do serviço<br/>marcar Feita no local"]
-        P3["Responder às perguntas<br/>classify(): Mau · Oportunidade · Excelente"]
-        P4["Mau ou Oportunidade<br/>nota + foto + acção e prazo (4.8.0)"]
+        P3["Responder às perguntas<br/>Excelente: passa à seguinte"]
+        P4["Mau ou Oportunidade<br/>nota + foto<br/>acção e prazo"]
         DS[("Rascunho automático<br/>localStorage + IndexedDB")]
         P5["Guardar auditoria"]
         D2{"Serviço, todas as<br/>respostas e data?"}
@@ -60,17 +63,19 @@ flowchart TB
         Q1["Pede confirmação<br/>«Gravar também»?"]
         T2(["Cancela e edita<br/>a do Histórico"])
         P6["⚠6 Gravar: fase = terreno<br/>alterada = agora · fotos à parte<br/>(gravarEvidencias)"]
-        P7["Relatório e plano de acção<br/>itens a melhorar → + Acção"]
-        D4{"Finalizar neste<br/>dispositivo?"}
+        P7["Relatório<br/>acções já no plano de acção"]
+        D4{"Deu para acabar<br/>no serviço?"}
         F1[/"Enviar para o PC (enviarParaPC)<br/>.json: auditoria + fotos<br/>+ acções feitas no terreno"/]
-        V1{"Acção com prazo e<br/>foto ou nota em todas?"}
-        M1["Finalizar auditoria<br/>com confirmação (4.8.0)"]
-        U1["⚠1 Importar actualização do PC<br/>sem fotos · o mais recente ganha"]
+        V1{"Acção com prazo e<br/>foto ou nota em cada<br/>pergunta a melhorar?"}
+        M1["Finalizar auditoria<br/>pede confirmação"]
+        U1["⚠1 Importar actualização do PC<br/>«Enviar para o telemóvel», sem fotos<br/>o mais recente ganha"]
 
         S1 --> D1
         D1 -- Sim --> R1 --> P1
         D1 -- Não --> P1
-        P1 --> P1b --> P2 --> P3 --> P4 --> P5
+        P1 --> P1b --> P2 --> P3
+        P3 -- Mau / Oportunidade --> P4 --> P5
+        P3 -- nada a melhorar --> P5
         P3 -. a cada alteração .-> DS
         P4 -. a cada alteração .-> DS
         P5 --> D2
@@ -83,24 +88,24 @@ flowchart TB
         P6 --> P7 --> D4
         D4 -- Sim --> V1
         V1 -- Sim --> M1
-        V1 -- "Não: Completar agora" --> P4
-        V1 -- "Não: Enviar para o PC" --> F1
+        V1 -- "Não: completar na pergunta (Editar)" --> P4
+        V1 -- "Não: enviar para o PC" --> F1
         D4 -- Não --> F1
     end
 
-    subgraph PC["PC · no escritório"]
+    subgraph PC["PC · alternativa"]
         direction TB
         I1["Histórico → Importar ficheiro<br/>só funde, nunca substitui tudo"]
         I2["⚠1 ⚠2 Fundir (planoFusao)<br/>nova · actualizar se mais recente<br/>igual: fica a de casa"]
         I3["Fechar acções feitas no terreno<br/>(aplicarAcoesFeitas), nunca reabre"]
-        I4["⚠5 Completar a auditoria<br/>Editar sem código · plano de acção<br/>observação, notas e fotos"]
-        I5["Finalizar auditoria<br/>(finalizarAuditoria, com a mesma verificação)"]
+        I4["⚠5 Completar a auditoria<br/>Editar sem código: acções, prazos,<br/>notas e fotos"]
+        I5["Finalizar auditoria<br/>mesma verificação e confirmação"]
         I1 --> I2 --> I3 --> I4 --> I5
     end
 
     subgraph FIM["Depois de finalizada"]
         direction LR
-        B1["⚠4 Descarregar PDF por responsável<br/>(pdfDaAuditoria) · regista o envio"]
+        B1["⚠4 PDF por responsável (pdfDaAuditoria)<br/>radares + grelha com evidência e plano"]
         B2["Enviar por email<br/>ou para o Teams"]
         B3["Guardar cópia<br/>com fotos"]
         B4(["Concluída"])
@@ -116,8 +121,10 @@ flowchart TB
     classDef chave fill:#1d6b57,stroke:#1d6b57,color:#ffffff
     classDef auto fill:#f5f6f4,stroke:#5d6865,stroke-dasharray:4 3,color:#1c2321
     class P6,U1,I2,I4,B1 risco
+    classDef novo stroke:#1d6b57,stroke-width:3px
     class P5 chave
     class DS auto
+    class P1b,P4,V1,M1,I5 novo
 ```
 
 ## Pontos a rever
