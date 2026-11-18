@@ -43,6 +43,23 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
   (o ficheiro de teste aberto por `file://` cria o PDF). Actualizados: rascunho, evidências, terreno e as páginas e fotos
   do PDF.
 
+### Documentação
+
+Acrescentada depois da publicação da 4.8.0, sem mudanças no código da app: o guia novo chega à app (*Config → Ajuda*)
+pela rede, como qualquer página, sem precisar de versão nova.
+
+- **`GUIA.md`** (e `guia.html`): secção nova **«O fluxo de uma auditoria»** — tudo no telemóvel, no serviço: serviço e
+  quem está presente, perguntas (Excelente passa à seguinte; Mau ou Com oportunidade pede foto ou nota, acção e prazo),
+  guardar, finalizar, PDF, email e/ou Teams, cópia. «Do telemóvel para o PC» passa a **«Quando não dá para acabar no
+  serviço»**. O plano de acção cria-se na própria pergunta. Perguntas frequentes novas: «Falta completar», não conseguir
+  tirar foto, a acção escrita no plano que não conta para finalizar.
+- **`FLUXO.md`**: o fluxograma segue o fluxo da 4.8.0 — o telemóvel como caminho normal («Deu para acabar no
+  serviço?» → verificação → finalizar), o PC como alternativa, os passos novos destacados; o ponto a rever 3 (finalizar
+  sem verificar) fica resolvido.
+- **`README.md`**: o fluxo de uma auditoria logo no início e no índice; as novidades da 4.8.0; na evidência e no plano
+  de acção, a acção e o prazo na pergunta, a verificação ao finalizar e onde as acções aparecem no PDF (saem as
+  referências à «4.ª folha» e às recomendações); notas nas secções de 3.23.0 e 3.25.0 sobre o que mudou.
+
 ## [4.7.1] — 2026-11-18
 
 ### Corrigido
