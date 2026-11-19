@@ -111,10 +111,24 @@ const textos = async () => (await pg.locator("#ac-tabela .ac-item").allTextConte
 let t = await textos();
 check(t.length === 3 && /Atrasada A/.test(t[0]) && /Atrasada B/.test(t[1]) && /Aberta A/.test(t[2]),
   "por omissão, as em aberto, as mais atrasadas primeiro: " + t.join(" | "));
-check(/3 em aberto · 2 em atraso/.test(await pg.locator("#ac-resumo").textContent()) && /3 de 4/.test(await pg.locator("#ac-conta").textContent()),
+/* 4.12.0: o resumo em números, por cima dos filtros. */
+check((await pg.locator("#ac-rs-abertas b").textContent()) === "3" && (await pg.locator("#ac-rs-atrasadas b").textContent()) === "2" &&
+  /3 de 4/.test(await pg.locator("#ac-conta").textContent()),
   "o resumo e a contagem: " + await pg.locator("#ac-resumo").textContent());
-check(/Em aberto há .* dias, em média/.test(await pg.locator("#ac-desempenho").textContent()),
-  "a idade das acções em aberto (4.5.0): " + await pg.locator("#ac-desempenho").textContent());
+check(/há .* dias, em média/.test(await pg.locator("#ac-rs-abertas").textContent()),
+  "a idade das acções em aberto (4.5.0): " + await pg.locator("#ac-rs-abertas").textContent());
+check(/A mais antiga em aberto: Loja A/.test(await pg.locator("#ac-desempenho").textContent()), "a acção mais antiga em aberto");
+/* 4.12.0: agrupada por prazo, por omissão: «Em atraso» aberto, «Mais tarde» fechado. */
+check((await pg.locator("#ac-tabela .ac-gr summary .g-tit").allTextContents()).map(t => t.trim()).join("|").startsWith("Em atraso"),
+  "o primeiro grupo devia ser «Em atraso»");
+check(await pg.locator('#ac-tabela [data-ac-gr="prazo|atrasada"]').evaluate(d => d.open), "«Em atraso» devia estar aberto");
+check(!(await pg.locator('#ac-tabela [data-ac-gr="prazo|tarde"]').evaluate(d => d.open)), "«Mais tarde» devia começar fechado");
+await pg.locator('[data-ac-por="resp"]').click();
+check(await pg.locator("#ac-tabela .ac-gr").count() === 2, "por responsável: Utilizadores e Manutenção");
+check(/em atraso/.test(await pg.locator("#ac-tabela .ac-gr summary").first().textContent()), "o grupo diz quantas estão em atraso");
+await pg.locator('[data-ac-por="svc"]').click();
+check(await pg.locator("#ac-tabela .ac-gr").count() === 2, "por serviço: Loja A e Loja B");
+await pg.locator('[data-ac-por="prazo"]').click();
 await pg.locator("#ac-estado").selectOption("feitas");
 t = await textos();
 check(t.length === 1 && /Feita B/.test(t[0]), "o filtro das feitas");
