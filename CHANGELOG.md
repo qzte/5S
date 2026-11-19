@@ -19,6 +19,13 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
   - **Sem assinaturas:** é um documento informativo.
   - **Funções:** `planoPdfHTML`, `pdfDoPlano`, `nomePdfPlano`. O nome do ficheiro leva o responsável ou o serviço
     escolhidos, sem acentos (com eles, o Chromium sem janela grava-o como «download»).
+### Corrigido
+
+- **Config → «Abrir tudo»:** o texto do botão passa logo a «Fechar tudo» no toque. Até aqui só mudava com o evento
+  `toggle` dos grupos, que chega depois; o smoke test da Config, ao ler o botão logo a seguir, falhava às vezes.
+
+### Testes
+
 - **Teste:** `tests/smoke-pdf-plano.mjs` (PDF com várias folhas, uma unidade por acção, cabeçalho só na primeira linha
   de cada grupo, nome do ficheiro com o responsável, PDF sem acções), também na CI.
 

@@ -4814,7 +4814,9 @@ function resumosCfg(){
 }
 {const g=[...document.querySelectorAll("#view-cfg details.grp")],b=document.getElementById("cfg-tudo");
   g.forEach(d=>d.addEventListener("toggle",()=>{if(b)b.textContent=g.every(x=>x.open)?"Fechar tudo":"Abrir tudo";}));
-  if(b)b.onclick=()=>{const abrir=!g.every(d=>d.open);g.forEach(d=>{d.open=abrir;});};}
+  /* v4.14.0: o texto muda logo no toque. O evento «toggle» chega depois (é
+     assíncrono), e quem lê o botão logo a seguir via ainda o texto antigo. */
+  if(b)b.onclick=()=>{const abrir=!g.every(d=>d.open);g.forEach(d=>{d.open=abrir;});b.textContent=abrir?"Fechar tudo":"Abrir tudo";};}
 /* O número no separador das Acções (as em atraso) muda com o dia. */
 /* v3.18.0: remover uma pessoa ou um serviço tem Desfazer, como apagar uma
    auditoria: até aqui o × apagava logo, sem confirmação nem volta. */
