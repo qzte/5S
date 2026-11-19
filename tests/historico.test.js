@@ -1,5 +1,5 @@
 /* Testes das funções puras da 3.9.0: filtros do Histórico e da Análise,
-   auditoria anterior, séries da evolução, seguimento entre auditorias e as
+   auditoria anterior, seguimento entre auditorias e as
    linhas da exportação para Excel. */
 const test = require("node:test");
 const assert = require("node:assert");
@@ -7,9 +7,9 @@ const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
   ["ordemCron", "faixaNota", "filtrarAudits", "anteriorDe", "ultimaDe", "desdeMeses",
-   "seriesEvolucao", "seguimento", "linhasExcel", "assinItem", "byPillar", "byResp"],
+   "seguimento", "linhasExcel", "assinItem", "byPillar", "byResp"],
   ["ITEMS", "itemsOf", "LBL", "badge"]);
-const { filtrarAudits, anteriorDe, ultimaDe, desdeMeses, seriesEvolucao, seguimento, linhasExcel } = ctx;
+const { filtrarAudits, anteriorDe, ultimaDe, desdeMeses, seguimento, linhasExcel } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
 
 /* Cinco perguntas, uma por pilar. 2 = Excelente, 1 = Oportunidade, 0 = Mau. */
@@ -52,13 +52,7 @@ test("início do período em meses, sem depender do fuso", () => {
   assert.strictEqual(desdeMeses(12, "2026-02-15"), "2025-02-15");
 });
 
-test("uma série por serviço, em ordem cronológica", () => {
-  const s = plain(seriesEvolucao([D, C, B, A]));
-  assert.deepStrictEqual(s.map(x => x.service), ["Loja A", "Loja B"]);
-  assert.deepStrictEqual(s[0].pontos.map(p => p.date), ["2026-01-10", "2026-03-05", "2026-03-05"]);
-  assert.deepStrictEqual(s[0].pontos.map(p => p.pct), [100, 0, ctx.total(D)]);
-  assert.deepStrictEqual(plain(seriesEvolucao([])), []);
-});
+/* 4.16.0: seriesEvolucao saiu (a evolução passou a mensal: tests/analise.test.js). */
 
 test("seguimento: melhorou, piorou e mantém-se; Excelente nas duas fica de fora", () => {
   const ant = aud(10, "X", "2026-01-01", [0, 1, 2, 1, 2]);

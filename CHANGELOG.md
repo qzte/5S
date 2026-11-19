@@ -5,6 +5,32 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.16.0] — 2026-11-19
+
+### Alterado
+
+- **Indicadores do ano mais curtos.** Ficam à vista os números e os serviços abaixo da média. As faixas, os serviços
+  auditados (internos e externos), os há mais tempo sem auditoria e as perguntas reincidentes passam para secções que
+  abrem e fecham, fechadas por omissão, com um resumo no título (a vermelho quando há serviços críticos, nunca
+  auditados ou reincidências).
+- **Evolução da nota mensal.**
+  - **O que mostra:** os últimos 12 meses, sempre, com o período escolhido sombreado. Em vez de uma linha por serviço
+    (ilegível com muitos), **Média geral** dá uma linha com a média de cada mês e **Internos e externos** dá uma linha
+    para cada tipo.
+  - **Um serviço escolhido** aparece a tracejado por cima.
+  - **Leitura:** uma frase lê o gráfico (último mês, variação face ao anterior, máximo dos 12 meses).
+  - **Funções:** `mesesAte`, `evolucaoMensal`, `evolucaoMensalSVG`; saem `seriesEvolucao`, `evolucaoSVG` e
+    `descricaoEvolucao`.
+- **Comparação entre serviços ordenada**, do pior para o melhor, com as auditorias e a variação de cada um. Com mais
+  de 10 serviços, os 5 piores e os 5 melhores e *Ver todos* (`comparacaoServicos`).
+
+### Acrescentado
+
+- **Perguntas que mais falham:** as 5 com pior resultado no período (percentagem como nos pilares), com a variação e
+  até 3 serviços onde mais falham; o pior a vermelho (`perguntasQueFalham`).
+- **Testes:** `tests/analise.test.js` cobre as funções novas. Saem os testes das funções retiradas. `smoke-analise` e
+  `smoke-historico` verificam as secções do ano, a evolução, a comparação e as perguntas.
+
 ## [4.15.0] — 2026-11-19
 
 ### Alterado

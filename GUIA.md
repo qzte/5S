@@ -306,8 +306,18 @@ mesmo tamanho (por exemplo, os últimos 3 meses com os 3 meses antes desses). Em
   percentagem em pontos percentuais, «pp»), quantos pontos separam internos e
   externos, e a lista dos que ficaram por auditar. Com um serviço escolhido,
   só o tipo dele. Os serviços sem tipo não entram.
-- **Evolução da nota** — uma linha por serviço, ao longo do tempo;
-- **Comparação entre serviços** — a média de cada um;
+- **Evolução da nota** — a média de cada mês nos **últimos 12 meses**, sempre
+  (o período escolhido fica sombreado). **Média geral** mostra uma linha com a
+  média de todos os serviços; **Internos e externos**, uma linha para cada.
+  Com um serviço escolhido, a linha dele aparece a tracejado por cima. Por
+  baixo, uma frase lê o gráfico (a média do último mês, a variação face ao
+  anterior e o máximo dos 12 meses).
+- **Comparação entre serviços** — do pior para o melhor, com quantas
+  auditorias cada um teve e a variação face ao período anterior. Com mais de
+  10 serviços, mostra os 5 piores e os 5 melhores, e **Ver todos**.
+- **Perguntas que mais falham** — as 5 perguntas com pior resultado no
+  período (a percentagem, como nos pilares), com a variação e os serviços onde
+  mais falham (o pior a vermelho).
 - **Pontos fracos por pilar 5S** e **Desempenho por responsável** — uma tabela
   com a percentagem de agora, a do período anterior e a variação (▲ subiu,
   ▼ desceu, ＝ variou 1 ponto ou menos). Na barra, um traço marca o período
@@ -329,7 +339,10 @@ hoje.
 
 No topo da **Análise**, o cartão **Indicadores do ano** mede as auditorias de
 todos os serviços no ano escolhido (por omissão, o actual). Não segue o serviço
-nem o período escolhidos mais abaixo.
+nem o período escolhidos mais abaixo. Ficam à vista os números e os serviços abaixo
+da média; as faixas, os serviços auditados, os há mais tempo sem auditoria e as
+perguntas reincidentes estão em secções que abrem e fecham, com um resumo no
+título.
 
 - **Média total** — a média de todas as auditorias do ano.
 - **Serviços abaixo da média — para o plano de acção** — os serviços cuja média

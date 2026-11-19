@@ -1,15 +1,15 @@
 /* Testes do desempenho com muito histórico (3.15.0): a anterior de todas as
    auditorias numa só passagem tem de dar exactamente o mesmo que anteriorDe(),
-   a descrição do gráfico resume quando há muitos pontos, e as métricas
+   e as métricas
    guardadas em memória recalculam quando deviam. */
 const test = require("node:test");
 const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
-  ["anterioresPorId", "anteriorDe", "ordemCron", "descricaoEvolucao", "metricas", "byPillar", "byResp"],
-  ["PONTOS_MAX", "memoMetricas", "ITEMS", "itemsOf"]);
-const { anterioresPorId, anteriorDe, descricaoEvolucao, metricas, PONTOS_MAX } = ctx;
+  ["anterioresPorId", "anteriorDe", "ordemCron", "metricas", "byPillar", "byResp"],
+  ["memoMetricas", "ITEMS", "itemsOf"]);
+const { anterioresPorId, anteriorDe, metricas } = ctx;
 
 test("anterioresPorId dá o mesmo que anteriorDe(), para todas", () => {
   const L = [];
@@ -25,16 +25,9 @@ test("anterioresPorId dá o mesmo que anteriorDe(), para todas", () => {
   assert.strictEqual(anterioresPorId([null, undefined]).size, 0);
 });
 
-test("descrição do gráfico: completa com poucos pontos, resumida com muitos", () => {
-  const poucos = [{ service: "A", pontos: [{ date: "2026-01-01", pct: 50 }, { date: "2026-02-01", pct: 70 }] }];
-  assert.strictEqual(descricaoEvolucao(poucos), "Evolução da nota: A 2026-01-01 50%, 2026-02-01 70%");
-  const pts = Array.from({ length: PONTOS_MAX + 1 }, (_, i) => ({ date: "2026-01-01", pct: i % 101 }));
-  pts[pts.length - 1].pct = 42;
-  const d = descricaoEvolucao([{ service: "B", pontos: pts }]);
-  assert.match(d, /^Evolução da nota: B: 121 auditorias, de 2026-01-01 a 2026-01-01, entre 0% e 100%, a última com 42%$/);
-  assert.ok(d.length < 200, "o resumo não cresce com o número de auditorias");
-  assert.strictEqual(descricaoEvolucao([]), "Sem auditorias no período.");
-});
+/* 4.16.0: o gráfico de uma linha por serviço (e a sua descrição, que se
+   resumia acima de PONTOS_MAX pontos) deu lugar à evolução mensal: no máximo
+   12 pontos por linha. Ver tests/analise.test.js. */
 
 test("métricas: calculadas uma vez por auditoria, de novo se mudar a auditoria ou os responsáveis", () => {
   const its = [{ p: 0, r: "U" }, { p: 1, r: "M" }];
