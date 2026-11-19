@@ -69,10 +69,14 @@ check(await pg.locator("[data-edresp]").count() === 19,
   "em edição, cada pergunta devia ter selector de responsável");
 check(await pg.locator("[data-edresp='0']").inputValue() === "U",
   "o selector devia vir no responsável gravado com a auditoria");
-check((await pg.locator("#f-live").inputValue()).startsWith(notaOriginal.replace("/100", " / 100")),
-  "a nota em directo devia estar recalculada a partir das respostas repostas");
+/* 4.15.0: a nota em directo está na barra de progresso; os dados começam fechados ao editar. */
+check((await pg.locator("#aud-nota").textContent()) === notaOriginal,
+  "a nota em directo devia estar recalculada a partir das respostas repostas: " + await pg.locator("#aud-nota").textContent());
+check(/19 de 19 respondidas/.test(await pg.locator("#aud-n").textContent()), "todas as respostas repostas contam na barra");
+check(!(await pg.locator("#aud-dados").evaluate(d => d.open)), "ao editar, os dados da auditoria começam fechados");
 
 /* ---- 3. Alterar e guardar: substitui, não duplica. ---- */
+await pg.locator("#aud-dados > summary").click();   /* 4.15.0: abrir os dados, fechados ao editar */
 await pg.locator("#f-note").fill("corrigida");
 /* Pergunta 1 é uma contagem com T1 = 4: 5 artigos a mais é Mau. */
 await pg.locator("[data-pick='0']").fill("5");

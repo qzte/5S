@@ -213,6 +213,14 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-analise.mjs
 
+      - name: PDF do plano de acção (filtros, grupos, folhas)
+        timeout-minutes: 4
+        run: node tests/smoke-pdf-plano.mjs
+
+      - name: Auditar (dados compactos, barra de progresso)
+        timeout-minutes: 4
+        run: node tests/smoke-auditar.mjs
+
       - name: PDF com as fotos, pedido logo ao abrir o relatório
         timeout-minutes: 4
         run: node tests/smoke-pdf-fotos.mjs

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.13.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.15.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -199,6 +199,18 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 .pdf-radares{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 .pdf-radares>div{border:1px solid #d6dbd8;border-radius:6px;padding:6px 8px}
 .pdf-radares h4{margin:2px 0 4px!important}
+/* v4.14.0: o PDF do plano de acção. */
+.pdf-filtros{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+.pdf-filtros span{background:#eef3f0;border-radius:99px;padding:1px 9px;font-size:10.5px}
+.pdf-kpis .atr b{color:#c62828}
+.pdf-pgrupo{display:flex;align-items:baseline;gap:10px;background:#eef3f0;border-bottom:2px solid #1c2321;padding:6px 8px;margin-top:10px}
+.pdf-pgrupo b{font-size:14px}.pdf-pgrupo span{color:#66706c}
+.pdf-pgrupo.atr{background:#fdecea}.pdf-pgrupo.atr b{color:#c62828}
+.pdf-plano{width:100%;border-collapse:collapse;table-layout:fixed}
+.pdf-plano th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#66706c;border-bottom:1px solid #1c2321;padding:4px 6px}
+.pdf-plano td{border-bottom:1px solid #d6dbd8;padding:5px 6px;vertical-align:top;overflow-wrap:anywhere}
+.pdf-plano .cinza{color:#66706c;font-size:10.5px}
+.pdf-plano .n{white-space:nowrap;font-variant-numeric:tabular-nums}
 .pdf-tab{width:100%;border-collapse:collapse}
 .pdf-tab th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#66706c;border-bottom:1px solid #1c2321;padding:4px 6px}
 .pdf-tab td{border-bottom:1px solid #d6dbd8;padding:5px 6px;vertical-align:top}
@@ -460,6 +472,46 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 .passo-btns{display:flex;flex-wrap:wrap;gap:8px}
 .passo-ok{color:var(--green-ink);font-weight:700}
 /* v3.21.0: separador Acções, um bloco por acção. */
+/* v4.15.0: Auditar — dados da auditoria compactos e barra de progresso presa ao topo. */
+details.aud-dados{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
+details.aud-dados>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px}
+details.aud-dados>summary::-webkit-details-marker{display:none}
+details.aud-dados>summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:var(--radius)}
+details.aud-dados[open]>summary{border-bottom:1px solid var(--line)}
+.aud-dados .ico{width:36px;height:36px;border-radius:10px;background:var(--chip);display:grid;place-items:center;font-size:1rem;color:var(--green-ink);flex:0 0 auto}
+.aud-dados .tit{flex:1;min-width:0}
+.aud-dados .tit b{display:block;font-family:var(--f-sans);font-weight:900;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aud-dados .tit span{display:block;font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aud-dados .falta{font-family:var(--f-sans);font-size:.6rem;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--amber-ink);
+  box-shadow:inset 0 0 0 1.5px var(--amber);border-radius:99px;padding:3px 8px;white-space:nowrap}
+.aud-dados .falta.ok{color:var(--green-ink);box-shadow:none;background:var(--chip)}
+.aud-dados .falta:empty{display:none}
+.aud-dados .chev{width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);margin:-4px 4px 0;flex:0 0 auto}
+.aud-dados[open] .chev{transform:rotate(-135deg);margin-top:4px}
+.aud-dados .corpo{padding:14px 16px 4px}
+.aud-dados-ok{display:flex;justify-content:flex-end;margin:-4px 0 12px}
+.aud-prog{position:sticky;top:0;z-index:20;margin:0 -14px 14px;padding:10px 14px 8px;background:var(--green-dk);color:#e8eae6;
+  box-shadow:0 6px 14px -8px rgba(0,0,0,.5)}
+.aud-prog .l1{display:flex;align-items:baseline;gap:12px;font-family:var(--f-sans)}
+.aud-prog .n{font-weight:900;font-size:1rem;color:#fff}
+.aud-prog .n small{font-weight:700;font-size:.72rem;color:#9db8a9}
+.aud-prog .nota{margin-left:auto;font-weight:900;font-size:1.3rem;color:#fff}
+.aud-prog .nota small{font-size:.7rem;color:#9db8a9;font-weight:700}
+.aud-prog .melh{font-size:.7rem;font-weight:700;color:#f4c27a}
+.aud-prog .barra{height:6px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin:6px 0 8px}
+.aud-prog .barra i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px}
+@media (prefers-reduced-motion:no-preference){.aud-prog .barra i{transition:width .2s}}
+.aud-prog .pils{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.aud-prog .pils::-webkit-scrollbar{display:none}
+.aud-prog .pils button{flex:0 0 auto;display:flex;align-items:center;gap:6px;font-family:var(--f-sans);font-size:.7rem;font-weight:700;cursor:pointer;
+  color:#cfd8d3;background:none;border:1.5px solid rgba(255,255,255,.25);border-radius:99px;padding:4px 10px 4px 4px}
+.aud-prog .pils button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.aud-prog .pils i{font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.15);font-size:.62rem;font-weight:900;color:#fff}
+.aud-prog .pils .ok{border-color:#5cc196;color:#fff}.aud-prog .pils .ok i{background:#5cc196;color:#12211c}
+.aud-prog .pils .parte i{background:var(--accent)}
+#items .pillar{scroll-margin-top:120px}
+#items .pillar .pp{margin-left:auto;font-family:var(--f-sans);font-size:.72rem;font-weight:700;color:var(--muted)}
+.item.mid{border-left-color:var(--amber)}.item.bad{border-left-color:var(--red)}
 /* v4.13.0: Histórico — resumo que filtra e filtros num bloco que abre e fecha. */
 button.rs{text-align:left;font:inherit;color:inherit;cursor:pointer;position:relative;border-width:1.5px}
 button.rs:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -667,7 +719,14 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
     <p style="font-size:.78rem;color:var(--muted);margin-top:6px" id="edit-info"></p>
     <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink);margin-top:8px" id="btn-canceledit">Cancelar edição</button>
   </div>
-  <div class="card">
+  <!-- v4.15.0: os dados da auditoria num bloco que abre e fecha. Aberto numa
+       auditoria nova, fechado ao editar; fechado, mostra um resumo (serviço,
+       data, verificador, presentes) e o que falta. -->
+  <details class="aud-dados" id="aud-dados" open>
+    <summary><span class="ico" aria-hidden="true">✎</span>
+      <span class="tit"><b id="aud-dados-tit">Dados da auditoria</b><span id="aud-dados-sub">serviço, data, presentes e verificador</span></span>
+      <span class="falta" id="aud-dados-falta"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="corpo">
     <label for="f-svc-busca">Serviço / Supermercado</label>
     <!-- v4.2.1: uma só caixa (combobox). Escreve-se o nome ou o código e abre-se
          por baixo a lista dos serviços que casam, da lista e das auditorias já
@@ -681,10 +740,8 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
     </div>
     <select id="f-service" class="hidden" aria-hidden="true" tabindex="-1"></select>
     <div id="f-svc-conta" class="hint" role="status" style="margin:-6px 0 10px;font-size:.75rem"></div>
-    <div class="row">
-      <div><label>Data</label><input type="date" id="f-date"></div>
-      <div><label>Nota (auto)</label><input id="f-live" disabled value="—"></div>
-    </div>
+    <!-- v4.15.0: a nota em directo passou para a barra de progresso. -->
+    <label for="f-date">Data</label><input type="date" id="f-date">
     <!-- v4.8.0: quem está presente, um campo por responsável (desenhado em renderForm). -->
     <div class="presentes" id="f-presentes" role="group" aria-label="Quem está presente, por responsável"></div>
     <div class="row">
@@ -692,6 +749,16 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
       <div><label>Nota / observação</label><input id="f-note" placeholder="Opcional" maxlength="200"></div>
       <datalist id="dl-people"></datalist>
     </div>
+      <div class="aud-dados-ok"><button type="button" class="btn small ghost" id="btn-dados-ok">Feito · começar as perguntas</button></div>
+    </div>
+  </details>
+  <!-- v4.15.0: o progresso, preso ao topo: respondidas, a melhorar, a nota em
+       directo e um botão por pilar, que salta para ele. -->
+  <div class="aud-prog" id="aud-prog">
+    <div class="l1"><span class="n" id="aud-n" role="status"></span><span class="melh" id="aud-melh"></span>
+      <span class="nota" id="aud-nota" aria-label="Nota em directo"></span></div>
+    <div class="barra" aria-hidden="true"><i id="aud-barra"></i></div>
+    <div class="pils" id="aud-pils" role="navigation" aria-label="Ir para o pilar"></div>
   </div>
   <!-- v3.12.0: acções em aberto de auditorias anteriores ao serviço escolhido,
        para serem verificadas no terreno e marcadas como feitas. -->
@@ -823,7 +890,11 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
       <button type="button" data-ac-por="resp" aria-pressed="false">Responsável</button>
       <button type="button" data-ac-por="svc" aria-pressed="false">Serviço</button>
     </div>
-    <div id="ac-conta" style="font-size:.78rem;color:var(--muted);margin-top:8px" role="status"></div>
+    <div class="stat-row" style="font-weight:400;align-items:center;gap:10px;margin-top:10px">
+      <span id="ac-conta" style="font-size:.78rem;color:var(--muted)" role="status"></span>
+      <!-- v4.14.0: o PDF do plano, com os filtros e o agrupamento escolhidos. -->
+      <button class="btn small" id="btn-ac-pdf">PDF do plano de acção</button></div>
+    <p id="ac-pdf-estado" class="an-nota hidden" role="status" style="margin:6px 0 0"></p>
   </div>
   <div id="ac-lista"></div>
 </section>
@@ -1705,7 +1776,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.13.0";
+const APP_VERSION="4.15.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1958,7 +2029,7 @@ function renderForm(){
   fitems().forEach((it,i)=>{
     if(it.p!==curP){curP=it.p;
       box.insertAdjacentHTML("beforeend",
-      `<div class="pillar"><span class="n">${curP+1}</span><h2>${esc(PILLARS[curP])}</h2></div>`);}
+      `<div class="pillar" id="pil${curP}"><span class="n">${curP+1}</span><h2>${esc(PILLARS[curP])}</h2><span class="pp" id="pp${curP}"></span></div>`);}
     box.insertAdjacentHTML("beforeend",`
     <div class="card item" id="it${i}">
       <div class="meta">Nº ${esc(it.n)} · ${esc(it.t)} · Resp.:${emEdicao?`
@@ -1972,11 +2043,11 @@ function renderForm(){
           <input type="number" inputmode="numeric" min="1" value="${esc(it.tgt)}"
             data-tgt="${i}" aria-label="Pergunta ${esc(it.n)}: unidades auditadas"></div>
         <div><label style="font-size:.72rem;color:var(--muted)">Não conformes</label>
-          <input type="number" inputmode="numeric" min="0" max="${esc(it.tgt)}" placeholder="0"
+          <input type="number" inputmode="numeric" min="0" max="${esc(it.tgt)}" placeholder="Por responder"
             data-pick="${i}" aria-label="Pergunta ${esc(it.n)}: unidades não conformes"></div>
       </div>
       <div class="hint" data-pctof="${i}" style="margin-top:6px">—</div>`:`
-      <input type="number" inputmode="numeric" min="0" max="${esc(it.max)}" placeholder="0"
+      <input type="number" inputmode="numeric" min="0" max="${esc(it.max)}" placeholder="Por responder"
         style="margin:8px 0 0" data-pick="${i}" aria-label="Pergunta ${esc(it.n)}: resposta (0 a ${esc(it.max)})">`}
       <div class="prev hidden" data-prev="${i}"></div>
       <div class="evid hidden" data-evid="${i}">
@@ -1995,6 +2066,9 @@ function renderForm(){
     </div>`);
   });
   box.querySelectorAll("[data-pick]").forEach(el=>el.oninput=()=>pick(+el.dataset.pick,el));
+  /* v4.15.0: os dados abertos numa auditoria nova, fechados ao editar. */
+  const dd=document.getElementById("aud-dados");if(dd)dd.open=!emEdicao;
+  atualizarLive();
   /* Mudar o alvo reclassifica a resposta já dada: o mesmo número de não
      conformes muda de classe quando a amostra muda. */
   box.querySelectorAll("[data-tgt]").forEach(el=>el.oninput=()=>{
@@ -2258,10 +2332,12 @@ function pick(i,el){
   /* classify() devolve null numa amostra sem alvo utilizável: o item fica por
      responder, em vez de receber um zero que a nota trataria como Mau. */
   const cls=el.value===""?null:classify(fitems()[i],parseInt(el.value,10)||0,alvo);
+  const card=document.getElementById("it"+i);
   if(cls==null){delete answers[i];delete rawVals[i];
-    document.getElementById("it"+i).classList.remove("done");}
+    card.classList.remove("done","mid","bad");}
   else{rawVals[i]=parseInt(el.value,10)||0;answers[i]=cls;
-    document.getElementById("it"+i).classList.add("done");}
+    /* v4.15.0: a risca da pergunta com a cor da resposta. */
+    card.classList.toggle("done",cls===2);card.classList.toggle("mid",cls===1);card.classList.toggle("bad",cls===0);}
   const pc=document.querySelector("[data-pctof='"+i+"']");
   if(pc)pc.textContent=(rawVals[i]!=null&&alvo)
     ?rawVals[i]+" / "+alvo+" = "+Math.round(rawVals[i]/alvo*1000)/10+"%"
@@ -2272,9 +2348,40 @@ function pick(i,el){
 /* Nota em directo: ponderada (0/2/5,25) sobre os itens JÁ respondidos, para
    que a percentagem seja legível a meio do preenchimento. */
 function atualizarLive(){
-  const resp=Object.values(answers);
-  document.getElementById("f-live").value=resp.length?
-    pctOf(resp)+" / 100  ("+resp.length+"/"+fitems().length+" itens)":"—";
+  const resp=Object.values(answers),IT=fitems();
+  /* v4.15.0: na barra de progresso, presa ao topo. */
+  const n=document.getElementById("aud-n");if(!n)return;
+  n.innerHTML=resp.length+" <small>de "+IT.length+" respondidas</small>";
+  const melh=resp.filter(x=>x===0||x===1).length;
+  document.getElementById("aud-melh").textContent=melh?melh+" a melhorar":"";
+  document.getElementById("aud-nota").innerHTML=resp.length?pctOf(resp)+"<small>/100</small>":"—";
+  document.getElementById("aud-barra").style.width=(IT.length?resp.length/IT.length*100:0)+"%";
+  const pils=[];
+  PILLARS.forEach((nome,p)=>{
+    const idx=IT.map((it,i)=>it.p===p?i:-1).filter(i=>i>=0);if(!idx.length)return;
+    const r=idx.filter(i=>answers[i]!=null).length,cls=r===idx.length?"ok":r?"parte":"";
+    const pp=document.getElementById("pp"+p);if(pp)pp.textContent=r+"/"+idx.length;
+    pils.push(`<button type="button" class="${cls}" data-ir-pilar="${p}" aria-label="${esc(nome)}: ${r} de ${idx.length} respondidas">`+
+      `<i aria-hidden="true">${cls==="ok"?"✓":p+1}</i>${esc(nome)} ${r}/${idx.length}</button>`);
+  });
+  const box=document.getElementById("aud-pils");
+  box.innerHTML=pils.join("");
+  box.querySelectorAll("[data-ir-pilar]").forEach(b=>b.onclick=()=>{
+    const el=document.getElementById("pil"+b.dataset.irPilar);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});});
+  resumoDados();
+}
+/* v4.15.0: o resumo do bloco dos dados da auditoria, lido com ele fechado. */
+function resumoDados(){
+  const tit=document.getElementById("aud-dados-tit");if(!tit)return;
+  const svc=document.getElementById("f-service").value,ver=String(document.getElementById("f-verif").value).trim();
+  const data=document.getElementById("f-date").value,pres=Object.values(lerPresentesForm()||{}).filter(v=>String(v||"").trim()).length;
+  tit.textContent=svc||"Dados da auditoria";
+  document.getElementById("aud-dados-sub").textContent=svc?
+    [dataCurta(data),ver&&"Verif.: "+ver,pres&&pres+(pres===1?" presente":" presentes")].filter(Boolean).join(" · "):
+    "serviço, data, presentes e verificador";
+  const falta=!svc?"falta o serviço":!data?"falta a data":!ver?"falta o verificador":"";
+  const f=document.getElementById("aud-dados-falta");
+  f.textContent=falta||"completo";f.className="falta"+(falta?"":" ok");
 }
 /* Sai do modo de edição e devolve o formulário ao estado de auditoria nova. */
 function endEdit(){editId=null;FORM_ITEMS=null;editSujo=false;}
@@ -2284,7 +2391,6 @@ function endEdit(){editId=null;FORM_ITEMS=null;editSujo=false;}
 function refreshForm(){
   answers={};rawVals={};tgtVals={};
   notaVals={};acaoVals={};fotosForm=new Map();fotosRemovidas=new Set();evidCarga=null;evidToken++;
-  document.getElementById("f-live").value="—";
   /* Os campos do cabeçalho também são limpos (v3.3.0): até aqui sobreviviam à
      gravação, e a observação da auditoria anterior aparecia já escrita na
      seguinte. Em modo de edição renderForm() volta a preenchê-los a partir da
@@ -4798,7 +4904,9 @@ function resumosCfg(){
 }
 {const g=[...document.querySelectorAll("#view-cfg details.grp")],b=document.getElementById("cfg-tudo");
   g.forEach(d=>d.addEventListener("toggle",()=>{if(b)b.textContent=g.every(x=>x.open)?"Fechar tudo":"Abrir tudo";}));
-  if(b)b.onclick=()=>{const abrir=!g.every(d=>d.open);g.forEach(d=>{d.open=abrir;});};}
+  /* v4.14.0: o texto muda logo no toque. O evento «toggle» chega depois (é
+     assíncrono), e quem lê o botão logo a seguir via ainda o texto antigo. */
+  if(b)b.onclick=()=>{const abrir=!g.every(d=>d.open);g.forEach(d=>{d.open=abrir;});b.textContent=abrir?"Fechar tudo":"Abrir tudo";};}
 /* O número no separador das Acções (as em atraso) muda com o dia. */
 /* v3.18.0: remover uma pessoa ou um serviço tem Desfazer, como apagar uma
    auditoria: até aqui o × apagava logo, sem confirmação nem volta. */
@@ -5103,6 +5211,84 @@ async function pdfDeBlocos(blocos,op){
     }
   }
   return doc;
+}
+/* v4.14.0: o HTML do PDF do plano de acção. `grupos`: de agruparAcoes; `por`:
+   o agrupamento; `rotulos`: os filtros, para o cabeçalho; `kp`: {r, dp, ia, ef}
+   (resumoAcoes, desempenhoAcoes, idadeAcoesAbertas e eficaciaAcoes das
+   acções do responsável e serviço escolhidos); `nomeR(k)`: o nome de um
+   responsável. Uma folha de resumo e, depois, uma unidade por acção (a
+   primeira de cada grupo leva o título do grupo e o cabeçalho da tabela),
+   para nenhuma se cortar entre folhas. */
+function planoPdfHTML(grupos,por,rotulos,kp,hoje,nomeR){
+  const n=grupos.reduce((t,g)=>t+g.itens.length,0);
+  const {r,dp,ia,ef}=kp;
+  const resumo=`<section class="pdf-folha">
+    <div class="pdf-hero"><div><div class="pdf-svc">Plano de acção</div>
+      <div class="pdf-sub">Auditoria 5S</div>
+      <div class="pdf-filtros">${rotulos.map(t=>`<span>${esc(t)}</span>`).join("")}</div></div>
+      <div class="pdf-sub" style="text-align:right">Gerado a ${esc(dataCurta(hoje))}<br>${n} acç${n===1?"ão":"ões"}</div></div>
+    <div class="pdf-kpis">
+      <div><b>${r.abertas}</b><span>em aberto${ia.abertas?" · há "+numPT(ia.idadeMedia)+" dias, em média":""}</span></div>
+      <div class="${r.atrasadas?"atr":""}"><b>${r.atrasadas}</b><span>em atraso${ia.atrasadas?" · atraso médio "+numPT(ia.atrasoMedio)+" dias":""}</span></div>
+      <div><b>${r.feitas30}</b><span>feitas nos últimos 30 dias${dp.comPrazo?" · "+dp.pctPrazo+"% no prazo":""}</span></div>
+      <div><b>${ef.avaliadas?ef.pct+"%":"—"}</b><span>eficácia${ef.avaliadas?" ("+ef.resolvidas+" de "+ef.avaliadas+")":""}</span></div></div>
+    ${!n?`<p class="pdf-leg">Nenhuma acção com estes filtros.</p>`:""}
+  </section>`;
+  const col=por==="svc"?"Responsável":"Serviço";
+  const cols=`<colgroup><col style="width:20%"><col style="width:37%"><col style="width:15%"><col style="width:10%"><col style="width:18%"></colgroup>`;
+  const cab=`<tr><th>${col}</th><th>Acção</th><th>${por==="resp"?"Serviço":"Responsável"}</th><th>Prazo</th><th>Estado</th></tr>`;
+  const unidades=[];
+  grupos.forEach(g=>{
+    const sub=por==="prazo"?[g.itens.length+(g.itens.length===1?" acção":" acções"),g.sub].filter(Boolean).join(" · "):
+      g.itens.length+(g.itens.length===1?" acção":" acções")+(g.atrasadas?" · "+g.atrasadas+" em atraso":"");
+    let topo=`<div class="pdf-pgrupo${por==="prazo"&&g.chave==="atrasada"?" atr":""}"><b>${esc(g.titulo)}</b><span>${esc(sub)}</span></div>`;
+    g.itens.forEach((x,k)=>{
+      const ac=x.acao,c1=por==="svc"?nomeR(ac.r):x.service,c3=por==="resp"?x.service:nomeR(ac.r);
+      const est=x.estado==="atrasada"&&ac.prazo?`<span class="pdf-pill mau">${diasEntre(ac.prazo,hoje)} dia(s) de atraso</span>`:
+        x.estado==="feita"?`<span class="pdf-pill exc">Feita${ac.feitaEm?" a "+esc(dataCurta(ac.feitaEm)):""}</span>`:`<span class="pdf-pill op">Aberta</span>`;
+      const det=[ac.item?"Pergunta nº "+ac.item:"","auditoria de "+dataCurta(x.date)].filter(Boolean).join(" · ");
+      unidades.push(`<div class="pdf-unidade">${k?"":topo}<table class="pdf-plano">${cols}${k?"":cab}<tr><td>${esc(c1)}</td>`+
+        `<td>${esc(ac.texto)}<br><span class="cinza">${esc(det)}</span></td><td>${esc(c3)}</td>`+
+        `<td class="n">${esc(dataCurta(ac.prazo))||"—"}</td><td>${est}</td></tr></table></div>`);
+    });
+  });
+  return resumo+unidades.join("");
+}
+/* v4.14.0: o PDF do plano de acção, com os filtros e o agrupamento das Acções.
+   Os números do resumo são das acções do responsável e serviço escolhidos
+   (o estado só escolhe as que entram na lista). Devolve um Blob. */
+async function pdfDoPlano(){
+  await carregarPdf();
+  const hoje=hojeISO(),nomeR=k=>isResp(k)?RESP[k]:k;
+  const l=listaAcoes(audits,acFiltro,hoje),grupos=agruparAcoes(l,acPor,hoje,nomeR);
+  const sub=audits.filter(a=>!acFiltro.svc||a.service===acFiltro.svc)
+    .map(a=>Object.assign({},a,{acoes:(Array.isArray(a.acoes)?a.acoes:[]).filter(ac=>ac&&(!acFiltro.r||ac.r===acFiltro.r))}));
+  const kp={r:resumoAcoes(sub,hoje),dp:desempenhoAcoes(sub),ia:idadeAcoesAbertas(sub,hoje),ef:eficaciaAcoes(sub)};
+  const txt=id=>{const el=document.getElementById(id);return el&&el.selectedOptions[0]?el.selectedOptions[0].textContent:"";};
+  const rotulos=[txt("ac-estado"),txt("ac-r"),txt("ac-svc"),"Agrupado por "+({prazo:"prazo",resp:"responsável",svc:"serviço"}[acPor])].filter(Boolean);
+  const box=document.getElementById("view-pdf");
+  box.innerHTML=planoPdfHTML(grupos,acPor,rotulos,kp,hoje,nomeR);
+  try{
+    const blocos=[...box.querySelectorAll(":scope > .pdf-folha, :scope > .pdf-unidade")];
+    const doc=await pdfDeBlocos(blocos,{topo:16,baixo:14,gap:0,nova:el=>el.classList.contains("pdf-folha"),
+      onclone:d=>{modoImpressao(d);}});
+    const n=doc.getNumberOfPages();
+    for(let k=1;k<=n;k++){
+      doc.setPage(k);
+      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(102,112,108);
+      doc.text("Auditoria 5S · Plano de acção · "+dataCurta(hoje),10,10);
+      doc.setDrawColor(29,107,87);doc.setLineWidth(0.5);doc.line(10,12,200,12);
+      doc.text("Folha "+k+" de "+n,200,290,{align:"right"});
+    }
+    return doc.output("blob");
+  }finally{box.innerHTML="";}
+}
+/* O nome do ficheiro: a data e, se houver, o responsável ou o serviço escolhidos.
+   Sem acentos: com eles, o Chromium sem janela (e o dos testes) descarrega o
+   ficheiro com o nome «download». */
+function nomePdfPlano(hoje,resp,svc){
+  const limpo=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim();
+  return ["Plano de acao",limpo(resp),limpo(svc),hoje].filter(Boolean).join(" - ")+".pdf";
 }
 /* v4.8.0: o PDF da auditoria, por responsável (pdfHTML), desenhado a partir da
    vista #view-pdf, fora do ecrã. A grelha começa na folha 2; cada pergunta
@@ -6990,6 +7176,23 @@ on("ac-estado","change",e=>{acFiltro.estado=e.target.value;acMostrar.clear();ren
 on("ac-r","change",e=>{acFiltro.r=e.target.value;acMostrar.clear();renderAcoes();});
 on("ac-svc","change",e=>{acFiltro.svc=e.target.value;acMostrar.clear();renderAcoes();});
 document.querySelectorAll("[data-ac-por]").forEach(b=>b.onclick=()=>{acPor=b.dataset.acPor;acMostrar.clear();renderAcoes();});
+/* v4.15.0: o resumo dos dados da auditoria acompanha o que se escreve. */
+{const dd=document.getElementById("aud-dados");
+  if(dd){dd.addEventListener("input",()=>resumoDados());dd.addEventListener("change",()=>resumoDados());}}
+on("btn-dados-ok","click",()=>{
+  document.getElementById("aud-dados").open=false;
+  const pr=document.getElementById("aud-prog");if(pr)pr.scrollIntoView({behavior:"smooth",block:"start"});
+});
+on("btn-ac-pdf","click",async e=>{
+  const bt=e.currentTarget,est=document.getElementById("ac-pdf-estado");
+  bt.disabled=true;est.textContent="A criar o PDF…";est.classList.remove("hidden");
+  try{
+    const blob=await pdfDoPlano();
+    const r=acFiltro.r?(isResp(acFiltro.r)?RESP[acFiltro.r]:acFiltro.r):"";
+    await descarregar(blob,nomePdfPlano(hojeISO(),r,acFiltro.svc));
+  }catch(err){aviso(err&&err.message?err.message:"Não foi possível criar o PDF.","PDF do plano de acção");}
+  finally{bt.disabled=false;est.textContent="";est.classList.add("hidden");}
+});
 on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(m)openMensal(m);});
 on("an-ano","change",e=>{anoKpis=parseInt(e.target.value,10)||0;renderKpis();});
 on("obj-ano","change",e=>{anoObjetivo=parseInt(e.target.value,10)||0;renderObjetivo();});
