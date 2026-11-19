@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.16.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.17.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -52,6 +52,12 @@
    Corre antes do <body> existir, para que nada chegue a ser pintado dentro da
    moldura. O acesso a window.top pode lançar entre origens em browsers antigos,
    daí o try: em caso de dúvida, assume-se que está embebido. */
+/* v4.17.0: o tema escolhido em Config → Aspecto, aplicado antes de pintar
+   (sem piscar o claro antes do escuro). Só neste aparelho. */
+(function(){
+  try{var t=localStorage.getItem("tema");
+    if(t==="claro"||t==="escuro")document.documentElement.setAttribute("data-tema",t);}catch(e){}
+})();
 (function(){
   var embebido;
   try{embebido=window.top!==window.self;}catch(e){embebido=true;}
@@ -98,9 +104,12 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* v3.10.0: modo escuro, só no ecrã. A impressão continua clara: o relatório é
-   para papel. */
+   para papel.
+   v4.17.0: o tema escolhe-se em Config → Aspecto. «Automático» (sem atributo)
+   segue o aparelho; data-tema="claro" desliga o escuro automático;
+   data-tema="escuro" liga-o sempre. As cores são as mesmas nos dois blocos. */
 @media screen and (prefers-color-scheme:dark){
-  :root{
+  :root:not([data-tema="claro"]){
     --bg:#101815; --ink:#e3e9e5; --panel:#18231e; --line:#33433b; --muted:#a3b0a8;
     --green-ink:#7dd3ab; --red-ink:#f19b90; --amber-ink:#e9b65f;
     --field:#111b17; --field-2:#111b17; --track:#2a3832; --chip:#22302a;
@@ -109,8 +118,21 @@
     --s4:#b993e3; --s5:#ee8478; --s6:#5ec7c0; --s7:#a3b0a8;
     color-scheme:dark;
   }
-  body{background-image:radial-gradient(circle at 15% 10%,rgba(125,211,171,.06),transparent 45%)}
-  .card{box-shadow:none}
+  html:not([data-tema="claro"]) body{background-image:radial-gradient(circle at 15% 10%,rgba(125,211,171,.06),transparent 45%)}
+  html:not([data-tema="claro"]) .card{box-shadow:none}
+}
+@media screen{
+  :root[data-tema="escuro"]{
+    --bg:#101815; --ink:#e3e9e5; --panel:#18231e; --line:#33433b; --muted:#a3b0a8;
+    --green-ink:#7dd3ab; --red-ink:#f19b90; --amber-ink:#e9b65f;
+    --field:#111b17; --field-2:#111b17; --track:#2a3832; --chip:#22302a;
+    --photo-bg:#111b17; --photo-line:#3d4d45; --chart-axis:#55675e;
+    --s0:#5cc196; --s1:#f4823f; --s2:#7fa8ea; --s3:#e3b04b;
+    --s4:#b993e3; --s5:#ee8478; --s6:#5ec7c0; --s7:#a3b0a8;
+    color-scheme:dark;
+  }
+  html[data-tema="escuro"] body{background-image:radial-gradient(circle at 15% 10%,rgba(125,211,171,.06),transparent 45%)}
+  html[data-tema="escuro"] .card{box-shadow:none}
 }
 /* Só para leitores de ecrã: os títulos de secção (h2) que faltavam entre o
    h1 da app e os h3 dos cartões. */
@@ -487,7 +509,9 @@ details.kpi-det>summary:focus-visible{outline:3px solid var(--accent);outline-of
 .kpi-det .c{padding:0 0 10px}
 .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:99px;overflow:hidden;margin-bottom:10px}
 .seg button{font-family:var(--f-sans);font-weight:700;font-size:.74rem;padding:6px 12px;background:var(--panel);color:var(--ink);border:0;cursor:pointer}
-.seg button[aria-pressed=true]{background:var(--green-dk);color:#fff}
+/* v4.17.0: verde normal, e não o verde-escuro do cabeçalho: no tema escuro
+   este confundia-se com o fundo dos cartões. */
+.seg button[aria-pressed=true]{background:var(--green);color:#fff}
 .seg button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
 .legenda .tr{display:inline-block;width:14px;height:0;border-top:3px dashed;margin-right:5px;vertical-align:3px}
 .legenda .ln{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
@@ -556,9 +580,9 @@ details.aud-dados[open]>summary{border-bottom:1px solid var(--line)}
 /* v4.13.0: Histórico — resumo que filtra e filtros num bloco que abre e fecha. */
 button.rs{text-align:left;font:inherit;color:inherit;cursor:pointer;position:relative;border-width:1.5px}
 button.rs:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-button.rs[aria-pressed=true]{border-color:var(--green-dk);box-shadow:inset 0 0 0 1.5px var(--green-dk)}
+button.rs[aria-pressed=true]{border-color:var(--green);box-shadow:inset 0 0 0 1.5px var(--green)}
 button.rs[aria-pressed=true]::after{content:"✓ filtro";position:absolute;top:8px;right:10px;font-family:var(--f-sans);font-size:.6rem;font-weight:900;
-  color:#fff;background:var(--green-dk);border-radius:99px;padding:2px 7px}
+  color:#fff;background:var(--green);border-radius:99px;padding:2px 7px}
 .rs.rs-amb b{color:var(--amber-ink)}
 details.hist-filt{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
 details.hist-filt.hidden{display:none}
@@ -584,7 +608,7 @@ details.hist-filt[open]>summary{border-bottom:1px solid var(--line)}
 .ac-agrupar span{font-family:var(--f-sans);font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-right:4px}
 .ac-agrupar button{font-family:var(--f-sans);font-weight:700;font-size:.78rem;padding:7px 12px;border-radius:99px;border:1.5px solid var(--line);
   background:var(--panel);color:var(--ink);cursor:pointer}
-.ac-agrupar button[aria-pressed=true]{background:var(--green-dk);border-color:var(--green-dk);color:#fff}
+.ac-agrupar button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
 details.ac-gr{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
 details.ac-gr>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:var(--f-sans)}
 details.ac-gr>summary::-webkit-details-marker{display:none}
@@ -1167,6 +1191,29 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
         <p id="pin-estado" style="font-size:.78rem;margin-bottom:10px"></p>
         <button class="btn small ghost" id="btn-pinmudar">Mudar código</button>
         <button class="btn small ghost" id="btn-pinrepor" style="display:none">Voltar ao código de origem</button>
+      </div>
+    </div>
+  </details>
+
+  <!-- v4.17.0: 5. Aspecto: claro, escuro ou automático (como o aparelho). -->
+  <details class="grp" id="grp-aspecto">
+    <summary>
+      <span class="ico" aria-hidden="true">◐</span>
+      <span><span class="g-tit">Aspecto</span>
+        <span class="g-res" id="res-aspecto"></span></span>
+      <span class="g-sel" id="sel-aspecto"></span>
+      <span class="chev" aria-hidden="true"></span>
+    </summary>
+    <div class="g-corpo">
+      <div class="sub">
+        <h3 class="sr-only">Aspecto</h3>
+        <p class="txt">O tema de cores da app. <b>Automático</b> segue o aparelho (claro de dia, escuro com o modo escuro
+          ligado). A escolha fica só neste aparelho. Os relatórios impressos e os PDF saem sempre em claro.</p>
+        <div class="seg" role="group" aria-label="Tema">
+          <button type="button" data-tema="auto" aria-pressed="true">Automático</button>
+          <button type="button" data-tema="claro" aria-pressed="false">Sempre claro</button>
+          <button type="button" data-tema="escuro" aria-pressed="false">Sempre escuro</button>
+        </div>
       </div>
     </div>
   </details>
@@ -1827,7 +1874,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.16.0";
+const APP_VERSION="4.17.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -5037,9 +5084,22 @@ function resumosCfg(){
   const proprio=pinGuardadoValido(load(PIN_KEY,null));
   put("res-pin",proprio?"Código próprio deste dispositivo":"A usar o código de origem");
   put("sel-pin","","");
+  const tm=temaAtual();
+  put("res-aspecto",{auto:"Automático: segue o aparelho",claro:"Sempre claro",escuro:"Sempre escuro"}[tm]);
+  document.querySelectorAll("[data-tema]").forEach(x=>{if(x.tagName==="BUTTON")x.setAttribute("aria-pressed",String(x.dataset.tema===tm));});
   const b=document.getElementById("cfg-tudo"),g=[...document.querySelectorAll("#view-cfg details.grp")];
   if(b)b.textContent=g.every(d=>d.open)?"Fechar tudo":"Abrir tudo";
 }
+/* v4.17.0: o tema. Guarda-se à parte (chave «tema»), não nas cópias de segurança:
+   é uma preferência deste aparelho, como o código de acesso. */
+function temaAtual(){let t=null;try{t=localStorage.getItem("tema");}catch(e){}return t==="claro"||t==="escuro"?t:"auto";}
+function escolherTema(t){
+  try{if(t==="claro"||t==="escuro")localStorage.setItem("tema",t);else localStorage.removeItem("tema");}catch(e){}
+  if(t==="claro"||t==="escuro")document.documentElement.setAttribute("data-tema",t);
+  else document.documentElement.removeAttribute("data-tema");
+  resumosCfg();
+}
+document.querySelectorAll("button[data-tema]").forEach(b=>b.onclick=()=>escolherTema(b.dataset.tema));
 {const g=[...document.querySelectorAll("#view-cfg details.grp")],b=document.getElementById("cfg-tudo");
   g.forEach(d=>d.addEventListener("toggle",()=>{if(b)b.textContent=g.every(x=>x.open)?"Fechar tudo":"Abrir tudo";}));
   /* v4.14.0: o texto muda logo no toque. O evento «toggle» chega depois (é
@@ -5181,6 +5241,8 @@ function carregarPdf(){
 /* Na cópia que o html2canvas desenha, as regras de impressão passam a valer e
    as do modo escuro deixam de valer: o PDF sai igual ao que a impressão dá. */
 function modoImpressao(doc){
+  /* v4.17.0: o tema escuro escolhido à mão também não vale no PDF. */
+  if(doc.documentElement)doc.documentElement.removeAttribute("data-tema");
   for(const sh of doc.styleSheets){
     let regras;try{regras=sh.cssRules;}catch(e){continue;}
     for(const r of regras){

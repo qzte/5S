@@ -5,6 +5,28 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.17.0] — 2026-11-19
+
+### Acrescentado
+
+- **Config → Aspecto: o tema de cores.** Há três escolhas: **Automático** (como até aqui: segue o modo escuro do
+  aparelho), **Sempre claro** e **Sempre escuro**.
+  - **Onde fica:** a escolha guarda-se só neste aparelho (chave `tema`, fora das cópias de segurança, como o código
+    de acesso).
+  - **Sem piscar:** o tema aplica-se antes de a página pintar, num pequeno script no início do `<head>`.
+  - **Como funciona:** o atributo `data-tema` no `<html>` desliga o escuro automático («claro») ou liga-o sempre
+    («escuro»). As cores do escuro são as mesmas nos dois casos.
+  - **Impressão e PDF:** continuam sempre claros; `modoImpressao` tira o `data-tema` à cópia que o html2canvas
+    desenha.
+- **Teste:** `tests/smoke-tema.mjs` (Automático segue o aparelho, Sempre claro/escuro contra o aparelho, a escolha
+  fica depois de recarregar, PDF claro), também na CI.
+
+### Corrigido
+
+- **Botões de escolha no tema escuro:** o botão escolhido (Evolução da nota, Agrupar por nas Acções, os números do
+  Histórico) usava o verde-escuro do cabeçalho, que no tema escuro quase não se distinguia do fundo dos cartões.
+  Passa a usar o verde normal.
+
 ## [4.16.0] — 2026-11-19
 
 ### Alterado

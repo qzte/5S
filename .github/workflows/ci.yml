@@ -221,6 +221,10 @@ jobs:
         timeout-minutes: 4
         run: node tests/smoke-auditar.mjs
 
+      - name: Tema (claro, escuro, automático)
+        timeout-minutes: 4
+        run: node tests/smoke-tema.mjs
+
       - name: PDF com as fotos, pedido logo ao abrir o relatório
         timeout-minutes: 4
         run: node tests/smoke-pdf-fotos.mjs

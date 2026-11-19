@@ -400,7 +400,7 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
 
 ## Configuração
 
-A Configuração está em quatro grupos que abrem e fecham ao tocar no título.
+A Configuração está em grupos que abrem e fecham ao tocar no título.
 **Dados** abre sempre; os outros começam fechados e mostram um resumo (por
 exemplo, quantos serviços estão sem tipo). **Abrir tudo**, no topo, abre-os
 todos de uma vez.
@@ -413,6 +413,10 @@ todos de uma vez.
 - **Serviços e objectivo** — a lista de serviços e o objectivo anual.
 - **Perguntas e responsáveis** — os responsáveis e o editor de perguntas.
 - **Código de acesso.**
+- **Aspecto** — o tema de cores: **Automático** (segue o aparelho: claro, ou
+  escuro com o modo escuro ligado), **Sempre claro** ou **Sempre escuro**. A
+  escolha fica só neste aparelho. Os relatórios impressos e os PDF saem sempre
+  em claro.
 
 O guia abre-se no fim, em **Abrir o guia**. O que há em cada grupo:
 
