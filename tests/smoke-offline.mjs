@@ -20,6 +20,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { ligarDialogos } from "./dialogos.mjs";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -85,6 +86,7 @@ await ctx.setOffline(false);
 /* ---- 2b. O guia (3.16.0): abre da Config, volta à app; sem rede, cada página
    é a sua — abrir o guia não pode pôr o guia no lugar da app guardada. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await Promise.all([pg.waitForNavigation(), pg.locator("#lnk-guia").click()]);
 check(/^Guia de utilização/.test(await pg.title()) && await pg.locator("h1").textContent() === "Guia de utilização",
   "a ligação da Config devia abrir o guia");

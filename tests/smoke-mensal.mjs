@@ -6,6 +6,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -99,6 +100,7 @@ const semear = pg => pg.evaluate(() => {
   await pg.evaluate(() => { const b = JSON.parse(localStorage.getItem("backup")); delete b.atFotos; b.pendFotos = 2; localStorage.setItem("backup", JSON.stringify(b)); });
   await pg.reload();
   await pg.locator("[data-v=cfg]").click();
+  await abrirGruposCfg(pg);
   check(!(await pg.locator("#btn-partilhar").isHidden()), "com Web Share de ficheiros, o botão de partilhar aparece");
   await pg.locator("#btn-partilhar").click();
   await pg.waitForFunction(() => window.__partilhas.length === 1, null, { timeout: 5000 }).catch(() => {});
@@ -124,6 +126,7 @@ const semear = pg => pg.evaluate(() => {
   await pg.evaluate(() => localStorage.setItem("audits", "[]"));
   await pg.reload();
   await pg.locator("[data-v=cfg]").click();
+  await abrirGruposCfg(pg);
   await pg.locator("#hist-file").setInputFiles(ficheiro);
   await pg.waitForFunction(() => JSON.parse(localStorage.getItem("audits") || "[]").length === 4, null, { timeout: 5000 }).catch(() => {});
   await semDialogo(pg).catch(() => {});

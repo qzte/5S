@@ -11,6 +11,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -55,7 +56,8 @@ for (const modo of ["light", "dark"]) {
     ["Auditar", async () => pg.locator("[data-v=audit]").click()],
     ["Histórico", async () => pg.locator("[data-v=history]").click()],
     ["Análise", async () => pg.locator("[data-v=stats]").click()],
-    ["Configuração", async () => pg.locator("[data-v=cfg]").click()],
+    ["Configuração (fechada)", async () => pg.locator("[data-v=cfg]").click()],
+    ["Configuração (aberta)", async () => abrirGruposCfg(pg)],
     ["Editor de perguntas", async () => { await pg.locator("#btn-askpin").click(); await semDialogo(pg); }],
     ["Relatório", async () => { await pg.locator("[data-v=history]").click(); await pg.locator("[data-rep='0']").click(); }],
     /* 3.21.0: o relatório mensal (3.20.0) e o separador Acções. */

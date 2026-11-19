@@ -11,7 +11,7 @@
 
 Como usar a app no dia-a-dia: fazer uma auditoria, ler o relatório, seguir as
 acções, acompanhar os indicadores e não perder dados. Este guia também está dentro da
-app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver o
+app, em **Config → Abrir o guia** (no fim), e abre sem rede. Para os pormenores técnicos, ver o
 [README](README.md); para o que mudou em cada versão, o [CHANGELOG](CHANGELOG.md).
 
 - [Antes de começar](#antes-de-começar)
@@ -34,12 +34,12 @@ app, em **Config → Ajuda**, e abre sem rede. Para os pormenores técnicos, ver
 1. No telemóvel, com a app aberta no browser, escolha *Adicionar ao ecrã
    principal*. Instalada, a app abre como as outras, funciona sem rede e o
    browser protege melhor os dados (ver [Cópias de segurança](#cópias-de-segurança)).
-2. Em **Config → Serviços**, acrescente os supermercados a auditar (ou importe-os
-   de um Excel em *Importar Excel*, por exemplo a listagem de serviços do
+2. Em **Config → Serviços e objectivo**, acrescente os supermercados a auditar (ou importe-os
+   de um Excel em *Config → Dados → Importar → Serviços e pessoas*, por exemplo a listagem de serviços do
    sistema, com `ID_SERVICO`, `DESCRICAO_SERVICO`, `LOCAL_SERVICO` e
    `SERVICO_ATIVO`: o local dá o tipo e os inactivos ficam de fora) e diga, para cada um, se é **Interno** ou
    **Externo**.
-3. Em **Config → Objectivo anual de auditorias**, escreva quantas auditorias
+3. Em **Config → Serviços e objectivo → Objectivo anual de auditorias**, escreva quantas auditorias
    quer fazer no ano. São os dois dados de que os
    [indicadores do ano](#indicadores-do-ano) precisam.
 
@@ -298,17 +298,17 @@ nem o período escolhidos por cima.
 Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-as
 **noutro sítio** (computador, Drive, email).
 
-| Botão (em Config → Dados) | O que gera | Para quê |
+| Em Config → Dados → Exportar | O que gera | Para quê |
 | --- | --- | --- |
-| **Exportar histórico (JSON)** | Auditorias, serviços e o tipo de cada um, pessoas, perguntas, responsáveis, objectivo anual, acções e notas — **sem fotos** | Cópia leve, para fazer muitas vezes |
-| **Exportar com fotos (JSON)** | O mesmo, **com todas as fotos** | Cópia completa: a que permite recuperar tudo |
-| **Partilhar cópia com fotos** | A cópia completa, enviada pelo menu de partilha do telemóvel | Mandá-la logo para a Drive ou o email. Só aparece onde o browser o permite |
-| **Exportar para Excel** | Folhas *Auditorias*, *Respostas* e *Acções* | Análise noutro programa. **Não** é uma cópia: não se importa de volta |
+| **Cópia de segurança** (JSON) | Auditorias, serviços e o tipo de cada um, pessoas, perguntas, responsáveis, objectivo anual, acções e notas — **sem fotos** | Cópia leve, para fazer muitas vezes |
+| **Cópia com fotos** (JSON) | O mesmo, **com todas as fotos** | Cópia completa: a que permite recuperar tudo |
+| **Cópia com fotos → Partilhar** | A cópia completa, enviada pelo menu de partilha do telemóvel | Mandá-la logo para a Drive ou o email. Só aparece onde o browser o permite |
+| **Para análise** (XLSX) | Folhas *Auditorias*, *Respostas* e *Acções* | Análise noutro programa. **Não** é uma cópia: não se importa de volta |
 
-- **Gravar sozinha, na pasta partilhada** (Chrome ou Edge de computador). Em *Configuração →
-  Cópia de segurança na pasta partilhada*, **Escolher pasta**, uma vez. Daí em diante, cada
-  alteração é gravada em `auditoria5s_backup.json` uns segundos depois — o mesmo que *Exportar
-  histórico (JSON)*, **sem fotos**. O lembrete abaixo passa a contar a pasta como cópia feita.
+- **Gravar sozinha, na pasta partilhada** (Chrome ou Edge de computador). Em *Config → Dados →
+  Gravação automática → Cópia na pasta partilhada*, **Escolher pasta**, uma vez. Daí em diante, cada
+  alteração é gravada em `auditoria5s_backup.json` uns segundos depois — o mesmo que a *cópia de
+  segurança* exportada, **sem fotos**. O lembrete abaixo passa a contar a pasta como cópia feita.
   Antes de substituir o ficheiro, a versão que lá estava fica em `copias-backup/` (30 dias).
 - **Se outra pessoa gravou a cópia da pasta** depois da versão em que está a trabalhar, a gravação
   automática **pára** e aparece um aviso, em todos os ecrãs: **Abrir a versão da pasta…** (como
@@ -321,7 +321,7 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
   parte as fotos novas ou trocadas desde a última cópia *com fotos*. Quando
   são cinco ou mais, ou passou uma semana, o aviso traz o botão **Exportar com
   fotos**. Uma cópia sem fotos não o faz desaparecer.
-- **Recuperar.** *Importar cópia de segurança* lê um destes ficheiros e pergunta:
+- **Recuperar.** *Config → Dados → Importar → Cópia de segurança* lê um destes ficheiros e pergunta:
   **Fundir** junta-o ao que existe, sem duplicar; **Substituir tudo** troca o
   histórico do dispositivo pelo do ficheiro (pede o código de acesso). As fotos
   de uma cópia *com fotos* vêm junto.
@@ -330,6 +330,22 @@ Os dados só existem neste dispositivo. Faça cópias com regularidade e guarde-
   automática. Se disser *não concedida*, instale a app no ecrã principal.
 
 ## Configuração
+
+A Configuração está em quatro grupos que abrem e fecham ao tocar no título.
+**Dados** abre sempre; os outros começam fechados e mostram um resumo (por
+exemplo, quantos serviços estão sem tipo). **Abrir tudo**, no topo, abre-os
+todos de uma vez.
+
+- **Dados: importar e exportar** — à esquerda o que sai da app (a cópia de
+  segurança, a cópia com fotos, o Excel para análise e *Enviar para o
+  telemóvel*), à direita o que entra (a cópia de segurança e o Excel de serviços
+  e pessoas). Por baixo, a gravação automática (a pasta partilhada e o painel
+  e-ink) e o espaço ocupado neste dispositivo.
+- **Serviços e objectivo** — a lista de serviços e o objectivo anual.
+- **Perguntas e responsáveis** — os responsáveis e o editor de perguntas.
+- **Código de acesso.**
+
+O guia abre-se no fim, em **Abrir o guia**. O que há em cada grupo:
 
 - **Serviços** — a lista, e o **tipo** de cada um (Interno ou Externo), para os
   [indicadores do ano](#indicadores-do-ano). O tipo vem do Excel (`LOCAL_SERVICO`)
@@ -418,8 +434,8 @@ pergunta (em *Editar auditoria*) ou use **+ Acção** em *Itens a melhorar*.
 email de cada serviço. O ritmo das auditorias segue-se agora pelo objectivo
 anual, nos [indicadores do ano](#indicadores-do-ano).
 
-**Esqueci-me do código de acesso.** Em *Config → Dados*, *Exportar com fotos
-(JSON)* (não pede código). Depois limpe os dados do site nas definições do
+**Esqueci-me do código de acesso.** Em *Config → Dados*, exporte a *Cópia com
+fotos* (não pede código). Depois limpe os dados do site nas definições do
 browser, abra a app e importe o ficheiro com *Fundir*. O código volta a ser o de
 origem.
 

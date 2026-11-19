@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.8.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.9.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -302,6 +302,56 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 .delta{font-size:.75rem;font-weight:700;margin-left:6px}
 .delta.up{color:var(--green-ink)}.delta.down{color:var(--red-ink)}.delta.eq{color:var(--muted)}
 .prev{font-size:.72rem;color:var(--amber-ink);margin-top:6px}
+/* v4.9.0: a Configuração em grupos que abrem e fecham. */
+.cfg-barra{display:flex;justify-content:space-between;align-items:center;margin:2px 2px 12px}
+.cfg-tit{font-family:var(--f-sans);font-weight:700;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+#cfg-tudo{background:none;border:0;color:var(--green-ink);font-family:var(--f-sans);font-weight:700;
+  font-size:.72rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;padding:8px 6px}
+details.grp{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;
+  box-shadow:0 2px 0 rgba(29,42,36,.06)}
+details.grp>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:36px 1fr auto 14px;
+  gap:12px;align-items:center;padding:14px 16px;user-select:none;font-family:var(--f-sans)}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:var(--radius)}
+details.grp[open]>summary{border-bottom:1px solid var(--line)}
+.grp .ico{width:36px;height:36px;border-radius:10px;background:var(--chip);display:grid;place-items:center;font-size:1.05rem;color:var(--green-ink)}
+.grp .g-tit{font-weight:900;font-size:.95rem}
+.grp .g-res{display:block;font-family:var(--f-serif);font-weight:400;font-size:.76rem;color:var(--muted);margin-top:2px}
+.grp .g-sel{font-size:.62rem;font-weight:900;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.grp .g-sel:empty{display:none}
+.grp .g-sel.ok{background:var(--chip);color:var(--green-ink)}
+.grp .g-sel.warn{background:var(--chip);color:var(--amber-ink);box-shadow:inset 0 0 0 1.5px var(--amber)}
+.grp .chev{width:10px;height:10px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);
+  transform:rotate(45deg);margin-top:-4px}
+.grp[open] .chev{transform:rotate(-135deg);margin-top:4px}
+@media (prefers-reduced-motion:no-preference){.grp .chev{transition:transform .2s}}
+.g-corpo{padding:0 16px 16px}
+.g-corpo .sub{padding:14px 0;border-bottom:1px dashed var(--line)}
+.g-corpo .sub:last-child{border-bottom:0;padding-bottom:2px}
+.g-corpo .sub.hidden{display:none}
+.g-corpo h3{font-size:.78rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--green-ink);margin-bottom:6px}
+.sub-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.sub-cab h3{margin:0}
+.g-corpo .txt,.cfg-ajuda p{font-size:.78rem;color:var(--muted);margin-bottom:10px;line-height:1.45}
+.io{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+@media (max-width:600px){.io{grid-template-columns:1fr}}
+.io-col{border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--field);min-width:0}
+.io-col h4{font-family:var(--f-sans);font-size:.68rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px}
+.io-col .btn.small{margin:8px 6px 0 0}
+.acao{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.io-col h4+.acao{border-top:0;padding-top:2px}
+.acao>b{font-family:var(--f-sans);font-size:.82rem}
+.acao>small{grid-column:1;font-size:.72rem;color:var(--muted);line-height:1.35}
+.acao>.btn,.acao>.acao-btns{grid-row:1/3;grid-column:2;justify-self:end}
+.io-col .acao .btn.small{margin:0}
+.acao-btns{display:flex;flex-direction:column;gap:6px}
+.fmt{font-family:var(--f-sans);font-size:.58rem;font-weight:900;letter-spacing:1px;padding:1px 5px;border-radius:4px;
+  background:var(--chip);color:var(--muted);vertical-align:1px}
+.cfg-ajuda{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.cfg-ajuda p{margin:0}
+.cfg-ajuda p b{font-family:var(--f-sans);color:var(--ink)}
+.cfg-ajuda .btn.small{margin:0;flex:0 0 auto}
 /* v3.12.0: plano de acção. */
 .chk{display:flex;gap:6px;align-items:flex-start;font-family:var(--f-sans);font-size:.75rem;
   letter-spacing:0;text-transform:none;color:var(--ink);font-weight:700;margin:0;cursor:pointer}
@@ -645,146 +695,222 @@ td{padding:9px 8px;border-bottom:1px solid var(--line)}
 <div id="view-pdf" aria-hidden="true"></div>
 
 <!-- ============ CONFIG ============ -->
+<!-- v4.9.0: a Configuração em quatro grupos que abrem e fecham (<details>
+     nativo: funciona por toque e por teclado, sem JS). «Dados» abre sempre;
+     os outros começam fechados e mostram um resumo na linha do título
+     (renderCfg → resumosCfg). Os ids dos botões e campos não mudaram. -->
 <section id="view-cfg" class="hidden">
   <h2 class="sr-only">Configuração</h2>
+  <div class="cfg-barra">
+    <p class="cfg-tit" aria-hidden="true">Configuração</p>
+    <button type="button" id="cfg-tudo" aria-controls="view-cfg">Abrir tudo</button>
+  </div>
+
+  <!-- 1. Dados: tudo o que entra e sai da app. -->
+  <details class="grp" id="grp-dados" open>
+    <summary>
+      <span class="ico" aria-hidden="true">⇅</span>
+      <span><span class="g-tit">Dados: importar e exportar</span>
+        <span class="g-res" id="res-dados"></span></span>
+      <span class="g-sel" id="sel-dados"></span>
+      <span class="chev" aria-hidden="true"></span>
+    </summary>
+    <div class="g-corpo">
+      <div class="sub">
+        <h3 class="sr-only">Importar e exportar</h3>
+        <p class="txt">Os dados ficam só neste dispositivo: faça cópias de segurança regulares. A <b>cópia de segurança (JSON)</b>
+          leva o histórico, os serviços, as pessoas e as perguntas, e é a única que se pode importar de volta. O <b>Excel</b>
+          serve para análise noutro programa.</p>
+        <div class="io">
+          <div class="io-col">
+            <h4>↑ Exportar</h4>
+            <div class="acao"><b>Cópia de segurança <span class="fmt">JSON</span></b>
+              <small>Sem fotos.</small>
+              <button class="btn small ghost" id="btn-expjson" aria-label="Exportar histórico (JSON)">Exportar</button></div>
+            <div class="acao"><b>Cópia com fotos <span class="fmt">JSON</span></b>
+              <small>Ficheiro maior, com as fotos das auditorias.</small>
+              <span class="acao-btns"><button class="btn small ghost" id="btn-expfotos" aria-label="Exportar com fotos (JSON)">Exportar</button>
+              <button class="btn small ghost" id="btn-partilhar" style="display:none" aria-label="Partilhar cópia com fotos">Partilhar</button></span></div>
+            <div class="acao"><b>Para análise <span class="fmt">XLSX</span></b>
+              <small>Uma folha por auditoria e outra por resposta. Não se importa de volta.</small>
+              <button class="btn small ghost" id="btn-expxl" aria-label="Exportar para Excel">Exportar</button></div>
+            <div class="acao"><b>Enviar para o telemóvel</b>
+              <small>No PC: as auditorias finalizadas, as acções, o tipo dos serviços, o objectivo e as perguntas, sem fotos.
+                No telemóvel, abre-se em Histórico → Importar ficheiro.</small>
+              <button class="btn small ghost" id="btn-telemovel" aria-label="Enviar para o telemóvel">Enviar</button></div>
+          </div>
+          <div class="io-col">
+            <h4>↓ Importar</h4>
+            <div class="acao"><b>Cópia de segurança <span class="fmt">JSON</span> <span class="fmt">TXT</span></b>
+              <small>Pergunta se quer <b>fundir</b> com os dados actuais (sem duplicar) ou <b>substituir</b> tudo.</small>
+              <button class="btn small ghost" id="btn-impjson" aria-label="Importar cópia de segurança (.json ou .txt)">Importar</button></div>
+            <input type="file" id="hist-file" accept=".json,.txt,application/json,text/plain" class="hidden">
+            <div class="acao"><b>Serviços e pessoas <span class="fmt">XLSX</span> <span class="fmt">CSV</span></b>
+              <small>Folha <i>Serviços</i>: <i>Código</i> (ou <i>ID_SERVICO</i>) e <i>Descrição</i>; opcionalmente <i>Local</i>
+                (Interno/Externo, o tipo do serviço) e <i>Ativo</i> (os inactivos ficam de fora). Folha <i>Repositor</i> ou
+                <i>Picking</i>: <i>Nome</i> (e opcionalmente <i>Código</i>), para as sugestões de nomes. Num ficheiro de folha
+                única, reconhece-se pelas colunas.</small>
+              <button class="btn small ghost" id="btn-impxl" aria-label="Importar Excel">Importar</button></div>
+            <input type="file" id="xl-file" accept=".xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
+          </div>
+        </div>
+        <div id="data-stats" class="txt" style="margin:12px 0 0"></div>
+      </div>
+
+      <div class="sub">
+        <div class="sub-cab"><h3>Gravação automática</h3><span class="txt" style="margin:0">Só no Chrome ou no Edge de computador</span></div>
+        <div class="io">
+          <div class="io-col" id="card-pasta">
+            <h4>Cópia na pasta partilhada</h4>
+            <p class="txt">Com a pasta escolhida (uma vez; o navegador lembra-se dela), cada alteração é gravada sozinha em
+              <b>auditoria5s_backup.json</b> uns segundos depois — sem fotos. Se outra pessoa gravou a cópia entretanto, a gravação
+              <b>pára e avisa</b>: pode abrir a versão da pasta (funde ou substitui) ou gravar por cima. A versão substituída fica
+              em <b>copias-backup/</b> (30 dias).</p>
+            <label class="chk"><input type="checkbox" id="chk-pasta-auto" checked> Gravar sozinho, uns segundos depois de cada alteração</label>
+            <button class="btn small ghost" id="btn-pasta">Escolher pasta</button>
+            <button class="btn small ghost" id="btn-pasta-agora" disabled>Gravar agora</button>
+            <button class="btn small ghost perigo" style="display:none" id="btn-pasta-off">Deixar de gravar</button>
+            <div id="pasta-estado" role="status" class="txt" style="margin:10px 0 0"></div>
+          </div>
+          <div class="io-col" id="card-painel">
+            <h4>Painel e-ink</h4>
+            <p class="txt">Grava <b>5s.painel.json</b> na pasta partilhada do painel (a app <b>painel.html</b>, do repositório
+              qzte/e-ink_panel): a média dos últimos 30 dias, a evolução mensal, as acções, a média por responsável e os
+              indicadores do ano. Volta a gravá-lo quando uma auditoria, um serviço, o tipo de um serviço ou o objectivo muda,
+              e de hora a hora.</p>
+            <button class="btn small ghost" id="btn-painel">Escolher pasta</button>
+            <button class="btn small ghost perigo" style="display:none" id="btn-painel-off">Deixar de gravar</button>
+            <div id="painel-estado" role="status" class="txt" style="margin:10px 0 0"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h3>Espaço neste dispositivo</h3>
+        <div id="data-armaz" class="txt" style="margin:0"></div>
+        <!-- v3.26.0: as fotos que já estão no PC. -->
+        <div id="limpeza" class="hidden"></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- 2. Serviços, pessoas e objectivo anual. -->
+  <details class="grp" id="grp-servicos">
+    <summary>
+      <span class="ico" aria-hidden="true">▦</span>
+      <span><span class="g-tit">Serviços e objectivo</span>
+        <span class="g-res" id="res-servicos"></span></span>
+      <span class="g-sel" id="sel-servicos"></span>
+      <span class="chev" aria-hidden="true"></span>
+    </summary>
+    <div class="g-corpo">
+      <div class="sub">
+        <h3>Serviços</h3>
+        <p class="txt">O <b>tipo</b> (interno ou externo) conta nos indicadores do ano, na Análise. Vem do Excel (coluna
+          <i>LOCAL_SERVICO</i>, em <i>Dados → Importar → Serviços e pessoas</i>): importar de novo actualiza-o. Num serviço
+          sem tipo, escolha-o aqui.</p>
+        <div id="svc-list"></div>
+        <div class="row"><input id="svc-new" placeholder="Novo serviço (ex.: Serviço A 00001)" aria-label="Novo serviço">
+        <button class="btn small ghost" id="btn-addsvc">Adicionar</button></div>
+        <div id="xl-people" style="margin-top:12px"></div>
+      </div>
+      <!-- v4.0.0: o objectivo anual, para os indicadores da Análise. -->
+      <div class="sub" id="card-objetivo">
+        <h3>Objectivo anual de auditorias</h3>
+        <p class="txt">Quantas auditorias executar no ano, de todos os serviços. A Análise mostra a média semanal e se estamos
+          adiantados ou atrasados face ao plano.</p>
+        <div class="row">
+          <div><label for="obj-ano">Ano</label><select id="obj-ano"></select></div>
+          <div><label for="obj-n">Auditorias no ano</label><input id="obj-n" type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="Sem objectivo"></div>
+        </div>
+        <p id="obj-info" class="txt" style="margin:0"></p>
+      </div>
+    </div>
+  </details>
+
+  <!-- 3. Perguntas e responsáveis. -->
+  <details class="grp" id="grp-perguntas">
+    <summary>
+      <span class="ico" aria-hidden="true">✎</span>
+      <span><span class="g-tit">Perguntas e responsáveis</span>
+        <span class="g-res" id="res-perguntas"></span></span>
+      <span class="g-sel" id="sel-perguntas"></span>
+      <span class="chev" aria-hidden="true"></span>
+    </summary>
+    <div class="g-corpo">
+      <!-- Só aparece quando há perguntas de amostra por converter (ver
+           proporMigracaoAmostra). Fica aqui para quem adiou a proposta do arranque
+           ter por onde a retomar sem passar pelo editor. -->
+      <div class="sub hidden" id="migr-card">
+        <h3>Perguntas por amostra</h3>
+        <p class="txt" id="migr-txt"></p>
+        <button class="btn small ghost" id="btn-migr">Converter agora</button>
+      </div>
+      <div class="sub">
+        <h3>Responsáveis</h3>
+        <p class="txt">Quem responde por cada pergunta. São os eixos do radar «Por responsável», pela ordem em que aparecem
+          aqui. O <b>código</b> é a referência que cada pergunta guarda: fixa-se ao criar e não muda mais. O <b>nome</b> é só o
+          que se lê, e pode ser corrigido a qualquer momento. As alterações só se aplicam ao carregar em <i>Guardar
+          responsáveis</i>, com código de acesso.</p>
+        <div id="resp-list"></div>
+        <div class="row">
+          <input id="resp-newk" placeholder="Código (ex.: L)" maxlength="12" style="flex:0 0 30%" aria-label="Código do novo responsável">
+          <input id="resp-newn" placeholder="Nome (ex.: Logística)" maxlength="40" aria-label="Nome do novo responsável">
+        </div>
+        <button class="btn small ghost" id="btn-addresp">+ Adicionar responsável</button>
+        <button class="btn small ghost" id="btn-saveresp">Guardar responsáveis (PIN)</button>
+        <button class="btn small ghost perigo" id="btn-resetresp">Repor originais</button>
+      </div>
+      <div class="sub">
+        <h3>Editor de perguntas</h3>
+        <p class="txt">Enunciados, pilares, responsáveis e limiares; também exporta e importa as perguntas (JSON). Pede o
+          código de acesso. As auditorias já feitas mantêm as perguntas com que foram feitas.</p>
+        <button class="btn small ghost" id="btn-askpin">Abrir editor (PIN)</button>
+      </div>
+      <div class="sub hidden" id="ed-panel">
+        <h3>Perguntas da auditoria</h3>
+        <p class="txt">
+          <b>Contagem:</b> 0 = Excelente · até (limiar−1) = Oportunidade · ≥ limiar = Mau.<br>
+          <b>Escala 0–2:</b> a resposta é a própria pontuação.<br>
+          <b>Elementos:</b> máximo = Excelente · 1 ou mais = Oportunidade · 0 = Mau.</p>
+        <div id="ed-list"></div>
+        <button class="btn small ghost" id="btn-edadd">+ Adicionar pergunta</button>
+        <button class="btn small ghost" id="btn-edexp">Exportar perguntas (JSON)</button>
+        <button class="btn small ghost" id="btn-edimp">Importar perguntas (JSON)</button>
+        <input type="file" id="ed-file" accept=".json,application/json" class="hidden">
+        <button class="btn" id="btn-edsave">Guardar alterações</button>
+        <button class="btn ghost perigo" id="btn-edreset">Repor perguntas originais</button>
+      </div>
+    </div>
+  </details>
+
+  <!-- 4. Código de acesso. -->
+  <details class="grp" id="grp-pin">
+    <summary>
+      <span class="ico" aria-hidden="true">✱</span>
+      <span><span class="g-tit">Código de acesso</span>
+        <span class="g-res" id="res-pin"></span></span>
+      <span class="g-sel" id="sel-pin"></span>
+      <span class="chev" aria-hidden="true"></span>
+    </summary>
+    <div class="g-corpo">
+      <div class="sub" id="card-pin">
+        <h3 class="sr-only">Código de acesso</h3>
+        <p class="txt">Pedido para editar auditorias gravadas, alterar os responsáveis, abrir o editor de perguntas e substituir
+          o histórico. Protege contra alterações por engano — não é uma palavra-passe.</p>
+        <p id="pin-estado" style="font-size:.78rem;margin-bottom:10px"></p>
+        <button class="btn small ghost" id="btn-pinmudar">Mudar código</button>
+        <button class="btn small ghost" id="btn-pinrepor" style="display:none">Voltar ao código de origem</button>
+      </div>
+    </div>
+  </details>
+
   <!-- v3.16.0: o guia de utilização (guia.html, gerado de GUIA.md). Página da
-       própria app, em cache: abre também sem rede. -->
-  <div class="card" id="card-ajuda">
-    <h3 style="margin-bottom:4px">Ajuda</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Como fazer uma auditoria, seguir as
-      acções, acompanhar os indicadores e fazer cópias de segurança. Também sem rede.</p>
-    <a class="btn small ghost" href="./guia.html" id="lnk-guia">Abrir o guia de utilização</a>
-  </div>
-  <div class="card">
-    <h3 style="margin-bottom:4px">Serviços</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">O <b>tipo</b> (interno ou externo) conta nos
-      indicadores do ano, na Análise. Vem do Excel (coluna <i>LOCAL_SERVICO</i>), em <i>Importar Excel</i>: importar
-      de novo actualiza-o. Num serviço sem tipo, escolha-o aqui.</p>
-    <div id="svc-list"></div>
-    <div class="row"><input id="svc-new" placeholder="Novo serviço (ex.: Serviço A 00001)">
-    <button class="btn small ghost" id="btn-addsvc">Adicionar</button></div>
-  </div>
-  <!-- v4.0.0: o objectivo anual, para os indicadores da Análise. -->
-  <div class="card" id="card-objetivo">
-    <h3 style="margin-bottom:4px">Objectivo anual de auditorias</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Quantas auditorias executar no ano, de
-      todos os serviços. A Análise mostra a média semanal e se estamos adiantados ou atrasados face ao plano.</p>
-    <div class="row">
-      <div><label for="obj-ano">Ano</label><select id="obj-ano"></select></div>
-      <div><label for="obj-n">Auditorias no ano</label><input id="obj-n" type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="Sem objectivo"></div>
-    </div>
-    <p id="obj-info" style="font-size:.78rem;color:var(--muted);margin-top:6px"></p>
-  </div>
-  <div class="card">
-    <h3 style="margin-bottom:10px">Dados</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
-      A exportação gera uma cópia de segurança completa: histórico de auditorias, serviços,
-      repositores/picking e perguntas. A importação permite <b>fundir</b> com os dados actuais
-      (sem duplicar) ou <b>substituir</b> tudo. A exportação para <b>Excel</b> serve para análise
-      noutro programa (uma folha por auditoria e outra por resposta) e não pode ser importada de volta:
-      a cópia de segurança é a JSON. <b>Enviar para o telemóvel</b> (no PC) manda ao telemóvel, sem fotos, as
-      auditorias finalizadas, as acções, o tipo dos serviços, o objectivo anual e as perguntas: no telemóvel, abre-se em
-      Histórico → Importar ficheiro.</p>
-    <button class="btn small ghost" id="btn-expjson">Exportar histórico (JSON)</button>
-    <button class="btn small ghost" id="btn-expfotos">Exportar com fotos (JSON)</button>
-    <button class="btn small ghost" id="btn-partilhar" style="display:none">Partilhar cópia com fotos</button>
-    <button class="btn small ghost" id="btn-impjson">Importar cópia de segurança (.json ou .txt)</button>
-    <button class="btn small ghost" id="btn-expxl">Exportar para Excel</button>
-    <button class="btn small ghost" id="btn-telemovel">Enviar para o telemóvel</button>
-    <input type="file" id="hist-file" accept=".json,.txt,application/json,text/plain" class="hidden">
-    <div id="data-stats" style="font-size:.78rem;color:var(--muted);margin-top:12px"></div>
-    <div id="data-armaz" style="font-size:.78rem;color:var(--muted);margin-top:6px"></div>
-    <!-- v3.26.0: as fotos que já estão no PC. -->
-    <div id="limpeza" class="hidden"></div>
-    <p style="font-size:.78rem;color:var(--muted);margin-top:10px">Os dados ficam guardados apenas neste dispositivo. Faça exportações regulares como cópia de segurança.</p>
-  </div>
-  <div class="card" id="card-pasta">
-    <h3 style="margin-bottom:10px">Cópia de segurança na pasta partilhada</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
-      Com a pasta escolhida (uma vez; o navegador lembra-se dela), cada alteração é gravada sozinha em <b>auditoria5s_backup.json</b>
-      uns segundos depois — sem fotos, que continuam a ter a «Exportar com fotos». Se outra pessoa gravou a cópia entretanto,
-      a gravação automática <b>pára e avisa</b>, em vez de apagar o trabalho dela: pode então abrir a versão da pasta (funde ou substitui,
-      como em «Importar») ou gravar por cima. Antes de substituir, a versão que lá estava fica em <b>copias-backup/</b> (30 dias).
-      Só no Chrome ou no Edge de computador.</p>
-    <button class="btn small ghost" id="btn-pasta">Escolher pasta</button>
-    <button class="btn small ghost" id="btn-pasta-agora" disabled>Gravar agora</button>
-    <button class="btn small ghost" style="display:none;border-color:var(--red-ink);color:var(--red-ink)" id="btn-pasta-off">Deixar de gravar</button>
-    <label style="display:block;font-size:.78rem;margin-top:10px"><input type="checkbox" id="chk-pasta-auto" checked> Gravar sozinho, uns segundos depois de cada alteração</label>
-    <div id="pasta-estado" role="status" style="font-size:.78rem;color:var(--muted);margin-top:10px"></div>
-  </div>
-  <div class="card" id="card-painel">
-    <h3 style="margin-bottom:10px">Painel e-ink</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
-      O painel e-ink (a app <b>painel.html</b>, do repositório qzte/e-ink_panel) mostra uma página com os KPIs da 5S:
-      a média dos últimos 30 dias, a evolução mensal, as acções do plano, a média por responsável e os indicadores do ano. Esta app grava o ficheiro <b>5s.painel.json</b> numa
-      <b>pasta partilhada</b> — a mesma das outras apps e do painel.html —, escolhida uma vez. Volta a gravá-lo
-      sempre que uma auditoria, um serviço, o tipo de um serviço ou o objectivo anual muda, e de hora a hora. Só no Chrome ou no Edge de computador.</p>
-    <button class="btn small ghost" id="btn-painel">Escolher pasta</button>
-    <button class="btn small ghost" style="display:none;border-color:var(--red-ink);color:var(--red-ink)" id="btn-painel-off">Deixar de gravar</button>
-    <div id="painel-estado" role="status" style="font-size:.78rem;color:var(--muted);margin-top:10px"></div>
-  </div>
-  <div class="card">
-    <h3 style="margin-bottom:10px">Importar Excel (códigos e descrições)</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
-      Carregue um ficheiro <b>.xlsx / .xls / .csv</b> com:<br>
-      · Folha <b>Serviços</b> — colunas <i>Código</i> (ou <i>ID_SERVICO</i>) e <i>Descrição</i> (ficam disponíveis no formulário como "Descrição (Código)");
-      opcionalmente <i>Local</i> (Interno/Externo, que dá o tipo do serviço) e <i>Ativo</i> (os inactivos ficam de fora).<br>
-      · Folha <b>Repositor</b> ou <b>Picking</b> — coluna <i>Nome</i> (e opcionalmente <i>Código</i>) para sugestões nos campos Repositor/Verificador.<br>
-      As folhas são reconhecidas pelo nome; num ficheiro de folha única aplica-se a deteção pelas colunas.</p>
-    <button class="btn small ghost" id="btn-impxl">Importar Excel</button>
-    <input type="file" id="xl-file" accept=".xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
-    <div id="xl-people" style="margin-top:12px"></div>
-  </div>
-  <!-- Só aparece quando há perguntas de amostra por converter (ver
-       proporMigracaoAmostra). Fica aqui para quem adiou a proposta do arranque
-       ter por onde a retomar sem passar pelo editor. -->
-  <div class="card hidden" id="migr-card">
-    <h3 style="margin-bottom:4px">Perguntas por amostra</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px" id="migr-txt"></p>
-    <button class="btn small ghost" id="btn-migr">Converter agora</button>
-  </div>
-  <div class="card">
-    <h3 style="margin-bottom:10px">Responsáveis</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">
-      Quem responde por cada pergunta. São os eixos do radar "Por responsável", pela ordem em
-      que aparecem aqui.<br>
-      O <b>código</b> é a referência que cada pergunta guarda: fixa-se ao criar e não muda mais.
-      O <b>nome</b> é só o que se lê, e pode ser corrigido a qualquer momento.
-      As alterações só se aplicam ao carregar em <i>Guardar responsáveis</i>, com código de acesso.</p>
-    <div id="resp-list"></div>
-    <div class="row">
-      <input id="resp-newk" placeholder="Código (ex.: L)" maxlength="12" style="flex:0 0 30%">
-      <input id="resp-newn" placeholder="Nome (ex.: Logística)" maxlength="40">
-    </div>
-    <button class="btn small ghost" id="btn-addresp">+ Adicionar responsável</button>
-    <button class="btn small ghost" id="btn-saveresp">Guardar responsáveis (PIN)</button>
-    <button class="btn small ghost" style="border-color:var(--red-ink);color:var(--red-ink)" id="btn-resetresp">Repor originais</button>
-  </div>
-  <div class="card" id="card-pin">
-    <h3 style="margin-bottom:10px">Código de acesso</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Pedido para editar auditorias gravadas, alterar os responsáveis, abrir o editor de perguntas e substituir o histórico. Protege contra alterações por engano — não é uma palavra-passe.</p>
-    <p id="pin-estado" style="font-size:.78rem;margin-bottom:10px"></p>
-    <button class="btn small ghost" id="btn-pinmudar">Mudar código</button>
-    <button class="btn small ghost" id="btn-pinrepor" style="display:none">Voltar ao código de origem</button>
-  </div>
-  <div class="card">
-    <h3 style="margin-bottom:10px">Editor de perguntas</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">Área reservada ao administrador. Permite alterar perguntas, responsáveis e parâmetros de avaliação.</p>
-    <button class="btn small ghost" id="btn-askpin">Abrir editor (PIN)</button>
-  </div>
-  <div class="card hidden" id="ed-panel">
-    <h3 style="margin-bottom:4px">Perguntas da auditoria</h3>
-    <p style="font-size:.75rem;color:var(--muted);margin-bottom:12px">
-      <b>Contagem:</b> 0 = Excelente · até (limiar−1) = Oportunidade · ≥ limiar = Mau.<br>
-      <b>Escala 0–2:</b> a resposta é a própria pontuação.<br>
-      <b>Elementos:</b> máximo = Excelente · 1 ou mais = Oportunidade · 0 = Mau.</p>
-    <div id="ed-list"></div>
-    <button class="btn small ghost" id="btn-edadd">+ Adicionar pergunta</button>
-    <button class="btn small ghost" id="btn-edexp">Exportar perguntas (JSON)</button>
-    <button class="btn small ghost" id="btn-edimp">Importar perguntas (JSON)</button>
-    <input type="file" id="ed-file" accept=".json,application/json" class="hidden">
-    <button class="btn" id="btn-edsave">Guardar alterações</button>
-    <button class="btn ghost" style="border-color:var(--red-ink);color:var(--red-ink)" id="btn-edreset">Repor perguntas originais</button>
+       própria app, em cache: abre também sem rede. v4.9.0: compacto, no fim. -->
+  <div class="card cfg-ajuda" id="card-ajuda">
+    <h3 class="sr-only">Ajuda</h3>
+    <p><b>Ajuda</b> · Como fazer uma auditoria, seguir as acções, acompanhar os indicadores e fazer cópias de segurança. Também sem rede.</p>
+    <a class="btn small ghost" href="./guia.html" id="lnk-guia">Abrir o guia</a>
   </div>
 </section>
 </main>
@@ -1258,7 +1384,7 @@ const save=(k,v)=>{
     if(!avisoCheio){
       avisoCheio=true;setTimeout(()=>{avisoCheio=false;},0);
       aviso("Não foi possível guardar: o armazenamento local do navegador está cheio.\n\n"+
-        "Exporte os dados (Configuração → Exportar JSON) e apague auditorias antigas "+
+        "Exporte os dados (Config → Dados → Exportar a cópia de segurança) e apague auditorias antigas "+
         "para libertar espaço. Nada do que estava guardado se perdeu.");
     }
     return false;
@@ -1435,7 +1561,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.8.2";
+const APP_VERSION="4.9.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1489,7 +1615,7 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   if(t.dataset.v==="history")renderHist();
   if(t.dataset.v==="stats")renderStats();
   if(t.dataset.v==="acoes")renderAcoes();
-  if(t.dataset.v==="cfg")renderCfg();
+  if(t.dataset.v==="cfg"){const gd=document.getElementById("grp-dados");if(gd)gd.open=true;renderCfg();}
 });
 
 /* ---------- Tooltip de parâmetros (v2.0.0) ----------
@@ -4242,6 +4368,7 @@ function renderCfg(){
   }
   mostrarArmaz();
   mostrarLimpeza();
+  resumosCfg();
   /* Cartão da migração: visível só enquanto houver perguntas por converter.
      Desaparece sozinho depois de aplicada. */
   const mc=document.getElementById("migr-card");
@@ -4257,6 +4384,33 @@ function renderCfg(){
         "responsável mantêm-se; as auditorias já gravadas não mudam.";
   }
 }
+/* v4.9.0: o resumo de cada grupo da Configuração, lido com o grupo fechado. */
+let estadoPastaCfg=null;
+function resumosCfg(){
+  const put=(id,txt,cls)=>{const el=document.getElementById(id);if(!el)return;el.textContent=txt||"";if(cls!==undefined)el.className="g-sel"+(cls?" "+cls:"");};
+  const n=(k,um,varios)=>k+" "+(k===1?um:varios);
+  const e=estadoPastaCfg;
+  put("res-dados",n(audits.length,"auditoria","auditorias")+" · "+(
+    !e||e.estado==="indisponivel"||e.estado==="sem"?"cópias à mão (exportar)":
+    e.estado==="ok"?"cópia automática na pasta «"+e.pasta+"»":"cópia na pasta por confirmar"));
+  const [selD,clsD]=!e?["",""]:e.estado==="erro"?["Erro na pasta","warn"]:e.estado==="licenca"?["Pede licença","warn"]:
+    e.estado==="ok"?(e.mudou?["Em pausa","warn"]:e.auto?["Automática","ok"]:["Manual",""]):["",""];
+  put("sel-dados",selD,clsD);
+  const semTipo=services.filter(s=>!tipoDe(tipos,s)).length,ano=Number(hojeISO().slice(0,4)),obj=objetivoDe(objetivos,ano);
+  put("res-servicos",n(services.length,"serviço","serviços")+" · "+(obj?"objectivo "+ano+": "+obj:"sem objectivo para "+ano));
+  put("sel-servicos",semTipo?semTipo+" sem tipo":"",semTipo?"warn":"");
+  const mc=document.getElementById("migr-card"),porConv=mc&&!mc.classList.contains("hidden");
+  put("res-perguntas",n(ITEMS.length,"pergunta","perguntas")+" · "+n(respsActuais().length,"responsável","responsáveis"));
+  put("sel-perguntas",porConv?"Por converter":"",porConv?"warn":"");
+  const proprio=pinGuardadoValido(load(PIN_KEY,null));
+  put("res-pin",proprio?"Código próprio deste dispositivo":"A usar o código de origem");
+  put("sel-pin","","");
+  const b=document.getElementById("cfg-tudo"),g=[...document.querySelectorAll("#view-cfg details.grp")];
+  if(b)b.textContent=g.every(d=>d.open)?"Fechar tudo":"Abrir tudo";
+}
+{const g=[...document.querySelectorAll("#view-cfg details.grp")],b=document.getElementById("cfg-tudo");
+  g.forEach(d=>d.addEventListener("toggle",()=>{if(b)b.textContent=g.every(x=>x.open)?"Fechar tudo":"Abrir tudo";}));
+  if(b)b.onclick=()=>{const abrir=!g.every(d=>d.open);g.forEach(d=>{d.open=abrir;});};}
 /* O número no separador das Acções (as em atraso) muda com o dia. */
 /* v3.18.0: remover uma pessoa ou um serviço tem Desfazer, como apagar uma
    auditoria: até aqui o × apagava logo, sem confirmação nem volta. */
@@ -4956,7 +5110,7 @@ async function partilharCopia(descarregarSemPartilha){
   const f=ficheiroPartilha(c.blob,c.nome);
   const podePartilhar=!!f&&typeof navigator.share==="function";
   if(!podePartilhar&&descarregarSemPartilha!==true){
-    aviso("Este navegador não consegue partilhar ficheiros. Use «Exportar com fotos (JSON)» e envie o ficheiro descarregado.");return;}
+    aviso("Este navegador não consegue partilhar ficheiros. Use Config → Dados → Exportar a cópia com fotos e envie o ficheiro descarregado.");return;}
   /* Descarrega a cópia (para as Transferências, ou onde a pessoa escolher). */
   const guardar=async motivo=>{
     if(!(await descarregar(c.blob,c.nome)))return;
@@ -4969,7 +5123,7 @@ async function partilharCopia(descarregarSemPartilha){
     return;
   }
   const dados={files:[f],title:"Cópia de segurança · Auditoria 5S",
-    text:"Cópia de segurança da Auditoria 5S, com fotos ("+audits.length+" auditoria(s)). Para recuperar: Configuração → Dados → Importar cópia de segurança."};
+    text:"Cópia de segurança da Auditoria 5S, com fotos ("+audits.length+" auditoria(s)). Para recuperar: Config → Dados → Importar → Cópia de segurança."};
   const partilhar=()=>navigator.share(dados).then(()=>{registarExportacao(true);return true;});
   const recusada=e=>guardar("O menu de partilha não aceitou a cópia ("+mbDe(c.blob.size)+"; "+(e&&e.name||"erro")+").");
   try{await partilhar();}
@@ -6389,9 +6543,10 @@ function mostrarBackupPasta(e){
   /* style e não a classe .hidden: `.btn.small` fixa display:inline-block e, por ser mais específica, ganha a `.hidden`. */
   el("btn-pasta-off").style.display=e.pasta?"":"none";
   el("chk-pasta-auto").checked=e.auto;
+  estadoPastaCfg=e;
   txt.textContent=({
-    indisponivel:"Este navegador não consegue gravar numa pasta (use o Chrome ou o Edge de computador): use «Exportar histórico (JSON)».",
-    sem:"Nenhuma pasta escolhida: a cópia de segurança só se faz à mão, em «Exportar histórico (JSON)».",
+    indisponivel:"Este navegador não consegue gravar numa pasta (use o Chrome ou o Edge de computador): exporte a cópia de segurança, aqui em cima.",
+    sem:"Nenhuma pasta escolhida: a cópia de segurança só se faz à mão: exporte-a, aqui em cima.",
     licenca:"O navegador pede licença outra vez para gravar na pasta «"+e.pasta+"» (acontece ao reabrir a app).",
     ok:e.mudou?"Pasta «"+e.pasta+"»: a gravação automática está em pausa, até decidir o que fazer à cópia que lá está."
       :e.auto?"A gravar "+e.ficheiro+" na pasta «"+e.pasta+"» uns segundos depois de cada alteração"+(hora?" — última vez às "+hora:"")+(e.pendente?" (há alterações por gravar)":"")+"."
@@ -6399,6 +6554,7 @@ function mostrarBackupPasta(e){
     erro:"Não foi possível usar a pasta: "+e.erro
   }[e.estado]||"");
   if(e.erro&&e.estado==="ok")txt.textContent+=" Último erro: "+e.erro;
+  resumosCfg();
   const av=el("aviso-pasta");
   if(av){
     av.classList.toggle("hidden",!e.mudou);

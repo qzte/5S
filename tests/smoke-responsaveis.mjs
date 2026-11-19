@@ -10,6 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -45,6 +46,7 @@ const resps = () => pg.evaluate(() => JSON.parse(localStorage.getItem("resps") |
 
 /* ---- 1. A lista de origem aparece na Configuração. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 check(await pg.locator("[data-respn]").count() === 5,
   "a Configuração devia listar os cinco responsáveis de origem");
 
@@ -90,6 +92,7 @@ check((await pg.locator("#view-report .page-1 .card").nth(1).textContent()).incl
 
 /* ---- 5. Agora está em uso numa auditoria: também não sai. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await pg.locator("[data-resprm='5']").click();
 await semDialogo(pg);
 check(/não pode ser removido/.test(ultimo) && /auditoria/.test(ultimo),

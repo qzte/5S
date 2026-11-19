@@ -15,6 +15,7 @@ import os from "os";
 import path from "path";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -58,6 +59,7 @@ await pg.locator("[data-v=history]").click();
 check(await pg.locator("#prazos").count() === 0, "o cartão dos prazos saiu");
 check(await pg.locator(".tab-badge").count() === 0, "o Histórico não conta serviços por auditar");
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 check(await pg.locator("#card-freq, [data-freq], [data-email]").count() === 0, "a frequência e o email saíram da Config");
 
 /* ---- 2. Tipo de cada serviço e objectivo anual. ---- */
@@ -117,6 +119,7 @@ check(caixas.some(c => /Faltam \d+ itens/.test(c.texto)), "o aviso de itens em f
 
 /* ---- 5. Exportar leva o tipo e o objectivo; Substituir traz os do ficheiro. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 const [dl] = await Promise.all([pg.waitForEvent("download"), pg.locator("#btn-expjson").click()]);
 const exp = JSON.parse(fs.readFileSync(await dl.path(), "utf8"));
 check(Array.isArray(exp.tipoSvc) && exp.tipoSvc.length === 4, "a exportação devia levar os tipos");

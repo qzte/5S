@@ -9,6 +9,7 @@
      também sem rede, a partir da cache do service worker. */
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -105,6 +106,7 @@ await pg.evaluate(async () => {
 await ctx.setOffline(true);
 await pg.reload();
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 const [dl] = await Promise.all([pg.waitForEvent("download", { timeout: 10000 }).catch(() => null),
   pg.locator("#btn-expxl").click()]);
 check(dl && /\.xlsx$/.test(dl.suggestedFilename()), "sem rede, a exportação para Excel devia funcionar a partir da cache");

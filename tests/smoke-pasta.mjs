@@ -5,6 +5,7 @@
 import pw from "playwright";
 import { ligarDialogos } from "./dialogos.mjs";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -58,6 +59,7 @@ const gravarAuditoria = async data => {
 
 /* ---- 1. Sem pasta: o cartão diz porquê. Escolher a pasta grava a cópia (vazia). ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 check((await pg.locator("#pasta-estado").textContent()).includes("Nenhuma pasta"), "o cartão devia dizer que não há pasta");
 await pg.locator("#btn-pasta").click();
 await pg.waitForFunction(n => !!window.__PASTA.raiz[n], FICHEIRO, { timeout: 10000 });
@@ -93,6 +95,7 @@ check(copias.some(n => /^auditoria5s_backup_2099-01-01_/.test(n)), "a versão da
 
 /* ---- 5. «Deixar de gravar» larga a pasta. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await pg.locator("#btn-pasta-off").click();
 await pg.waitForFunction(() => document.getElementById("pasta-estado").textContent.includes("Nenhuma pasta"), null, { timeout: 5000 }).catch(() => {});
 check((await pg.locator("#pasta-estado").textContent()).includes("Nenhuma pasta"), "depois de largar, o cartão devia dizer que não há pasta");

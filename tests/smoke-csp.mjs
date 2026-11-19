@@ -11,6 +11,7 @@ import { execFileSync, spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const RAIZ = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -59,6 +60,7 @@ check(await pg.evaluate(() => typeof XLSX === "object" && typeof XLSX.utils === 
   "o SheetJS devia carregar a pedido, com a CSP publicada e o integrity");
 await pg.locator("[data-v=stats]").click();
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 
 /* Um <script> acrescentado à página já não corre. */
 await pg.evaluate(() => {

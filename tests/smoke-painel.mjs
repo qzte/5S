@@ -4,6 +4,7 @@
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -45,6 +46,7 @@ const feed = () => pg.evaluate(() => {
 
 /* ---- 1. Sem pasta, nada é gravado; o cartão diz porquê. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 check((await pg.locator("#painel-estado").textContent()).includes("Nenhuma pasta"), "o cartão devia dizer que não há pasta");
 check(await pg.evaluate(() => window.__PASTA.escritas) === 0, "não devia gravar sem pasta");
 
@@ -74,6 +76,7 @@ check(f.dados.kpis && f.dados.kpis.porMes.reduce((t, m) => t + m.n, 0) === 1, "a
 
 /* ---- 4. «Deixar de gravar» (3.6.1) larga a pasta: nada mais é gravado. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 check(await pg.locator("#btn-painel-off").isVisible(), "com pasta escolhida devia haver «Deixar de gravar»");
 await pg.locator("#btn-painel-off").click();
 await pg.waitForFunction(() => document.getElementById("painel-estado").textContent.includes("Nenhuma pasta"), null, { timeout: 5000 }).catch(() => {});

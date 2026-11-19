@@ -11,6 +11,7 @@
 import pw from "playwright";
 import { ligarDialogos } from "./dialogos.mjs";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -75,6 +76,7 @@ await pg.evaluate(() => {
 });
 check(/^6 fotos novas ou trocadas/.test(await aviso()), "6 fotos por copiar deviam dar aviso");
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await Promise.all([pg.waitForEvent("download"), pg.locator("#btn-expjson").click()]);
 check(await visivel("#aviso-backup") && /fotos novas/.test(await aviso()), "a cópia normal não pode tirar o aviso das fotos");
 check((await backup()).pendFotos === 6, "nem zerar as fotos por copiar");
@@ -100,6 +102,7 @@ check(await esperar(async () => (await backup()).pendFotos === 1), "a foto de ev
 const svcs = () => pg.evaluate(() => JSON.parse(localStorage.getItem("services")));
 const tipos = () => pg.evaluate(() => JSON.parse(localStorage.getItem("tipoSvc") || "[]"));
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await pg.locator("[data-rmsvc='1']").click();
 check(JSON.stringify(await svcs()) === '["Loja A","Loja C"]', "o × devia remover a Loja B");
 check(await visivel("#toast") && /Serviço removido: Loja B/.test(await pg.locator("#toast-txt").textContent()), "com Desfazer");

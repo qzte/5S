@@ -6,6 +6,7 @@
    - acima do limite, nem se tenta partilhar: descarrega-se logo, com o tamanho. */
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -39,6 +40,7 @@ async function pagina() {
   });
   await pg.reload();
   await pg.locator("[data-v=cfg]").click();
+  await abrirGruposCfg(pg);
   return { ctx, pg, vistos };
 }
 
@@ -105,6 +107,7 @@ async function pagina() {
   });
   await pg.reload();
   await pg.locator("[data-v=cfg]").click();
+  await abrirGruposCfg(pg);
   let descarregou = false;
   pg.on("download", () => { descarregou = true; });
   await pg.locator("#btn-partilhar").click();
