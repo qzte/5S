@@ -5,6 +5,16 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.10.0] — 2026-11-19
+
+### Acrescentado
+
+- **Importar perguntas a partir de Dados.** Em *Config → Dados → Importar* há uma linha **Perguntas (JSON)**. Pede o
+  código de acesso, abre o editor de perguntas (abre o grupo *Perguntas e responsáveis*) e logo a escolha do ficheiro.
+  A importação é a do editor: pede confirmação, e as perguntas só ficam definitivas ao *Guardar alterações*. Se o
+  browser não abrir a escolha do ficheiro, o editor fica aberto, com *Importar perguntas (JSON)* à mão.
+- **Teste:** `tests/smoke-config.mjs` importa perguntas por este atalho, com o grupo das perguntas fechado.
+
 ## [4.9.0] — 2026-11-19
 
 ### Alterado

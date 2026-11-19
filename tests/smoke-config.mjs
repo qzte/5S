@@ -1,9 +1,11 @@
 /* Smoke test de browser da Configuração em grupos (v4.9.0): «Dados» abre sempre ao
    entrar na Config, os outros grupos começam fechados e mostram um resumo, e
    «Abrir tudo» / «Fechar tudo» abre e fecha todos. Tira também capturas (PC e
-   telemóvel) para a pasta indicada em CAPTURAS, se existir. */
+   telemóvel) para a pasta indicada em CAPTURAS, se existir.
+   v4.10.0: Dados → Importar → Perguntas pede o código, abre o editor (no grupo
+   das perguntas, fechado) e a escolha do ficheiro; importa como o editor. */
 import pw from "playwright";
-import { ligarDialogos } from "./dialogos.mjs";
+import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -18,7 +20,7 @@ for (const [nome, viewport] of [["pc", { width: 900, height: 1000 }], ["telemove
   const pg = await b.newPage({ viewport });
   pg.on("pageerror", e => erros.push(String(e)));
   pg.on("console", m => { if (m.type() === "error" && !/frame-ancestors/.test(m.text())) erros.push(m.text()); });
-  await ligarDialogos(pg, () => undefined);
+  await ligarDialogos(pg, ({ temCampo }) => (temCampo ? { campo: "3758", botao: "Confirmar" } : undefined));
   await pg.goto(URL);
   await pg.locator("[data-v=cfg]").click();
 
@@ -51,6 +53,23 @@ for (const [nome, viewport] of [["pc", { width: 900, height: 1000 }], ["telemove
   await pg.locator("[data-v=history]").click();
   await pg.locator("[data-v=cfg]").click();
   check(await aberto(pg, "grp-dados"), nome + ": ao voltar à Config, Dados devia abrir");
+
+  /* 5. Importar perguntas a partir de Dados (só no PC: basta uma vez). */
+  if (nome === "pc") {
+    check(!(await aberto(pg, "grp-perguntas")), "pc: Perguntas devia estar fechado antes do atalho");
+    const perguntas = [{ n: 1, p: "Seiri", c: "Pergunta importada A", r: "U", t: "count", l: 3 },
+      { n: 2, p: "Seiton", c: "Pergunta importada B", r: "U", t: "count", l: 3 }];
+    const [escolha] = await Promise.all([
+      pg.waitForEvent("filechooser"),
+      pg.locator("#btn-impperg").click(),
+    ]);
+    check(await aberto(pg, "grp-perguntas"), "pc: o atalho devia abrir o grupo das perguntas");
+    check(await pg.locator("#ed-panel").isVisible(), "pc: o atalho devia abrir o editor");
+    await escolha.setFiles({ name: "perguntas.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(perguntas)) });
+    await pg.waitForFunction(() => document.querySelectorAll("#ed-list .ed-item").length === 2);
+    await semDialogo(pg);
+    check(/Pergunta importada A/.test(await pg.locator("#ed-list").innerHTML()), "pc: o editor devia ter as perguntas do ficheiro");
+  }
   await pg.close();
 }
 await b.close();
