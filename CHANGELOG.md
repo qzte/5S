@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.19.0] — 2026-11-19
+
+### Alterado
+
+- **Auditar: a barra de progresso segue o tema.** No tema claro («Sempre claro», ou «Automático» com o aparelho em
+  claro) é um painel branco como os cartões, com contorno e uma sombra leve, para se destacar presa ao topo. No escuro
+  continua escura. O cabeçalho e a barra dos separadores ficam escuros nos dois temas.
+- **Os três números da barra têm o mesmo desenho:** respondidas, a melhorar e a nota ficam ao mesmo tamanho, cada um
+  com o rótulo por baixo («de 19 respondidas», «a melhorar», «nota»). Até aqui o número de respostas era mais
+  pequeno do que a nota. «A melhorar» só aparece quando há perguntas a melhorar.
+- **Teste:** `smoke-auditar` verifica que a barra é clara no tema claro e escura no escuro, e que a nota é só o
+  número. `smoke-edicao` lê a nota sem «/100».
+
 ## [4.18.0] — 2026-11-19
 
 ### Alterado

@@ -92,8 +92,9 @@ fecha-o e leva às perguntas; para corrigir, toque no título.
    por fazer, aparecem num cartão no topo. Verifique no local e marque **Feita**
    nas que ficaram resolvidas (ver [Plano de acção](#plano-de-acção)).
 4. **Responda às 19 perguntas.** As caixas por responder dizem *Por
-   responder*. A **barra de progresso**, presa ao topo do ecrã, mostra quantas
-   já respondeu, quantas estão a melhorar e a nota em directo; por baixo, um
+   responder*. A **barra de progresso**, presa ao topo do ecrã (clara ou escura,
+   como o tema), mostra quantas já respondeu, quantas estão a melhorar e a nota
+   em directo; por baixo, um
    botão por pilar (com ✓ quando o pilar está completo) salta para ele. Cada
    pergunta respondida ganha uma risca com a cor da resposta.
    Em cada pergunta que a última auditoria ao serviço não deu como Excelente,

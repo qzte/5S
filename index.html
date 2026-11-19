@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.18.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.19.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -567,25 +567,29 @@ details.aud-dados[open]>summary{border-bottom:1px solid var(--line)}
 .aud-dados[open] .chev{transform:rotate(-135deg);margin-top:4px}
 .aud-dados .corpo{padding:14px 16px 4px}
 .aud-dados-ok{display:flex;justify-content:flex-end;margin:-4px 0 12px}
-.aud-prog{position:sticky;top:0;z-index:20;margin:0 -14px 14px;padding:10px 14px 8px;background:var(--green-dk);color:#e8eae6;
-  box-shadow:0 6px 14px -8px rgba(0,0,0,.5)}
-.aud-prog .l1{display:flex;align-items:baseline;gap:12px;font-family:var(--f-sans)}
-.aud-prog .n{font-weight:900;font-size:1rem;color:#fff}
-.aud-prog .n small{font-weight:700;font-size:.72rem;color:#9db8a9}
-.aud-prog .nota{margin-left:auto;font-weight:900;font-size:1.3rem;color:#fff}
-.aud-prog .nota small{font-size:.7rem;color:#9db8a9;font-weight:700}
-.aud-prog .melh{font-size:.7rem;font-weight:700;color:#f4c27a}
-.aud-prog .barra{height:6px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin:6px 0 8px}
+/* v4.19.0: a barra segue o tema (painel claro no tema claro, escuro no
+   escuro), e os três números — respondidas, a melhorar, nota — têm o mesmo
+   desenho, cada um com o rótulo por baixo. */
+.aud-prog{position:sticky;top:0;z-index:20;margin:0 0 14px;padding:10px 14px 8px;background:var(--panel);color:var(--ink);
+  border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 14px -8px rgba(29,42,36,.35)}
+.aud-prog .l1{display:flex;align-items:flex-end;gap:18px;font-family:var(--f-sans)}
+.aud-prog .blk{display:flex;flex-direction:column;min-width:0}
+.aud-prog .blk b{font-weight:900;font-size:1.3rem;line-height:1.05;color:var(--ink)}
+.aud-prog .blk small{font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.aud-prog .blk.melh b{color:var(--amber-ink)}
+.aud-prog .blk.melh:empty{display:none}
+.aud-prog .blk.nota{margin-left:auto;text-align:right}
+.aud-prog .barra{height:6px;background:var(--track);border-radius:99px;overflow:hidden;margin:6px 0 8px}
 .aud-prog .barra i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px}
 @media (prefers-reduced-motion:no-preference){.aud-prog .barra i{transition:width .2s}}
 .aud-prog .pils{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
 .aud-prog .pils::-webkit-scrollbar{display:none}
 .aud-prog .pils button{flex:0 0 auto;display:flex;align-items:center;gap:6px;font-family:var(--f-sans);font-size:.7rem;font-weight:700;cursor:pointer;
-  color:#cfd8d3;background:none;border:1.5px solid rgba(255,255,255,.25);border-radius:99px;padding:4px 10px 4px 4px}
+  color:var(--muted);background:none;border:1.5px solid var(--line);border-radius:99px;padding:4px 10px 4px 4px}
 .aud-prog .pils button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.aud-prog .pils i{font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.15);font-size:.62rem;font-weight:900;color:#fff}
-.aud-prog .pils .ok{border-color:#5cc196;color:#fff}.aud-prog .pils .ok i{background:#5cc196;color:#12211c}
-.aud-prog .pils .parte i{background:var(--accent)}
+.aud-prog .pils i{font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--chip);font-size:.62rem;font-weight:900;color:var(--ink)}
+.aud-prog .pils .ok{border-color:var(--green-ink);color:var(--ink)}.aud-prog .pils .ok i{background:var(--green-ink);color:var(--panel)}
+.aud-prog .pils .parte i{background:var(--accent);color:#fff}
 #items .pillar{scroll-margin-top:120px}
 #items .pillar .pp{margin-left:auto;font-family:var(--f-sans);font-size:.72rem;font-weight:700;color:var(--muted)}
 .item.mid{border-left-color:var(--amber)}.item.bad{border-left-color:var(--red)}
@@ -832,8 +836,8 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
   <!-- v4.15.0: o progresso, preso ao topo: respondidas, a melhorar, a nota em
        directo e um botão por pilar, que salta para ele. -->
   <div class="aud-prog" id="aud-prog">
-    <div class="l1"><span class="n" id="aud-n" role="status"></span><span class="melh" id="aud-melh"></span>
-      <span class="nota" id="aud-nota" aria-label="Nota em directo"></span></div>
+    <div class="l1"><span class="blk" id="aud-n" role="status"></span><span class="blk melh" id="aud-melh"></span>
+      <span class="blk nota"><b id="aud-nota">—</b> <small>nota</small></span></div>
     <div class="barra" aria-hidden="true"><i id="aud-barra"></i></div>
     <div class="pils" id="aud-pils" role="navigation" aria-label="Ir para o pilar"></div>
   </div>
@@ -1905,7 +1909,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.18.0";
+const APP_VERSION="4.19.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2480,10 +2484,11 @@ function atualizarLive(){
   const resp=Object.values(answers),IT=fitems();
   /* v4.15.0: na barra de progresso, presa ao topo. */
   const n=document.getElementById("aud-n");if(!n)return;
-  n.innerHTML=resp.length+" <small>de "+IT.length+" respondidas</small>";
+  n.innerHTML="<b>"+resp.length+"</b> <small>de "+IT.length+" respondidas</small>";
   const melh=resp.filter(x=>x===0||x===1).length;
-  document.getElementById("aud-melh").textContent=melh?melh+" a melhorar":"";
-  document.getElementById("aud-nota").innerHTML=resp.length?pctOf(resp)+"<small>/100</small>":"—";
+  /* v4.19.0: vazio (e escondido) sem perguntas a melhorar. */
+  document.getElementById("aud-melh").innerHTML=melh?"<b>"+melh+"</b> <small>a melhorar</small>":"";
+  document.getElementById("aud-nota").textContent=resp.length?String(pctOf(resp)):"—";
   document.getElementById("aud-barra").style.width=(IT.length?resp.length/IT.length*100:0)+"%";
   const pils=[];
   PILLARS.forEach((nome,p)=>{

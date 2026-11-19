@@ -70,7 +70,7 @@ check(await pg.locator("[data-edresp]").count() === 19,
 check(await pg.locator("[data-edresp='0']").inputValue() === "U",
   "o selector devia vir no responsável gravado com a auditoria");
 /* 4.15.0: a nota em directo está na barra de progresso; os dados começam fechados ao editar. */
-check((await pg.locator("#aud-nota").textContent()) === notaOriginal,
+check((await pg.locator("#aud-nota").textContent()) + "/100" === notaOriginal,
   "a nota em directo devia estar recalculada a partir das respostas repostas: " + await pg.locator("#aud-nota").textContent());
 check(/19 de 19 respondidas/.test(await pg.locator("#aud-n").textContent()), "todas as respostas repostas contam na barra");
 check(!(await pg.locator("#aud-dados").evaluate(d => d.open)), "ao editar, os dados da auditoria começam fechados");

@@ -33,6 +33,11 @@ check(/falta o serviço/.test(await txt("#aud-dados-falta")), "o título diz que
 check(await pg.locator("#f-live").count() === 0, "o campo «Nota (auto)» saiu");
 check(/0 de 19 respondidas/.test(await txt("#aud-n")) && (await txt("#aud-nota")) === "—", "a barra começa a zero");
 check((await pg.locator("#aud-prog").evaluate(e => getComputedStyle(e).position)) === "sticky", "a barra fica presa ao topo");
+/* 4.19.0: a barra segue o tema: no claro, o fundo dos cartões; com «Sempre escuro», escura. */
+check((await pg.locator("#aud-prog").evaluate(e => getComputedStyle(e).backgroundColor)) === "rgb(255, 255, 255)", "no tema claro, a barra é clara");
+await pg.evaluate(() => document.documentElement.setAttribute("data-tema", "escuro"));
+check((await pg.locator("#aud-prog").evaluate(e => getComputedStyle(e).backgroundColor)) === "rgb(24, 35, 30)", "no tema escuro, a barra é escura");
+await pg.evaluate(() => document.documentElement.removeAttribute("data-tema"));
 check((await pg.locator("[data-pick='0']").getAttribute("placeholder")) === "Por responder", "as caixas vazias dizem «Por responder»");
 
 /* 2. Serviço e verificador: o título resume e diz «completo»; Feito fecha. */
@@ -49,7 +54,7 @@ const triagem = await pg.evaluate(() => fitems().map((it, i) => it.p === 0 ? i :
 for (const [k, i] of triagem.entries()) await pg.locator(`[data-pick='${i}']`).fill(k === 0 ? "3" : "0");
 check(new RegExp(triagem.length + " de 19 respondidas").test(await txt("#aud-n")), "a barra conta as respostas");
 check(/a melhorar/.test(await txt("#aud-melh")), "uma resposta com falhas conta como «a melhorar»");
-check(/^\d+\/100$/.test(await txt("#aud-nota")), "a nota em directo: " + await txt("#aud-nota"));
+check(/^\d+$/.test(await txt("#aud-nota")), "a nota em directo (4.19.0: só o número, com o rótulo «nota»): " + await txt("#aud-nota"));
 check(await pg.locator(`#it${triagem[0]}`).evaluate(e => e.classList.contains("bad") || e.classList.contains("mid")), "a risca da pergunta com falhas");
 check(await pg.locator(`#it${triagem[1]}`).evaluate(e => e.classList.contains("done")), "a risca verde da pergunta sem falhas");
 check(await pg.locator("[data-ir-pilar='0']").evaluate(e => e.classList.contains("ok")), "o pilar completo fica com ✓");
