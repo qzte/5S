@@ -62,6 +62,7 @@ for (const modo of ["light", "dark"]) {
     ["Relatório", async () => { await pg.locator("[data-v=history]").click(); await pg.locator("[data-rep='0']").click(); }],
     /* 3.21.0: o relatório mensal (3.20.0) e o separador Acções. */
     ["Relatório mensal", async () => { await pg.locator("[data-v=stats]").click();
+      await pg.locator("#card-mensal").evaluate(d => { d.open = true; });   /* 4.18.0: começa minimizado */
       await pg.locator("#an-mes").selectOption("2026-03"); await pg.locator("#btn-mensal").click(); }],
     ["Acções", async () => { await pg.locator("[data-v=acoes]").click(); await pg.locator("#ac-estado").selectOption("todas"); }]
   ];

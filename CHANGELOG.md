@@ -9,12 +9,35 @@ e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Alterado
 
-- **Análise → Indicadores do ano: «Serviços abaixo da média» passa a secção que abre e fecha**, fechada por omissão,
-  como as faixas, os serviços auditados, os há mais tempo sem auditoria e as reincidentes. Com muitos serviços, a
-  lista ocupava o ecrã. O título diz quantos são e qual o pior («15 serviços · o pior: Cirurgia I (11I), 67»), a
-  vermelho. Dentro, tudo como antes, com o botão *Plano de acção* de cada serviço.
-- **Teste:** `tests/smoke-indicadores.mjs` verifica que a secção começa fechada e o resumo do título, e abre-a antes de
-  carregar em *Plano de acção*.
+- **Análise: os cartões minimizam-se.**
+  - **Como:** tocar no título minimiza ou abre o cartão. Minimizado, mostra um resumo numa linha (por exemplo
+    «Evolução da nota: Média de novembro de 2026: 66, ▼ 3 face a outubro» ou «Desempenho por responsável: pior:
+    Picking 54% · maior descida: Picking ▼ 15»).
+  - **Minimizar tudo / Abrir tudo:** um botão no topo fecha ou abre todos.
+  - **Memória:** a app lembra-se dos cartões minimizados, só neste aparelho (chave `anMin`). Por omissão, só o
+    relatório mensal começa minimizado.
+  - **Sempre à vista:** os filtros e os quatro números do resumo.
+- **O cartão do ano divide-se em dois.**
+  - **Indicadores do ano:** só os números.
+  - **Serviços em <ano>:** as listas em secções que abrem e fecham. A primeira é «Serviços abaixo da média — para o
+    plano de acção», fechada, com «N serviços · o pior: X, nota» no título a vermelho. Seguem-se as faixas, os
+    auditados, os há mais tempo sem auditoria e as reincidentes.
+  - **Linha nova:** «Todos os serviços, do pior para o melhor», com as auditorias de cada um.
+  - **Seletor do ano:** fica no primeiro cartão e vale para os dois.
+- **Sai o cartão «Comparação entre serviços»** (e `comparacaoServicos`): a lista de todos os serviços do ano está em
+  «Serviços em <ano>».
+
+### Corrigido
+
+- O botão *Plano de acção* dos serviços abaixo da média passa a funcionar no cartão novo.
+
+### Testes
+
+- `smoke-analise`: minimizar, os resumos, «Minimizar tudo», a memória ao recarregar, todos os serviços do ano por
+  ordem e o cartão da comparação fora.
+- `smoke-indicadores`: a lista abaixo da média começa fechada e tem o resumo no título.
+- `smoke-mensal` e `smoke-a11y`: abrem o relatório mensal, que começa minimizado.
+- `smoke-historico`: deixa de verificar a comparação.
 
 ## [4.17.0] — 2026-11-19
 

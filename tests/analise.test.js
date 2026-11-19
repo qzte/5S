@@ -6,9 +6,9 @@ const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(["periodoAnterior", "desdeMeses", "resumoAnalise", "internosExternos", "variacaoEixos",
   "avg", "diasEntre", "estadoAcao", "tipoDe", "auditadoNoAno", "codigoServico",
-  "mesesAte", "evolucaoMensal", "comparacaoServicos", "perguntasQueFalham", "ordemCron"], ["norm", "umaCasa", "ITEMS", "itemsOf"]);
+  "mesesAte", "evolucaoMensal", "perguntasQueFalham", "ordemCron"], ["norm", "umaCasa", "ITEMS", "itemsOf"]);
 const { periodoAnterior, resumoAnalise, internosExternos, variacaoEixos, total,
-  mesesAte, evolucaoMensal, comparacaoServicos, perguntasQueFalham } = ctx;
+  mesesAte, evolucaoMensal, perguntasQueFalham } = ctx;
 const T = sc => total({ scores: sc });
 const plain = o => JSON.parse(JSON.stringify(o));
 
@@ -117,17 +117,7 @@ test("evolução mensal: a média de cada mês, null sem auditorias, e o filtro"
   assert.deepStrictEqual(so.map(x => x.media), [T(S100)]);
 });
 
-test("comparação entre serviços: do pior para o melhor, com auditorias e variação", () => {
-  const atual = [aud("A", "2026-11-01", S100), aud("A", "2026-11-02", S50), aud("B", "2026-11-03", S0), aud("C", "2026-11-04", S50)];
-  const ant = [aud("A", "2026-07-01", S50), aud("C", "2026-07-01", S100)];
-  const r = plain(comparacaoServicos(atual, ant));
-  assert.deepStrictEqual(r.map(x => x.service), ["B", "C", "A"]);
-  assert.deepStrictEqual(r.map(x => x.n), [1, 1, 2]);
-  assert.strictEqual(r[0].delta, null, "B não tinha auditorias antes");
-  assert.strictEqual(r[1].delta, T(S50) - T(S100));
-  assert.strictEqual(r[2].delta, Math.round((T(S100) + T(S50)) / 2) - T(S50));
-  assert.ok(plain(comparacaoServicos(atual, null)).every(x => x.delta === null));
-});
+/* 4.18.0: comparacaoServicos saiu, com o cartão «Comparação entre serviços». */
 
 test("perguntas que mais falham: as piores, a variação e onde falham", () => {
   const IT = [{ n: 1, t: "Materiais", c: "Artigos extra", p: 0, r: "U" }, { n: 2, t: "Kanbans", c: "Kanbans a mais", p: 0, r: "U" },

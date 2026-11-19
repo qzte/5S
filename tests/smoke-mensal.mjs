@@ -51,6 +51,10 @@ const semear = pg => pg.evaluate(() => {
     "os meses deviam ser o actual e os com auditorias: " + meses);
   check(await pg.locator("#an-mes").inputValue() === (atual === "2026-10" ? atual : meses.find(m => m <= "2026-10")),
     "por omissão, o mês mais recente com auditorias");
+  /* 4.18.0: o cartão do relatório mensal começa minimizado. */
+  check(!(await pg.locator("#card-mensal").evaluate(d => d.open)), "o relatório mensal começa minimizado");
+  check(/PDF para a direcção/.test(await pg.locator("#res-card-mensal").textContent()), "minimizado, diz o mês e para que serve");
+  await pg.locator("#card-mensal > summary").click();
   await pg.locator("#an-mes").selectOption("2026-10");
   await pg.locator("#btn-mensal").click();
   const hero = await pg.locator("#mensal-hero").textContent();
