@@ -81,6 +81,17 @@ await pg.locator("#obj-n").press("Tab");
 check(JSON.stringify(await pg.evaluate(() => JSON.parse(localStorage.getItem("objAud")))) === JSON.stringify([{ a: ano, n: 52 }]),
   "o objectivo fica gravado");
 check(/1 auditorias por semana/.test(await pg.locator("#obj-info").textContent()), "diz quantas por semana: " + await pg.locator("#obj-info").textContent());
+/* 4.20.0: o objectivo superado — tem de ser maior que o atingido; grava-se com ele. */
+await pg.locator("#obj-s").fill("40");
+await pg.locator("#obj-s").press("Tab");
+await semDialogo(pg);
+check(JSON.stringify(await pg.evaluate(() => JSON.parse(localStorage.getItem("objAud")))) === JSON.stringify([{ a: ano, n: 52 }]),
+  "um superado menor que o atingido não se grava");
+await pg.locator("#obj-s").fill("60");
+await pg.locator("#obj-s").press("Tab");
+check(JSON.stringify(await pg.evaluate(() => JSON.parse(localStorage.getItem("objAud")))) === JSON.stringify([{ a: ano, n: 52, s: 60 }]),
+  "o superado fica gravado com o atingido");
+check(/para atingir; .* por semana para superar/.test(await pg.locator("#obj-info").textContent()), "diz o ritmo para atingir e para superar: " + await pg.locator("#obj-info").textContent());
 
 /* ---- 3. Os indicadores na Análise. ---- */
 await pg.locator("[data-v=stats]").click();
@@ -91,6 +102,9 @@ check(await pg.locator("#kpi-faixas .stat-row").count() === 3, "serviços por fa
 check(await pg.locator("#kpi-sem-auditoria .stat-row").count() >= 1, "serviços há mais tempo sem auditoria (4.4.0)");
 check(/Nota mais baixa: 0.*mais alta: 100/.test(await pg.locator("#kpi-dispersao").textContent()), "a dispersão das notas (4.5.0): " + await pg.locator("#kpi-dispersao").textContent());
 check(/3 de 52/.test(await pg.locator("#kpi-objetivo").textContent()), "auditorias face ao objectivo: " + await pg.locator("#kpi-objetivo").textContent());
+check(/atingido 52 · fim: superado 60/.test(await pg.locator("#kpi-objetivo").textContent()) && await pg.locator("#kpi-objetivo .obar u").count() === 1,
+  "com superado, a barra até ao superado e o traço no atingido");
+check(/faltam 49 para atingir · 57 para superar/.test(await pg.locator("#kpi-objetivo").textContent()), "o que falta para atingir e para superar: " + await pg.locator("#kpi-objetivo").textContent());
 check(await pg.locator("#kpi-semanal").count() === 1 && await pg.locator("#kpi-plano").count() === 1, "média semanal e face ao plano");
 const abaixo = await pg.locator("#kpi-abaixo .kpi-linha").allTextContents();
 check(abaixo.length === 1 && /Loja B/.test(abaixo[0]), "só a Loja B está abaixo da média: " + abaixo.join(" | "));

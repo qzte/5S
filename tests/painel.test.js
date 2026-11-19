@@ -9,7 +9,7 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(["auditadoNoAno", "codigoServico", "dadosPainel5s", "kpisPainel5s", "mediaDoEixo", "byPillar", "byResp", "avg", "ordemCron", "somarDias", "diasEntre",
-  "estadoAcao", "anualPainel5s", "idadeAcoesAbertas", "criadaEmDe", "kpisAnuais", "tipoDe", "objetivoDe"],
+  "estadoAcao", "anualPainel5s", "idadeAcoesAbertas", "criadaEmDe", "kpisAnuais", "tipoDe", "objetivoDe", "superadoDe"],
   ["norm", "ITEMS", "itemsOf", "umaCasa"]);
 const { dadosPainel5s } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
@@ -177,4 +177,21 @@ test("kpis.anual: média do ano, abaixo da média, objectivo e internos/externos
   /* 4.1.0: o quadro SERVIÇOS do painel. */
   assert.deepStrictEqual(d.pior, { nome: "B", media: 0, n: 1 });
   assert.deepStrictEqual([d.nAbaixo, d.porAuditar, d.nServicos], [1, 1, 3]);
+});
+
+/* ---- v4.20.0: o objectivo superado no painel (campos novos; `estado` não muda). ---- */
+test("kpis.anual: objectivo superado, o que falta e se ficou superado", () => {
+  const base = { servicos: ["A"], hoje: HOJE, tipos: [] };
+  const L = n => Array.from({ length: n }, (_, i) => aud(i + 1, "A", "2026-03-0" + (1 + (i % 9)), [2, 2, 2, 2, 2]));
+  const com = plain(dadosPainel5s(L(3), Object.assign({ objetivos: [{ a: 2026, n: 2, s: 5 }] }, base)).kpis.anual);
+  assert.strictEqual(com.objetivo, 2);
+  assert.strictEqual(com.objetivoSuperado, 5);
+  assert.strictEqual(com.faltamSuperar, 2);
+  assert.strictEqual(com.superado, false);
+  assert.strictEqual(com.estado, "cumprido", "o estado continua a contar contra o atingido");
+  const sup = plain(dadosPainel5s(L(6), Object.assign({ objetivos: [{ a: 2026, n: 2, s: 5 }] }, base)).kpis.anual);
+  assert.strictEqual(sup.superado, true);
+  const sem = plain(dadosPainel5s(L(1), Object.assign({ objetivos: [{ a: 2026, n: 2 }] }, base)).kpis.anual);
+  assert.strictEqual(sem.objetivoSuperado, null);
+  assert.strictEqual(sem.superado, false);
 });

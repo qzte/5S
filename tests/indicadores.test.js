@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(["auditadoNoAno", "codigoServico", "kpisAnuais", "anosIndicadores", "sanitizeTipos", "tipoDe", "sanitizeObjetivos",
-  "objetivoDe", "avg", "ordemCron", "diasEntre", "byPillar", "byResp"], ["norm", "ITEMS", "itemsOf", "umaCasa"]);
+  "objetivoDe", "superadoDe", "avg", "ordemCron", "diasEntre", "byPillar", "byResp"], ["norm", "ITEMS", "itemsOf", "umaCasa"]);
 const { kpisAnuais, anosIndicadores, sanitizeTipos, sanitizeObjetivos, objetivoDe, tipoDe } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));
 
@@ -150,4 +150,34 @@ test("pior serviço do ano e serviços por auditar (4.1.0)", () => {
   const v = plain(kpisAnuais([], ["A"], [], [], 2026, "2026-11-09"));
   assert.strictEqual(v.pior, null);
   assert.deepStrictEqual(v.porAuditar, ["A"]);
+});
+
+/* ---- 4.20.0: objectivo atingido e superado ---- */
+test("objectivo superado: opcional, inteiro e maior que o atingido", () => {
+  const o = plain(sanitizeObjetivos([{ a: 2026, n: 50, s: 60 }, { a: 2027, n: 50, s: 50 }, { a: 2028, n: 50, s: 40 },
+    { a: 2029, n: 50, s: 60.5 }, { a: 2030, n: 50, s: "70" }, { a: 2031, n: 50 }, { a: 2032, n: 50, s: null }]));
+  assert.deepStrictEqual(o, [{ a: 2026, n: 50, s: 60 }, { a: 2027, n: 50 }, { a: 2028, n: 50 }, { a: 2029, n: 50 },
+    { a: 2030, n: 50, s: 70 }, { a: 2031, n: 50 }, { a: 2032, n: 50 }]);
+  assert.strictEqual(ctx.superadoDe(o, 2026), 60);
+  assert.strictEqual(ctx.superadoDe(o, 2031), 0);
+});
+
+test("plano com superado: o que falta para atingir e para superar, e quando fica superado", () => {
+  const L = n => Array.from({ length: n }, (_, i) => aud(i + 1, "Loja A", "2026-03-0" + (1 + (i % 9)), S100));
+  const objs = [{ a: 2026, n: 3, s: 5 }];
+  const p2 = plain(kpisAnuais(L(2), ["Loja A"], [], objs, 2026, "2026-12-31").plano);
+  assert.strictEqual(p2.superado, 5);
+  assert.strictEqual(p2.faltam, 1);
+  assert.strictEqual(p2.faltamSuperar, 3);
+  assert.strictEqual(p2.superadoFeito, false);
+  const p4 = plain(kpisAnuais(L(4), ["Loja A"], [], objs, 2026, "2026-12-31").plano);
+  assert.strictEqual(p4.estado, "cumprido");
+  assert.strictEqual(p4.faltamSuperar, 1);
+  assert.strictEqual(p4.superadoFeito, false);
+  const p6 = plain(kpisAnuais(L(6), ["Loja A"], [], objs, 2026, "2026-12-31").plano);
+  assert.strictEqual(p6.superadoFeito, true);
+  assert.strictEqual(p6.faltamSuperar, 0);
+  const sem = plain(kpisAnuais(L(2), ["Loja A"], [], [{ a: 2026, n: 3 }], 2026, "2026-12-31").plano);
+  assert.strictEqual(sem.superado, 0);
+  assert.strictEqual(sem.faltamSuperar, null);
 });

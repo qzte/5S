@@ -7,7 +7,7 @@ const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(["auditadoNoAno", "codigoServico", "mediaDoEixo", "kpisAnuais", "ultimaAuditoriaPorServico", "reincidencias", "desempenhoAcoes",
   "criadaEmDe", "idadeAcoesAbertas", "eficaciaAcoes", "estadoAcao",
-  "avg", "ordemCron", "diasEntre", "byPillar", "byResp", "tipoDe", "objetivoDe", "assinItem"],
+  "avg", "ordemCron", "diasEntre", "byPillar", "byResp", "tipoDe", "objetivoDe", "superadoDe", "assinItem"],
   ["norm", "ITEMS", "itemsOf", "umaCasa", "WEIGHTS", "W_MAX", "wOf", "total", "PILLARS", "RESP", "pctOf"]);
 const { mediaDoEixo, kpisAnuais, ultimaAuditoriaPorServico, reincidencias, desempenhoAcoes, idadeAcoesAbertas, eficaciaAcoes } = ctx;
 const plain = o => JSON.parse(JSON.stringify(o));

@@ -356,12 +356,15 @@ primeiro cartão e vale para os dois.
   estão abaixo e quantas acções têm em aberto. **Plano de acção** abre o
   relatório da última auditoria a esse serviço, onde se acrescentam acções.
 - **Objectivo anual** — as auditorias feitas face ao objectivo (em
-  *Config → Objectivo anual de auditorias*), em percentagem, e quantas faltam.
+  *Config → Serviços e objectivo*), em percentagem, e quantas faltam. Com um
+  **objectivo superado** definido, a barra vai até ele e um traço marca o
+  atingido; por baixo, quantas faltam para atingir e para superar, e o estado
+  (*Objectivo atingido* ou *Objectivo superado*).
 - **Média semanal** — as auditorias por semana desde 1 de Janeiro (ou no ano
   inteiro, num ano que já acabou), ao lado das que o objectivo pede por semana.
 - **Face ao plano** — quantas auditorias estão a mais (+) ou a menos (−) face às
   que já deviam estar feitas, na proporção do ano decorrido: *Em linha com o
-  plano*, *Atrás do plano* ou *Objectivo cumprido*. Por baixo, quantas se fazem
+  plano*, *Atrás do plano*, *Objectivo atingido* ou *Objectivo superado*. Por baixo, quantas se fazem
   até ao fim do ano ao ritmo actual, e quantas são precisas por semana para
   cumprir o objectivo.
 - **Serviços auditados** — os serviços **internos** auditados no ano face a
@@ -437,8 +440,9 @@ O guia abre-se no fim, em **Abrir o guia**. O que há em cada grupo:
   igual à listagem) ou juntar à actual. As auditorias já feitas não mudam. Remover um serviço ou uma pessoa
   mostra **Desfazer** no fundo do ecrã durante 10 segundos.
 - **Objectivo anual de auditorias** — quantas auditorias fazer em cada ano, de
-  todos os serviços. Escolha o ano e escreva o número; apague-o para ficar sem
-  objectivo.
+  todos os serviços. Escolha o ano e escreva o **objectivo atingido**; apague-o
+  para ficar sem objectivo. O **objectivo superado** é opcional: um número maior,
+  a meta para lá do objectivo. Por baixo lê-se o ritmo por semana para cada um.
 - **Responsáveis** — quem responde por cada pergunta; são os eixos do radar.
   Um responsável com perguntas, recomendações antigas ou acções atribuídas não
   pode ser removido.
