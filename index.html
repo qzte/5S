@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.11.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.12.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -460,6 +460,29 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 .passo-btns{display:flex;flex-wrap:wrap;gap:8px}
 .passo-ok{color:var(--green-ink);font-weight:700}
 /* v3.21.0: separador Acções, um bloco por acção. */
+/* v4.12.0: Acções — resumo em números e lista agrupada. */
+.ac-desempenho{font-size:.76rem;color:var(--muted);margin:-4px 2px 14px;line-height:1.5}
+.ac-desempenho:empty{display:none}
+.rs.rs-alerta{border-left:5px solid var(--red)}.rs.rs-alerta b{color:var(--red-ink)}
+.ac-agrupar{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;align-items:center}
+.ac-agrupar span{font-family:var(--f-sans);font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.ac-agrupar button{font-family:var(--f-sans);font-weight:700;font-size:.78rem;padding:7px 12px;border-radius:99px;border:1.5px solid var(--line);
+  background:var(--panel);color:var(--ink);cursor:pointer}
+.ac-agrupar button[aria-pressed=true]{background:var(--green-dk);border-color:var(--green-dk);color:#fff}
+details.ac-gr{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
+details.ac-gr>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:var(--f-sans)}
+details.ac-gr>summary::-webkit-details-marker{display:none}
+details.ac-gr>summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:var(--radius)}
+details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
+.ac-gr .g-tit{font-weight:900;font-size:.95rem;flex:1;min-width:0}
+.ac-gr .g-sub{font-weight:400;font-family:var(--f-serif);font-size:.74rem;color:var(--muted);display:block}
+.ac-gr .g-n{font-weight:900;font-size:.78rem;min-width:26px;height:26px;border-radius:99px;display:grid;place-items:center;padding:0 8px;background:var(--chip)}
+.ac-gr.atr{border-left:5px solid var(--red)}.ac-gr.atr .g-n{background:var(--red);color:#fff}
+.ac-gr.sem{border-left:5px solid var(--amber)}
+.ac-gr .chev{width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);margin:-4px 4px 0;flex:0 0 auto}
+.ac-gr[open] .chev{transform:rotate(-135deg);margin-top:4px}
+.ac-gr .g-corpo{padding:10px 16px 12px}
+.ac-atraso{color:var(--red-ink);font-weight:700}
 .ac-item{padding:10px 0;border-top:1px solid var(--line)}
 .ac-item:first-child{border-top:0;padding-top:0}
 .ac-topo{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.85rem}
@@ -738,10 +761,12 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 <!-- ============ ACÇÕES (v3.21.0) ============ -->
 <section id="view-acoes" class="hidden">
   <h2 class="sr-only">Acções</h2>
+  <!-- v4.12.0: o resumo em números (como na Análise), por cima dos filtros. -->
+  <div class="an-resumo" id="ac-resumo"></div>
+  <p id="ac-desempenho" class="ac-desempenho"></p>
   <div class="card">
     <h3 style="margin-bottom:6px">Plano de acção de todos os serviços</h3>
-    <p id="ac-resumo" style="font-size:.78rem;color:var(--muted);margin-bottom:10px"></p>
-    <p id="ac-desempenho" style="font-size:.78rem;color:var(--muted);margin:-6px 0 10px"></p>
+    <p id="ac-vazio" class="an-nota"></p>
     <div class="row">
       <div><label for="ac-estado">Estado</label><select id="ac-estado">
         <option value="">Em aberto</option>
@@ -751,7 +776,13 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
       <div><label for="ac-r">Responsável</label><select id="ac-r"></select></div>
     </div>
     <label for="ac-svc">Serviço</label><select id="ac-svc"></select>
-    <div id="ac-conta" style="font-size:.78rem;color:var(--muted)" role="status"></div>
+    <!-- v4.12.0: a lista em grupos que abrem e fecham. -->
+    <div class="ac-agrupar" role="group" aria-label="Agrupar a lista por"><span>Agrupar por</span>
+      <button type="button" data-ac-por="prazo" aria-pressed="true">Prazo</button>
+      <button type="button" data-ac-por="resp" aria-pressed="false">Responsável</button>
+      <button type="button" data-ac-por="svc" aria-pressed="false">Serviço</button>
+    </div>
+    <div id="ac-conta" style="font-size:.78rem;color:var(--muted);margin-top:8px" role="status"></div>
   </div>
   <div id="ac-lista"></div>
 </section>
@@ -1633,7 +1664,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.11.0";
+const APP_VERSION="4.12.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2684,6 +2715,35 @@ function listaAcoes(lista,f,hoje){
     (x.estado==="feita"?String(y.acao.feitaEm||"").localeCompare(String(x.acao.feitaEm||"")):pz(x).localeCompare(pz(y)))||
     String(x.date).localeCompare(String(y.date))||x.service.localeCompare(y.service)||x.acao.id-y.acao.id);
 }
+/* v4.12.0: a faixa do prazo de uma acção (de listaAcoes) para agrupar a lista:
+   em atraso, nos próximos 7 dias, nos próximos 30, mais tarde, sem prazo ou feita. */
+function faixaPrazoAcao(x,hoje){
+  if(x.estado==="feita")return "feita";
+  if(x.estado==="atrasada")return "atrasada";
+  const p=x.acao&&x.acao.prazo;
+  if(!p)return "sem";
+  const d=diasEntre(hoje,p);
+  return d<=7?"semana":d<=30?"mes":"tarde";
+}
+const FAIXAS_PRAZO=[["atrasada","Em atraso"],["semana","Esta semana"],["mes","Próximos 30 dias"],["tarde","Mais tarde"],["sem","Sem prazo"],["feita","Feitas"]];
+/* v4.12.0: a lista (já ordenada por listaAcoes) em grupos, pela ordem em que
+   se mostram. `por`: "prazo" (as faixas acima, pela ordem delas), "resp" ou
+   "svc" (primeiro os com mais acções em atraso, depois os com mais acções,
+   depois pelo nome). `nomeR(k)`: o nome a mostrar de um responsável.
+   Cada grupo: {chave, titulo, sub, itens, atrasadas, abertoPorOmissao(i)}. */
+function agruparAcoes(l,por,hoje,nomeR){
+  const m=new Map();
+  const chave=x=>por==="prazo"?faixaPrazoAcao(x,hoje):por==="resp"?String(x.acao.r||""):x.service;
+  (l||[]).forEach(x=>{const k=chave(x);if(!m.has(k))m.set(k,[]);m.get(k).push(x);});
+  const nome=k=>por==="prazo"?(FAIXAS_PRAZO.find(f=>f[0]===k)||[k,k])[1]:por==="resp"?(nomeR?nomeR(k):k):k;
+  const subPrazo={atrasada:"o prazo já passou",semana:"até "+dataCurta(somarDias(hoje,7)),mes:"até "+dataCurta(somarDias(hoje,30))};
+  const gs=[...m].map(([k,itens])=>({chave:k,titulo:nome(k)||"—",sub:por==="prazo"?(subPrazo[k]||""):"",itens,
+    atrasadas:itens.filter(x=>x.estado==="atrasada").length}));
+  if(por==="prazo")gs.sort((a,b)=>FAIXAS_PRAZO.findIndex(f=>f[0]===a.chave)-FAIXAS_PRAZO.findIndex(f=>f[0]===b.chave));
+  else gs.sort((a,b)=>b.atrasadas-a.atrasadas||b.itens.length-a.itens.length||a.titulo.localeCompare(b.titulo));
+  gs.forEach(g=>{g.abertoPorOmissao=por==="prazo"?()=>g.chave!=="tarde"&&g.chave!=="feita":i=>i<2;});
+  return gs;
+}
 /* Contagens para o resumo e para o número no separador. */
 function resumoAcoes(lista,hoje){
   const r={abertas:0,atrasadas:0,feitas30:0},d30=somarDias(hoje,-29);
@@ -3598,8 +3658,13 @@ function openReport(a){
    quem, e onde. Marca-se como feita aqui mesmo; «Relatório» abre a auditoria
    de onde a acção veio. Filtros em memória, como os do Histórico. */
 const acFiltro={estado:"",r:"",svc:""};
-const AC_PAGINA=100;
-let acMostrar=AC_PAGINA;
+/* v4.12.0: a lista agrupada. `acPor`: prazo (por omissão), resp ou svc; volta a
+   «prazo» ao reabrir a app. Cada grupo mostra até AC_PAGINA acções, com
+   «Mostrar mais»; `acMostrar` e `acAbertos` guardam, por grupo, quantas se
+   mostram e se o utilizador o abriu ou fechou (para não mudar ao redesenhar). */
+const AC_PAGINA=50;
+let acPor="prazo";
+const acMostrar=new Map(),acAbertos=new Map();
 function renderAcoes(){
   const hoje=hojeISO();
   const rs=document.getElementById("ac-r");
@@ -3615,37 +3680,47 @@ function renderAcoes(){
   ss.value=acFiltro.svc;
   document.getElementById("ac-estado").value=acFiltro.estado;
   const r=resumoAcoes(audits,hoje),todas=listaAcoes(audits,{estado:"todas"},hoje).length;
-  document.getElementById("ac-resumo").innerHTML=todas?
-    `<b>${r.abertas}</b> em aberto · <b style="color:${r.atrasadas?"var(--red-ink)":"inherit"}">${r.atrasadas}</b> em atraso · <b>${r.feitas30}</b> feita(s) nos últimos 30 dias`:
+  const dp=desempenhoAcoes(audits),ia=idadeAcoesAbertas(audits,hoje),ef=eficaciaAcoes(audits);
+  const resBox=document.getElementById("ac-resumo");
+  document.getElementById("ac-vazio").innerHTML=todas?"":
     "Ainda não há acções. Criam-se no relatório de uma auditoria, em <i>Plano de acção</i> ou com <i>+ Acção</i> nos itens a melhorar.";
-  const dp=desempenhoAcoes(audits);
-  const ia=idadeAcoesAbertas(audits,hoje),ef=eficaciaAcoes(audits),linhasDp=[];
-  if(dp.fechadas)linhasDp.push("Tempo médio de fecho: "+numPT(dp.diasMedio)+" dias ("+dp.fechadas+" feita(s))"+
-    (dp.comPrazo?" · Dentro do prazo: "+dp.pctPrazo+"% ("+dp.noPrazo+" de "+dp.comPrazo+" com prazo)":""));
-  if(ia.abertas)linhasDp.push("Em aberto há "+numPT(ia.idadeMedia)+" dias, em média"+
-    (ia.atrasadas?" · atraso médio das "+ia.atrasadas+" em atraso: "+numPT(ia.atrasoMedio)+" dias":"")+
-    " · a mais antiga: "+esc(ia.maisAntiga.service)+", há "+ia.maisAntiga.dias+" dias");
-  if(ef.avaliadas)linhasDp.push("Eficácia: "+ef.pct+"% das acções feitas resolveram a pergunta na auditoria seguinte ("+
-    ef.resolvidas+" de "+ef.avaliadas+")"+(ef.melhoraram?" · "+ef.melhoraram+" melhoraram sem chegar a Excelente":""));
-  document.getElementById("ac-desempenho").innerHTML=linhasDp.join("<br>");
+  resBox.innerHTML=!todas?"":
+    `<div class="rs" id="ac-rs-abertas"><small>Em aberto</small><b>${r.abertas}</b><span>${ia.abertas?"há "+numPT(ia.idadeMedia)+" dias, em média":"nenhuma por fazer"}</span></div>`+
+    `<div class="rs${r.atrasadas?" rs-alerta":""}" id="ac-rs-atrasadas"><small>Em atraso</small><b>${r.atrasadas}</b><span>${ia.atrasadas?"atraso médio: "+numPT(ia.atrasoMedio)+" dias":"nenhuma passou o prazo"}</span></div>`+
+    `<div class="rs" id="ac-rs-feitas"><small>Feitas · 30 dias</small><b>${r.feitas30}</b><span>${dp.fechadas?"fecho em "+numPT(dp.diasMedio)+" dias, em média"+(dp.comPrazo?" · "+dp.pctPrazo+"% no prazo":""):"ainda nenhuma feita"}</span></div>`+
+    `<div class="rs" id="ac-rs-eficacia"><small>Eficácia</small><b>${ef.avaliadas?ef.pct+"<sub>%</sub>":"—"}</b><span>${ef.avaliadas?"resolveram a pergunta na auditoria seguinte ("+ef.resolvidas+" de "+ef.avaliadas+")"+(ef.melhoraram?" · "+ef.melhoraram+" melhoraram":""):"mede-se na auditoria seguinte ao serviço"}</span></div>`;
+  document.getElementById("ac-desempenho").innerHTML=todas&&ia.abertas&&ia.maisAntiga?
+    "A mais antiga em aberto: "+esc(ia.maisAntiga.service)+", há "+ia.maisAntiga.dias+" dias.":"";
+  document.querySelectorAll("[data-ac-por]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.acPor===acPor)));
   const l=listaAcoes(audits,acFiltro,hoje);
   document.getElementById("ac-conta").textContent=todas?l.length+" de "+todas+" acção(ões).":"";
   const box=document.getElementById("ac-lista");
   if(!l.length){box.innerHTML=todas?`<div class="card"><p class="empty">Nenhuma acção com estes filtros.</p></div>`:"";return;}
-  const vis=l.slice(0,acMostrar);
-  /* Um bloco por acção, e não uma tabela: seis colunas não cabem num telemóvel. */
-  box.innerHTML=`<div class="card" id="ac-tabela">`+
-    vis.map((x,k)=>{const ac=x.acao,[rot,cor]=ESTADO_ACAO[x.estado];
-      return`<div class="ac-item">
+  const nomeR=k=>isResp(k)?RESP[k]:k;
+  const grupos=agruparAcoes(l,acPor,hoje,nomeR);
+  const vis=[];
+  const item=x=>{const ac=x.acao,[rot,cor]=ESTADO_ACAO[x.estado],k=vis.push(x)-1;
+    const atraso=x.estado==="atrasada"&&ac.prazo?` · <span class="ac-atraso">${diasEntre(ac.prazo,hoje)} dia(s) de atraso</span>`:"";
+    return`<div class="ac-item">
       <div class="ac-topo"><span class="pill" style="background:${cor}">${rot}</span>
-        <small>${x.estado==="feita"?(ac.feitaEm?"feita a "+esc(dataCurta(ac.feitaEm)):""):(ac.prazo?"prazo "+esc(dataCurta(ac.prazo)):"sem prazo")}</small>
-        <b>${esc(x.service)}</b></div>
+        <small>${x.estado==="feita"?(ac.feitaEm?"feita a "+esc(dataCurta(ac.feitaEm)):""):(ac.prazo?"prazo "+esc(dataCurta(ac.prazo))+atraso:"sem prazo")}</small>
+        <b>${esc(acPor==="svc"?nomeR(ac.r):x.service)}</b></div>
       <div class="ac-texto">${esc(ac.texto)}</div>
-      <small class="ac-meta">${esc(isResp(ac.r)?RESP[ac.r]:ac.r)}${ac.item?" · pergunta nº "+esc(ac.item):""} · auditoria de ${esc(dataCurta(x.date))}</small>
+      <small class="ac-meta">${acPor==="prazo"?esc(nomeR(ac.r))+" · ":""}${ac.item?"pergunta nº "+esc(ac.item)+" · ":""}auditoria de ${esc(dataCurta(x.date))}</small>
       <div class="ac-ctl"><label class="chk"><input type="checkbox" data-ac-feita="${x.auditId}:${ac.id}"${x.estado==="feita"?" checked":""}> Feita</label>
         <button class="btn small ghost" data-ac-rep="${k}" aria-label="Abrir o relatório da auditoria de ${esc(x.service)} de ${esc(x.date)}">Relatório</button></div>
-      </div>`;}).join("")+
-    `${l.length>vis.length?`<button class="btn small ghost" id="btn-ac-mais">Mostrar mais (${l.length-vis.length})</button>`:""}</div>`;
+      </div>`;};
+  /* Um bloco por acção, e não uma tabela: seis colunas não cabem num telemóvel. */
+  box.innerHTML=`<div id="ac-tabela">`+grupos.map((gr,i)=>{
+    const id=acPor+"|"+gr.chave,n=acMostrar.get(id)||AC_PAGINA,aberto=acAbertos.has(id)?acAbertos.get(id):gr.abertoPorOmissao(i);
+    const sub=acPor==="prazo"?gr.sub:gr.atrasadas?`<span class="ac-atraso">${gr.atrasadas} em atraso</span>`:"nenhuma em atraso";
+    const cls=acPor==="prazo"&&gr.chave==="atrasada"?" atr":acPor==="prazo"&&gr.chave==="sem"?" sem":"";
+    return`<details class="ac-gr${cls}" data-ac-gr="${esc(id)}"${aberto?" open":""}><summary><span class="g-tit">${esc(gr.titulo)}${sub?`<span class="g-sub">${sub}</span>`:""}</span>`+
+      `<span class="g-n" aria-label="${gr.itens.length} acção(ões)">${gr.itens.length}</span><span class="chev" aria-hidden="true"></span></summary>`+
+      `<div class="g-corpo">${gr.itens.slice(0,n).map(item).join("")}`+
+      (gr.itens.length>n?`<button class="btn small ghost" data-ac-mais="${esc(id)}">Mostrar mais (${gr.itens.length-n})</button>`:"")+`</div></details>`;
+  }).join("")+`</div>`;
+  box.querySelectorAll("[data-ac-gr]").forEach(d=>d.addEventListener("toggle",()=>acAbertos.set(d.dataset.acGr,d.open)));
   box.querySelectorAll("[data-ac-feita]").forEach(c=>c.onchange=()=>{
     if(!marcarAcao(c.dataset.acFeita,c.checked)){c.checked=!c.checked;return;}
     /* Já, e não só no setTimeout de save(): o número muda com o toque. */
@@ -3655,8 +3730,8 @@ function renderAcoes(){
   box.querySelectorAll("[data-ac-rep]").forEach(b=>b.onclick=()=>{
     const a=audits.find(x=>x.id===vis[+b.dataset.acRep].auditId);if(a)openReport(a);
   });
-  const mais=document.getElementById("btn-ac-mais");
-  if(mais)mais.onclick=()=>{acMostrar+=AC_PAGINA;renderAcoes();};
+  box.querySelectorAll("[data-ac-mais]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.acMais;acMostrar.set(id,(acMostrar.get(id)||AC_PAGINA)+AC_PAGINA);renderAcoes();});
 }
 /* O número no separador: as acções em atraso. */
 function atualizarBadgeAcoes(){
@@ -6831,9 +6906,10 @@ on("btn-expxl","click",()=>exportExcel());
   on(id,"change",e=>{histFiltro[k]=e.target.value;histMostrar=HIST_PAGINA;renderHist();}));
 on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");histMostrar=HIST_PAGINA;renderHist();});
 on("an-svc","change",e=>{anFiltro.svc=e.target.value;renderStats();});
-on("ac-estado","change",e=>{acFiltro.estado=e.target.value;acMostrar=AC_PAGINA;renderAcoes();});
-on("ac-r","change",e=>{acFiltro.r=e.target.value;acMostrar=AC_PAGINA;renderAcoes();});
-on("ac-svc","change",e=>{acFiltro.svc=e.target.value;acMostrar=AC_PAGINA;renderAcoes();});
+on("ac-estado","change",e=>{acFiltro.estado=e.target.value;acMostrar.clear();renderAcoes();});
+on("ac-r","change",e=>{acFiltro.r=e.target.value;acMostrar.clear();renderAcoes();});
+on("ac-svc","change",e=>{acFiltro.svc=e.target.value;acMostrar.clear();renderAcoes();});
+document.querySelectorAll("[data-ac-por]").forEach(b=>b.onclick=()=>{acPor=b.dataset.acPor;acMostrar.clear();renderAcoes();});
 on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(m)openMensal(m);});
 on("an-ano","change",e=>{anoKpis=parseInt(e.target.value,10)||0;renderKpis();});
 on("obj-ano","change",e=>{anoObjetivo=parseInt(e.target.value,10)||0;renderObjetivo();});

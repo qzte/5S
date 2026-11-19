@@ -231,11 +231,20 @@ Uma **acção** é um passo concreto, com
 - **Fechar.** Marque **Feita** — no relatório, ou, melhor, no formulário da
   auditoria seguinte ao mesmo serviço, quando estiver no local a confirmar.
   Fica registada a data.
-- **Ver todas.** O separador **Acções** junta as acções de todos os serviços,
-  com as em atraso primeiro. Filtre por estado (em aberto, em atraso, feitas,
-  todas), responsável ou serviço; marque **Feita** ali mesmo, ou abra o
-  **Relatório** da auditoria de onde a acção veio. O número a vermelho no
-  separador diz quantas estão em atraso.
+- **Ver todas.** O separador **Acções** junta as acções de todos os serviços.
+  - Em cima, quatro números: **em aberto** (há quantos dias, em média), **em
+    atraso** (o atraso médio), **feitas nos últimos 30 dias** (o tempo médio de
+    fecho e quantas dentro do prazo) e **eficácia** (quantas resolveram a
+    pergunta na auditoria seguinte). Por baixo, a acção mais antiga em aberto.
+  - Filtre por estado (em aberto, em atraso, feitas, todas), responsável ou
+    serviço.
+  - **Agrupar por** **Prazo** (por omissão: *Em atraso*, *Esta semana*,
+    *Próximos 30 dias*, *Mais tarde*, *Sem prazo* e *Feitas*), **Responsável**
+    ou **Serviço** (primeiro os que têm mais acções em atraso). Cada grupo diz
+    quantas acções tem e abre ou fecha ao tocar no título. As em atraso dizem
+    há quantos dias passou o prazo.
+  - Marque **Feita** ali mesmo, ou abra o **Relatório** da auditoria de onde a
+    acção veio. O número a vermelho no separador diz quantas estão em atraso.
 
 ## Histórico
 

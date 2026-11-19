@@ -5,6 +5,30 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.12.0] — 2026-11-19
+
+### Alterado
+
+- **Acções: resumo em números.** Em vez do texto corrido, quatro cartões, como os da Análise:
+  - **em aberto**, com a idade média;
+  - **em atraso**, a vermelho, com o atraso médio;
+  - **feitas nos últimos 30 dias**, com o tempo médio de fecho e a percentagem dentro do prazo;
+  - **eficácia**.
+
+  Por baixo, a acção mais antiga em aberto.
+- **Acções: a lista agrupada.** Os botões **Agrupar por** **Prazo** (por omissão), **Responsável** ou **Serviço**
+  substituem a lista única com *Mostrar mais*.
+  - **Por prazo:** *Em atraso*, *Esta semana*, *Próximos 30 dias*, *Mais tarde*, *Sem prazo* e *Feitas*.
+  - **Por responsável e por serviço:** primeiro os que têm mais acções em atraso.
+  - **Cada grupo** diz quantas acções tem e abre ou fecha ao tocar no título. Por prazo, *Mais tarde* e *Feitas*
+    começam fechados; nos outros, só os dois primeiros abrem. O que o utilizador abre ou fecha mantém-se ao marcar
+    uma acção como feita.
+  - **Grupos grandes:** cada grupo mostra até 50 acções, com *Mostrar mais*.
+  - **Atraso:** as acções em atraso dizem há quantos dias passou o prazo.
+  - **Ao reabrir a app**, o agrupamento volta a *Prazo*.
+- **Testes:** `tests/acoes-grupos.test.js` (`faixaPrazoAcao`, `agruparAcoes`); `tests/smoke-acoes.mjs` verifica o
+  resumo novo e os três agrupamentos.
+
 ## [4.11.0] — 2026-11-19
 
 ### Alterado
