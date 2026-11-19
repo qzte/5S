@@ -338,8 +338,8 @@ todos de uma vez.
 
 - **Dados: importar e exportar** — à esquerda o que sai da app (a cópia de
   segurança, a cópia com fotos, o Excel para análise e *Enviar para o
-  telemóvel*), à direita o que entra (a cópia de segurança e o Excel de serviços
-  e pessoas). Por baixo, a gravação automática (a pasta partilhada e o painel
+  telemóvel*), à direita o que entra (a cópia de segurança, o Excel de serviços
+  e pessoas e as perguntas, que pedem o código de acesso e abrem o editor). Por baixo, a gravação automática (a pasta partilhada e o painel
   e-ink) e o espaço ocupado neste dispositivo.
 - **Serviços e objectivo** — a lista de serviços e o objectivo anual.
 - **Perguntas e responsáveis** — os responsáveis e o editor de perguntas.

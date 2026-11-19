@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.9.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.10.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -752,6 +752,11 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
                 única, reconhece-se pelas colunas.</small>
               <button class="btn small ghost" id="btn-impxl" aria-label="Importar Excel">Importar</button></div>
             <input type="file" id="xl-file" accept=".xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden">
+            <!-- v4.10.0: atalho para a importação do editor de perguntas. -->
+            <div class="acao"><b>Perguntas <span class="fmt">JSON</span></b>
+              <small>Pede o código de acesso e abre o editor de perguntas com as do ficheiro; só ficam definitivas ao
+                <i>Guardar alterações</i>.</small>
+              <button class="btn small ghost" id="btn-impperg" aria-label="Importar perguntas (JSON)">Importar</button></div>
           </div>
         </div>
         <div id="data-stats" class="txt" style="margin:12px 0 0"></div>
@@ -1561,7 +1566,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.9.0";
+const APP_VERSION="4.10.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -5728,11 +5733,23 @@ function abrirCaixa(o){
 }
 let edItems=[];
 async function askPin(){
-  if(!(await pedirPin("Código de acesso ao editor (evita alterações acidentais):")))return;
+  if(!(await pedirPin("Código de acesso ao editor (evita alterações acidentais):")))return false;
   edItems=ITEMS.map(normItem);
   renderEditor();
+  /* v4.10.0: o editor vive no grupo «Perguntas e responsáveis», que pode estar fechado. */
+  const gp=document.getElementById("grp-perguntas");if(gp)gp.open=true;
   document.getElementById("ed-panel").classList.remove("hidden");
   document.getElementById("ed-panel").scrollIntoView({behavior:"smooth"});
+  return true;
+}
+/* v4.10.0: Config → Dados → Importar → Perguntas. Abre o editor (com o código) e
+   logo a escolha do ficheiro; a importação é a do editor (edImport), que pede
+   confirmação e só fica definitiva ao Guardar. Se o browser não abrir a escolha
+   do ficheiro (o toque já foi há tempo demais), o editor fica aberto, com o
+   botão «Importar perguntas (JSON)» à mão. */
+async function importarPerguntasDeDados(){
+  if(!(await askPin()))return;
+  document.getElementById("ed-file").click();
 }
 function renderEditor(){
   const box=document.getElementById("ed-list");
@@ -6608,6 +6625,7 @@ on("btn-addresp","click",()=>addResp());
 on("btn-saveresp","click",()=>saveResps());
 on("btn-resetresp","click",()=>resetResps());
 on("btn-askpin","click",()=>askPin());
+on("btn-impperg","click",()=>importarPerguntasDeDados());
 on("btn-pinmudar","click",()=>mudarPin());
 on("btn-partilhar","click",()=>partilharCopia());
 /* style e não .hidden: `.btn.small` ganha à .hidden. */
