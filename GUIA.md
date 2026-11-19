@@ -245,6 +245,15 @@ Uma **acção** é um passo concreto, com
     há quantos dias passou o prazo.
   - Marque **Feita** ali mesmo, ou abra o **Relatório** da auditoria de onde a
     acção veio. O número a vermelho no separador diz quantas estão em atraso.
+- **PDF do plano de acção.** No separador **Acções**, o botão **PDF do plano
+  de acção** cria um PDF com os filtros e o agrupamento escolhidos: por
+  exemplo, só a Manutenção, para lhe enviar, ou só um serviço, para a reunião
+  com o chefe de serviço. Na primeira folha, os filtros usados e os quatro
+  números (em aberto, em atraso, feitas nos últimos 30 dias e eficácia) das
+  acções desse responsável e serviço; depois, uma tabela por grupo com o
+  serviço, a acção (com o número da pergunta e a data da auditoria), o
+  responsável, o prazo e o estado. Nenhuma acção se corta entre folhas, e cada
+  folha diz «Folha X de Y». É informativo: não tem assinaturas.
 
 ## Histórico
 

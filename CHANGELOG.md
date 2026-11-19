@@ -5,6 +5,23 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.14.0] — 2026-11-19
+
+### Acrescentado
+
+- **PDF do plano de acção**, no separador Acções: o botão **PDF do plano de acção** cria um PDF A4 com os filtros
+  (estado, responsável, serviço) e o agrupamento (prazo, responsável, serviço) escolhidos.
+  - **Folha 1:** os filtros usados e os quatro números (em aberto, em atraso, feitas nos últimos 30 dias, eficácia)
+    das acções do responsável e serviço escolhidos.
+  - **Depois:** uma tabela por grupo, com uma linha por acção (serviço, acção com o nº da pergunta e a data da
+    auditoria, responsável, prazo, estado). As em atraso dizem há quantos dias passou o prazo.
+  - **Paginação:** nenhuma linha se corta entre folhas; cabeçalho e «Folha X de Y» em cada folha.
+  - **Sem assinaturas:** é um documento informativo.
+  - **Funções:** `planoPdfHTML`, `pdfDoPlano`, `nomePdfPlano`. O nome do ficheiro leva o responsável ou o serviço
+    escolhidos, sem acentos (com eles, o Chromium sem janela grava-o como «download»).
+- **Teste:** `tests/smoke-pdf-plano.mjs` (PDF com várias folhas, uma unidade por acção, cabeçalho só na primeira linha
+  de cada grupo, nome do ficheiro com o responsável, PDF sem acções), também na CI.
+
 ## [4.13.0] — 2026-11-19
 
 ### Alterado

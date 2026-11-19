@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.13.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.14.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -199,6 +199,18 @@ input:focus,select:focus{outline:2px solid var(--green);border-color:var(--green
 .pdf-radares{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 .pdf-radares>div{border:1px solid #d6dbd8;border-radius:6px;padding:6px 8px}
 .pdf-radares h4{margin:2px 0 4px!important}
+/* v4.14.0: o PDF do plano de acção. */
+.pdf-filtros{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+.pdf-filtros span{background:#eef3f0;border-radius:99px;padding:1px 9px;font-size:10.5px}
+.pdf-kpis .atr b{color:#c62828}
+.pdf-pgrupo{display:flex;align-items:baseline;gap:10px;background:#eef3f0;border-bottom:2px solid #1c2321;padding:6px 8px;margin-top:10px}
+.pdf-pgrupo b{font-size:14px}.pdf-pgrupo span{color:#66706c}
+.pdf-pgrupo.atr{background:#fdecea}.pdf-pgrupo.atr b{color:#c62828}
+.pdf-plano{width:100%;border-collapse:collapse;table-layout:fixed}
+.pdf-plano th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#66706c;border-bottom:1px solid #1c2321;padding:4px 6px}
+.pdf-plano td{border-bottom:1px solid #d6dbd8;padding:5px 6px;vertical-align:top;overflow-wrap:anywhere}
+.pdf-plano .cinza{color:#66706c;font-size:10.5px}
+.pdf-plano .n{white-space:nowrap;font-variant-numeric:tabular-nums}
 .pdf-tab{width:100%;border-collapse:collapse}
 .pdf-tab th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#66706c;border-bottom:1px solid #1c2321;padding:4px 6px}
 .pdf-tab td{border-bottom:1px solid #d6dbd8;padding:5px 6px;vertical-align:top}
@@ -823,7 +835,11 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
       <button type="button" data-ac-por="resp" aria-pressed="false">Responsável</button>
       <button type="button" data-ac-por="svc" aria-pressed="false">Serviço</button>
     </div>
-    <div id="ac-conta" style="font-size:.78rem;color:var(--muted);margin-top:8px" role="status"></div>
+    <div class="stat-row" style="font-weight:400;align-items:center;gap:10px;margin-top:10px">
+      <span id="ac-conta" style="font-size:.78rem;color:var(--muted)" role="status"></span>
+      <!-- v4.14.0: o PDF do plano, com os filtros e o agrupamento escolhidos. -->
+      <button class="btn small" id="btn-ac-pdf">PDF do plano de acção</button></div>
+    <p id="ac-pdf-estado" class="an-nota hidden" role="status" style="margin:6px 0 0"></p>
   </div>
   <div id="ac-lista"></div>
 </section>
@@ -1705,7 +1721,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.13.0";
+const APP_VERSION="4.14.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -5104,6 +5120,84 @@ async function pdfDeBlocos(blocos,op){
   }
   return doc;
 }
+/* v4.14.0: o HTML do PDF do plano de acção. `grupos`: de agruparAcoes; `por`:
+   o agrupamento; `rotulos`: os filtros, para o cabeçalho; `kp`: {r, dp, ia, ef}
+   (resumoAcoes, desempenhoAcoes, idadeAcoesAbertas e eficaciaAcoes das
+   acções do responsável e serviço escolhidos); `nomeR(k)`: o nome de um
+   responsável. Uma folha de resumo e, depois, uma unidade por acção (a
+   primeira de cada grupo leva o título do grupo e o cabeçalho da tabela),
+   para nenhuma se cortar entre folhas. */
+function planoPdfHTML(grupos,por,rotulos,kp,hoje,nomeR){
+  const n=grupos.reduce((t,g)=>t+g.itens.length,0);
+  const {r,dp,ia,ef}=kp;
+  const resumo=`<section class="pdf-folha">
+    <div class="pdf-hero"><div><div class="pdf-svc">Plano de acção</div>
+      <div class="pdf-sub">Auditoria 5S</div>
+      <div class="pdf-filtros">${rotulos.map(t=>`<span>${esc(t)}</span>`).join("")}</div></div>
+      <div class="pdf-sub" style="text-align:right">Gerado a ${esc(dataCurta(hoje))}<br>${n} acç${n===1?"ão":"ões"}</div></div>
+    <div class="pdf-kpis">
+      <div><b>${r.abertas}</b><span>em aberto${ia.abertas?" · há "+numPT(ia.idadeMedia)+" dias, em média":""}</span></div>
+      <div class="${r.atrasadas?"atr":""}"><b>${r.atrasadas}</b><span>em atraso${ia.atrasadas?" · atraso médio "+numPT(ia.atrasoMedio)+" dias":""}</span></div>
+      <div><b>${r.feitas30}</b><span>feitas nos últimos 30 dias${dp.comPrazo?" · "+dp.pctPrazo+"% no prazo":""}</span></div>
+      <div><b>${ef.avaliadas?ef.pct+"%":"—"}</b><span>eficácia${ef.avaliadas?" ("+ef.resolvidas+" de "+ef.avaliadas+")":""}</span></div></div>
+    ${!n?`<p class="pdf-leg">Nenhuma acção com estes filtros.</p>`:""}
+  </section>`;
+  const col=por==="svc"?"Responsável":"Serviço";
+  const cols=`<colgroup><col style="width:20%"><col style="width:37%"><col style="width:15%"><col style="width:10%"><col style="width:18%"></colgroup>`;
+  const cab=`<tr><th>${col}</th><th>Acção</th><th>${por==="resp"?"Serviço":"Responsável"}</th><th>Prazo</th><th>Estado</th></tr>`;
+  const unidades=[];
+  grupos.forEach(g=>{
+    const sub=por==="prazo"?[g.itens.length+(g.itens.length===1?" acção":" acções"),g.sub].filter(Boolean).join(" · "):
+      g.itens.length+(g.itens.length===1?" acção":" acções")+(g.atrasadas?" · "+g.atrasadas+" em atraso":"");
+    let topo=`<div class="pdf-pgrupo${por==="prazo"&&g.chave==="atrasada"?" atr":""}"><b>${esc(g.titulo)}</b><span>${esc(sub)}</span></div>`;
+    g.itens.forEach((x,k)=>{
+      const ac=x.acao,c1=por==="svc"?nomeR(ac.r):x.service,c3=por==="resp"?x.service:nomeR(ac.r);
+      const est=x.estado==="atrasada"&&ac.prazo?`<span class="pdf-pill mau">${diasEntre(ac.prazo,hoje)} dia(s) de atraso</span>`:
+        x.estado==="feita"?`<span class="pdf-pill exc">Feita${ac.feitaEm?" a "+esc(dataCurta(ac.feitaEm)):""}</span>`:`<span class="pdf-pill op">Aberta</span>`;
+      const det=[ac.item?"Pergunta nº "+ac.item:"","auditoria de "+dataCurta(x.date)].filter(Boolean).join(" · ");
+      unidades.push(`<div class="pdf-unidade">${k?"":topo}<table class="pdf-plano">${cols}${k?"":cab}<tr><td>${esc(c1)}</td>`+
+        `<td>${esc(ac.texto)}<br><span class="cinza">${esc(det)}</span></td><td>${esc(c3)}</td>`+
+        `<td class="n">${esc(dataCurta(ac.prazo))||"—"}</td><td>${est}</td></tr></table></div>`);
+    });
+  });
+  return resumo+unidades.join("");
+}
+/* v4.14.0: o PDF do plano de acção, com os filtros e o agrupamento das Acções.
+   Os números do resumo são das acções do responsável e serviço escolhidos
+   (o estado só escolhe as que entram na lista). Devolve um Blob. */
+async function pdfDoPlano(){
+  await carregarPdf();
+  const hoje=hojeISO(),nomeR=k=>isResp(k)?RESP[k]:k;
+  const l=listaAcoes(audits,acFiltro,hoje),grupos=agruparAcoes(l,acPor,hoje,nomeR);
+  const sub=audits.filter(a=>!acFiltro.svc||a.service===acFiltro.svc)
+    .map(a=>Object.assign({},a,{acoes:(Array.isArray(a.acoes)?a.acoes:[]).filter(ac=>ac&&(!acFiltro.r||ac.r===acFiltro.r))}));
+  const kp={r:resumoAcoes(sub,hoje),dp:desempenhoAcoes(sub),ia:idadeAcoesAbertas(sub,hoje),ef:eficaciaAcoes(sub)};
+  const txt=id=>{const el=document.getElementById(id);return el&&el.selectedOptions[0]?el.selectedOptions[0].textContent:"";};
+  const rotulos=[txt("ac-estado"),txt("ac-r"),txt("ac-svc"),"Agrupado por "+({prazo:"prazo",resp:"responsável",svc:"serviço"}[acPor])].filter(Boolean);
+  const box=document.getElementById("view-pdf");
+  box.innerHTML=planoPdfHTML(grupos,acPor,rotulos,kp,hoje,nomeR);
+  try{
+    const blocos=[...box.querySelectorAll(":scope > .pdf-folha, :scope > .pdf-unidade")];
+    const doc=await pdfDeBlocos(blocos,{topo:16,baixo:14,gap:0,nova:el=>el.classList.contains("pdf-folha"),
+      onclone:d=>{modoImpressao(d);}});
+    const n=doc.getNumberOfPages();
+    for(let k=1;k<=n;k++){
+      doc.setPage(k);
+      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(102,112,108);
+      doc.text("Auditoria 5S · Plano de acção · "+dataCurta(hoje),10,10);
+      doc.setDrawColor(29,107,87);doc.setLineWidth(0.5);doc.line(10,12,200,12);
+      doc.text("Folha "+k+" de "+n,200,290,{align:"right"});
+    }
+    return doc.output("blob");
+  }finally{box.innerHTML="";}
+}
+/* O nome do ficheiro: a data e, se houver, o responsável ou o serviço escolhidos.
+   Sem acentos: com eles, o Chromium sem janela (e o dos testes) descarrega o
+   ficheiro com o nome «download». */
+function nomePdfPlano(hoje,resp,svc){
+  const limpo=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim();
+  return ["Plano de acao",limpo(resp),limpo(svc),hoje].filter(Boolean).join(" - ")+".pdf";
+}
 /* v4.8.0: o PDF da auditoria, por responsável (pdfHTML), desenhado a partir da
    vista #view-pdf, fora do ecrã. A grelha começa na folha 2; cada pergunta
    (com a evidência e o plano) nunca se corta entre folhas. Cabeçalho e
@@ -6990,6 +7084,16 @@ on("ac-estado","change",e=>{acFiltro.estado=e.target.value;acMostrar.clear();ren
 on("ac-r","change",e=>{acFiltro.r=e.target.value;acMostrar.clear();renderAcoes();});
 on("ac-svc","change",e=>{acFiltro.svc=e.target.value;acMostrar.clear();renderAcoes();});
 document.querySelectorAll("[data-ac-por]").forEach(b=>b.onclick=()=>{acPor=b.dataset.acPor;acMostrar.clear();renderAcoes();});
+on("btn-ac-pdf","click",async e=>{
+  const bt=e.currentTarget,est=document.getElementById("ac-pdf-estado");
+  bt.disabled=true;est.textContent="A criar o PDF…";est.classList.remove("hidden");
+  try{
+    const blob=await pdfDoPlano();
+    const r=acFiltro.r?(isResp(acFiltro.r)?RESP[acFiltro.r]:acFiltro.r):"";
+    await descarregar(blob,nomePdfPlano(hojeISO(),r,acFiltro.svc));
+  }catch(err){aviso(err&&err.message?err.message:"Não foi possível criar o PDF.","PDF do plano de acção");}
+  finally{bt.disabled=false;est.textContent="";est.classList.add("hidden");}
+});
 on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(m)openMensal(m);});
 on("an-ano","change",e=>{anoKpis=parseInt(e.target.value,10)||0;renderKpis();});
 on("obj-ano","change",e=>{anoObjetivo=parseInt(e.target.value,10)||0;renderObjetivo();});
