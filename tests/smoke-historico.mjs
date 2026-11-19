@@ -64,6 +64,23 @@ check(await pg.locator("#hist-list .card").count() === 3, "o histórico devia li
 const primeiro = await pg.locator("#hist-list .card").first().textContent();
 check(/Loja A/.test(primeiro) && /▼ -100/.test(primeiro) && /anterior: 2026-01-10/.test(primeiro),
   "a mais recente devia mostrar a queda de 100 face à anterior: " + primeiro);
+/* 4.13.0: o resumo em números, que filtra pelo estado, e os filtros num bloco que começa fechado. */
+check(!(await pg.locator("#hist-filtros").evaluate(d => d.open)), "os filtros deviam começar fechados");
+check(/nenhum/.test(await pg.locator("#hf-chips").textContent()), "sem filtros, o título diz «nenhum»");
+check((await pg.locator("#hist-rs-todas b").textContent()) === "3" && (await pg.locator("#hist-rs-env b").textContent()) === "3" &&
+  (await pg.locator("#hist-rs-fin b").textContent()) === "0", "o resumo: 3 auditorias, 3 por enviar, 0 por finalizar");
+await pg.locator("#hist-rs-fin").click();
+check(await pg.locator("#hist-list .card").count() === 0 && (await pg.locator("#hist-rs-fin").getAttribute("aria-pressed")) === "true",
+  "tocar em «Por finalizar» devia filtrar (nenhuma) e ficar marcado");
+check(/Por finalizar/.test(await pg.locator("#hf-chips").textContent()), "o filtro devia aparecer nas etiquetas");
+await pg.locator("#hist-rs-fin").click();
+check(await pg.locator("#hist-list .card").count() === 3, "tocar outra vez devia tirar o filtro");
+await pg.locator("#hist-filtros").evaluate(d => { d.open = true; });
+await pg.locator("#hf-est").selectOption("env");
+check(await pg.locator("#hist-list .card").count() === 3 && (await pg.locator("#hist-rs-env").getAttribute("aria-pressed")) === "true",
+  "o filtro de estado «Por enviar» devia marcar o número");
+await pg.locator("#hist-rs-todas").click();
+check((await pg.locator("#hf-est").inputValue()) === "", "«Auditorias» tira o filtro de estado");
 await pg.locator("#hf-svc").selectOption("Loja B");
 check(await pg.locator("#hist-list .card").count() === 1, "filtrar pela Loja B devia deixar uma");
 check(/1 de 3/.test(await pg.locator("#hf-conta").textContent()), "a contagem devia dizer 1 de 3");

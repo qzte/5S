@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.12.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.13.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -460,6 +460,29 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 .passo-btns{display:flex;flex-wrap:wrap;gap:8px}
 .passo-ok{color:var(--green-ink);font-weight:700}
 /* v3.21.0: separador Acções, um bloco por acção. */
+/* v4.13.0: Histórico — resumo que filtra e filtros num bloco que abre e fecha. */
+button.rs{text-align:left;font:inherit;color:inherit;cursor:pointer;position:relative;border-width:1.5px}
+button.rs:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.rs[aria-pressed=true]{border-color:var(--green-dk);box-shadow:inset 0 0 0 1.5px var(--green-dk)}
+button.rs[aria-pressed=true]::after{content:"✓ filtro";position:absolute;top:8px;right:10px;font-family:var(--f-sans);font-size:.6rem;font-weight:900;
+  color:#fff;background:var(--green-dk);border-radius:99px;padding:2px 7px}
+.rs.rs-amb b{color:var(--amber-ink)}
+details.hist-filt{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
+details.hist-filt.hidden{display:none}
+details.hist-filt>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:var(--f-sans)}
+details.hist-filt>summary::-webkit-details-marker{display:none}
+details.hist-filt>summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:var(--radius)}
+details.hist-filt[open]>summary{border-bottom:1px solid var(--line)}
+.hist-filt .t{font-weight:900;font-size:.95rem}
+.hist-filt .chips{flex:1;display:flex;gap:4px;flex-wrap:wrap;min-width:0}
+.hist-filt .chip{font-family:var(--f-sans);font-size:.7rem;font-weight:700;background:var(--chip);border-radius:99px;padding:3px 8px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.hist-filt .nenhum{font-size:.76rem;color:var(--muted)}
+.hist-filt .chev{width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);margin:-4px 4px 0;flex:0 0 auto}
+.hist-filt[open] .chev{transform:rotate(-135deg);margin-top:4px}
+.hist-filt .corpo{padding:12px 16px 14px}
+.hist-conta{font-family:var(--f-sans);font-size:.78rem;color:var(--muted);margin:-4px 2px 12px}
+.hist-conta:empty{display:none}
 /* v4.12.0: Acções — resumo em números e lista agrupada. */
 .ac-desempenho{font-size:.76rem;color:var(--muted);margin:-4px 2px 14px;line-height:1.5}
 .ac-desempenho:empty{display:none}
@@ -680,30 +703,48 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
 <!-- ============ HISTÓRICO ============ -->
 <section id="view-history" class="hidden">
   <h2 class="sr-only">Histórico</h2>
-  <!-- v3.9.0: filtros do histórico. Só mudam o que se mostra: nada é gravado. -->
-  <div class="card" id="hist-filtros">
-    <div class="row">
-      <div><label for="hf-svc">Serviço</label><select id="hf-svc"></select></div>
-      <div><label for="hf-nota">Nota</label><select id="hf-nota">
-        <option value="">Todas</option>
-        <option value="bad">Crítico (abaixo de 50)</option>
-        <option value="mid">Com oportunidade (50 a 79)</option>
-        <option value="ok">Excelente (80 ou mais)</option></select></div>
+  <!-- v4.13.0: o resumo em números, que também filtra pelo estado. -->
+  <div class="an-resumo hist-resumo" id="hist-resumo" role="group" aria-label="Filtrar pelo estado"></div>
+  <!-- v3.9.0: filtros do histórico. Só mudam o que se mostra: nada é gravado.
+       v4.13.0: num bloco que abre e fecha (começa fechado), com os filtros
+       activos em etiquetas no título, e o filtro de estado. -->
+  <details class="hist-filt" id="hist-filtros">
+    <summary><span class="t">Filtros</span><span class="chips" id="hf-chips"></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="corpo">
+      <div class="row">
+        <div><label for="hf-svc">Serviço</label><select id="hf-svc"></select></div>
+        <div><label for="hf-est">Estado</label><select id="hf-est">
+          <option value="">Todos</option>
+          <option value="fin">Por finalizar</option>
+          <option value="env">Por enviar</option>
+          <option value="envd">Enviadas</option>
+          <option value="ab">Com acções em aberto</option>
+          <option value="atr">Com acções em atraso</option></select></div>
+      </div>
+      <div class="row">
+        <div><label for="hf-nota">Nota</label><select id="hf-nota">
+          <option value="">Todas</option>
+          <option value="bad">Crítico (abaixo de 50)</option>
+          <option value="mid">Com oportunidade (50 a 79)</option>
+          <option value="ok">Excelente (80 ou mais)</option></select></div>
+        <div></div>
+      </div>
+      <div class="row">
+        <div><label for="hf-de">De</label><input type="date" id="hf-de"></div>
+        <div><label for="hf-ate">Até</label><input type="date" id="hf-ate"></div>
+      </div>
+      <div class="stat-row" style="font-size:.78rem;color:var(--muted);font-weight:400;align-items:center;gap:10px">
+        <span>Os números lá em cima também filtram pelo estado.</span>
+        <button class="btn small ghost" id="btn-hf-limpar">Limpar filtros</button></div>
     </div>
-    <div class="row">
-      <div><label for="hf-de">De</label><input type="date" id="hf-de"></div>
-      <div><label for="hf-ate">Até</label><input type="date" id="hf-ate"></div>
-    </div>
-    <div class="stat-row" style="font-size:.78rem;color:var(--muted);font-weight:400">
-      <span id="hf-conta" role="status"></span>
-      <button class="btn small ghost" id="btn-hf-limpar">Limpar filtros</button></div>
-  </div>
+  </details>
   <!-- v3.25.0: a auditoria feita no telemóvel, para finalizar aqui. -->
   <div class="card" id="hist-importar">
     <div class="stat-row" style="font-weight:400;align-items:center;gap:10px">
       <span style="font-size:.78rem;color:var(--muted)">Recebeu um ficheiro da app por email — uma auditoria do telemóvel, para a finalizar, ou os dados do PC, para o telemóvel? Abra-o aqui.</span>
       <button class="btn small ghost" id="btn-hist-importar">Importar ficheiro</button></div>
   </div>
+  <p id="hf-conta" class="hist-conta" role="status"></p>
   <div id="hist-list"></div>
 </section>
 
@@ -1664,7 +1705,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.12.0";
+const APP_VERSION="4.13.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2754,6 +2795,19 @@ function resumoAcoes(lista,hoje){
     else{r.abertas++;if(e==="atrasada")r.atrasadas++;}
   }));
   return r;
+}
+/* v4.13.0: o estado de uma auditoria no Histórico. `e`: "fin" (por finalizar,
+   feita no telemóvel), "env" (finalizada, relatório por enviar), "envd"
+   (enviada por email ou Teams), "ab" (com acções em aberto), "atr" (com
+   acções em atraso); "" deixa passar todas. */
+function estadoHist(a,e,hoje){
+  if(!e)return true;
+  const fin=a&&a.fase==="terreno",env=a&&a.envios||{},enviada=!fin&&!!(env.email||env.teams);
+  if(e==="fin")return fin;
+  if(e==="env")return !fin&&!enviada;
+  if(e==="envd")return enviada;
+  const c=contaAcoes(a,hoje);
+  return e==="ab"?c.abertas>0:e==="atr"?c.atrasadas>0:true;
 }
 /* Quantas acções de uma auditoria estão em aberto, e quantas destas atrasadas. */
 function contaAcoes(au,hoje){
@@ -4226,7 +4280,7 @@ async function finalizarAuditoria(id){
 
 /* ---------- Histórico ---------- */
 /* v3.9.0: filtros em memória. Sobrevivem a mudar de separador, não a recarregar. */
-const histFiltro={svc:"",nota:"",de:"",ate:""};
+const histFiltro={svc:"",nota:"",de:"",ate:"",estado:""};
 /* Opções de serviço: os da lista e os que só existem em auditorias gravadas
    (um serviço removido da lista continua a ter histórico). */
 function servicosComAuditorias(){
@@ -4244,23 +4298,49 @@ function opcoesServico(sel,valor,todos){
    mais". Milhares de cartões de uma vez eram a outra metade dos 2,6 s. */
 const HIST_PAGINA=50;
 let histMostrar=HIST_PAGINA;
+/* v4.13.0: os quatro números do topo do Histórico. Contam todas as auditorias
+   (não só as filtradas); tocar num filtra pelo estado, e tocar outra vez (ou
+   em «Auditorias») tira o filtro. Também escreve as etiquetas dos filtros. */
+const EST_HIST={fin:"Por finalizar",env:"Por enviar",envd:"Enviadas",ab:"Com acções em aberto",atr:"Com acções em atraso"};
+const FAIXA_HIST={bad:"Crítico",mid:"Com oportunidade",ok:"Excelente"};
+function renderResumoHist(hoje){
+  const box=document.getElementById("hist-resumo");if(!box)return;
+  const n=e=>audits.filter(a=>estadoHist(a,e,hoje)).length,f=histFiltro.estado;
+  const t=(e,cls,rot,sub,v)=>`<button type="button" class="rs${cls}" data-hist-est="${e}" aria-pressed="${!!e&&f===e}" id="hist-rs-${e||"todas"}">`+
+    `<small>${rot}</small><b>${v}</b><span>${sub}</span></button>`;
+  const atr=n("atr");
+  box.innerHTML=!audits.length?"":t("","","Auditorias","no histórico",audits.length)+
+    t("fin"," rs-amb","Por finalizar","feitas no telemóvel",n("fin"))+
+    t("env","","Por enviar","relatório por mandar",n("env"))+
+    t("atr",atr?" rs-alerta":"","Acções em atraso","auditorias com acções fora de prazo",atr);
+  box.querySelectorAll("[data-hist-est]").forEach(b=>b.onclick=()=>{
+    const e=b.dataset.histEst;histFiltro.estado=!e||histFiltro.estado===e?"":e;histMostrar=HIST_PAGINA;renderHist();});
+  const chips=[histFiltro.svc,histFiltro.estado&&EST_HIST[histFiltro.estado],histFiltro.nota&&FAIXA_HIST[histFiltro.nota],
+    histFiltro.de&&"desde "+dataCurta(histFiltro.de),histFiltro.ate&&"até "+dataCurta(histFiltro.ate)].filter(Boolean);
+  document.getElementById("hf-chips").innerHTML=chips.length?chips.map(c=>`<span class="chip">${esc(c)}</span>`).join(""):
+    `<span class="nenhum">nenhum</span>`;
+}
 function renderHist(){
   const box=document.getElementById("hist-list");
   document.getElementById("hist-filtros").classList.toggle("hidden",!audits.length);
-  if(!audits.length){box.innerHTML=`<p class="empty">Ainda sem auditorias guardadas.</p>`;return;}
+  if(!audits.length){document.getElementById("hist-resumo").innerHTML="";document.getElementById("hf-conta").textContent="";
+    box.innerHTML=`<p class="empty">Ainda sem auditorias guardadas.</p>`;return;}
   histFiltro.svc=opcoesServico(document.getElementById("hf-svc"),histFiltro.svc,"Todos os serviços");
+  document.getElementById("hf-est").value=histFiltro.estado;
   document.getElementById("hf-nota").value=histFiltro.nota;
   document.getElementById("hf-de").value=histFiltro.de;
   document.getElementById("hf-ate").value=histFiltro.ate;
   /* O objeto da auditoria NUNCA é serializado para dentro de um atributo HTML.
      Guardamos apenas o índice na lista ordenada e ligamos por addEventListener. */
-  const ord=filtrarAudits(audits,histFiltro).sort((a,b)=>ordemCron(b,a));
+  const hoje=hojeISO();
+  renderResumoHist(hoje);
+  const ord=filtrarAudits(audits,histFiltro).filter(a=>estadoHist(a,histFiltro.estado,hoje)).sort((a,b)=>ordemCron(b,a));
   document.getElementById("hf-conta").textContent=
     ord.length===audits.length?audits.length+" auditoria(s)":ord.length+" de "+audits.length+" auditoria(s)";
   if(!ord.length){box.innerHTML=`<p class="empty">Nenhuma auditoria corresponde aos filtros.</p>`;return;}
   /* A variação compara com a anterior ao mesmo serviço no histórico INTEIRO,
      não só entre as que o filtro deixa ver. */
-  const anteriores=anterioresPorId(audits),hoje=hojeISO();
+  const anteriores=anterioresPorId(audits);
   const vis=ord.slice(0,histMostrar);
   box.innerHTML=vis.map((a,i)=>{
     const p=total(a),[bc,bt]=badge(p);
@@ -6902,7 +6982,7 @@ on("btn-expjson","click",()=>exportJson(false));
 on("btn-expfotos","click",()=>exportJson(true));
 on("btn-expxl","click",()=>exportExcel());
 /* v3.9.0: filtros do Histórico e da Análise. */
-[["hf-svc","svc"],["hf-nota","nota"],["hf-de","de"],["hf-ate","ate"]].forEach(([id,k])=>
+[["hf-svc","svc"],["hf-est","estado"],["hf-nota","nota"],["hf-de","de"],["hf-ate","ate"]].forEach(([id,k])=>
   on(id,"change",e=>{histFiltro[k]=e.target.value;histMostrar=HIST_PAGINA;renderHist();}));
 on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");histMostrar=HIST_PAGINA;renderHist();});
 on("an-svc","change",e=>{anFiltro.svc=e.target.value;renderStats();});

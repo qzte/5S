@@ -5,6 +5,20 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.13.0] — 2026-11-19
+
+### Alterado
+
+- **Histórico: resumo em números que filtra.** No topo, quatro números: auditorias, **por finalizar** (feitas no
+  telemóvel), **por enviar** (relatório ainda não enviado por email nem pelo Teams) e com **acções em atraso**. Tocar num
+  número filtra a lista por esse estado (o cartão fica marcado com «✓ filtro»); tocar outra vez, ou em *Auditorias*,
+  tira o filtro. Os números contam sempre o histórico inteiro.
+- **Histórico: filtros num bloco que abre e fecha**, fechado por omissão. Os filtros activos lêem-se em etiquetas no
+  título. Novo filtro de **estado**: por finalizar, por enviar, enviadas, com acções em aberto, com acções em atraso
+  (`estadoHist`). A contagem («1 de 4 auditoria(s)») passa para cima da lista.
+- **Testes:** `tests/historico-estado.test.js`; `tests/smoke-historico.mjs` verifica o resumo, tocar num número, o
+  filtro de estado e as etiquetas. Os smoke tests que mexem nos filtros abrem primeiro o bloco.
+
 ## [4.12.0] — 2026-11-19
 
 ### Alterado

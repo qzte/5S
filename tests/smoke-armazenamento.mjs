@@ -67,6 +67,8 @@ check(certas, "cada auditoria tem de manter as suas perguntas e os seus campos")
 
 /* O relatório de uma auditoria do conjunto mudado mostra a pergunta mudada. */
 await pg.locator("[data-v=history]").click();
+/* 4.13.0: os filtros estão num bloco que começa fechado. */
+await pg.locator("#hist-filtros").evaluate(d => { d.open = true; });
 await pg.locator("#hf-svc").selectOption("Loja 0");
 await pg.evaluate(() => openReport(audits[0]));
 check((await pg.locator("#view-report .page-2").textContent()).includes("Pergunta mudada"),
