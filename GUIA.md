@@ -249,13 +249,33 @@ Uma **acção** é um passo concreto, com
 
 ## Análise
 
-Escolha o **serviço** (ou todos) e o **período** (todo o histórico, ou os
-últimos 3, 6 ou 12 meses). Tudo na vista segue essa escolha:
+A Análise tem duas zonas:
 
+- **Todos os serviços** (em cima): os [indicadores do ano](#indicadores-do-ano)
+  e o **relatório mensal**. Não seguem os filtros.
+- **Por serviço e período** (em baixo): escolha o **serviço** (ou todos) e o
+  **período** (todo o histórico, ou os últimos 3, 6 ou 12 meses). A barra dos
+  filtros fica presa ao topo do ecrã ao deslizar, e tudo o que está por baixo
+  segue essa escolha.
+
+Com um período escolhido, as **variações** comparam-no com o período anterior do
+mesmo tamanho (por exemplo, os últimos 3 meses com os 3 meses antes desses). Em
+*todo o histórico* não há com que comparar e a variação mostra «—».
+
+- **Resumo em números** — a nota média (com a faixa), a variação, quantas
+  auditorias (e quantas por semana) e as acções em aberto do serviço (ou de
+  todos), com as que estão em atraso e as feitas no período.
+- **Internos e externos** — para cada tipo, a nota média e a **percentagem de
+  serviços auditados** no período, com a variação de cada uma (a da
+  percentagem em pontos percentuais, «pp»), quantos pontos separam internos e
+  externos, e a lista dos que ficaram por auditar. Com um serviço escolhido,
+  só o tipo dele. Os serviços sem tipo não entram.
 - **Evolução da nota** — uma linha por serviço, ao longo do tempo;
 - **Comparação entre serviços** — a média de cada um;
-- **Pontos fracos por pilar 5S** e **Desempenho por responsável** — radares e
-  barras com as médias.
+- **Pontos fracos por pilar 5S** e **Desempenho por responsável** — uma tabela
+  com a percentagem de agora, a do período anterior e a variação (▲ subiu,
+  ▼ desceu, ＝ variou 1 ponto ou menos). Na barra, um traço marca o período
+  anterior, e a maior descida fica em destaque. O radar continua por baixo.
 
 **Relatório mensal.** Para a reunião com a direcção: escolha o **mês** e
 carregue em **Abrir relatório mensal**. Mostra, para todos os serviços:
@@ -273,7 +293,7 @@ hoje.
 
 No topo da **Análise**, o cartão **Indicadores do ano** mede as auditorias de
 todos os serviços no ano escolhido (por omissão, o actual). Não segue o serviço
-nem o período escolhidos por cima.
+nem o período escolhidos mais abaixo.
 
 - **Média total** — a média de todas as auditorias do ano.
 - **Serviços abaixo da média — para o plano de acção** — os serviços cuja média
