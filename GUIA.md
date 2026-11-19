@@ -339,10 +339,10 @@ hoje.
 
 No topo da **Análise**, o cartão **Indicadores do ano** mede as auditorias de
 todos os serviços no ano escolhido (por omissão, o actual). Não segue o serviço
-nem o período escolhidos mais abaixo. Ficam à vista os números e os serviços abaixo
-da média; as faixas, os serviços auditados, os há mais tempo sem auditoria e as
+nem o período escolhidos mais abaixo. Ficam à vista os números; os serviços abaixo da
+média, as faixas, os serviços auditados, os há mais tempo sem auditoria e as
 perguntas reincidentes estão em secções que abrem e fecham, com um resumo no
-título.
+título (por exemplo, quantos serviços estão abaixo da média e qual o pior).
 
 - **Média total** — a média de todas as auditorias do ano.
 - **Serviços abaixo da média — para o plano de acção** — os serviços cuja média

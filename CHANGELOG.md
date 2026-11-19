@@ -5,6 +5,17 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.18.0] — 2026-11-19
+
+### Alterado
+
+- **Análise → Indicadores do ano: «Serviços abaixo da média» passa a secção que abre e fecha**, fechada por omissão,
+  como as faixas, os serviços auditados, os há mais tempo sem auditoria e as reincidentes. Com muitos serviços, a
+  lista ocupava o ecrã. O título diz quantos são e qual o pior («15 serviços · o pior: Cirurgia I (11I), 67»), a
+  vermelho. Dentro, tudo como antes, com o botão *Plano de acção* de cada serviço.
+- **Teste:** `tests/smoke-indicadores.mjs` verifica que a secção começa fechada e o resumo do título, e abre-a antes de
+  carregar em *Plano de acção*.
+
 ## [4.17.0] — 2026-11-19
 
 ### Acrescentado

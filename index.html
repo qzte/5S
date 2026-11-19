@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.17.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.18.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1874,7 +1874,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.17.0";
+const APP_VERSION="4.18.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -4944,22 +4944,25 @@ function renderKpis(){
   /* Abaixo da média: com as acções em aberto e o relatório da última auditoria,
      onde se acrescentam acções ao plano. */
   const abertas=sv=>audits.reduce((s,a)=>s+(a.service===sv&&Array.isArray(a.acoes)?a.acoes.filter(ac=>ac&&estadoAcao(ac,hoje)!=="feita").length:0),0);
-  const abaixo=`<div class="kpi-sec" id="kpi-abaixo"><h4>Serviços abaixo da média — para o plano de acção</h4>`+
-    (k.abaixo.length?k.abaixo.map((x,i)=>{const na=abertas(x.service);
+  /* v4.16.0: as secções de seguimento abrem e fecham; fechadas, mostram um
+     resumo no título. Ficam à vista os números.
+     v4.18.0: os serviços abaixo da média também (com muitos serviços, a lista
+     ocupava o ecrã); o título diz quantos são e qual o pior. */
+  const det=(id,tit,res,corpo,alerta)=>`<details class="kpi-det" id="${id}"><summary><span class="t">${tit}</span>`+
+    `<span class="r${alerta?" alerta":""}">${res}</span><span class="chev" aria-hidden="true"></span></summary><div class="c">${corpo}</div></details>`;
+  const linhasAbaixo=k.abaixo.map((x,i)=>{const na=abertas(x.service);
       return`<div class="kpi-linha"><span><b>${esc(x.service)}</b><br><small style="color:var(--muted)">${x.n} auditoria(s) · ${x.diferenca} pontos face à média · ${na?na+" acção(ões) em aberto":"sem acções em aberto"}</small></span>`+
       `<span class="pill" style="background:${corNota(x.media)}">${x.media}</span>`+
-      `<button class="btn small ghost" data-kpi-plano="${i}" aria-label="Plano de acção de ${esc(x.service)}">Plano de acção</button></div>`;}).join(""):
-      `<p class="empty" style="padding:8px">${k.n?"Nenhum serviço abaixo da média.":"Sem auditorias neste ano."}</p>`)+`</div>`;
+      `<button class="btn small ghost" data-kpi-plano="${i}" aria-label="Plano de acção de ${esc(x.service)}">Plano de acção</button></div>`;}).join("");
+  const abaixo=k.abaixo.length?det("kpi-abaixo","Serviços abaixo da média — para o plano de acção",
+    k.abaixo.length+(k.abaixo.length===1?" serviço":" serviços")+" · o pior: "+esc(k.abaixo[0].service)+", "+k.abaixo[0].media,linhasAbaixo,true):
+    `<p class="empty" style="padding:8px">${k.n?"Nenhum serviço abaixo da média.":"Sem auditorias neste ano."}</p>`;
   const grupo=(id,rot,g)=>{const pc=g.total?Math.round(g.auditados/g.total*100):0;
     return`<div id="${id}"><div class="stat-row"><span>${rot}: <b>${g.auditados}</b> de <b>${g.total}</b> auditado(s)</span><span>${g.total?pc+"%":"—"}</span></div>
       <div class="bar"><i class="${barCls(pc)}" style="width:${pc}%"></i></div>
       ${g.total?`<small id="${id}-por" style="color:var(--muted);display:block;margin:-2px 0 ${g.porAuditar.length?"0":"8px"}">Sem auditoria: <b>${g.porAuditar.length}</b> (${g.pctPorAuditar}%)</small>`:""}
       ${g.porAuditar.length?`<small style="color:var(--muted);display:block;margin:0 0 8px">Por auditar: ${g.porAuditar.map(esc).join(", ")}</small>`:""}</div>`;};
   const t=k.tipos;
-  /* v4.16.0: as secções de seguimento abrem e fecham; fechadas, mostram um
-     resumo no título. Ficam à vista os números e os serviços abaixo da média. */
-  const det=(id,tit,res,corpo,alerta)=>`<details class="kpi-det" id="${id}"><summary><span class="t">${tit}</span>`+
-    `<span class="r${alerta?" alerta":""}">${res}</span><span class="chev" aria-hidden="true"></span></summary><div class="c">${corpo}</div></details>`;
   const cobertura=det("kpi-tipos","Serviços auditados em "+k.ano,
     "internos "+t.interno.auditados+" de "+t.interno.total+" · externos "+t.externo.auditados+" de "+t.externo.total,
     grupo("kpi-int","Internos",t.interno)+grupo("kpi-ext","Externos",t.externo)+
