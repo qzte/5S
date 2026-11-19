@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.15.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.17.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -52,6 +52,12 @@
    Corre antes do <body> existir, para que nada chegue a ser pintado dentro da
    moldura. O acesso a window.top pode lançar entre origens em browsers antigos,
    daí o try: em caso de dúvida, assume-se que está embebido. */
+/* v4.17.0: o tema escolhido em Config → Aspecto, aplicado antes de pintar
+   (sem piscar o claro antes do escuro). Só neste aparelho. */
+(function(){
+  try{var t=localStorage.getItem("tema");
+    if(t==="claro"||t==="escuro")document.documentElement.setAttribute("data-tema",t);}catch(e){}
+})();
 (function(){
   var embebido;
   try{embebido=window.top!==window.self;}catch(e){embebido=true;}
@@ -98,9 +104,12 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* v3.10.0: modo escuro, só no ecrã. A impressão continua clara: o relatório é
-   para papel. */
+   para papel.
+   v4.17.0: o tema escolhe-se em Config → Aspecto. «Automático» (sem atributo)
+   segue o aparelho; data-tema="claro" desliga o escuro automático;
+   data-tema="escuro" liga-o sempre. As cores são as mesmas nos dois blocos. */
 @media screen and (prefers-color-scheme:dark){
-  :root{
+  :root:not([data-tema="claro"]){
     --bg:#101815; --ink:#e3e9e5; --panel:#18231e; --line:#33433b; --muted:#a3b0a8;
     --green-ink:#7dd3ab; --red-ink:#f19b90; --amber-ink:#e9b65f;
     --field:#111b17; --field-2:#111b17; --track:#2a3832; --chip:#22302a;
@@ -109,8 +118,21 @@
     --s4:#b993e3; --s5:#ee8478; --s6:#5ec7c0; --s7:#a3b0a8;
     color-scheme:dark;
   }
-  body{background-image:radial-gradient(circle at 15% 10%,rgba(125,211,171,.06),transparent 45%)}
-  .card{box-shadow:none}
+  html:not([data-tema="claro"]) body{background-image:radial-gradient(circle at 15% 10%,rgba(125,211,171,.06),transparent 45%)}
+  html:not([data-tema="claro"]) .card{box-shadow:none}
+}
+@media screen{
+  :root[data-tema="escuro"]{
+    --bg:#101815; --ink:#e3e9e5; --panel:#18231e; --line:#33433b; --muted:#a3b0a8;
+    --green-ink:#7dd3ab; --red-ink:#f19b90; --amber-ink:#e9b65f;
+    --field:#111b17; --field-2:#111b17; --track:#2a3832; --chip:#22302a;
+    --photo-bg:#111b17; --photo-line:#3d4d45; --chart-axis:#55675e;
+    --s0:#5cc196; --s1:#f4823f; --s2:#7fa8ea; --s3:#e3b04b;
+    --s4:#b993e3; --s5:#ee8478; --s6:#5ec7c0; --s7:#a3b0a8;
+    color-scheme:dark;
+  }
+  html[data-tema="escuro"] body{background-image:radial-gradient(circle at 15% 10%,rgba(125,211,171,.06),transparent 45%)}
+  html[data-tema="escuro"] .card{box-shadow:none}
 }
 /* Só para leitores de ecrã: os títulos de secção (h2) que faltavam entre o
    h1 da app e os h3 dos cartões. */
@@ -472,6 +494,49 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 .passo-btns{display:flex;flex-wrap:wrap;gap:8px}
 .passo-ok{color:var(--green-ink);font-weight:700}
 /* v3.21.0: separador Acções, um bloco por acção. */
+/* v4.16.0: Análise, 2.ª volta — indicadores do ano compactos, evolução mensal,
+   comparação ordenada e perguntas que mais falham. */
+details.kpi-det{border-top:1px solid var(--line)}
+details.kpi-det:first-of-type{margin-top:12px}
+details.kpi-det>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 0;font-family:var(--f-sans)}
+details.kpi-det>summary::-webkit-details-marker{display:none}
+details.kpi-det>summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.kpi-det .t{font-weight:900;font-size:.85rem;flex:1}
+.kpi-det .r{font-size:.74rem;color:var(--muted);font-family:var(--f-serif);text-align:right}
+.kpi-det .r.alerta{color:var(--red-ink);font-weight:700}
+.kpi-det .chev{width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);margin:-4px 4px 0;flex:0 0 auto}
+.kpi-det[open] .chev{transform:rotate(-135deg);margin-top:4px}
+.kpi-det .c{padding:0 0 10px}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:99px;overflow:hidden;margin-bottom:10px}
+.seg button{font-family:var(--f-sans);font-weight:700;font-size:.74rem;padding:6px 12px;background:var(--panel);color:var(--ink);border:0;cursor:pointer}
+/* v4.17.0: verde normal, e não o verde-escuro do cabeçalho: no tema escuro
+   este confundia-se com o fundo dos cartões. */
+.seg button[aria-pressed=true]{background:var(--green);color:#fff}
+.seg button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.legenda .tr{display:inline-block;width:14px;height:0;border-top:3px dashed;margin-right:5px;vertical-align:3px}
+.legenda .ln{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
+.evo-ler{font-size:.8rem;margin-top:8px;padding:8px 10px;border-radius:9px;background:var(--chip)}
+.evo-ler:empty{display:none}
+.cmp-linha{display:grid;grid-template-columns:1fr auto auto;gap:2px 10px;align-items:center}
+.cmp-linha .nome{font-family:var(--f-sans);font-weight:700;font-size:.82rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmp-linha .nome small{font-weight:400;color:var(--muted);font-family:var(--f-serif)}
+.cmp-linha .v{font-family:var(--f-sans);font-weight:900;font-size:.78rem;text-align:right;white-space:nowrap}
+.cmp-linha .p{font-family:var(--f-sans);font-weight:900;font-size:.85rem;text-align:right;min-width:38px}
+.cmp-linha .bar{grid-column:1/-1;margin:2px 0 10px}
+.cmp-sep{font-family:var(--f-sans);font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);
+  border-top:1px dashed var(--line);padding-top:8px;margin-top:2px}
+.pf{display:grid;grid-template-columns:28px 1fr auto;gap:2px 10px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.pf:first-child{border-top:0}
+.pf .num{font-family:var(--f-sans);font-weight:900;font-size:.8rem;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--chip)}
+.pf .q{font-size:.9rem;min-width:0}
+.pf .q small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}
+.pf .d{text-align:right;font-family:var(--f-sans)}
+.pf .d b{display:block;font-size:1.05rem;font-weight:900}
+.pf .d span{font-size:.74rem;font-weight:900;white-space:nowrap}
+.pf .bar{grid-column:2/-1;margin:4px 0 0;height:7px}
+.pf .chips{grid-column:2/-1;display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.pf .chip{font-family:var(--f-sans);font-size:.68rem;font-weight:700;background:var(--chip);border-radius:99px;padding:2px 8px}
+.pf .chip.m{color:var(--red-ink);box-shadow:inset 0 0 0 1.5px var(--red)}
 /* v4.15.0: Auditar — dados da auditoria compactos e barra de progresso presa ao topo. */
 details.aud-dados{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
 details.aud-dados>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px}
@@ -515,9 +580,9 @@ details.aud-dados[open]>summary{border-bottom:1px solid var(--line)}
 /* v4.13.0: Histórico — resumo que filtra e filtros num bloco que abre e fecha. */
 button.rs{text-align:left;font:inherit;color:inherit;cursor:pointer;position:relative;border-width:1.5px}
 button.rs:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-button.rs[aria-pressed=true]{border-color:var(--green-dk);box-shadow:inset 0 0 0 1.5px var(--green-dk)}
+button.rs[aria-pressed=true]{border-color:var(--green);box-shadow:inset 0 0 0 1.5px var(--green)}
 button.rs[aria-pressed=true]::after{content:"✓ filtro";position:absolute;top:8px;right:10px;font-family:var(--f-sans);font-size:.6rem;font-weight:900;
-  color:#fff;background:var(--green-dk);border-radius:99px;padding:2px 7px}
+  color:#fff;background:var(--green);border-radius:99px;padding:2px 7px}
 .rs.rs-amb b{color:var(--amber-ink)}
 details.hist-filt{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
 details.hist-filt.hidden{display:none}
@@ -543,7 +608,7 @@ details.hist-filt[open]>summary{border-bottom:1px solid var(--line)}
 .ac-agrupar span{font-family:var(--f-sans);font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-right:4px}
 .ac-agrupar button{font-family:var(--f-sans);font-weight:700;font-size:.78rem;padding:7px 12px;border-radius:99px;border:1.5px solid var(--line);
   background:var(--panel);color:var(--ink);cursor:pointer}
-.ac-agrupar button[aria-pressed=true]{background:var(--green-dk);border-color:var(--green-dk);color:#fff}
+.ac-agrupar button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
 details.ac-gr{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:12px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
 details.ac-gr>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:var(--f-sans)}
 details.ac-gr>summary::-webkit-details-marker{display:none}
@@ -855,9 +920,19 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
   <div class="an-resumo" id="an-resumo"></div>
   <!-- v4.11.0: internos e externos no período. -->
   <div class="card" id="card-ie"><h3>Internos e externos</h3><div id="an-ie"></div></div>
-  <div class="card"><h3>Evolução da nota</h3><div id="ch-evo" role="img"></div>
-    <div id="ch-leg" class="legenda"></div></div>
-  <div class="card"><h3>Comparação entre serviços</h3><div id="cmp-svc"></div></div>
+  <!-- v4.16.0: a evolução mensal (12 meses), legível com muitos serviços: a
+       média de todos, ou internos e externos; o serviço escolhido por cima. -->
+  <div class="card" id="card-evo"><h3>Evolução da nota</h3>
+    <div class="seg" role="group" aria-label="Mostrar na evolução">
+      <button type="button" data-evo="geral" aria-pressed="true">Média geral</button>
+      <button type="button" data-evo="tipos" aria-pressed="false">Internos e externos</button></div>
+    <div id="ch-evo" role="img"></div>
+    <div id="ch-leg" class="legenda"></div>
+    <p id="evo-ler" class="evo-ler"></p></div>
+  <!-- v4.16.0: do pior para o melhor, com auditorias e variação. -->
+  <div class="card"><h3>Comparação entre serviços</h3><p class="an-nota" id="an-nota-cmp"></p><div id="cmp-svc"></div></div>
+  <!-- v4.16.0: as perguntas com pior resultado no período. -->
+  <div class="card" id="card-pf"><h3>Perguntas que mais falham</h3><p class="an-nota" id="an-nota-pf"></p><div id="an-pf"></div></div>
   <div class="card"><h3>Pontos fracos por pilar 5S</h3>
     <p class="an-nota" id="an-nota-pilar"></p>
     <div id="cmp-pilar"></div><div id="rad-pilar"></div></div>
@@ -1116,6 +1191,29 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
         <p id="pin-estado" style="font-size:.78rem;margin-bottom:10px"></p>
         <button class="btn small ghost" id="btn-pinmudar">Mudar código</button>
         <button class="btn small ghost" id="btn-pinrepor" style="display:none">Voltar ao código de origem</button>
+      </div>
+    </div>
+  </details>
+
+  <!-- v4.17.0: 5. Aspecto: claro, escuro ou automático (como o aparelho). -->
+  <details class="grp" id="grp-aspecto">
+    <summary>
+      <span class="ico" aria-hidden="true">◐</span>
+      <span><span class="g-tit">Aspecto</span>
+        <span class="g-res" id="res-aspecto"></span></span>
+      <span class="g-sel" id="sel-aspecto"></span>
+      <span class="chev" aria-hidden="true"></span>
+    </summary>
+    <div class="g-corpo">
+      <div class="sub">
+        <h3 class="sr-only">Aspecto</h3>
+        <p class="txt">O tema de cores da app. <b>Automático</b> segue o aparelho (claro de dia, escuro com o modo escuro
+          ligado). A escolha fica só neste aparelho. Os relatórios impressos e os PDF saem sempre em claro.</p>
+        <div class="seg" role="group" aria-label="Tema">
+          <button type="button" data-tema="auto" aria-pressed="true">Automático</button>
+          <button type="button" data-tema="claro" aria-pressed="false">Sempre claro</button>
+          <button type="button" data-tema="escuro" aria-pressed="false">Sempre escuro</button>
+        </div>
       </div>
     </div>
   </details>
@@ -1776,7 +1874,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.15.0";
+const APP_VERSION="4.17.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2722,13 +2820,49 @@ function desdeMeses(meses,hoje){
 /* Uma série por serviço para o gráfico de evolução, em ordem cronológica.
    Até 3.8.x havia uma só linha com todas as auditorias de todos os serviços:
    uma auditoria boa num serviço seguida de uma má noutro lia-se como uma queda. */
-function seriesEvolucao(lista){
-  const por=new Map();
-  [...(lista||[])].sort(ordemCron).forEach(a=>{
-    if(!por.has(a.service))por.set(a.service,[]);
-    por.get(a.service).push({date:a.date,pct:total(a)});
-  });
-  return [...por.keys()].sort((x,y)=>x.localeCompare(y)).map(k=>({service:k,pontos:por.get(k)}));
+/* v4.16.0: os últimos `n` meses até ao de `hoje`, «AAAA-MM», do mais antigo. */
+function mesesAte(hoje,n){
+  const r=[];let y=+String(hoje).slice(0,4),m=+String(hoje).slice(5,7);
+  for(let k=0;k<n;k++){r.unshift(y+"-"+String(m).padStart(2,"0"));if(--m<1){m=12;y--;}}
+  return r;
+}
+/* v4.16.0: a nota média de cada mês (das auditorias que `filtro` deixa
+   passar, ou de todas). {mes, n, media}; media null num mês sem auditorias. */
+function evolucaoMensal(lista,meses,filtro){
+  const por=new Map(meses.map(m=>[m,[]]));
+  (lista||[]).forEach(a=>{if(!a||typeof a.date!=="string"||(filtro&&!filtro(a)))return;
+    const l=por.get(a.date.slice(0,7));if(l)l.push(total(a));});
+  return meses.map(mes=>{const v=por.get(mes);return{mes,n:v.length,media:v.length?avg(v):null};});
+}
+/* v4.16.0: cada serviço no período, do pior para o melhor: a nota média, as
+   auditorias e a variação face ao período anterior (null sem anterior, ou sem
+   auditorias do serviço nele). */
+function comparacaoServicos(atual,anterior){
+  const por=l=>{const m=new Map();(l||[]).forEach(a=>{if(!m.has(a.service))m.set(a.service,[]);m.get(a.service).push(total(a));});return m;};
+  const ag=por(atual),an=anterior?por(anterior):null;
+  return [...ag].map(([service,v])=>{const media=avg(v),ant=an&&an.has(service)?avg(an.get(service)):null;
+    return{service,n:v.length,media,ant,delta:ant==null?null:media-ant};})
+    .sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service));
+}
+/* v4.16.0: as perguntas com pior resultado no período: a percentagem de cada
+   uma (como nos pilares: a pontuação média das respostas), a variação face ao
+   período anterior e os serviços onde fica pior (até 3, abaixo de 100). As
+   perguntas juntam-se pelo número; o texto é o da auditoria mais recente.
+   Só as que ficaram abaixo de 100; as `n` piores. */
+function perguntasQueFalham(atual,anterior,n){
+  const junta=l=>{const m=new Map();
+    [...(l||[])].filter(a=>a&&Array.isArray(a.scores)).sort(ordemCron).forEach(a=>{const IT=itemsOf(a);
+      a.scores.forEach((sc,i)=>{const it=IT[i];if(!it||sc==null)return;const k=String(it.n);
+        if(!m.has(k))m.set(k,{it,todas:[],porSvc:new Map()});
+        const g=m.get(k);g.it=it;g.todas.push(sc);
+        if(!g.porSvc.has(a.service))g.porSvc.set(a.service,[]);g.porSvc.get(a.service).push(sc);});});
+    return m;};
+  const ag=junta(atual),an=anterior?junta(anterior):null;
+  return [...ag].map(([k,g])=>{const pct=pctOf(g.todas),ant=an&&an.has(k)?pctOf(an.get(k).todas):null;
+    const servicos=[...g.porSvc].map(([s,v])=>({s,pct:pctOf(v)})).filter(x=>x.pct<100)
+      .sort((x,y)=>x.pct-y.pct||x.s.localeCompare(y.s)).slice(0,3).map(x=>x.s);
+    return{n:g.it.n,t:g.it.t||"",c:g.it.c||"",p:g.it.p,r:g.it.r,pct,ant,delta:ant==null?null:pct-ant,respostas:g.todas.length,servicos};})
+    .filter(x=>x.pct<100).sort((x,y)=>x.pct-y.pct||(+x.n||0)-(+y.n||0)).slice(0,n||5);
 }
 /* Seguimento face à auditoria anterior: cada pergunta que, numa das duas, não
    estava Excelente. As perguntas são emparelhadas pela assinatura (número, tipo
@@ -4569,49 +4703,33 @@ function avg(arr){return arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.leng
 const anFiltro={svc:"",meses:0};
 /* Cores das linhas da evolução, uma por serviço. A primeira é a da app. */
 /* v3.10.0: variáveis CSS, para o modo escuro ter tons legíveis sobre o fundo. */
-const PALETA=[0,1,2,3,4,5,6,7].map(k=>"var(--s"+k+")");
-/* Gráfico de evolução: uma linha por serviço, com o TEMPO no eixo horizontal,
-   comum a todas as linhas. A descrição acessível fica no contentor (role=img),
-   pelo que o SVG em si é decorativo para os leitores de ecrã. */
-/* v3.15.0: acima de PONTOS_MAX pontos, o gráfico fica só com as linhas, e a
-   descrição acessível resume cada série em vez de ditar todas as datas — com
-   5 000 auditorias eram 5 000 círculos com legenda e uma descrição de centenas
-   de KB, que eram o que restava dos ~0,6 s da Análise. */
-const PONTOS_MAX=120;
-function descricaoEvolucao(series){
-  if(!series.length)return "Sem auditorias no período.";
-  const n=series.reduce((t,sr)=>t+sr.pontos.length,0);
-  return "Evolução da nota: "+series.map(sr=>{
-    const p=sr.pontos;
-    if(n<=PONTOS_MAX)return sr.service+" "+p.map(pt=>pt.date+" "+pt.pct+"%").join(", ");
-    const v=p.map(pt=>pt.pct);
-    return sr.service+": "+p.length+" auditorias, de "+p[0].date+" a "+p[p.length-1].date+
-      ", entre "+Math.min(...v)+"% e "+Math.max(...v)+"%, a última com "+v[v.length-1]+"%";
-  }).join("; ");
-}
-function evolucaoSVG(series,lista){
-  if(!series.length)return`<p class="empty">Sem auditorias no período.</p>`;
-  const W=640,H=230,L=34,R=12,T=12,B=26,AW=W-L-R,AH=H-T-B;
-  const dia=d=>Date.parse(d+"T00:00:00Z")/864e5;
-  const dias=lista.map(a=>dia(a.date)).filter(Number.isFinite);
-  const d0=Math.min(...dias),d1=Math.max(...dias);
-  const xOf=d=>L+(d1===d0?.5:(dia(d)-d0)/(d1-d0))*AW;
-  const yOf=p=>T+AH-(Math.max(0,Math.min(100,p))/100)*AH;
-  const txt=`font-family="Archivo,Helvetica,Arial,sans-serif" font-size="11" style="fill:var(--muted)"`;
-  const grelha=[0,25,50,75,100].map(v=>{const y=yOf(v).toFixed(1);
-    return`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" style="stroke:var(--line)" stroke-width="1"/>`+
-      `<text x="${L-6}" y="${(+y+4).toFixed(1)}" text-anchor="end" ${txt}>${v}</text>`;}).join("");
-  const fmt=d=>d.slice(8,10)+"/"+d.slice(5,7)+"/"+d.slice(2,4);
-  const datas=d1===d0?[lista[0].date]:[new Date(d0*864e5).toISOString().slice(0,10),new Date(d1*864e5).toISOString().slice(0,10)];
-  const eixo=datas.map((d,k)=>`<text x="${xOf(d).toFixed(1)}" y="${H-8}" text-anchor="${datas.length===1?"middle":k?"end":"start"}" ${txt}>${esc(fmt(d))}</text>`).join("");
-  const muitos=series.reduce((t,sr)=>t+sr.pontos.length,0)>PONTOS_MAX;
-  const linhas=series.map((sr,k)=>{
-    const cor=PALETA[k%PALETA.length];
-    const pts=sr.pontos.map(pt=>xOf(pt.date).toFixed(1)+","+yOf(pt.pct).toFixed(1));
-    return(pts.length>1?`<polyline points="${pts.join(" ")}" fill="none" style="stroke:${cor}" stroke-width="3" stroke-linejoin="round"/>`:"")+
-      (muitos?"":sr.pontos.map((pt,i)=>`<circle cx="${pts[i].split(",")[0]}" cy="${pts[i].split(",")[1]}" r="4.5" style="fill:${cor}"><title>${esc(sr.service+" · "+pt.date+" · "+pt.pct+"%")}</title></circle>`).join(""));
+/* v4.16.0: o gráfico da evolução mensal. `linhas`: [{nome, cor, pontos (de
+   evolucaoMensal), tracejado}]; `meses`: os do eixo; `sombraDe`: o primeiro mês
+   do período escolhido nos filtros, sombreado (vazio: sem sombra). Os meses
+   sem auditorias ficam em branco (a linha corta-se). A descrição acessível
+   fica no contentor (role=img); o SVG é decorativo para os leitores de ecrã. */
+const MESES_CURTOS=["jan.","fev.","mar.","abr.","mai.","jun.","jul.","ago.","set.","out.","nov.","dez."];
+const mesCurto=m=>MESES_CURTOS[+String(m).slice(5,7)-1]||"";
+function evolucaoMensalSVG(linhas,meses,sombraDe){
+  const W=640,H=240,L=40,R=14,T=12,B=32,AW=W-L-R,AH=H-T-B,N=meses.length;
+  const xOf=i=>L+(N<2?.5:i/(N-1))*AW,yOf=p=>T+AH-(Math.max(0,Math.min(100,p))/100)*AH;
+  /* Letra maior que a dos outros gráficos: no telemóvel o SVG encolhe para um terço. */
+  const txt=`font-family="Archivo,Helvetica,Arial,sans-serif" font-size="16" style="fill:var(--muted)"`;
+  const grelha=[0,50,80,100].map(v=>{const y=yOf(v).toFixed(1);
+    return`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" style="stroke:var(--line)" stroke-width="1"${v===50||v===80?' stroke-dasharray="3 4"':""}/>`+
+      `<text x="${L-6}" y="${(+y+5).toFixed(1)}" text-anchor="end" ${txt}>${v}</text>`;}).join("");
+  const eixo=meses.map((m,i)=>(N>8&&i%2!==(N-1)%2)?"":`<text x="${xOf(i).toFixed(1)}" y="${H-8}" text-anchor="middle" ${txt}>${esc(mesCurto(m))}</text>`).join("");
+  const i0=sombraDe?meses.findIndex(m=>m>=sombraDe):-1;
+  const sombra=i0>=0?`<rect x="${(i0?xOf(i0)-AW/(2*(N-1)):L).toFixed(1)}" y="${T}" width="${(W-R-(i0?xOf(i0)-AW/(2*(N-1)):L)).toFixed(1)}" height="${AH}" style="fill:var(--chip)"/>`:"";
+  const desenho=linhas.map(ln=>{
+    const seg=[];let cur=[];
+    ln.pontos.forEach((pt,i)=>{if(pt.media==null){if(cur.length)seg.push(cur);cur=[];}else cur.push([xOf(i),yOf(pt.media),pt]);});
+    if(cur.length)seg.push(cur);
+    const tr=ln.tracejado?' stroke-dasharray="7 5"':"";
+    return seg.map(sg=>(sg.length>1?`<polyline points="${sg.map(q=>q[0].toFixed(1)+","+q[1].toFixed(1)).join(" ")}" fill="none" style="stroke:${ln.cor}" stroke-width="${ln.tracejado?2.5:3}" stroke-linejoin="round"${tr}/>`:"")+
+      sg.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${ln.tracejado?3:4}" style="fill:${ln.cor}"><title>${esc(ln.nome+" · "+nomeMes(q[2].mes)+" · "+q[2].media+" ("+q[2].n+" auditoria(s))")}</title></circle>`).join("")).join("");
   }).join("");
-  return`<svg viewBox="0 0 ${W} ${H}" width="100%" aria-hidden="true" style="display:block">${grelha}${eixo}${linhas}</svg>`;
+  return`<svg viewBox="0 0 ${W} ${H}" width="100%" aria-hidden="true" style="display:block">${sombra}${grelha}${eixo}${desenho}</svg>`;
 }
 function hojeISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
 function renderStats(){
@@ -4630,19 +4748,12 @@ function renderStats(){
     "Sem auditorias guardadas.";
   renderResumoAnalise(lista,listaAnt,de,hoje);
   renderInternosExternos(lista,listaAnt);
-  const series=seriesEvolucao(lista);
-  /* v3.10.0: SVG em vez de <canvas>, como os outros gráficos. Imprime nítido,
-     acompanha o modo escuro e o texto do gráfico existe para quem lê o ecrã. */
-  const ch=document.getElementById("ch-evo");
-  ch.innerHTML=evolucaoSVG(series,lista);
-  ch.setAttribute("aria-label",descricaoEvolucao(series));
-  const leg=document.getElementById("ch-leg");
-  leg.innerHTML=series.length&&(series.length>1||!anFiltro.svc)?
-    series.map((sr,k)=>`<span><i style="background:${PALETA[k%PALETA.length]}"></i>${esc(sr.service)}</span>`).join(""):"";
+  renderEvolucao(hoje,de);
+  /* v4.16.0: a comparação, do pior para o melhor, e as perguntas que mais falham. */
+  renderComparacao(lista,listaAnt);
+  renderPerguntasFalham(lista,listaAnt);
   const bars=(pairs)=>pairs.map(([n,p])=>`<div class="stat-row"><span>${esc(n)}</span><span>${p}%</span></div>
     <div class="bar"><i class="${barCls(p)}" style="width:${p}%"></i></div>`).join("")||`<p class="empty">Sem dados.</p>`;
-  document.getElementById("cmp-svc").innerHTML=bars(
-    series.map(sr=>[sr.service,avg(sr.pontos.map(pt=>pt.pct))]));
   /* Médias das auditorias filtradas, nos mesmos eixos do relatório individual. */
   /* As métricas de cada auditoria, uma vez por desenho (ver metricas()). */
   const ms=lista.map(metricas);
@@ -4670,6 +4781,72 @@ function renderStats(){
   document.getElementById("cmp-pilar").innerHTML=lista.length?tabelaVariacao(variacaoEixos(medPilar,antPilar),!!pa,"Pilar"):bars([]);
   document.getElementById("cmp-resp").innerHTML=medResp.length?tabelaVariacao(variacaoEixos(medResp,antResp),!!pa,"Área"):bars([]);
   renderKpis();
+}
+/* v4.16.0: a evolução mensal nos últimos 12 meses, sempre (não segue o
+   período, que fica sombreado). «Média geral» ou «Internos e externos»; com um
+   serviço escolhido, a linha dele a tracejado por cima. */
+let anEvoModo="geral";
+function renderEvolucao(hoje,de){
+  const meses=mesesAte(hoje,12),linhas=[];
+  document.querySelectorAll("[data-evo]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.evo===anEvoModo)));
+  const geral=evolucaoMensal(audits,meses);
+  if(anEvoModo==="tipos"){
+    const de_=t=>auditadoNoAno(services.filter(s=>tipoDe(tipos,s)===t));
+    const fi=de_("i"),fe=de_("e");
+    linhas.push({nome:"Internos",cor:"var(--s0)",pontos:evolucaoMensal(audits,meses,a=>fi(a.service))});
+    linhas.push({nome:"Externos",cor:"var(--s3)",pontos:evolucaoMensal(audits,meses,a=>fe(a.service))});
+  }else linhas.push({nome:"Média de todos os serviços",cor:"var(--s0)",pontos:geral});
+  let svcPts=null;
+  if(anFiltro.svc){svcPts=evolucaoMensal(audits,meses,a=>a.service===anFiltro.svc);
+    linhas.push({nome:anFiltro.svc,cor:"var(--s1)",pontos:svcPts,tracejado:true});}
+  const ch=document.getElementById("ch-evo"),tem=linhas.some(l=>l.pontos.some(p=>p.media!=null));
+  ch.innerHTML=tem?evolucaoMensalSVG(linhas,meses,de?de.slice(0,7):""):`<p class="empty">${anEvoModo==="tipos"&&geral.some(p=>p.media!=null)?
+    "Nenhum serviço auditado tem tipo (interno ou externo): escolha-o em Config → Serviços e objectivo.":"Sem auditorias nos últimos 12 meses."}</p>`;
+  ch.setAttribute("aria-label",tem?"Evolução mensal da nota nos últimos 12 meses: "+linhas.map(l=>l.nome+" "+
+    l.pontos.filter(p=>p.media!=null).map(p=>mesCurto(p.mes)+" "+p.media).join(", ")).join("; "):"Sem auditorias nos últimos 12 meses.");
+  document.getElementById("ch-leg").innerHTML=tem?linhas.map(l=>`<span><i class="${l.tracejado?"tr":"ln"}" style="${l.tracejado?"border-color":"background"}:${l.cor}"></i>${esc(l.nome)}</span>`).join("")+
+    `<span>Tracejado fino: 50 e 80 (faixas)</span>`+(de?`<span>A sombreado: o período escolhido</span>`:""):"";
+  /* A leitura do gráfico, numa frase. */
+  const ult=pts=>{for(let i=pts.length-1;i>=0;i--)if(pts[i].media!=null)return pts[i];return null;};
+  const ug=ult(geral);let ler="";
+  if(svcPts){const us=ult(svcPts);
+    if(us){const ref=geral.find(p=>p.mes===us.mes);
+      ler=`<b>${esc(anFiltro.svc)}</b>: ${us.media} em ${esc(nomeMes(us.mes))}`+(ref&&ref.media!=null?`, ${us.media>ref.media?"acima":us.media<ref.media?"abaixo":"igual"} da média de todos (${ref.media})`:"")+".";}}
+  else if(ug){const com=geral.filter(p=>p.media!=null),max=com.reduce((m,p)=>p.media>m.media?p:m,com[0]),ant=com.length>1?com[com.length-2]:null;
+    ler=`Média de ${esc(nomeMes(ug.mes))}: <b>${ug.media}</b>`+(ant?`, ${setaVariacao(ug.media-ant.media)} face a ${esc(nomeMes(ant.mes))} (${ant.media})`:"")+
+      (max&&max!==ug?`. Máximo dos 12 meses: ${max.media}, em ${esc(nomeMes(max.mes))}`:"")+".";}
+  document.getElementById("evo-ler").innerHTML=ler;
+}
+/* v4.16.0: a comparação entre serviços. Com mais de 10, os 5 piores e os 5
+   melhores, e «Ver todos». */
+let anCmpTodos=false;
+function renderComparacao(lista,listaAnt){
+  const box=document.getElementById("cmp-svc");
+  const l=comparacaoServicos(lista,listaAnt),LIM=5;
+  document.getElementById("an-nota-cmp").textContent=l.length?"Do pior para o melhor"+(listaAnt?" · variação face aos "+anFiltro.meses+" meses anteriores":"")+".":"";
+  if(!l.length){box.innerHTML=`<p class="empty">Sem dados.</p>`;return;}
+  const linha=x=>`<div class="cmp-linha"><span class="nome">${esc(x.service)} <small>· ${x.n} aud.</small></span>`+
+    `<span class="v">${listaAnt?setaVariacao(x.delta):""}</span><span class="p">${x.media}</span>`+
+    `<div class="bar"><i class="${barCls(x.media)}" style="width:${x.media}%"></i></div></div>`;
+  const resumir=!anCmpTodos&&l.length>LIM*2;
+  box.innerHTML=(resumir?`<div class="cmp-sep">Os ${LIM} piores</div>`+l.slice(0,LIM).map(linha).join("")+
+    `<div class="cmp-sep">Os ${LIM} melhores</div>`+l.slice(-LIM).map(linha).join(""):l.map(linha).join(""))+
+    (l.length>LIM*2?`<button type="button" class="btn small ghost" id="btn-cmp-todos">${resumir?"Ver todos ("+l.length+")":"Ver só os piores e os melhores"}</button>`:"");
+  const b=document.getElementById("btn-cmp-todos");
+  if(b)b.onclick=()=>{anCmpTodos=!anCmpTodos;renderComparacao(lista,listaAnt);};
+}
+/* v4.16.0: as 5 perguntas com pior resultado no período. */
+function renderPerguntasFalham(lista,listaAnt){
+  const box=document.getElementById("an-pf");
+  const l=perguntasQueFalham(lista,listaAnt,5);
+  document.getElementById("an-nota-pf").textContent=l.length?"As "+l.length+" com pior resultado no período"+
+    (listaAnt?", com a variação face aos "+anFiltro.meses+" meses anteriores":"")+(anFiltro.svc?"":" · onde mais falham")+".":"";
+  if(!l.length){box.innerHTML=`<p class="empty">${lista.length?"Todas as perguntas ficaram Excelente no período.":"Sem dados."}</p>`;return;}
+  box.innerHTML=l.map((x,k)=>`<div class="pf"><span class="num">${k+1}</span>`+
+    `<div class="q">${esc(x.c||x.t)}<small>Nº ${esc(x.n)}${x.t?" · "+esc(x.t):""} · ${esc(PILLARS[x.p]||"")} · ${esc(isResp(x.r)?RESP[x.r]:x.r||"")}</small></div>`+
+    `<div class="d"><b>${x.pct}%</b>${listaAnt?setaVariacao(x.delta):""}</div>`+
+    `<div class="bar"><i class="${barCls(x.pct)}" style="width:${x.pct}%"></i></div>`+
+    (!anFiltro.svc&&x.servicos.length?`<div class="chips">${x.servicos.map((s,i)=>`<span class="chip${i?"":" m"}">${esc(s)}</span>`).join("")}</div>`:"")+`</div>`).join("");
 }
 /* v4.11.0: ▲ ▼ ou ＝ (1 ponto ou menos) com o número; «—» sem comparação. */
 function setaVariacao(d,un){
@@ -4779,23 +4956,31 @@ function renderKpis(){
       ${g.total?`<small id="${id}-por" style="color:var(--muted);display:block;margin:-2px 0 ${g.porAuditar.length?"0":"8px"}">Sem auditoria: <b>${g.porAuditar.length}</b> (${g.pctPorAuditar}%)</small>`:""}
       ${g.porAuditar.length?`<small style="color:var(--muted);display:block;margin:0 0 8px">Por auditar: ${g.porAuditar.map(esc).join(", ")}</small>`:""}</div>`;};
   const t=k.tipos;
-  const cobertura=`<div class="kpi-sec" id="kpi-tipos"><h4>Serviços auditados em ${k.ano}</h4>`+
+  /* v4.16.0: as secções de seguimento abrem e fecham; fechadas, mostram um
+     resumo no título. Ficam à vista os números e os serviços abaixo da média. */
+  const det=(id,tit,res,corpo,alerta)=>`<details class="kpi-det" id="${id}"><summary><span class="t">${tit}</span>`+
+    `<span class="r${alerta?" alerta":""}">${res}</span><span class="chev" aria-hidden="true"></span></summary><div class="c">${corpo}</div></details>`;
+  const cobertura=det("kpi-tipos","Serviços auditados em "+k.ano,
+    "internos "+t.interno.auditados+" de "+t.interno.total+" · externos "+t.externo.auditados+" de "+t.externo.total,
     grupo("kpi-int","Internos",t.interno)+grupo("kpi-ext","Externos",t.externo)+
-    (t.semTipo.total?`<small style="color:var(--muted)">${t.semTipo.total} serviço(s) sem tipo (${t.semTipo.auditados} auditado(s)): escolha interno ou externo em Config → Serviços.</small>`:"")+`</div>`;
+    (t.semTipo.total?`<small style="color:var(--muted)">${t.semTipo.total} serviço(s) sem tipo (${t.semTipo.auditados} auditado(s)): escolha interno ou externo em Config → Serviços.</small>`:""));
   /* v4.4.0: os serviços por faixa da sua média no ano (critério absoluto). */
-  const fx=k.faixas,faixas=k.servicos?`<div class="kpi-sec" id="kpi-faixas"><h4>Serviços por faixa em ${k.ano}</h4>
-    <div class="stat-row"><span>Excelente (80 ou mais)</span><span><b>${fx.excelente}</b></span></div>
+  const fx=k.faixas,faixas=k.servicos?det("kpi-faixas","Serviços por faixa em "+k.ano,
+    fx.excelente+" Excelente · "+fx.oportunidade+" Com oportunidade · "+fx.critico+" Crítico",
+    `<div class="stat-row"><span>Excelente (80 ou mais)</span><span><b>${fx.excelente}</b></span></div>
     <div class="stat-row"><span>Com oportunidade (50 a 79)</span><span><b>${fx.oportunidade}</b></span></div>
-    <div class="stat-row"><span>Crítico (abaixo de 50)</span><span><b>${fx.critico}</b></span></div></div>`:"";
+    <div class="stat-row"><span>Crítico (abaixo de 50)</span><span><b>${fx.critico}</b></span></div>`,fx.critico>0):"";
   /* Seguimento, até hoje e sem o filtro do ano: há quanto tempo cada serviço
      não é auditado, e as perguntas que falham auditoria após auditoria. */
   const sem=ultimaAuditoriaPorServico(audits,services,hoje).slice(0,5);
-  const semHtml=sem.length?`<div class="kpi-sec" id="kpi-sem-auditoria"><h4>Há mais tempo sem auditoria</h4>`+
-    sem.map(x=>`<div class="stat-row"><span>${esc(x.service)}</span><span>${x.dias==null?"nunca auditado":"há "+x.dias+(x.dias===1?" dia":" dias")+" · "+esc(dataCurta(x.ultima))}</span></div>`).join("")+`</div>`:"";
-  const reinc=reincidencias(audits),reincHtml=reinc.length?`<div class="kpi-sec" id="kpi-reinc"><h4>Perguntas reincidentes — ${reinc.length} caso(s)</h4>
-    <small style="color:var(--muted);display:block;margin-bottom:6px">Não ficaram Excelente em auditorias seguidas ao mesmo serviço, até à última.</small>`+
+  const semHtml=sem.length?det("kpi-sem-auditoria","Há mais tempo sem auditoria",
+    esc(sem[0].service)+", "+(sem[0].dias==null?"nunca auditado":"há "+sem[0].dias+(sem[0].dias===1?" dia":" dias")),
+    sem.map(x=>`<div class="stat-row"><span>${esc(x.service)}</span><span>${x.dias==null?"nunca auditado":"há "+x.dias+(x.dias===1?" dia":" dias")+" · "+esc(dataCurta(x.ultima))}</span></div>`).join(""),
+    sem[0].dias==null):"";
+  const reinc=reincidencias(audits),reincHtml=reinc.length?det("kpi-reinc","Perguntas reincidentes",reinc.length+" caso(s)",
+    `<small style="color:var(--muted);display:block;margin-bottom:6px">Não ficaram Excelente em auditorias seguidas ao mesmo serviço, até à última.</small>`+
     reinc.slice(0,8).map(x=>`<div class="kpi-linha"><span><b>${esc(x.service)}</b><br><small style="color:var(--muted)">Nº ${esc(x.n)} · ${esc(x.t||x.c)}</small></span><span class="pill" style="background:var(--red)">${x.seguidas} seguidas</span></div>`).join("")+
-    (reinc.length>8?`<small style="color:var(--muted)">E mais ${reinc.length-8}.</small>`:"")+`</div>`:"";
+    (reinc.length>8?`<small style="color:var(--muted)">E mais ${reinc.length-8}.</small>`:""),true):"";
   const disp=k.n?`<p id="kpi-dispersao" style="font-size:.78rem;color:var(--muted);margin:4px 0">Nota mais baixa: <b>${k.minimo.nota}</b> (${esc(k.minimo.service)}, ${esc(dataCurta(k.minimo.date))}) · mais alta: <b>${k.maximo.nota}</b> (${esc(k.maximo.service)}, ${esc(dataCurta(k.maximo.date))})</p>`:"";
   box.innerHTML=`<div class="kpi-grelha">${tiles}</div>${disp}${ritmo}${abaixo}${faixas}${cobertura}${semHtml}${reincHtml}`;
   box.querySelectorAll("[data-kpi-plano]").forEach(b=>b.onclick=()=>{
@@ -4899,9 +5084,22 @@ function resumosCfg(){
   const proprio=pinGuardadoValido(load(PIN_KEY,null));
   put("res-pin",proprio?"Código próprio deste dispositivo":"A usar o código de origem");
   put("sel-pin","","");
+  const tm=temaAtual();
+  put("res-aspecto",{auto:"Automático: segue o aparelho",claro:"Sempre claro",escuro:"Sempre escuro"}[tm]);
+  document.querySelectorAll("[data-tema]").forEach(x=>{if(x.tagName==="BUTTON")x.setAttribute("aria-pressed",String(x.dataset.tema===tm));});
   const b=document.getElementById("cfg-tudo"),g=[...document.querySelectorAll("#view-cfg details.grp")];
   if(b)b.textContent=g.every(d=>d.open)?"Fechar tudo":"Abrir tudo";
 }
+/* v4.17.0: o tema. Guarda-se à parte (chave «tema»), não nas cópias de segurança:
+   é uma preferência deste aparelho, como o código de acesso. */
+function temaAtual(){let t=null;try{t=localStorage.getItem("tema");}catch(e){}return t==="claro"||t==="escuro"?t:"auto";}
+function escolherTema(t){
+  try{if(t==="claro"||t==="escuro")localStorage.setItem("tema",t);else localStorage.removeItem("tema");}catch(e){}
+  if(t==="claro"||t==="escuro")document.documentElement.setAttribute("data-tema",t);
+  else document.documentElement.removeAttribute("data-tema");
+  resumosCfg();
+}
+document.querySelectorAll("button[data-tema]").forEach(b=>b.onclick=()=>escolherTema(b.dataset.tema));
 {const g=[...document.querySelectorAll("#view-cfg details.grp")],b=document.getElementById("cfg-tudo");
   g.forEach(d=>d.addEventListener("toggle",()=>{if(b)b.textContent=g.every(x=>x.open)?"Fechar tudo":"Abrir tudo";}));
   /* v4.14.0: o texto muda logo no toque. O evento «toggle» chega depois (é
@@ -5043,6 +5241,8 @@ function carregarPdf(){
 /* Na cópia que o html2canvas desenha, as regras de impressão passam a valer e
    as do modo escuro deixam de valer: o PDF sai igual ao que a impressão dá. */
 function modoImpressao(doc){
+  /* v4.17.0: o tema escuro escolhido à mão também não vale no PDF. */
+  if(doc.documentElement)doc.documentElement.removeAttribute("data-tema");
   for(const sh of doc.styleSheets){
     let regras;try{regras=sh.cssRules;}catch(e){continue;}
     for(const r of regras){
@@ -7171,7 +7371,8 @@ on("btn-expxl","click",()=>exportExcel());
 [["hf-svc","svc"],["hf-est","estado"],["hf-nota","nota"],["hf-de","de"],["hf-ate","ate"]].forEach(([id,k])=>
   on(id,"change",e=>{histFiltro[k]=e.target.value;histMostrar=HIST_PAGINA;renderHist();}));
 on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");histMostrar=HIST_PAGINA;renderHist();});
-on("an-svc","change",e=>{anFiltro.svc=e.target.value;renderStats();});
+on("an-svc","change",e=>{anFiltro.svc=e.target.value;anCmpTodos=false;renderStats();});
+document.querySelectorAll("[data-evo]").forEach(b=>b.onclick=()=>{anEvoModo=b.dataset.evo;renderEvolucao(hojeISO(),desdeMeses(anFiltro.meses,hojeISO()));});
 on("ac-estado","change",e=>{acFiltro.estado=e.target.value;acMostrar.clear();renderAcoes();});
 on("ac-r","change",e=>{acFiltro.r=e.target.value;acMostrar.clear();renderAcoes();});
 on("ac-svc","change",e=>{acFiltro.svc=e.target.value;acMostrar.clear();renderAcoes();});

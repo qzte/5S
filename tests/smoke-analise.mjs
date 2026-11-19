@@ -78,6 +78,20 @@ for (const [nome, viewport] of [["pc", { width: 900, height: 1000 }], ["telemove
   check(await pg.locator("#cmp-resp .vr tbody tr").count() >= 1, nome + ": a tabela dos responsáveis devia ter linhas");
   check(await pg.locator("#cmp-pilar .vr u").count() >= 1, nome + ": o traço do período anterior devia aparecer");
 
+  /* 4.16.0: indicadores do ano compactos, evolução mensal, comparação e perguntas. */
+  check(await pg.locator("#card-kpis details.kpi-det").count() >= 2, nome + ": as secções do ano abrem e fecham");
+  check(!(await pg.locator("#kpi-tipos").evaluate(d => d.open)), nome + ": as secções começam fechadas");
+  check(/internos 2 de 2 · externos/.test(await pg.locator("#kpi-tipos summary").textContent()), nome + ": o resumo no título da secção");
+  check(await pg.locator("#ch-evo svg").count() === 1 && await pg.locator("#ch-evo svg rect").count() === 1, nome + ": a evolução com o período sombreado");
+  await pg.locator("[data-evo=tipos]").click();
+  check(/Internos/.test(await pg.locator("#ch-leg").textContent()) && /Externos/.test(await pg.locator("#ch-leg").textContent()), nome + ": internos e externos na evolução");
+  await pg.locator("[data-evo=geral]").click();
+  const cmp = await pg.evaluate(() => [...document.querySelectorAll("#cmp-svc .cmp-linha .p")].map(e => +e.textContent));
+  check(cmp.length === 3 && cmp.every((v, i) => !i || v >= cmp[i - 1]), nome + ": comparação do pior para o melhor: " + cmp);
+  check(await pg.locator("#cmp-svc .cmp-linha .v").first().textContent() !== "", nome + ": a comparação mostra a variação");
+  check(await pg.locator("#an-pf .pf").count() >= 1 && await pg.locator("#an-pf .chip.m").count() >= 1, nome + ": perguntas que mais falham, com onde falham");
+  check(/Ext C \(3\)/.test(await pg.locator("#an-pf").textContent()), nome + ": o serviço onde mais falham é o Ext C");
+
   /* 4. Um serviço escolhido: só o tipo dele. */
   await pg.locator("#an-svc").selectOption("Ext C (3)");
   const ie2 = await pg.locator("#an-ie").textContent();

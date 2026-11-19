@@ -5,8 +5,10 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(["periodoAnterior", "desdeMeses", "resumoAnalise", "internosExternos", "variacaoEixos",
-  "avg", "diasEntre", "estadoAcao", "tipoDe", "auditadoNoAno", "codigoServico"], ["norm", "umaCasa"]);
-const { periodoAnterior, resumoAnalise, internosExternos, variacaoEixos, total } = ctx;
+  "avg", "diasEntre", "estadoAcao", "tipoDe", "auditadoNoAno", "codigoServico",
+  "mesesAte", "evolucaoMensal", "comparacaoServicos", "perguntasQueFalham", "ordemCron"], ["norm", "umaCasa", "ITEMS", "itemsOf"]);
+const { periodoAnterior, resumoAnalise, internosExternos, variacaoEixos, total,
+  mesesAte, evolucaoMensal, comparacaoServicos, perguntasQueFalham } = ctx;
 const T = sc => total({ scores: sc });
 const plain = o => JSON.parse(JSON.stringify(o));
 
@@ -97,4 +99,49 @@ test("variação por eixo: delta, eixo sem perguntas antes e a maior descida", (
   assert.deepStrictEqual(plain(variacaoEixos(agora, null)).map(x => x.delta), [null, null, null, null]);
   /* Uma descida de 1 ponto não é «a maior descida». */
   assert.ok(!plain(variacaoEixos([{ name: "U", pct: 70 }], [{ name: "U", pct: 71, n: 1 }]))[0].pior);
+});
+
+/* ---- 4.16.0 ---- */
+test("meses até hoje: 12, do mais antigo, a passar o ano", () => {
+  assert.deepStrictEqual(plain(mesesAte("2026-02-10", 4)), ["2025-11", "2025-12", "2026-01", "2026-02"]);
+  assert.strictEqual(mesesAte("2026-11-19", 12).length, 12);
+  assert.strictEqual(mesesAte("2026-11-19", 12)[0], "2025-12");
+});
+
+test("evolução mensal: a média de cada mês, null sem auditorias, e o filtro", () => {
+  const L = [aud("A", "2026-01-05", S100), aud("B", "2026-01-20", S50), aud("A", "2026-03-01", S0), aud("A", "2025-06-01", S100)];
+  const e = plain(evolucaoMensal(L, ["2026-01", "2026-02", "2026-03"]));
+  assert.deepStrictEqual(e.map(x => x.n), [2, 0, 1]);
+  assert.deepStrictEqual(e.map(x => x.media), [Math.round((T(S100) + T(S50)) / 2), null, T(S0)]);
+  const so = plain(evolucaoMensal(L, ["2026-01"], a => a.service === "A"));
+  assert.deepStrictEqual(so.map(x => x.media), [T(S100)]);
+});
+
+test("comparação entre serviços: do pior para o melhor, com auditorias e variação", () => {
+  const atual = [aud("A", "2026-11-01", S100), aud("A", "2026-11-02", S50), aud("B", "2026-11-03", S0), aud("C", "2026-11-04", S50)];
+  const ant = [aud("A", "2026-07-01", S50), aud("C", "2026-07-01", S100)];
+  const r = plain(comparacaoServicos(atual, ant));
+  assert.deepStrictEqual(r.map(x => x.service), ["B", "C", "A"]);
+  assert.deepStrictEqual(r.map(x => x.n), [1, 1, 2]);
+  assert.strictEqual(r[0].delta, null, "B não tinha auditorias antes");
+  assert.strictEqual(r[1].delta, T(S50) - T(S100));
+  assert.strictEqual(r[2].delta, Math.round((T(S100) + T(S50)) / 2) - T(S50));
+  assert.ok(plain(comparacaoServicos(atual, null)).every(x => x.delta === null));
+});
+
+test("perguntas que mais falham: as piores, a variação e onde falham", () => {
+  const IT = [{ n: 1, t: "Materiais", c: "Artigos extra", p: 0, r: "U" }, { n: 2, t: "Kanbans", c: "Kanbans a mais", p: 0, r: "U" },
+    { n: 3, t: "Estantes", c: "Estantes", p: 1, r: "M" }];
+  const a = (s, d, sc) => ({ id: s + d, service: s, date: d, scores: sc, items: IT });
+  const atual = [a("A", "2026-11-01", [0, 1, 2]), a("B", "2026-11-02", [0, 2, 2]), a("C", "2026-11-03", [1, 2, 2])];
+  const ant = [a("A", "2026-07-01", [2, 2, 2])];
+  const r = plain(perguntasQueFalham(atual, ant, 5));
+  assert.deepStrictEqual(r.map(x => x.n), [1, 2], "a nº 3 ficou sempre Excelente e não entra");
+  assert.strictEqual(r[0].c, "Artigos extra");
+  assert.deepStrictEqual(r[0].servicos, ["A", "B", "C"]);
+  assert.deepStrictEqual(r[1].servicos, ["A"]);
+  assert.ok(r[0].pct < r[1].pct);
+  assert.strictEqual(r[0].delta, r[0].pct - 100);
+  assert.strictEqual(plain(perguntasQueFalham(atual, null, 1)).length, 1);
+  assert.strictEqual(plain(perguntasQueFalham(atual, null, 5))[0].delta, null);
 });
