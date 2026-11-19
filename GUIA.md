@@ -248,8 +248,16 @@ Uma **acção** é um passo concreto, com
 
 ## Histórico
 
-- **Filtros** — por serviço, intervalo de datas e faixa de nota (Crítico,
-  Com oportunidade, Excelente). *Limpar filtros* repõe tudo.
+- **Os números do topo** — quantas auditorias há, quantas estão **por
+  finalizar** (feitas no telemóvel), **por enviar** (o relatório ainda não foi
+  por email nem pelo Teams) e quantas têm **acções em atraso**. Tocar num número
+  mostra só essas auditorias (o cartão fica marcado com «✓ filtro»); tocar
+  outra vez, ou em *Auditorias*, mostra todas.
+- **Filtros** — num bloco que abre e fecha ao tocar no título, onde se lêem os
+  filtros activos. Por serviço, **estado** (por finalizar, por enviar,
+  enviadas, com acções em aberto, com acções em atraso), faixa de nota
+  (Crítico, Com oportunidade, Excelente) e intervalo de datas. *Limpar filtros*
+  repõe tudo.
 - **Cada auditoria** mostra a nota e a variação face à anterior ao mesmo
   serviço (▲ subiu, ▼ desceu). Aparecem 50 de cada vez: **Mostrar mais** traz
   as seguintes.
