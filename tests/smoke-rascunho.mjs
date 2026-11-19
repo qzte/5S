@@ -51,7 +51,7 @@ check(await pg.locator("#f-verif").inputValue() === "Beltrano", "o verificador d
 check(await pg.locator("[data-presente='P']").inputValue() === "Bruno", "o nome de quem está presente devia voltar depois de recarregar");
 check(await pg.locator("[data-pick='0']").inputValue() === "1", "a resposta 0 devia voltar");
 check(await pg.locator("[data-pick='1']").inputValue() === "2", "a resposta 1 devia voltar");
-check(/2\/19 itens/.test(await pg.locator("#f-live").inputValue()), "a nota em directo devia contar as 2 respostas");
+check(/2 de 19 respondidas/.test(await pg.locator("#aud-n").textContent()), "a barra de progresso devia contar as 2 respostas");
 check(await visivel("#draft-banner"), "depois de recarregar, o aviso de rascunho devia estar visível");
 
 /* ---- 3. Redesenhar o formulário (novo serviço) não apaga as respostas. ---- */

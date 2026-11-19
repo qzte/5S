@@ -147,6 +147,7 @@ const antesPin = pc.vistos.length;
 await pg.locator("#btn-edit").click();
 check(!(await pg.locator("#edit-banner").isHidden()), "por finalizar, edita-se sem código");
 check(!pc.vistos.slice(antesPin).some(d => d.temCampo), "sem pedir o código");
+await pg.locator("#aud-dados > summary").click();   /* 4.15.0: abrir os dados, fechados ao editar */
 await pg.locator("#f-note").fill("completada no PC");
 await escolherServico(pg); await pg.locator("#btn-save").click();
 await semDialogo(pg);

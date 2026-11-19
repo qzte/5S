@@ -73,6 +73,12 @@ PC completa-se, finaliza-se e envia-se o PDF (ver
 
 No separador **Auditar**:
 
+Os dados da auditoria (serviço, data, presentes, verificador e observação)
+ficam num bloco que abre e fecha: aberto numa auditoria nova, fechado ao editar
+uma já gravada. Fechado, o título resume-os e diz o que falta (*falta o
+serviço*, *falta o verificador*) ou *completo*. **Feito · começar as perguntas**
+fecha-o e leva às perguntas; para corrigir, toque no título.
+
 1. **Escolha o serviço.** Na caixa do serviço, escreva parte do nome ou o
    código: abre-se por baixo a lista dos que casam, com os serviços da lista
    (*Config → Serviços*) e, num grupo à parte, os que só existem em auditorias
@@ -85,7 +91,11 @@ No separador **Auditar**:
 3. **Acções em aberto neste serviço.** Se auditorias anteriores deixaram acções
    por fazer, aparecem num cartão no topo. Verifique no local e marque **Feita**
    nas que ficaram resolvidas (ver [Plano de acção](#plano-de-acção)).
-4. **Responda às 19 perguntas.** A nota vai sendo calculada em *Nota (auto)*.
+4. **Responda às 19 perguntas.** As caixas por responder dizem *Por
+   responder*. A **barra de progresso**, presa ao topo do ecrã, mostra quantas
+   já respondeu, quantas estão a melhorar e a nota em directo; por baixo, um
+   botão por pilar (com ✓ quando o pilar está completo) salta para ele. Cada
+   pergunta respondida ganha uma risca com a cor da resposta.
    Em cada pergunta que a última auditoria ao serviço não deu como Excelente,
    aparece o que lhe deu, para saber o que procurar.
 5. **Evidência e acção.** Numa pergunta classificada **Mau** ou

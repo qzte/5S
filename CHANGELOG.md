@@ -5,6 +5,25 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.15.0] — 2026-11-19
+
+### Alterado
+
+- **Auditar: os dados da auditoria num bloco que abre e fecha.** O serviço, a data, os presentes, o verificador e a
+  observação ficam num bloco aberto numa auditoria nova e fechado ao editar.
+  - **Fechado**, o título resume-os (serviço, data, verificador, quantos presentes) e diz o que falta: *falta o
+    serviço*, *falta a data*, *falta o verificador* ou *completo*.
+  - **Feito · começar as perguntas** fecha o bloco e leva às perguntas.
+- **Auditar: barra de progresso presa ao topo**, com as respondidas («3 de 19 respondidas»), quantas estão a melhorar,
+  a nota em directo e uma barra de avanço.
+  - **Pilares:** por baixo, um botão por pilar com as respondidas (✓ quando completo, laranja a meio), que salta para
+    o pilar. O título de cada pilar também diz quantas tem respondidas.
+  - **Nota em directo:** o campo *Nota (auto)* saiu; a nota está agora na barra.
+- **Perguntas:** as caixas vazias dizem *Por responder* (diziam «0», que se confundia com uma resposta). Cada
+  pergunta respondida tem uma risca com a cor da resposta: verde, amarela ou vermelha.
+- **Testes:** `tests/smoke-auditar.mjs` (na CI). `smoke-edicao` e `smoke-terreno` abrem os dados antes de mudar a
+  observação de uma auditoria em edição; `smoke-edicao` e `smoke-rascunho` lêem a nota e a contagem na barra.
+
 ## [4.14.0] — 2026-11-19
 
 ### Acrescentado
