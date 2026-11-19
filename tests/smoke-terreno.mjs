@@ -15,6 +15,7 @@ import os from "os";
 import path from "path";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -188,6 +189,7 @@ check(estado.n === 2 && estado.ult.note === "completada no PC" && !estado.ult.fa
 
 /* ---------- 3. Do PC para o telemóvel: Fundir actualiza ---------- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 const [dj] = await Promise.all([pg.waitForEvent("download"), pg.locator("#btn-expjson").click()]);
 const copia = path.join(tmp, "copia.json");
 fs.writeFileSync(copia, fs.readFileSync(await dj.path()));
@@ -209,6 +211,7 @@ pg = pc.pg;
 check(!!(await pg.evaluate(() => audits[audits.length - 1].finalizadaPor)), "finalizar regista o dispositivo");
 /* Tipo do serviço e objectivo anual, em Config (4.0.0). */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await pg.locator("[data-tipo='0']").selectOption("e");
 await pg.locator("#obj-n").fill("40");
 await pg.locator("#obj-n").press("Tab");
@@ -224,6 +227,7 @@ const mail = (await pg.evaluate(() => window.__links))[0] || "";
 check(/^mailto:\?subject=/.test(mail), "o email abre sem destinatário: " + mail.slice(0, 80));
 /* Enviar para o telemóvel: a cópia sem fotos, marcada. */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 const [dt] = await Promise.all([pg.waitForEvent("download", { timeout: 30000 }), pg.locator("#btn-telemovel").click()]);
 check(/^auditorias5s_para_telemovel_\d{4}-\d{2}-\d{2}\.json$/.test(dt.suggestedFilename()), "o nome do ficheiro para o telemóvel: " + dt.suggestedFilename());
 const paraTel = path.join(tmp, dt.suggestedFilename());
@@ -243,6 +247,7 @@ const noTel = await pg.evaluate(() => ({ t: tipos, o: objetivos }));
 check(noTel.t.length === 1 && noTel.t[0].t === "e", "o tipo do serviço chega ao telemóvel");
 check(noTel.o.length === 1 && noTel.o[0].n === 40, "e o objectivo do PC");
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await pg.waitForFunction(() => !document.getElementById("limpeza").classList.contains("hidden"), null, { timeout: 5000 }).catch(() => {});
 check(/1 foto\(s\) de 1 auditoria/.test(await pg.locator("#limpeza").textContent()), "oferece apagar as fotos que já estão no PC");
 await pg.locator("#btn-limpar-fotos").click();

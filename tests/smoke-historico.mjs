@@ -7,6 +7,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -128,6 +129,7 @@ check(await pg.locator("#evid img").count() === 1, "depois de recarregar, a foto
 
 /* ---- 6. Exportar para Excel. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 const [dl] = await Promise.all([pg.waitForEvent("download"), pg.locator("#btn-expxl").click()]);
 check(/^auditorias5s_\d{4}-\d{2}-\d{2}\.xlsx$/.test(dl.suggestedFilename()), "o ficheiro devia ser .xlsx");
 const xl = fs.readFileSync(await dl.path());
@@ -170,6 +172,7 @@ fs.writeFileSync(ficheiro, JSON.stringify({ app: "auditoria5s", version: "3.9.0"
 vistos = [];
 resposta = () => "Cancelar";
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await pg.locator("#hist-file").setInputFiles(ficheiro);
 await pg.waitForFunction(() => document.getElementById("dlg").open).catch(() => {});
 await semDialogo(pg);

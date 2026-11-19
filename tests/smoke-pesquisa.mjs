@@ -13,6 +13,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -90,6 +91,7 @@ check(await valor() === "Talho (101)", "sair com um só a casar escolhe-o");
 
 /* ---- 3. A listagem do sistema (as colunas do Livro2.xlsx), em CSV. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 const csv = path.join(os.tmpdir(), "5s-listagem-servicos.csv");
 fs.writeFileSync(csv, "ID_SERVICO,DESCRICAO_SERVICO,LOCAL_SERVICO,SERVICO_ATIVO\n" +
   "teste2,teste 2,Interno,TRUE\nteste3,teste 3,Interno,TRUE\nteste4,teste 4,Externo,TRUE\nteste5,teste 5,Externo,FALSE\n");
@@ -129,6 +131,7 @@ await pg.evaluate(() => {
 });
 await pg.reload();
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 caixas.length = 0;
 const csv3 = path.join(os.tmpdir(), "5s-listagem-servicos-3.csv");
 fs.writeFileSync(csv3, "ID_SERVICO,DESCRICAO_SERVICO,LOCAL_SERVICO,SERVICO_ATIVO\n70EE10,Téc.Nefrol,Interno,TRUE\n");
@@ -166,6 +169,7 @@ await busca.fill("padaria");
 check(await pg.locator("#f-svc-lista [data-svc]").count() === 1, "o serviço da auditoria antiga continua na pesquisa");
 await busca.press("Escape");
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 
 /* ---- 4. E pesquisam-se logo no Auditar. ---- */
 await pg.locator("[data-v=audit]").click();

@@ -5,6 +5,7 @@
 import pw from "playwright";
 import fs from "fs";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -42,6 +43,7 @@ const abreEditor = async c => {
 };
 
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 
 /* ---- 1. De origem: o estado di-lo, e não há «voltar ao de origem». ---- */
 check(/código de origem/.test(await estado()), "sem código próprio, devia dizer que usa o de origem");
@@ -76,6 +78,7 @@ check(await abreEditor(NOVO), "o código novo devia abrir o editor");
 /* ---- 4. Sobrevive a recarregar; não vai na cópia de segurança. ---- */
 await pg.reload();
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 check(!(await abreEditor(ORIGEM)) && await abreEditor(NOVO), "depois de recarregar, continua a valer o novo");
 const [dl] = await Promise.all([pg.waitForEvent("download"), pg.locator("#btn-expjson").click()]);
 const copia = fs.readFileSync(await dl.path(), "utf8");

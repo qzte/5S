@@ -73,7 +73,7 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
   const cp = (await pg.evaluate(() => window.__partilhas.shift()));
   check(/^auditorias5s_\d{4}-\d{2}-\d{2}_com_fotos\.txt$/.test(cp.nome) && cp.tipo === "text/plain" && cp.inicio === '{"app',
     "a cópia do passo 1 vai pelo menu de partilha: " + JSON.stringify(cp).slice(0, 160));
-  check(/Importar cópia de segurança/.test(cp.texto), "o texto diz como a recuperar: " + cp.texto);
+  check(/Config → Dados → Importar → Cópia de segurança/.test(cp.texto), "o texto diz como a recuperar: " + cp.texto);
   await pg.waitForFunction(() => /✓/.test(document.querySelectorAll("#pos-aud .passos li")[2].textContent));
   check(/✓ Feita/.test((await passos(pg))[2]), "o passo da cópia devia ficar feito");
 
@@ -137,7 +137,8 @@ const auditoria = (pg, id) => pg.evaluate(id => audits.find(a => a.id === id), i
   check(/✓ Feita/.test((await passos(pg))[2]), "sem partilha, a cópia também fica feita");
   check(!vistos.length, "sem partilha, o passo 1 não mostra avisos");
   /* O botão de importar diz que aceita os dois formatos. */
-  check(/\.json ou \.txt/.test(await pg.locator("#btn-impjson").textContent()), "o botão de importar diz .json ou .txt");
+  /* 4.9.0: o botão diz «Importar»; os formatos lêem-se na linha dele (JSON, TXT). */
+  check(/JSON[\s\S]*TXT/.test(await pg.locator(".acao", { has: pg.locator("#btn-impjson") }).textContent()), "a importação diz que aceita JSON ou TXT");
   const [d1] = await Promise.all([pg.waitForEvent("download", { timeout: 30000 }), pg.locator("#pa-email").click()]);
   check(/\.pdf$/.test(d1.suggestedFilename()), "sem partilha, o email descarrega o PDF");
   await pg.waitForFunction(() => window.__links.length === 1, null, { timeout: 10000 }).catch(() => {});

@@ -7,6 +7,7 @@
 import pw from "playwright";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -55,6 +56,7 @@ check(await visivel("#draft-banner"), "depois de recarregar, o aviso de rascunho
 
 /* ---- 3. Redesenhar o formulário (novo serviço) não apaga as respostas. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await pg.locator("#svc-new").fill("Serviço B (00002)");
 await pg.locator("#btn-addsvc").click();
 await pg.locator("[data-v=audit]").click();
@@ -95,6 +97,7 @@ check(bk && bk.pend === 0 && typeof bk.at === "string", "exportar devia registar
 
 /* ---- 7. Estado do armazenamento na Configuração. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 const armaz = await pg.locator("#data-armaz").textContent();
 check(/Espaço ocupado/.test(armaz) && /Protecção contra limpeza automática/.test(armaz) &&
   /Última cópia de segurança/.test(armaz) && !/Última cópia de segurança: nunca/.test(armaz),

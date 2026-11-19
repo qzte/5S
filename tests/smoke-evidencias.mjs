@@ -13,6 +13,7 @@ import pw from "playwright";
 import fs from "fs";
 import { ligarDialogos, semDialogo } from "./dialogos.mjs";
 import { escolherServico } from "./servico.mjs";
+import { abrirGruposCfg } from "./cfg.mjs";
 const { chromium } = pw;
 
 const URL = "http://127.0.0.1:8765/index.html";
@@ -107,6 +108,7 @@ check(await esperar(async () => (await chaves()).includes(id + "#0")), "voltar a
 
 /* ---- 5. Cópias: sem fotos e com fotos. ---- */
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 let [dl] = await Promise.all([pg.waitForEvent("download"), pg.locator("#btn-expjson").click()]);
 check(!("fotos" in JSON.parse(fs.readFileSync(await dl.path(), "utf8"))), "a cópia normal não leva fotos");
 [dl] = await Promise.all([pg.waitForEvent("download"), pg.locator("#btn-expfotos").click()]);
@@ -127,6 +129,7 @@ await pg.evaluate(() => new Promise(res => {
 await pg.reload();
 check((await chaves()).length === 0 && await pg.evaluate(() => audits.length) === 0, "o dispositivo devia ficar vazio");
 await pg.locator("[data-v=cfg]").click();
+await abrirGruposCfg(pg);
 await pg.locator("#hist-file").setInputFiles(caminho);
 check(await esperar(async () => (await chaves()).length === 2, 8000), "importar devia repor as duas fotos: " + (await chaves()).join(", "));
 await semDialogo(pg);

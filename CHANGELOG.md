@@ -5,6 +5,29 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.9.0] — 2026-11-19
+
+### Alterado
+
+- **A Configuração em quatro grupos que abrem e fecham.** Toca-se no título para abrir ou fechar; **Abrir tudo**, no
+  topo, abre-os todos.
+  - **Dados: importar e exportar** junta o que estava espalhado por quatro cartões (*Dados*, *Importar Excel*, *Cópia
+    de segurança na pasta partilhada* e *Painel e-ink*). **Exportar** e **Importar** ficam lado a lado (um por baixo
+    do outro no telemóvel), uma linha por acção, com o formato à vista (JSON, XLSX…). Por baixo vêm a gravação
+    automática (a pasta partilhada e o painel e-ink) e o espaço ocupado. Este grupo **abre sempre** ao entrar na
+    Config.
+  - **Serviços e objectivo**, **Perguntas e responsáveis** e **Código de acesso** começam fechados. Na linha do título
+    mostram um resumo («42 serviços · objectivo 2026: 300») e um aviso quando há alguma coisa a tratar («3 sem tipo»,
+    perguntas por converter, cópia na pasta em pausa ou com erro).
+  - A **Ajuda** passa para o fim, num cartão pequeno.
+  - Os botões e os campos são os mesmos (os mesmos `id`); os botões de Dados dizem só *Exportar* / *Importar*, e o
+    nome completo fica no `aria-label`.
+- Os avisos que mandavam carregar em «Exportar histórico (JSON)» ou em «Exportar com fotos (JSON)» passam a dizer onde
+  fica a acção (*Config → Dados*). O guia foi actualizado.
+- **Testes:** `tests/smoke-config.mjs` (Dados aberto, os outros fechados e com resumo, *Abrir tudo* / *Fechar tudo*,
+  Dados abre de novo ao voltar à Config). Os smoke tests que mexem na Config abrem primeiro todos os grupos
+  (`tests/cfg.mjs`); o de acessibilidade verifica a Config fechada e aberta.
+
 ## [4.8.2] — 2026-11-18
 
 ### Corrigido
