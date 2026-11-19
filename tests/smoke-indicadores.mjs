@@ -107,6 +107,11 @@ check(/100\/100/.test(await pg.locator("#kpi-media").textContent()), "no ano ant
 check(/Defina-o/.test(await pg.locator("#kpi-objetivo").textContent()), "sem objectivo nesse ano");
 await pg.locator("#an-ano").selectOption(String(ano));
 /* «Plano de acção» abre o relatório da última auditoria ao serviço. */
+/* 4.18.0: a lista dos serviços abaixo da média abre e fecha (fechada por omissão). */
+check(!(await pg.locator("#kpi-abaixo").evaluate(d => d.open)), "a lista abaixo da média começa fechada");
+check(/1 serviço · o pior: Loja B, 0/.test(await pg.locator("#kpi-abaixo summary").textContent()),
+  "o título diz quantos e qual o pior: " + await pg.locator("#kpi-abaixo summary").textContent());
+await pg.locator("#kpi-abaixo > summary").click();
 await pg.locator("[data-kpi-plano='0']").click();
 check(await pg.locator("#view-report").isVisible() && /Loja B/.test(await pg.locator("#plano").textContent()),
   "o botão abre o plano de acção da Loja B");

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.17.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.18.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -517,14 +517,6 @@ details.kpi-det>summary:focus-visible{outline:3px solid var(--accent);outline-of
 .legenda .ln{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}
 .evo-ler{font-size:.8rem;margin-top:8px;padding:8px 10px;border-radius:9px;background:var(--chip)}
 .evo-ler:empty{display:none}
-.cmp-linha{display:grid;grid-template-columns:1fr auto auto;gap:2px 10px;align-items:center}
-.cmp-linha .nome{font-family:var(--f-sans);font-weight:700;font-size:.82rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cmp-linha .nome small{font-weight:400;color:var(--muted);font-family:var(--f-serif)}
-.cmp-linha .v{font-family:var(--f-sans);font-weight:900;font-size:.78rem;text-align:right;white-space:nowrap}
-.cmp-linha .p{font-family:var(--f-sans);font-weight:900;font-size:.85rem;text-align:right;min-width:38px}
-.cmp-linha .bar{grid-column:1/-1;margin:2px 0 10px}
-.cmp-sep{font-family:var(--f-sans);font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);
-  border-top:1px dashed var(--line);padding-top:8px;margin-top:2px}
 .pf{display:grid;grid-template-columns:28px 1fr auto;gap:2px 10px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
 .pf:first-child{border-top:0}
 .pf .num{font-family:var(--f-sans);font-weight:900;font-size:.8rem;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--chip)}
@@ -537,6 +529,26 @@ details.kpi-det>summary:focus-visible{outline:3px solid var(--accent);outline-of
 .pf .chips{grid-column:2/-1;display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
 .pf .chip{font-family:var(--f-sans);font-size:.68rem;font-weight:700;background:var(--chip);border-radius:99px;padding:2px 8px}
 .pf .chip.m{color:var(--red-ink);box-shadow:inset 0 0 0 1.5px var(--red)}
+/* v4.18.0: os cartões da Análise minimizam-se ao tocar no título. */
+.an-topo{display:flex;justify-content:flex-end;margin:-4px 0 4px}
+.an-topo .btn.small{margin:0}
+details.cm{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
+details.cm>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:14px 16px}
+details.cm>summary::-webkit-details-marker{display:none}
+details.cm>summary:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:var(--radius)}
+details.cm[open]>summary{padding-bottom:6px}
+details.cm .ct{flex:1;min-width:0}
+details.cm .ct h3{margin:0;font-size:1rem}
+details.cm .ct-res{display:block;font-size:.76rem;color:var(--muted);margin-top:2px}
+details.cm[open] .ct-res{display:none}
+details.cm .chev{width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);margin:-4px 4px 0;flex:0 0 auto}
+details.cm[open]>summary .chev{transform:rotate(-135deg);margin-top:4px}
+details.cm>.cc{padding:0 16px 16px}
+.kpi-ano{display:flex;justify-content:flex-end;margin:-2px 0 8px}
+.kpi-ano select{width:auto;margin:0}
+details.cm.hidden{display:none}
+.kpi-det .r{text-align:right}
+@media (max-width:600px){.kpi-det>summary{flex-wrap:wrap}.kpi-det .t{flex:1 1 100%}.kpi-det .r{flex:1;text-align:left}}
 /* v4.15.0: Auditar — dados da auditoria compactos e barra de progresso presa ao topo. */
 details.aud-dados{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:14px;box-shadow:0 2px 0 rgba(29,42,36,.06)}
 details.aud-dados>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px}
@@ -885,23 +897,33 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
   <h2 class="sr-only">Análise</h2>
   <!-- v4.11.0: duas zonas. Em cima o que é sempre de todos os serviços (os
        indicadores do ano e o relatório mensal); em baixo, debaixo dos filtros,
-       o que segue o serviço e o período escolhidos. -->
+       o que segue o serviço e o período escolhidos.
+       v4.18.0: cada cartão minimiza-se ao tocar no título e, minimizado,
+       mostra um resumo numa linha (res-…). A app lembra-se dos minimizados
+       (chave «anMin»); por omissão só o relatório mensal. -->
+  <div class="an-topo"><button type="button" class="btn small ghost" id="an-min-tudo">Minimizar tudo</button></div>
   <div class="zona"><h3>Todos os serviços</h3><span>não segue os filtros</span></div>
-  <!-- v4.0.0: os indicadores do ano (KPIs), no ano escolhido aqui. -->
-  <div class="card" id="card-kpis">
-    <div class="kpi-topo"><h3>Indicadores do ano</h3>
-      <div><label for="an-ano" class="sr-only">Ano</label><select id="an-ano"></select></div></div>
-    <div id="kpis"></div>
-  </div>
-  <!-- v3.20.0: o relatório mensal, para a direcção. -->
-  <div class="card" id="card-mensal">
-    <h3 style="margin-bottom:6px">Relatório mensal</h3>
-    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">O resumo de um mês, de todos os serviços, pronto a imprimir em PDF: nota, serviços, pilares, perguntas que mais falharam e plano de acção.</p>
-    <div class="row">
-      <div><label for="an-mes">Mês</label><select id="an-mes"></select></div>
-      <div style="align-self:end"><button class="btn small" id="btn-mensal">Abrir relatório mensal</button></div>
-    </div>
-  </div>
+  <details class="cm" id="card-kpis" open>
+    <summary><span class="ct"><h3>Indicadores do ano</h3><span class="ct-res" id="res-card-kpis"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc">
+      <div class="kpi-ano"><label for="an-ano" class="sr-only">Ano</label><select id="an-ano"></select></div>
+      <div id="kpis"></div></div>
+  </details>
+  <details class="cm" id="card-svc-ano" open>
+    <summary><span class="ct"><h3><span id="svc-ano-tit">Serviços no ano</span></h3><span class="ct-res" id="res-card-svc-ano"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc">
+      <p class="an-nota">Toque numa linha para ver os serviços.</p>
+      <div id="kpis-svc"></div></div>
+  </details>
+  <details class="cm" id="card-mensal" open>
+    <summary><span class="ct"><h3>Relatório mensal</h3><span class="ct-res" id="res-card-mensal"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc">
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px">O resumo de um mês, de todos os serviços, pronto a imprimir em PDF: nota, serviços, pilares, perguntas que mais falharam e plano de acção.</p>
+      <div class="row">
+        <div><label for="an-mes">Mês</label><select id="an-mes"></select></div>
+        <div style="align-self:end"><button class="btn small" id="btn-mensal">Abrir relatório mensal</button></div>
+      </div></div>
+  </details>
 
   <div class="zona"><h3>Por serviço e período</h3><span>segue os filtros</span></div>
   <!-- v3.9.0: o serviço e o período. v4.11.0: presos ao topo ao deslizar. -->
@@ -916,29 +938,38 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
     </div>
     <div id="an-conta" role="status"></div>
   </div>
-  <!-- v4.11.0: o resumo em números do serviço e período escolhidos. -->
+  <!-- v4.11.0: o resumo em números do serviço e período escolhidos (não se minimiza). -->
   <div class="an-resumo" id="an-resumo"></div>
-  <!-- v4.11.0: internos e externos no período. -->
-  <div class="card" id="card-ie"><h3>Internos e externos</h3><div id="an-ie"></div></div>
-  <!-- v4.16.0: a evolução mensal (12 meses), legível com muitos serviços: a
-       média de todos, ou internos e externos; o serviço escolhido por cima. -->
-  <div class="card" id="card-evo"><h3>Evolução da nota</h3>
-    <div class="seg" role="group" aria-label="Mostrar na evolução">
-      <button type="button" data-evo="geral" aria-pressed="true">Média geral</button>
-      <button type="button" data-evo="tipos" aria-pressed="false">Internos e externos</button></div>
-    <div id="ch-evo" role="img"></div>
-    <div id="ch-leg" class="legenda"></div>
-    <p id="evo-ler" class="evo-ler"></p></div>
-  <!-- v4.16.0: do pior para o melhor, com auditorias e variação. -->
-  <div class="card"><h3>Comparação entre serviços</h3><p class="an-nota" id="an-nota-cmp"></p><div id="cmp-svc"></div></div>
-  <!-- v4.16.0: as perguntas com pior resultado no período. -->
-  <div class="card" id="card-pf"><h3>Perguntas que mais falham</h3><p class="an-nota" id="an-nota-pf"></p><div id="an-pf"></div></div>
-  <div class="card"><h3>Pontos fracos por pilar 5S</h3>
-    <p class="an-nota" id="an-nota-pilar"></p>
-    <div id="cmp-pilar"></div><div id="rad-pilar"></div></div>
-  <div class="card"><h3>Desempenho por responsável</h3>
-    <p class="an-nota" id="an-nota-resp"></p>
-    <div id="cmp-resp"></div><div id="rad-resp"></div></div>
+  <details class="cm" id="card-ie" open>
+    <summary><span class="ct"><h3>Internos e externos</h3><span class="ct-res" id="res-card-ie"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc"><div id="an-ie"></div></div>
+  </details>
+  <details class="cm" id="card-evo" open>
+    <summary><span class="ct"><h3>Evolução da nota</h3><span class="ct-res" id="res-card-evo"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc">
+      <div class="seg" role="group" aria-label="Mostrar na evolução">
+        <button type="button" data-evo="geral" aria-pressed="true">Média geral</button>
+        <button type="button" data-evo="tipos" aria-pressed="false">Internos e externos</button></div>
+      <div id="ch-evo" role="img"></div>
+      <div id="ch-leg" class="legenda"></div>
+      <p id="evo-ler" class="evo-ler"></p></div>
+  </details>
+  <details class="cm" id="card-pf" open>
+    <summary><span class="ct"><h3>Perguntas que mais falham</h3><span class="ct-res" id="res-card-pf"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc"><p class="an-nota" id="an-nota-pf"></p><div id="an-pf"></div></div>
+  </details>
+  <details class="cm" id="card-pilar" open>
+    <summary><span class="ct"><h3>Pontos fracos por pilar 5S</h3><span class="ct-res" id="res-card-pilar"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc">
+      <p class="an-nota" id="an-nota-pilar"></p>
+      <div id="cmp-pilar"></div><div id="rad-pilar"></div></div>
+  </details>
+  <details class="cm" id="card-resp" open>
+    <summary><span class="ct"><h3>Desempenho por responsável</h3><span class="ct-res" id="res-card-resp"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc">
+      <p class="an-nota" id="an-nota-resp"></p>
+      <div id="cmp-resp"></div><div id="rad-resp"></div></div>
+  </details>
 </section>
 
 <!-- ============ ACÇÕES (v3.21.0) ============ -->
@@ -1874,7 +1905,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.17.0";
+const APP_VERSION="4.18.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2834,16 +2865,6 @@ function evolucaoMensal(lista,meses,filtro){
     const l=por.get(a.date.slice(0,7));if(l)l.push(total(a));});
   return meses.map(mes=>{const v=por.get(mes);return{mes,n:v.length,media:v.length?avg(v):null};});
 }
-/* v4.16.0: cada serviço no período, do pior para o melhor: a nota média, as
-   auditorias e a variação face ao período anterior (null sem anterior, ou sem
-   auditorias do serviço nele). */
-function comparacaoServicos(atual,anterior){
-  const por=l=>{const m=new Map();(l||[]).forEach(a=>{if(!m.has(a.service))m.set(a.service,[]);m.get(a.service).push(total(a));});return m;};
-  const ag=por(atual),an=anterior?por(anterior):null;
-  return [...ag].map(([service,v])=>{const media=avg(v),ant=an&&an.has(service)?avg(an.get(service)):null;
-    return{service,n:v.length,media,ant,delta:ant==null?null:media-ant};})
-    .sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service));
-}
 /* v4.16.0: as perguntas com pior resultado no período: a percentagem de cada
    uma (como nos pilares: a pontuação média das respostas), a variação face ao
    período anterior e os serviços onde fica pior (até 3, abaixo de 100). As
@@ -3275,7 +3296,9 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
   const porAuditar=(svcs||[]).filter(s=>!auditados.has(s));
   /* v4.5.0: os serviços da lista sem auditoria no ano, em número e em % da lista. */
   const pctPorAuditar=(svcs||[]).length?Math.round(porAuditar.length/svcs.length*100):null;
-  return{ano,ini,ref,emCurso:ref<fim,n,media,minimo,maximo,mediaServicos,faixas,servicos:servicos.length,abaixo,pior,porAuditar,pctPorAuditar,plano,
+  return{ano,ini,ref,emCurso:ref<fim,n,media,minimo,maximo,mediaServicos,faixas,servicos:servicos.length,
+    /* v4.18.0: todos os serviços do ano, do pior para o melhor. */
+    porServico:servicos.slice().sort((x,y)=>x.media-y.media||x.service.localeCompare(y.service)),abaixo,pior,porAuditar,pctPorAuditar,plano,
     tipos:{interno:grupo("i"),externo:grupo("e"),semTipo:grupo("")}};
 }
 
@@ -4101,6 +4124,7 @@ function opcoesMes(){
   /* Por omissão, o mês mais recente com auditorias. */
   const comAud=ms.find(m=>audits.some(a=>a&&typeof a.date==="string"&&a.date.slice(0,7)===m));
   sel.value=ms.includes(atual)?atual:(comAud||ms[0]);
+  if(sel.value)resumoCartao("card-mensal",nomeMes(sel.value)+" · PDF para a direcção");
 }
 
 /* ---------- Depois da auditoria (v3.23.0) ----------
@@ -4749,8 +4773,8 @@ function renderStats(){
   renderResumoAnalise(lista,listaAnt,de,hoje);
   renderInternosExternos(lista,listaAnt);
   renderEvolucao(hoje,de);
-  /* v4.16.0: a comparação, do pior para o melhor, e as perguntas que mais falham. */
-  renderComparacao(lista,listaAnt);
+  /* v4.16.0: as perguntas que mais falham. (v4.18.0: a comparação entre
+     serviços saiu; a lista do ano está em «Serviços em <ano>».) */
   renderPerguntasFalham(lista,listaAnt);
   const bars=(pairs)=>pairs.map(([n,p])=>`<div class="stat-row"><span>${esc(n)}</span><span>${p}%</span></div>
     <div class="bar"><i class="${barCls(p)}" style="width:${p}%"></i></div>`).join("")||`<p class="empty">Sem dados.</p>`;
@@ -4778,10 +4802,31 @@ function renderStats(){
     texto+". Escolha um período (3, 6 ou 12 meses) para ver a variação.";
   document.getElementById("an-nota-pilar").textContent=lista.length?notaVar("Percentagem obtida nas perguntas de cada pilar"):"";
   document.getElementById("an-nota-resp").textContent=medResp.length?notaVar("Percentagem obtida nas perguntas de cada área"):"";
-  document.getElementById("cmp-pilar").innerHTML=lista.length?tabelaVariacao(variacaoEixos(medPilar,antPilar),!!pa,"Pilar"):bars([]);
-  document.getElementById("cmp-resp").innerHTML=medResp.length?tabelaVariacao(variacaoEixos(medResp,antResp),!!pa,"Área"):bars([]);
+  const vPilar=variacaoEixos(medPilar,antPilar),vResp=variacaoEixos(medResp,antResp);
+  document.getElementById("cmp-pilar").innerHTML=lista.length?tabelaVariacao(vPilar,!!pa,"Pilar"):bars([]);
+  document.getElementById("cmp-resp").innerHTML=medResp.length?tabelaVariacao(vResp,!!pa,"Área"):bars([]);
+  /* v4.18.0: o resumo de cada um, com o cartão minimizado. */
+  const resEixo=v=>{if(!v.length)return"Sem dados.";const pior=v.reduce((m,x)=>x.pct<m.pct?x:m,v[0]),desc=v.find(x=>x.pior);
+    return"pior: "+pior.name+" "+pior.pct+"%"+(desc?" · maior descida: "+desc.name+" ▼ "+Math.abs(desc.delta):"");};
+  resumoCartao("card-pilar",lista.length?resEixo(vPilar):"Sem dados.");
+  resumoCartao("card-resp",medResp.length?resEixo(vResp):"Sem dados.");
   renderKpis();
 }
+/* v4.18.0: o resumo de um cartão da Análise, lido com ele minimizado. */
+function resumoCartao(id,txt){const el=document.getElementById("res-"+id);if(el)el.textContent=txt||"";}
+/* v4.18.0: os cartões minimizados lembram-se neste aparelho (chave «anMin»,
+   a lista dos ids). Sem escolha guardada, só o relatório mensal. */
+const AN_MIN_OMISSAO=["card-mensal"];
+function lerAnMin(){try{const v=JSON.parse(localStorage.getItem("anMin"));return Array.isArray(v)?v.filter(x=>typeof x==="string"):AN_MIN_OMISSAO;}catch(e){return AN_MIN_OMISSAO;}}
+{const cards=[...document.querySelectorAll("#view-stats details.cm")],bt=document.getElementById("an-min-tudo");
+  const min=new Set(lerAnMin());
+  cards.forEach(d=>{d.open=!min.has(d.id);});
+  const gravar=()=>{try{localStorage.setItem("anMin",JSON.stringify(cards.filter(d=>!d.open).map(d=>d.id)));}catch(e){}};
+  const texto=()=>{if(bt)bt.textContent=cards.every(d=>!d.open)?"Abrir tudo":"Minimizar tudo";};
+  cards.forEach(d=>d.addEventListener("toggle",()=>{gravar();texto();}));
+  /* O texto muda logo no toque (o «toggle» é assíncrono; ver a Config). */
+  if(bt)bt.onclick=()=>{const abrir=cards.every(d=>!d.open);cards.forEach(d=>{d.open=abrir;});bt.textContent=abrir?"Minimizar tudo":"Abrir tudo";};
+  texto();}
 /* v4.16.0: a evolução mensal nos últimos 12 meses, sempre (não segue o
    período, que fica sombreado). «Média geral» ou «Internos e externos»; com um
    serviço escolhido, a linha dele a tracejado por cima. */
@@ -4816,24 +4861,9 @@ function renderEvolucao(hoje,de){
     ler=`Média de ${esc(nomeMes(ug.mes))}: <b>${ug.media}</b>`+(ant?`, ${setaVariacao(ug.media-ant.media)} face a ${esc(nomeMes(ant.mes))} (${ant.media})`:"")+
       (max&&max!==ug?`. Máximo dos 12 meses: ${max.media}, em ${esc(nomeMes(max.mes))}`:"")+".";}
   document.getElementById("evo-ler").innerHTML=ler;
-}
-/* v4.16.0: a comparação entre serviços. Com mais de 10, os 5 piores e os 5
-   melhores, e «Ver todos». */
-let anCmpTodos=false;
-function renderComparacao(lista,listaAnt){
-  const box=document.getElementById("cmp-svc");
-  const l=comparacaoServicos(lista,listaAnt),LIM=5;
-  document.getElementById("an-nota-cmp").textContent=l.length?"Do pior para o melhor"+(listaAnt?" · variação face aos "+anFiltro.meses+" meses anteriores":"")+".":"";
-  if(!l.length){box.innerHTML=`<p class="empty">Sem dados.</p>`;return;}
-  const linha=x=>`<div class="cmp-linha"><span class="nome">${esc(x.service)} <small>· ${x.n} aud.</small></span>`+
-    `<span class="v">${listaAnt?setaVariacao(x.delta):""}</span><span class="p">${x.media}</span>`+
-    `<div class="bar"><i class="${barCls(x.media)}" style="width:${x.media}%"></i></div></div>`;
-  const resumir=!anCmpTodos&&l.length>LIM*2;
-  box.innerHTML=(resumir?`<div class="cmp-sep">Os ${LIM} piores</div>`+l.slice(0,LIM).map(linha).join("")+
-    `<div class="cmp-sep">Os ${LIM} melhores</div>`+l.slice(-LIM).map(linha).join(""):l.map(linha).join(""))+
-    (l.length>LIM*2?`<button type="button" class="btn small ghost" id="btn-cmp-todos">${resumir?"Ver todos ("+l.length+")":"Ver só os piores e os melhores"}</button>`:"");
-  const b=document.getElementById("btn-cmp-todos");
-  if(b)b.onclick=()=>{anCmpTodos=!anCmpTodos;renderComparacao(lista,listaAnt);};
+  /* v4.18.0: o resumo, com o cartão minimizado: a frase de leitura, sem marcas. */
+  const tmp=document.createElement("div");tmp.innerHTML=ler;
+  resumoCartao("card-evo",tmp.textContent||"Sem auditorias nos últimos 12 meses.");
 }
 /* v4.16.0: as 5 perguntas com pior resultado no período. */
 function renderPerguntasFalham(lista,listaAnt){
@@ -4841,6 +4871,7 @@ function renderPerguntasFalham(lista,listaAnt){
   const l=perguntasQueFalham(lista,listaAnt,5);
   document.getElementById("an-nota-pf").textContent=l.length?"As "+l.length+" com pior resultado no período"+
     (listaAnt?", com a variação face aos "+anFiltro.meses+" meses anteriores":"")+(anFiltro.svc?"":" · onde mais falham")+".":"";
+  resumoCartao("card-pf",l.length?"pior: Nº "+l[0].n+", "+(l[0].t||l[0].c)+", "+l[0].pct+"%":lista.length?"todas Excelente no período":"Sem dados.");
   if(!l.length){box.innerHTML=`<p class="empty">${lista.length?"Todas as perguntas ficaram Excelente no período.":"Sem dados."}</p>`;return;}
   box.innerHTML=l.map((x,k)=>`<div class="pf"><span class="num">${k+1}</span>`+
     `<div class="q">${esc(x.c||x.t)}<small>Nº ${esc(x.n)}${x.t?" · "+esc(x.t):""} · ${esc(PILLARS[x.p]||"")} · ${esc(isResp(x.r)?RESP[x.r]:x.r||"")}</small></div>`+
@@ -4888,6 +4919,9 @@ function renderInternosExternos(lista,listaAnt){
   const r=internosExternos(lista,listaAnt,services,tipos,anFiltro.svc);
   const tem=r.interno.total+r.externo.total;
   card.classList.toggle("hidden",!tem);
+  resumoCartao("card-ie",[r.interno.total?"internos "+(r.interno.media==null?"—":r.interno.media):"",
+    r.externo.total?"externos "+(r.externo.media==null?"—":r.externo.media):"",
+    r.diferenca!=null?(r.diferenca>0?"+":r.diferenca<0?"−":"")+Math.abs(r.diferenca)+" pontos":""].filter(Boolean).join(" · "));
   if(!tem){box.innerHTML="";return;}
   const comAnt=!!listaAnt;
   const col=(rot,g)=>!g.total?"":`<div class="ie-col"><h4>${rot}</h4>`+
@@ -4944,22 +4978,25 @@ function renderKpis(){
   /* Abaixo da média: com as acções em aberto e o relatório da última auditoria,
      onde se acrescentam acções ao plano. */
   const abertas=sv=>audits.reduce((s,a)=>s+(a.service===sv&&Array.isArray(a.acoes)?a.acoes.filter(ac=>ac&&estadoAcao(ac,hoje)!=="feita").length:0),0);
-  const abaixo=`<div class="kpi-sec" id="kpi-abaixo"><h4>Serviços abaixo da média — para o plano de acção</h4>`+
-    (k.abaixo.length?k.abaixo.map((x,i)=>{const na=abertas(x.service);
+  /* v4.16.0: as secções de seguimento abrem e fecham; fechadas, mostram um
+     resumo no título. Ficam à vista os números.
+     v4.18.0: os serviços abaixo da média também (com muitos serviços, a lista
+     ocupava o ecrã); o título diz quantos são e qual o pior. */
+  const det=(id,tit,res,corpo,alerta)=>`<details class="kpi-det" id="${id}"><summary><span class="t">${tit}</span>`+
+    `<span class="r${alerta?" alerta":""}">${res}</span><span class="chev" aria-hidden="true"></span></summary><div class="c">${corpo}</div></details>`;
+  const linhasAbaixo=k.abaixo.map((x,i)=>{const na=abertas(x.service);
       return`<div class="kpi-linha"><span><b>${esc(x.service)}</b><br><small style="color:var(--muted)">${x.n} auditoria(s) · ${x.diferenca} pontos face à média · ${na?na+" acção(ões) em aberto":"sem acções em aberto"}</small></span>`+
       `<span class="pill" style="background:${corNota(x.media)}">${x.media}</span>`+
-      `<button class="btn small ghost" data-kpi-plano="${i}" aria-label="Plano de acção de ${esc(x.service)}">Plano de acção</button></div>`;}).join(""):
-      `<p class="empty" style="padding:8px">${k.n?"Nenhum serviço abaixo da média.":"Sem auditorias neste ano."}</p>`)+`</div>`;
+      `<button class="btn small ghost" data-kpi-plano="${i}" aria-label="Plano de acção de ${esc(x.service)}">Plano de acção</button></div>`;}).join("");
+  const abaixo=k.abaixo.length?det("kpi-abaixo","Serviços abaixo da média — para o plano de acção",
+    k.abaixo.length+(k.abaixo.length===1?" serviço":" serviços")+" · o pior: "+esc(k.abaixo[0].service)+", "+k.abaixo[0].media,linhasAbaixo,true):
+    `<p class="empty" style="padding:8px">${k.n?"Nenhum serviço abaixo da média.":"Sem auditorias neste ano."}</p>`;
   const grupo=(id,rot,g)=>{const pc=g.total?Math.round(g.auditados/g.total*100):0;
     return`<div id="${id}"><div class="stat-row"><span>${rot}: <b>${g.auditados}</b> de <b>${g.total}</b> auditado(s)</span><span>${g.total?pc+"%":"—"}</span></div>
       <div class="bar"><i class="${barCls(pc)}" style="width:${pc}%"></i></div>
       ${g.total?`<small id="${id}-por" style="color:var(--muted);display:block;margin:-2px 0 ${g.porAuditar.length?"0":"8px"}">Sem auditoria: <b>${g.porAuditar.length}</b> (${g.pctPorAuditar}%)</small>`:""}
       ${g.porAuditar.length?`<small style="color:var(--muted);display:block;margin:0 0 8px">Por auditar: ${g.porAuditar.map(esc).join(", ")}</small>`:""}</div>`;};
   const t=k.tipos;
-  /* v4.16.0: as secções de seguimento abrem e fecham; fechadas, mostram um
-     resumo no título. Ficam à vista os números e os serviços abaixo da média. */
-  const det=(id,tit,res,corpo,alerta)=>`<details class="kpi-det" id="${id}"><summary><span class="t">${tit}</span>`+
-    `<span class="r${alerta?" alerta":""}">${res}</span><span class="chev" aria-hidden="true"></span></summary><div class="c">${corpo}</div></details>`;
   const cobertura=det("kpi-tipos","Serviços auditados em "+k.ano,
     "internos "+t.interno.auditados+" de "+t.interno.total+" · externos "+t.externo.auditados+" de "+t.externo.total,
     grupo("kpi-int","Internos",t.interno)+grupo("kpi-ext","Externos",t.externo)+
@@ -4982,8 +5019,22 @@ function renderKpis(){
     reinc.slice(0,8).map(x=>`<div class="kpi-linha"><span><b>${esc(x.service)}</b><br><small style="color:var(--muted)">Nº ${esc(x.n)} · ${esc(x.t||x.c)}</small></span><span class="pill" style="background:var(--red)">${x.seguidas} seguidas</span></div>`).join("")+
     (reinc.length>8?`<small style="color:var(--muted)">E mais ${reinc.length-8}.</small>`:""),true):"";
   const disp=k.n?`<p id="kpi-dispersao" style="font-size:.78rem;color:var(--muted);margin:4px 0">Nota mais baixa: <b>${k.minimo.nota}</b> (${esc(k.minimo.service)}, ${esc(dataCurta(k.minimo.date))}) · mais alta: <b>${k.maximo.nota}</b> (${esc(k.maximo.service)}, ${esc(dataCurta(k.maximo.date))})</p>`:"";
-  box.innerHTML=`<div class="kpi-grelha">${tiles}</div>${disp}${ritmo}${abaixo}${faixas}${cobertura}${semHtml}${reincHtml}`;
-  box.querySelectorAll("[data-kpi-plano]").forEach(b=>b.onclick=()=>{
+  /* v4.18.0: os números ficam neste cartão; os serviços passam para o cartão
+     «Serviços em <ano>», em secções que abrem e fecham. */
+  box.innerHTML=`<div class="kpi-grelha">${tiles}</div>${disp}${ritmo}`;
+  const todosSvc=k.porServico.length?det("kpi-todos","Todos os serviços, do pior para o melhor",
+    k.porServico.length+(k.porServico.length===1?" serviço":" serviços")+" auditados · média por serviço "+k.mediaServicos,
+    k.porServico.map(x=>`<div class="stat-row"><span>${esc(x.service)} <small style="font-weight:400;color:var(--muted)">· ${x.n} aud.</small></span><span>${x.media}</span></div>`+
+      `<div class="bar"><i class="${barCls(x.media)}" style="width:${x.media}%"></i></div>`).join("")):"";
+  const boxSvc=document.getElementById("kpis-svc");
+  if(boxSvc)boxSvc.innerHTML=k.n||(services||[]).length?`${abaixo}${todosSvc}${faixas}${cobertura}${semHtml}${reincHtml}`:`<p class="empty">Sem auditorias em ${k.ano}.</p>`;
+  const st=document.getElementById("svc-ano-tit");if(st)st.textContent="Serviços em "+k.ano;
+  resumoCartao("card-kpis",k.media==null?"Sem auditorias em "+k.ano:
+    k.media+"/100 · "+(p.objetivo?k.n+" de "+p.objetivo+" auditorias":k.n+" auditoria(s)")+(p.objetivo?" · "+(p.desvio>0?"+":p.desvio<0?"−":"")+Math.abs(p.desvio)+" face ao plano":""));
+  resumoCartao("card-svc-ano",[k.abaixo.length?k.abaixo.length+" abaixo da média":"",
+    (services||[]).length?k.porAuditar.length+" não auditados":"",reinc.length?reinc.length+(reinc.length===1?" reincidência":" reincidências"):""].filter(Boolean).join(" · ")||"—");
+  /* v4.18.0: os botões estão no cartão dos serviços (kpis-svc), já não em #kpis. */
+  (boxSvc||box).querySelectorAll("[data-kpi-plano]").forEach(b=>b.onclick=()=>{
     const x=k.abaixo[+b.dataset.kpiPlano],a=x&&audits.find(y=>y.id===x.ultimaId);
     if(a){openReport(a);const pa=document.getElementById("plano");if(pa)pa.scrollIntoView();}
   });
@@ -7371,7 +7422,7 @@ on("btn-expxl","click",()=>exportExcel());
 [["hf-svc","svc"],["hf-est","estado"],["hf-nota","nota"],["hf-de","de"],["hf-ate","ate"]].forEach(([id,k])=>
   on(id,"change",e=>{histFiltro[k]=e.target.value;histMostrar=HIST_PAGINA;renderHist();}));
 on("btn-hf-limpar","click",()=>{Object.keys(histFiltro).forEach(k=>histFiltro[k]="");histMostrar=HIST_PAGINA;renderHist();});
-on("an-svc","change",e=>{anFiltro.svc=e.target.value;anCmpTodos=false;renderStats();});
+on("an-svc","change",e=>{anFiltro.svc=e.target.value;renderStats();});
 document.querySelectorAll("[data-evo]").forEach(b=>b.onclick=()=>{anEvoModo=b.dataset.evo;renderEvolucao(hojeISO(),desdeMeses(anFiltro.meses,hojeISO()));});
 on("ac-estado","change",e=>{acFiltro.estado=e.target.value;acMostrar.clear();renderAcoes();});
 on("ac-r","change",e=>{acFiltro.r=e.target.value;acMostrar.clear();renderAcoes();});
@@ -7394,6 +7445,7 @@ on("btn-ac-pdf","click",async e=>{
   }catch(err){aviso(err&&err.message?err.message:"Não foi possível criar o PDF.","PDF do plano de acção");}
   finally{bt.disabled=false;est.textContent="";est.classList.add("hidden");}
 });
+on("an-mes","change",e=>{if(e.target.value)resumoCartao("card-mensal",nomeMes(e.target.value)+" · PDF para a direcção");});
 on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(m)openMensal(m);});
 on("an-ano","change",e=>{anoKpis=parseInt(e.target.value,10)||0;renderKpis();});
 on("obj-ano","change",e=>{anoObjetivo=parseInt(e.target.value,10)||0;renderObjetivo();});

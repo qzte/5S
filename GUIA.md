@@ -285,10 +285,16 @@ Uma **acção** é um passo concreto, com
 
 ## Análise
 
+Cada cartão da Análise **minimiza-se** ao tocar no título: minimizado, mostra
+um resumo numa linha. **Minimizar tudo**, no topo, fecha-os todos (e **Abrir
+tudo** volta a abri-los). A app lembra-se, neste aparelho, dos que deixou
+minimizados; da primeira vez, só o relatório mensal vem minimizado. Os filtros
+e os quatro números do resumo ficam sempre à vista.
+
 A Análise tem duas zonas:
 
-- **Todos os serviços** (em cima): os [indicadores do ano](#indicadores-do-ano)
-  e o **relatório mensal**. Não seguem os filtros.
+- **Todos os serviços** (em cima): os [indicadores do ano](#indicadores-do-ano),
+  os **serviços do ano** e o **relatório mensal**. Não seguem os filtros.
 - **Por serviço e período** (em baixo): escolha o **serviço** (ou todos) e o
   **período** (todo o histórico, ou os últimos 3, 6 ou 12 meses). A barra dos
   filtros fica presa ao topo do ecrã ao deslizar, e tudo o que está por baixo
@@ -312,9 +318,6 @@ mesmo tamanho (por exemplo, os últimos 3 meses com os 3 meses antes desses). Em
   Com um serviço escolhido, a linha dele aparece a tracejado por cima. Por
   baixo, uma frase lê o gráfico (a média do último mês, a variação face ao
   anterior e o máximo dos 12 meses).
-- **Comparação entre serviços** — do pior para o melhor, com quantas
-  auditorias cada um teve e a variação face ao período anterior. Com mais de
-  10 serviços, mostra os 5 piores e os 5 melhores, e **Ver todos**.
 - **Perguntas que mais falham** — as 5 perguntas com pior resultado no
   período (a percentagem, como nos pilares), com a variação e os serviços onde
   mais falham (o pior a vermelho).
@@ -339,10 +342,12 @@ hoje.
 
 No topo da **Análise**, o cartão **Indicadores do ano** mede as auditorias de
 todos os serviços no ano escolhido (por omissão, o actual). Não segue o serviço
-nem o período escolhidos mais abaixo. Ficam à vista os números e os serviços abaixo
-da média; as faixas, os serviços auditados, os há mais tempo sem auditoria e as
-perguntas reincidentes estão em secções que abrem e fecham, com um resumo no
-título.
+nem o período escolhidos mais abaixo. São só números. Por baixo, o cartão
+**Serviços em <ano>** junta, em secções que abrem e fecham (com um resumo no
+título), os serviços abaixo da média (com o botão *Plano de acção* de cada um),
+todos os serviços do pior para o melhor, as faixas, os serviços auditados, os há
+mais tempo sem auditoria e as perguntas reincidentes. O ano escolhe-se no
+primeiro cartão e vale para os dois.
 
 - **Média total** — a média de todas as auditorias do ano.
 - **Serviços abaixo da média — para o plano de acção** — os serviços cuja média

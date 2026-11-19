@@ -79,16 +79,29 @@ for (const [nome, viewport] of [["pc", { width: 900, height: 1000 }], ["telemove
   check(await pg.locator("#cmp-pilar .vr u").count() >= 1, nome + ": o traço do período anterior devia aparecer");
 
   /* 4.16.0: indicadores do ano compactos, evolução mensal, comparação e perguntas. */
-  check(await pg.locator("#card-kpis details.kpi-det").count() >= 2, nome + ": as secções do ano abrem e fecham");
+  check(await pg.locator("#card-svc-ano details.kpi-det").count() >= 2, nome + ": as secções do ano abrem e fecham");
   check(!(await pg.locator("#kpi-tipos").evaluate(d => d.open)), nome + ": as secções começam fechadas");
   check(/internos 2 de 2 · externos/.test(await pg.locator("#kpi-tipos summary").textContent()), nome + ": o resumo no título da secção");
   check(await pg.locator("#ch-evo svg").count() === 1 && await pg.locator("#ch-evo svg rect").count() === 1, nome + ": a evolução com o período sombreado");
   await pg.locator("[data-evo=tipos]").click();
   check(/Internos/.test(await pg.locator("#ch-leg").textContent()) && /Externos/.test(await pg.locator("#ch-leg").textContent()), nome + ": internos e externos na evolução");
   await pg.locator("[data-evo=geral]").click();
-  const cmp = await pg.evaluate(() => [...document.querySelectorAll("#cmp-svc .cmp-linha .p")].map(e => +e.textContent));
-  check(cmp.length === 3 && cmp.every((v, i) => !i || v >= cmp[i - 1]), nome + ": comparação do pior para o melhor: " + cmp);
-  check(await pg.locator("#cmp-svc .cmp-linha .v").first().textContent() !== "", nome + ": a comparação mostra a variação");
+  /* 4.18.0: sem a comparação entre serviços; todos os do ano em «Serviços em <ano>». */
+  check(await pg.locator("#cmp-svc").count() === 0, nome + ": o cartão da comparação saiu");
+  const todos = await pg.evaluate(() => [...document.querySelectorAll("#kpi-todos .stat-row span:last-child")].map(e => +e.textContent));
+  check(todos.length === 4 && todos.every((v, i) => !i || v >= todos[i - 1]), nome + ": todos os serviços do ano, do pior para o melhor: " + todos);
+  check(/Serviços em \d{4}/.test(await pg.locator("#svc-ano-tit").textContent()), nome + ": o cartão dos serviços diz o ano");
+  /* Minimizar: cada cartão mostra o resumo; «Minimizar tudo» fecha todos e lembra-se. */
+  check(await pg.locator("#card-mensal").evaluate(d => !d.open) && await pg.locator("#card-evo").evaluate(d => d.open), nome + ": por omissão, só o relatório mensal minimizado");
+  await pg.locator("#an-min-tudo").click();
+  check(await pg.evaluate(() => [...document.querySelectorAll("#view-stats details.cm")].every(d => !d.open)), nome + ": «Minimizar tudo» fecha todos");
+  check((await pg.locator("#an-min-tudo").textContent()) === "Abrir tudo", nome + ": o botão passa a «Abrir tudo»");
+  for (const id of ["card-kpis", "card-svc-ano", "card-ie", "card-evo", "card-pf", "card-pilar", "card-resp"])
+    check((await pg.locator("#res-" + id).textContent()).trim().length > 0, nome + ": o resumo de " + id + " minimizado");
+  await pg.reload(); await pg.locator("[data-v=stats]").click();
+  check(await pg.evaluate(() => [...document.querySelectorAll("#view-stats details.cm")].every(d => !d.open)), nome + ": os minimizados ficam depois de recarregar");
+  await pg.locator("#an-min-tudo").click();
+  await pg.locator("#an-per").selectOption("3");
   check(await pg.locator("#an-pf .pf").count() >= 1 && await pg.locator("#an-pf .chip.m").count() >= 1, nome + ": perguntas que mais falham, com onde falham");
   check(/Ext C \(3\)/.test(await pg.locator("#an-pf").textContent()), nome + ": o serviço onde mais falham é o Ext C");
 

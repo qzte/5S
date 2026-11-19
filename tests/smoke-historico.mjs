@@ -99,14 +99,11 @@ check(/Média de todos os serviços/.test(await pg.locator("#ch-leg").textConten
 check(/^Evolução mensal da nota nos últimos 12 meses: Média de todos os serviços /.test(await pg.locator("#ch-evo").getAttribute("aria-label")),
   "o gráfico devia ter uma descrição acessível: " + await pg.locator("#ch-evo").getAttribute("aria-label"));
 check(/^Média de /.test(await pg.locator("#evo-ler").textContent()), "a leitura do gráfico numa frase");
-const ordem = await pg.evaluate(() => [...document.querySelectorAll("#cmp-svc .cmp-linha .p")].map(e => +e.textContent));
-check(ordem.length === 2 && ordem[0] <= ordem[1], "a comparação vai do pior para o melhor: " + ordem);
 await pg.locator("[data-evo=tipos]").click();
 check(/Nenhum serviço auditado tem tipo/.test(await pg.locator("#ch-evo").textContent()), "sem tipos, internos e externos diz o que falta");
 await pg.locator("[data-evo=geral]").click();
 await pg.locator("#an-svc").selectOption("Loja A");
 check(/2 de 3/.test(await pg.locator("#an-conta").textContent()), "só a Loja A devia contar 2 de 3");
-check(await pg.locator("#cmp-svc .cmp-linha").count() === 1, "a comparação devia ficar só com a Loja A");
 check(/Loja A/.test(await pg.locator("#ch-leg").textContent()) && /^Loja A: /.test(await pg.locator("#evo-ler").textContent()),
   "com um serviço escolhido, a linha dele por cima e a leitura dele");
 check(await pg.locator("#an-pf .pf").count() >= 1 && await pg.locator("#an-pf .chip").count() === 0,
