@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.18.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.20.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -529,6 +529,14 @@ details.kpi-det>summary:focus-visible{outline:3px solid var(--accent);outline-of
 .pf .chips{grid-column:2/-1;display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
 .pf .chip{font-family:var(--f-sans);font-size:.68rem;font-weight:700;background:var(--chip);border-radius:99px;padding:2px 8px}
 .pf .chip.m{color:var(--red-ink);box-shadow:inset 0 0 0 1.5px var(--red)}
+/* v4.20.0: o objectivo atingido e superado no cartão do objectivo anual. */
+.obj-r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 10px}
+@media (max-width:520px){.obj-r3{grid-template-columns:1fr 1fr}.obj-r3 .obj-ano{grid-column:1/-1}}
+.kpi .obar{display:block;position:relative;height:10px;background:var(--track);border-radius:99px;margin:6px 0 2px}
+.kpi .obar i{display:block;height:100%;background:var(--green);border-radius:99px}
+.kpi .obar u{position:absolute;top:-4px;width:3px;height:18px;background:var(--ink);border-radius:2px;margin-left:-1px}
+.kpi .oleg{display:block;font-family:var(--f-sans);font-size:.66rem;color:var(--muted);margin-bottom:2px}
+.kpi .oleg b{display:inline;font-size:inherit;margin:0;color:var(--ink);font-weight:900}
 /* v4.18.0: os cartões da Análise minimizam-se ao tocar no título. */
 .an-topo{display:flex;justify-content:flex-end;margin:-4px 0 4px}
 .an-topo .btn.small{margin:0}
@@ -567,25 +575,29 @@ details.aud-dados[open]>summary{border-bottom:1px solid var(--line)}
 .aud-dados[open] .chev{transform:rotate(-135deg);margin-top:4px}
 .aud-dados .corpo{padding:14px 16px 4px}
 .aud-dados-ok{display:flex;justify-content:flex-end;margin:-4px 0 12px}
-.aud-prog{position:sticky;top:0;z-index:20;margin:0 -14px 14px;padding:10px 14px 8px;background:var(--green-dk);color:#e8eae6;
-  box-shadow:0 6px 14px -8px rgba(0,0,0,.5)}
-.aud-prog .l1{display:flex;align-items:baseline;gap:12px;font-family:var(--f-sans)}
-.aud-prog .n{font-weight:900;font-size:1rem;color:#fff}
-.aud-prog .n small{font-weight:700;font-size:.72rem;color:#9db8a9}
-.aud-prog .nota{margin-left:auto;font-weight:900;font-size:1.3rem;color:#fff}
-.aud-prog .nota small{font-size:.7rem;color:#9db8a9;font-weight:700}
-.aud-prog .melh{font-size:.7rem;font-weight:700;color:#f4c27a}
-.aud-prog .barra{height:6px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin:6px 0 8px}
+/* v4.19.0: a barra segue o tema (painel claro no tema claro, escuro no
+   escuro), e os três números — respondidas, a melhorar, nota — têm o mesmo
+   desenho, cada um com o rótulo por baixo. */
+.aud-prog{position:sticky;top:0;z-index:20;margin:0 0 14px;padding:10px 14px 8px;background:var(--panel);color:var(--ink);
+  border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 14px -8px rgba(29,42,36,.35)}
+.aud-prog .l1{display:flex;align-items:flex-end;gap:18px;font-family:var(--f-sans)}
+.aud-prog .blk{display:flex;flex-direction:column;min-width:0}
+.aud-prog .blk b{font-weight:900;font-size:1.3rem;line-height:1.05;color:var(--ink)}
+.aud-prog .blk small{font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.aud-prog .blk.melh b{color:var(--amber-ink)}
+.aud-prog .blk.melh:empty{display:none}
+.aud-prog .blk.nota{margin-left:auto;text-align:right}
+.aud-prog .barra{height:6px;background:var(--track);border-radius:99px;overflow:hidden;margin:6px 0 8px}
 .aud-prog .barra i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px}
 @media (prefers-reduced-motion:no-preference){.aud-prog .barra i{transition:width .2s}}
 .aud-prog .pils{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
 .aud-prog .pils::-webkit-scrollbar{display:none}
 .aud-prog .pils button{flex:0 0 auto;display:flex;align-items:center;gap:6px;font-family:var(--f-sans);font-size:.7rem;font-weight:700;cursor:pointer;
-  color:#cfd8d3;background:none;border:1.5px solid rgba(255,255,255,.25);border-radius:99px;padding:4px 10px 4px 4px}
+  color:var(--muted);background:none;border:1.5px solid var(--line);border-radius:99px;padding:4px 10px 4px 4px}
 .aud-prog .pils button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.aud-prog .pils i{font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.15);font-size:.62rem;font-weight:900;color:#fff}
-.aud-prog .pils .ok{border-color:#5cc196;color:#fff}.aud-prog .pils .ok i{background:#5cc196;color:#12211c}
-.aud-prog .pils .parte i{background:var(--accent)}
+.aud-prog .pils i{font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--chip);font-size:.62rem;font-weight:900;color:var(--ink)}
+.aud-prog .pils .ok{border-color:var(--green-ink);color:var(--ink)}.aud-prog .pils .ok i{background:var(--green-ink);color:var(--panel)}
+.aud-prog .pils .parte i{background:var(--accent);color:#fff}
 #items .pillar{scroll-margin-top:120px}
 #items .pillar .pp{margin-left:auto;font-family:var(--f-sans);font-size:.72rem;font-weight:700;color:var(--muted)}
 .item.mid{border-left-color:var(--amber)}.item.bad{border-left-color:var(--red)}
@@ -832,8 +844,8 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
   <!-- v4.15.0: o progresso, preso ao topo: respondidas, a melhorar, a nota em
        directo e um botão por pilar, que salta para ele. -->
   <div class="aud-prog" id="aud-prog">
-    <div class="l1"><span class="n" id="aud-n" role="status"></span><span class="melh" id="aud-melh"></span>
-      <span class="nota" id="aud-nota" aria-label="Nota em directo"></span></div>
+    <div class="l1"><span class="blk" id="aud-n" role="status"></span><span class="blk melh" id="aud-melh"></span>
+      <span class="blk nota"><b id="aud-nota">—</b> <small>nota</small></span></div>
     <div class="barra" aria-hidden="true"><i id="aud-barra"></i></div>
     <div class="pils" id="aud-pils" role="navigation" aria-label="Ir para o pilar"></div>
   </div>
@@ -1140,9 +1152,11 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
         <h3>Objectivo anual de auditorias</h3>
         <p class="txt">Quantas auditorias executar no ano, de todos os serviços. A Análise mostra a média semanal e se estamos
           adiantados ou atrasados face ao plano.</p>
-        <div class="row">
-          <div><label for="obj-ano">Ano</label><select id="obj-ano"></select></div>
-          <div><label for="obj-n">Auditorias no ano</label><input id="obj-n" type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="Sem objectivo"></div>
+        <!-- v4.20.0: dois valores, atingido e superado (opcional, maior). -->
+        <div class="obj-r3">
+          <div class="obj-ano"><label for="obj-ano">Ano</label><select id="obj-ano"></select></div>
+          <div><label for="obj-n">Objectivo atingido</label><input id="obj-n" type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="Sem objectivo"></div>
+          <div><label for="obj-s">Objectivo superado</label><input id="obj-s" type="number" min="2" max="100000" step="1" inputmode="numeric" placeholder="Opcional"></div>
         </div>
         <p id="obj-info" class="txt" style="margin:0"></p>
       </div>
@@ -1905,7 +1919,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.18.0";
+const APP_VERSION="4.20.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2480,10 +2494,11 @@ function atualizarLive(){
   const resp=Object.values(answers),IT=fitems();
   /* v4.15.0: na barra de progresso, presa ao topo. */
   const n=document.getElementById("aud-n");if(!n)return;
-  n.innerHTML=resp.length+" <small>de "+IT.length+" respondidas</small>";
+  n.innerHTML="<b>"+resp.length+"</b> <small>de "+IT.length+" respondidas</small>";
   const melh=resp.filter(x=>x===0||x===1).length;
-  document.getElementById("aud-melh").textContent=melh?melh+" a melhorar":"";
-  document.getElementById("aud-nota").innerHTML=resp.length?pctOf(resp)+"<small>/100</small>":"—";
+  /* v4.19.0: vazio (e escondido) sem perguntas a melhorar. */
+  document.getElementById("aud-melh").innerHTML=melh?"<b>"+melh+"</b> <small>a melhorar</small>":"";
+  document.getElementById("aud-nota").textContent=resp.length?String(pctOf(resp)):"—";
   document.getElementById("aud-barra").style.width=(IT.length?resp.length/IT.length*100:0)+"%";
   const pils=[];
   PILLARS.forEach((nome,p)=>{
@@ -3143,11 +3158,16 @@ function sanitizeObjetivos(x){
     if(!f||typeof f!=="object"||Array.isArray(f))return;
     const a=Number(f.a),n=Number(f.n);
     if(!Number.isInteger(a)||a<2000||a>2999||!Number.isInteger(n)||n<1||n>100000||vistos.has(a))return;
-    vistos.add(a);out.push({a,n});
+    /* v4.20.0: `s`, o objectivo superado (opcional): inteiro, maior que o atingido. */
+    const sup=Number(f.s),o={a,n};
+    if(f.s!=null&&Number.isInteger(sup)&&sup>n&&sup<=100000)o.s=sup;
+    vistos.add(a);out.push(o);
   });
   return out.sort((x,y)=>x.a-y.a);
 }
 function objetivoDe(objs,ano){const f=(objs||[]).find(x=>x.a===Number(ano));return f?f.n:0;}
+/* v4.20.0: o objectivo superado do ano, ou 0 sem ele. */
+function superadoDe(objs,ano){const f=(objs||[]).find(x=>x.a===Number(ano));return f&&f.s?f.s:0;}
 /* Os anos que se podem escolher: o actual e os que têm auditorias ou objectivo,
    do mais recente para o mais antigo. */
 function anosIndicadores(lista,objs,hoje){
@@ -3272,12 +3292,19 @@ function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
     pct:objetivo?Math.round(n/objetivo*100):null,
     projecao:dias?Math.round(n*diasAno/dias):null,
     faltam:objetivo?Math.max(0,objetivo-n):null,
-    necessarioSemanal:null,desvio:null,estado:null};
+    necessarioSemanal:null,desvio:null,estado:null,
+    /* v4.20.0: o objectivo superado (0 sem ele) e o que lhe falta. */
+    superado:objetivo?superadoDe(objs,ano):0,faltamSuperar:null,necessarioSemanalSup:null,superadoFeito:false};
   if(objetivo){
     plano.desvio=n-plano.esperado;
     plano.estado=n>=objetivo?"cumprido":plano.desvio>=0?"em-linha":"atrasado";
     const resto=(diasAno-dias)/7;
     plano.necessarioSemanal=resto>0?umaCasa(plano.faltam/resto):null;
+    if(plano.superado){
+      plano.faltamSuperar=Math.max(0,plano.superado-n);
+      plano.superadoFeito=n>=plano.superado;
+      plano.necessarioSemanalSup=resto>0?umaCasa(plano.faltamSuperar/resto):null;
+    }
   }
   /* Serviços internos e externos: os da lista, auditados no ano. */
   /* v4.5.1: um serviço da lista conta como auditado se alguma auditoria do ano é a ele pelo nome, pelo nome sem maiúsculas,
@@ -4960,21 +4987,29 @@ function renderKpis(){
   const k=kpisAnuais(audits,services,tipos,objetivos,anoKpis,hoje),p=k.plano;
   const corNota=m=>m>=80?"var(--green)":m>=50?"var(--amber-bg)":"var(--red)";
   const tile=(id,rot,val,sub)=>`<div class="kpi" id="${id}"><small>${rot}</small><b>${val}</b><span>${sub}</span></div>`;
-  const ESTADO_PLANO={cumprido:["Objectivo cumprido","var(--green)"],"em-linha":["Em linha com o plano","var(--green)"],atrasado:["Atrás do plano","var(--red)"]};
+  /* v4.20.0: «cumprido» passa a ler-se «atingido», e há «superado». */
+  const ESTADO_PLANO={cumprido:["Objectivo atingido","var(--green)"],superado:["Objectivo superado","var(--green-dk)"],"em-linha":["Em linha com o plano","var(--green)"],atrasado:["Atrás do plano","var(--red)"]};
+  const estadoObj=p.superadoFeito?"superado":p.estado;
+  /* O cartão do objectivo: com superado, a barra vai até ele e um traço marca o atingido. */
+  const subObj=!p.objetivo?"Defina-o em Config → Serviços e objectivo":!p.superado?p.pct+"% do objectivo"+(p.faltam?" · faltam "+p.faltam:""):
+    `<span class="obar" aria-hidden="true"><i style="width:${Math.min(100,Math.round(k.n/p.superado*100))}%"></i><u style="left:${Math.round(p.objetivo/p.superado*100)}%"></u></span>`+
+    `<span class="oleg"><b>|</b> atingido ${p.objetivo} · fim: superado ${p.superado}</span>`+
+    (p.superadoFeito?"+"+(k.n-p.superado)+" acima do superado":p.faltam?"faltam "+p.faltam+" para atingir · "+p.faltamSuperar+" para superar":"faltam "+p.faltamSuperar+" para superar")+
+    `<br><span class="pill" style="background:${ESTADO_PLANO[estadoObj][1]}">${ESTADO_PLANO[estadoObj][0]}</span>`;
   const tiles=[
     tile("kpi-media","Média total",k.media==null?"—":k.media+"<small style=\"display:inline;font-size:.9rem\">/100</small>",
       k.n?k.n+" auditoria(s) a "+k.servicos+" serviço(s)"+(k.servicos>1?" · média por serviço: "+k.mediaServicos:""):"Sem auditorias em "+k.ano),
-    tile("kpi-objetivo","Objectivo anual",p.objetivo?k.n+" de "+p.objetivo:"—",
-      p.objetivo?p.pct+"% do objectivo"+(p.faltam?" · faltam "+p.faltam:""):"Defina-o em Config → Objectivo anual"),
+    tile("kpi-objetivo","Objectivo anual",p.objetivo?k.n+" de "+p.objetivo:"—",subObj),
     tile("kpi-semanal","Média semanal",p.mediaSemanal==null?"—":numPT(p.mediaSemanal),
       "auditorias por semana"+(p.objetivoSemanal!=null?" · plano: "+numPT(p.objetivoSemanal):"")),
     tile("kpi-nao-auditados","Serviços não auditados",(services||[]).length?String(k.porAuditar.length):"—",
       (services||[]).length?k.pctPorAuditar+"% dos "+services.length+" serviço(s) sem auditoria em "+k.ano:"Sem serviços na lista"),
     p.objetivo?tile("kpi-plano","Face ao plano",(p.desvio>0?"+":p.desvio<0?"−":"")+Math.abs(p.desvio),
-      `esperadas até ${k.emCurso?"hoje":"ao fim do ano"}: ${p.esperado}<br><span class="pill" style="background:${ESTADO_PLANO[p.estado][1]}">${ESTADO_PLANO[p.estado][0]}</span>`):""
+      `esperadas até ${k.emCurso?"hoje":"ao fim do ano"}: ${p.esperado}<br><span class="pill" style="background:${ESTADO_PLANO[estadoObj][1]}">${ESTADO_PLANO[estadoObj][0]}</span>`):""
   ].join("");
   const ritmo=p.objetivo&&k.emCurso&&p.dias?`<p id="kpi-ritmo" style="font-size:.78rem;color:var(--muted);margin:-4px 0 4px">Ao ritmo actual, ${p.projecao} auditorias no fim do ano`+
-    (p.faltam&&p.necessarioSemanal!=null?`; para cumprir o objectivo, ${numPT(p.necessarioSemanal)} por semana até ao fim do ano.`:".")+`</p>`:"";
+    (p.faltam&&p.necessarioSemanal!=null?`; para atingir o objectivo, ${numPT(p.necessarioSemanal)} por semana até ao fim do ano`:"")+
+    (p.faltamSuperar&&p.necessarioSemanalSup!=null?`; para o superar, ${numPT(p.necessarioSemanalSup)} por semana`:"")+`.</p>`:"";
   /* Abaixo da média: com as acções em aberto e o relatório da última auditoria,
      onde se acrescentam acções ao plano. */
   const abertas=sv=>audits.reduce((s,a)=>s+(a.service===sv&&Array.isArray(a.acoes)?a.acoes.filter(ac=>ac&&estadoAcao(ac,hoje)!=="feita").length:0),0);
@@ -5048,15 +5083,22 @@ function renderObjetivo(){
   if(!anos.includes(anoObjetivo))anoObjetivo=atual;
   sel.innerHTML=anos.map(a=>`<option value="${a}">${a}</option>`).join("");
   sel.value=String(anoObjetivo);
-  const n=objetivoDe(objetivos,anoObjetivo);
+  const n=objetivoDe(objetivos,anoObjetivo),sup=superadoDe(objetivos,anoObjetivo);
   inp.value=n?String(n):"";
-  if(info)info.textContent=n?"Cerca de "+numPT(umaCasa(n/((diasEntre(anoObjetivo+"-01-01",anoObjetivo+"-12-31")+1)/7)))+" auditorias por semana.":"Sem objectivo para "+anoObjetivo+".";
+  const is=document.getElementById("obj-s");if(is){is.value=sup?String(sup):"";is.disabled=!n;}
+  const sem=x=>numPT(umaCasa(x/((diasEntre(anoObjetivo+"-01-01",anoObjetivo+"-12-31")+1)/7)));
+  if(info)info.textContent=n?"Cerca de "+sem(n)+" auditorias por semana para atingir"+(sup?"; "+sem(sup)+" por semana para superar":"")+
+    ". O superado é opcional e tem de ser maior que o atingido.":"Sem objectivo para "+anoObjetivo+".";
 }
 function gravarObjetivo(){
   const inp=document.getElementById("obj-n"),txt=String(inp.value).trim(),n=Number(txt);
   if(txt&&!(Number.isInteger(n)&&n>=1&&n<=100000)){aviso("O objectivo é um número inteiro de auditorias, de 1 a 100 000.","Objectivo anual");renderObjetivo();return;}
+  /* v4.20.0: o superado, opcional; tem de ser maior que o atingido. */
+  const is=document.getElementById("obj-s"),ts=is?String(is.value).trim():"",sup=Number(ts);
+  if(txt&&ts&&!(Number.isInteger(sup)&&sup>n&&sup<=100000)){
+    aviso("O objectivo superado é um número inteiro de auditorias, maior que o atingido ("+n+") e até 100 000.","Objectivo anual");renderObjetivo();return;}
   const antes=objetivos;
-  objetivos=sanitizeObjetivos(objetivos.filter(o=>o.a!==anoObjetivo).concat(txt?[{a:anoObjetivo,n}]:[]));
+  objetivos=sanitizeObjetivos(objetivos.filter(o=>o.a!==anoObjetivo).concat(txt?[ts?{a:anoObjetivo,n,s:sup}:{a:anoObjetivo,n}]:[]));
   if(!save("objAud",objetivos))objetivos=antes;
   renderObjetivo();
 }
@@ -6942,6 +6984,8 @@ function anualPainel5s(lista,extra){
   return{ano:k.ano,n:k.n,media:k.media,
     abaixo:k.abaixo.slice(0,10).map(x=>({nome:x.service,media:x.media,n:x.n})),
     objetivo:p.objetivo||null,pct:p.pct,esperado:p.esperado,desvio:p.desvio,estado:p.estado,
+    /* v4.20.0: o objectivo superado (campos novos, opcionais; `estado` não muda de valores). */
+    objetivoSuperado:p.superado||null,faltamSuperar:p.faltamSuperar,superado:!!p.superadoFeito,
     mediaSemanal:p.mediaSemanal,objetivoSemanal:p.objetivoSemanal,projecao:p.projecao,
     internos:g(k.tipos.interno),externos:g(k.tipos.externo),
     /* v4.1.0: para o quadro SERVIÇOS do painel (no lugar dos «serviços críticos»). */
@@ -7450,6 +7494,7 @@ on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(
 on("an-ano","change",e=>{anoKpis=parseInt(e.target.value,10)||0;renderKpis();});
 on("obj-ano","change",e=>{anoObjetivo=parseInt(e.target.value,10)||0;renderObjetivo();});
 on("obj-n","change",()=>gravarObjetivo());
+on("obj-s","change",()=>gravarObjetivo());
 on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
 on("f-service","change",()=>mostrarAnteriores());
 ligarCaixaServico();

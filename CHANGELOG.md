@@ -5,6 +5,39 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.20.0] — 2026-11-19
+
+### Acrescentado
+
+- **Objectivo anual com dois valores: atingido e superado.** Em *Config → Serviços e objectivo*, ao lado do ano, o
+  **objectivo atingido** (o de até aqui) e o **objectivo superado**.
+  - **Superado:** é opcional, inteiro e maior que o atingido. Grava-se em `objAud` como `s`, ao lado de `n`; os anos
+    já gravados continuam a valer só com o atingido. Por baixo lê-se o ritmo por semana para atingir e para superar.
+  - **Análise → Objectivo anual:** com superado, a barra vai até ele e um traço marca o atingido. Por baixo, quantas
+    faltam para atingir e para superar (ou quantas acima do superado). O estado é *Atrás do plano*, *Em linha com o
+    plano*, *Objectivo atingido* (antes *Objectivo cumprido*) ou *Objectivo superado*.
+  - **Ao ritmo actual:** diz também quantas por semana faltam para superar. *Face ao plano* continua a contar contra
+    o atingido.
+  - **Painel e-ink (`5s.painel.json`):** campos novos em `kpis.anual`: `objetivoSuperado` (ou `null`),
+    `faltamSuperar` e `superado` (verdadeiro quando o superado foi alcançado). `estado` mantém os valores de antes,
+    para não partir o painel.
+  - **Cópias de segurança e importação:** levam e trazem o superado.
+- **Testes:** `indicadores.test.js` (validação do superado e o plano com ele), `painel.test.js` (os campos novos) e
+  `smoke-indicadores` (gravar, recusar um superado menor e o cartão da Análise).
+
+## [4.19.0] — 2026-11-19
+
+### Alterado
+
+- **Auditar: a barra de progresso segue o tema.** No tema claro («Sempre claro», ou «Automático» com o aparelho em
+  claro) é um painel branco como os cartões, com contorno e uma sombra leve, para se destacar presa ao topo. No escuro
+  continua escura. O cabeçalho e a barra dos separadores ficam escuros nos dois temas.
+- **Os três números da barra têm o mesmo desenho:** respondidas, a melhorar e a nota ficam ao mesmo tamanho, cada um
+  com o rótulo por baixo («de 19 respondidas», «a melhorar», «nota»). Até aqui o número de respostas era mais
+  pequeno do que a nota. «A melhorar» só aparece quando há perguntas a melhorar.
+- **Teste:** `smoke-auditar` verifica que a barra é clara no tema claro e escura no escuro, e que a nota é só o
+  número. `smoke-edicao` lê a nota sem «/100».
+
 ## [4.18.0] — 2026-11-19
 
 ### Alterado
