@@ -5,6 +5,31 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.11.0] — 2026-11-19
+
+### Alterado
+
+- **A Análise em duas zonas.** Em cima, **Todos os serviços**: os indicadores do ano e o relatório mensal, que não
+  seguem os filtros. Em baixo, **Por serviço e período**: os filtros (serviço e período) e tudo o que lhes obedece.
+  Até aqui os filtros estavam no topo, por cima de dois cartões que não os seguiam. A barra dos filtros **fica presa ao
+  topo** ao deslizar, e diz quantas auditorias e serviços entram e entre que datas.
+
+### Acrescentado
+
+- **Variações face ao período anterior.** Com os últimos 3, 6 ou 12 meses escolhidos, compara-se com o período
+  anterior do mesmo tamanho (`periodoAnterior`). Em *todo o histórico* a variação mostra «—».
+- **Resumo em números**, logo a seguir aos filtros: nota média (com a faixa), variação, auditorias (e por semana) e
+  acções em aberto do serviço escolhido, com as em atraso e as feitas no período (`resumoAnalise`).
+- **Internos e externos**: a nota média e a percentagem de serviços auditados de cada tipo no período, com as
+  variações (a da percentagem em pontos percentuais), a diferença entre os dois e os serviços por auditar
+  (`internosExternos`). Liga auditoria e serviço pelo nome ou pelo código, como os indicadores do ano. Com um serviço
+  escolhido, só o tipo dele.
+- **Variação por pilar e por responsável**: em vez das barras, uma tabela com agora, antes e a variação (▲, ▼, ou ＝
+  para 1 ponto ou menos); na barra, um traço marca o período anterior, e a maior descida fica em destaque
+  (`variacaoEixos`). Os radares continuam por baixo.
+- **Testes:** `tests/analise.test.js` (as quatro funções) e `tests/smoke-analise.mjs` (zonas, filtros presos, resumo,
+  internos e externos, variações, um serviço escolhido), também na CI.
+
 ## [4.10.0] — 2026-11-19
 
 ### Acrescentado

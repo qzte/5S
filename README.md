@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.10.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.11.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.10.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.11.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -853,6 +853,7 @@ node tests/smoke-envio.mjs         # depois da auditoria: cópia, PDF, email e T
 node tests/smoke-terreno.mjs       # auditar no telemóvel, finalizar no PC (dois dispositivos)
 node tests/smoke-offline.mjs       # versão publicada: offline, 404, servidor em baixo, actualização, guia
 node tests/smoke-config.mjs        # Configuração em grupos: Dados aberto, resumos, Abrir tudo
+node tests/smoke-analise.mjs       # Análise: duas zonas, resumo, internos e externos, variações
 ```
 
 O lint e o teste de acessibilidade precisam das ferramentas de `tools/lint/`:

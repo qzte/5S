@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.10.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.11.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -352,6 +352,62 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 .cfg-ajuda p{margin:0}
 .cfg-ajuda p b{font-family:var(--f-sans);color:var(--ink)}
 .cfg-ajuda .btn.small{margin:0;flex:0 0 auto}
+/* v4.11.0: Análise em duas zonas, filtros presos ao topo, resumo em números,
+   internos e externos, e a variação por pilar e por responsável. */
+.zona{display:flex;align-items:baseline;gap:10px;margin:22px 2px 10px}
+#view-stats>.zona:first-of-type{margin-top:2px}
+.zona h3{font-size:.8rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.zona span{font-size:.74rem;color:var(--muted)}
+.zona::after{content:"";flex:1;border-top:1px solid var(--line);transform:translateY(-3px)}
+.an-filtros{position:sticky;top:0;z-index:20;margin:0 -14px 14px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+.an-filtros.colada{box-shadow:0 6px 14px -8px rgba(29,42,36,.35)}
+.an-filtros .row{gap:8px}
+.an-filtros .an-per{flex:0 0 40%}
+.an-filtros label{font-size:.62rem;margin-bottom:3px}
+.an-filtros select{padding:8px 10px;font-size:.92rem;margin:0}
+#an-conta{font-size:.74rem;color:var(--muted);margin-top:6px;font-family:var(--f-sans)}
+#an-conta b{color:var(--ink)}
+.an-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.an-resumo:empty{display:none}
+@media (max-width:600px){.an-resumo{grid-template-columns:1fr 1fr}}
+.rs{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 2px 0 rgba(29,42,36,.06);min-width:0}
+.rs small{display:block;font-family:var(--f-sans);font-size:.64rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.rs b{display:block;font-family:var(--f-sans);font-weight:900;font-size:1.9rem;line-height:1.1;margin:4px 0 2px}
+.rs b sub{font-size:.85rem;font-weight:700;color:var(--muted);vertical-align:baseline}
+.rs>span{font-size:.74rem;color:var(--muted);line-height:1.3;display:block}
+.rs .pill{margin-top:2px}
+.rs.rs-nota{border-left:5px solid var(--line)}
+.rs.rs-nota.ok{border-left-color:var(--green)}.rs.rs-nota.mid{border-left-color:var(--amber)}.rs.rs-nota.bad{border-left-color:var(--red)}
+.v-up{color:var(--green-ink)}.v-down{color:var(--red-ink)}.v-eq{color:var(--muted)}
+.rs .atraso{color:var(--red-ink);font-weight:700}
+.ie{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.ie{gap:8px}}
+.ie-col{border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--field);min-width:0}
+.ie-col h4{font-family:var(--f-sans);font-size:.68rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ie-col .grande{font-family:var(--f-sans);font-weight:900;font-size:1.8rem;line-height:1.1}
+.ie-col .grande sub{font-size:.8rem;color:var(--muted);vertical-align:baseline}
+.ie-col .var{font-family:var(--f-sans);font-weight:900;font-size:.8rem;margin-left:4px;white-space:nowrap}
+.ie-col .lin{font-size:.74rem;color:var(--muted);margin:2px 0 8px}
+.ie-col .lin span{white-space:nowrap}
+.ie-col .stat-row{font-size:.74rem}
+.ie-col .bar{height:8px;margin:3px 0 4px}
+.ie-dif{margin-top:12px;font-size:.8rem;padding:8px 10px;border-radius:9px;background:var(--chip)}
+.ie-dif details{margin-top:4px}
+.ie-dif summary{cursor:pointer;color:var(--green-ink);font-family:var(--f-sans);font-weight:700;font-size:.74rem}
+.an-nota{font-size:.78rem;color:var(--muted);margin:-4px 0 8px}
+.an-nota:empty{display:none}
+.vr{width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:6px}
+.vr th{font-size:.62rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;padding:4px 6px;border-bottom:2px solid var(--line)}
+.vr th:first-child{text-align:left}
+.vr td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:right;font-family:var(--f-sans);font-variant-numeric:tabular-nums}
+.vr td:first-child{text-align:left;font-weight:700;width:46%}
+.vr td .bar{margin:5px 0 0;height:7px;position:relative;overflow:visible}
+.vr td .bar>u{position:absolute;top:-3px;width:2px;height:13px;background:var(--ink);opacity:.55}
+.vr .antes{color:var(--muted)}
+.vr .seta{font-weight:900;white-space:nowrap}
+.vr tr.pior td{background:rgba(176,58,46,.07)}
+.vr-leg{font-size:.72rem;color:var(--muted);margin:4px 0 8px;font-family:var(--f-sans)}
+.vr-leg u{display:inline-block;width:2px;height:10px;background:var(--ink);opacity:.55;vertical-align:-1px;margin:0 4px}
 /* v3.12.0: plano de acção. */
 .chk{display:flex;gap:6px;align-items:flex-start;font-family:var(--f-sans);font-size:.75rem;
   letter-spacing:0;text-transform:none;color:var(--ink);font-weight:700;margin:0;cursor:pointer}
@@ -631,20 +687,11 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 <!-- ============ ANÁLISE ============ -->
 <section id="view-stats" class="hidden">
   <h2 class="sr-only">Análise</h2>
-  <!-- v3.9.0: a Análise inteira segue o serviço e o período escolhidos aqui. -->
-  <div class="card">
-    <div class="row">
-      <div><label for="an-svc">Serviço</label><select id="an-svc"></select></div>
-      <div><label for="an-per">Período</label><select id="an-per">
-        <option value="0">Todo o histórico</option>
-        <option value="3">Últimos 3 meses</option>
-        <option value="6">Últimos 6 meses</option>
-        <option value="12">Últimos 12 meses</option></select></div>
-    </div>
-    <div id="an-conta" style="font-size:.78rem;color:var(--muted)" role="status"></div>
-  </div>
-  <!-- v4.0.0: os indicadores do ano (KPIs). Não seguem os filtros acima:
-       são sempre de todos os serviços, no ano escolhido aqui. -->
+  <!-- v4.11.0: duas zonas. Em cima o que é sempre de todos os serviços (os
+       indicadores do ano e o relatório mensal); em baixo, debaixo dos filtros,
+       o que segue o serviço e o período escolhidos. -->
+  <div class="zona"><h3>Todos os serviços</h3><span>não segue os filtros</span></div>
+  <!-- v4.0.0: os indicadores do ano (KPIs), no ano escolhido aqui. -->
   <div class="card" id="card-kpis">
     <div class="kpi-topo"><h3>Indicadores do ano</h3>
       <div><label for="an-ano" class="sr-only">Ano</label><select id="an-ano"></select></div></div>
@@ -659,13 +706,33 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
       <div style="align-self:end"><button class="btn small" id="btn-mensal">Abrir relatório mensal</button></div>
     </div>
   </div>
+
+  <div class="zona"><h3>Por serviço e período</h3><span>segue os filtros</span></div>
+  <!-- v3.9.0: o serviço e o período. v4.11.0: presos ao topo ao deslizar. -->
+  <div class="an-filtros" id="an-filtros">
+    <div class="row">
+      <div><label for="an-svc">Serviço</label><select id="an-svc"></select></div>
+      <div class="an-per"><label for="an-per">Período</label><select id="an-per">
+        <option value="0">Todo o histórico</option>
+        <option value="3">Últimos 3 meses</option>
+        <option value="6">Últimos 6 meses</option>
+        <option value="12">Últimos 12 meses</option></select></div>
+    </div>
+    <div id="an-conta" role="status"></div>
+  </div>
+  <!-- v4.11.0: o resumo em números do serviço e período escolhidos. -->
+  <div class="an-resumo" id="an-resumo"></div>
+  <!-- v4.11.0: internos e externos no período. -->
+  <div class="card" id="card-ie"><h3>Internos e externos</h3><div id="an-ie"></div></div>
   <div class="card"><h3>Evolução da nota</h3><div id="ch-evo" role="img"></div>
     <div id="ch-leg" class="legenda"></div></div>
   <div class="card"><h3>Comparação entre serviços</h3><div id="cmp-svc"></div></div>
   <div class="card"><h3>Pontos fracos por pilar 5S</h3>
-    <div id="rad-pilar"></div><div id="cmp-pilar"></div></div>
+    <p class="an-nota" id="an-nota-pilar"></p>
+    <div id="cmp-pilar"></div><div id="rad-pilar"></div></div>
   <div class="card"><h3>Desempenho por responsável</h3>
-    <div id="rad-resp"></div><div id="cmp-resp"></div></div>
+    <p class="an-nota" id="an-nota-resp"></p>
+    <div id="cmp-resp"></div><div id="rad-resp"></div></div>
 </section>
 
 <!-- ============ ACÇÕES (v3.21.0) ============ -->
@@ -1566,7 +1633,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.10.0";
+const APP_VERSION="4.11.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -1622,6 +1689,11 @@ document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   if(t.dataset.v==="acoes")renderAcoes();
   if(t.dataset.v==="cfg"){const gd=document.getElementById("grp-dados");if(gd)gd.open=true;renderCfg();}
 });
+
+/* v4.11.0: a sombra da barra de filtros da Análise quando fica presa ao topo. */
+{const f=document.getElementById("an-filtros");
+  if(f&&"IntersectionObserver" in window)new IntersectionObserver(([e])=>f.classList.toggle("colada",e.intersectionRatio<1&&e.boundingClientRect.top<=0),
+    {threshold:[1],rootMargin:"-1px 0px 0px 0px"}).observe(f);}
 
 /* ---------- Tooltip de parâmetros (v2.0.0) ----------
    Gerada para TODAS as perguntas: com limiares livres, a regra deixou de ser
@@ -2716,6 +2788,78 @@ function auditadoNoAno(nomes){
   const exatos=new Set(nomes),cods=new Set(),limpos=new Set();
   nomes.forEach(n=>{const c=codigoServico(n);if(c)cods.add(c);limpos.add(lim(n));});
   return s=>exatos.has(s)||(!!codigoServico(s)&&cods.has(codigoServico(s)))||limpos.has(lim(s));
+}
+/* v4.11.0: Análise — a variação compara o período escolhido («últimos N meses»,
+   até hoje) com o período anterior do mesmo tamanho, que acaba na véspera do
+   início deste. Em «todo o histórico» (meses 0) não há anterior: null. */
+function periodoAnterior(meses,hoje){
+  if(!meses)return null;
+  const ini=desdeMeses(meses,hoje),d=new Date(ini+"T00:00:00Z");
+  d.setUTCDate(d.getUTCDate()-1);
+  return{de:desdeMeses(2*meses,hoje),ate:d.toISOString().slice(0,10)};
+}
+/* v4.11.0: os números do topo da zona filtrada da Análise.
+   `atual`: auditorias do serviço e período escolhidos; `anterior`: as do
+   período anterior (null em «todo o histórico»); `doServico`: as do serviço
+   escolhido (ou todas), de qualquer data, para as acções, que se contam no
+   estado de hoje; `de`: início do período ("" em todo o histórico). */
+function resumoAnalise(atual,anterior,doServico,de,hoje){
+  const l=atual||[],n=l.length,media=n?avg(l.map(total)):null;
+  const servicos=new Set(l.map(a=>a.service)).size;
+  const ini=de||(n?l.map(a=>a.date).sort()[0]:"");
+  const dias=ini&&ini<=hoje?diasEntre(ini,hoje)+1:0;
+  const porSemana=n&&dias?umaCasa(n/(dias/7)):null;
+  const mediaAnt=anterior&&anterior.length?avg(anterior.map(total)):null;
+  const r={n,media,servicos,porSemana,mediaAnt,variacao:media!=null&&mediaAnt!=null?media-mediaAnt:null,
+    abertas:0,atrasadas:0,feitas:0};
+  (doServico||[]).forEach(a=>(Array.isArray(a.acoes)?a.acoes:[]).forEach(ac=>{
+    if(!ac)return;
+    const e=estadoAcao(ac,hoje);
+    if(e==="feita"){if(typeof ac.feitaEm==="string"&&ac.feitaEm&&ac.feitaEm>=(de||"")&&ac.feitaEm<=hoje)r.feitas++;}
+    else{r.abertas++;if(e==="atrasada")r.atrasadas++;}
+  }));
+  return r;
+}
+/* v4.11.0: internos e externos no período escolhido. Para cada tipo: a nota
+   média das auditorias a serviços da lista desse tipo e quantos deles foram
+   auditados, ligando auditoria e serviço pelo nome ou pelo código, como nos
+   indicadores do ano (a descrição pode ter mudado). Com um serviço escolhido (`svc`), só o tipo dele, e só ele.
+   `anterior` dá as variações (null em todo o histórico). */
+function internosExternos(atual,anterior,svcs,tipos,svc){
+  const lista=svc?[svc]:(svcs||[]);
+  const grupo=(t,l)=>{
+    const servs=lista.filter(s=>tipoDe(tipos,s)===t),deste=auditadoNoAno(servs);
+    const doTipo=(l||[]).filter(a=>deste(a.service));
+    const foi=auditadoNoAno([...new Set(doTipo.map(a=>a.service))]);
+    const auditados=servs.filter(foi).length;
+    return{n:doTipo.length,media:doTipo.length?avg(doTipo.map(total)):null,
+      total:servs.length,auditados,pct:servs.length?Math.round(auditados/servs.length*100):null,
+      porAuditar:servs.filter(s=>!foi(s))};
+  };
+  const r={};
+  [["interno","i"],["externo","e"]].forEach(([k,t])=>{
+    const g=grupo(t,atual);
+    if(anterior){const a=grupo(t,anterior);g.mediaAnt=a.media;g.pctAnt=a.pct;}
+    else{g.mediaAnt=null;g.pctAnt=null;}
+    g.variacao=g.media!=null&&g.mediaAnt!=null?g.media-g.mediaAnt:null;
+    g.variacaoPct=g.pct!=null&&g.pctAnt!=null?g.pct-g.pctAnt:null;
+    r[k]=g;
+  });
+  r.semTipo=lista.filter(s=>!tipoDe(tipos,s)).length;
+  r.diferenca=r.interno.media!=null&&r.externo.media!=null?r.interno.media-r.externo.media:null;
+  r.diferencaAnt=r.interno.mediaAnt!=null&&r.externo.mediaAnt!=null?r.interno.mediaAnt-r.externo.mediaAnt:null;
+  return r;
+}
+/* v4.11.0: a variação por eixo (pilar ou responsável). `agora` e `antes` são
+   listas {name,pct,n} nos mesmos eixos; um eixo sem perguntas antes (n 0) fica
+   sem variação. A maior descida (de 2 pontos ou mais) fica marcada. */
+function variacaoEixos(agora,antes){
+  const r=(agora||[]).map((d,i)=>{const a=antes&&antes[i];const ant=a&&a.n>0?a.pct:null;
+    return{name:d.name,pct:d.pct,ant,delta:ant==null?null:d.pct-ant,pior:false};});
+  let pior=null;
+  r.forEach(x=>{if(x.delta!=null&&x.delta<=-2&&(!pior||x.delta<pior.delta))pior=x;});
+  if(pior)pior.pior=true;
+  return r;
 }
 /* `hoje` em AAAA-MM-DD limita o ano em curso: o plano conta «até hoje». */
 function kpisAnuais(lista,svcs,tipos,objs,ano,hoje){
@@ -4213,9 +4357,18 @@ function renderStats(){
   opcoesMes();
   anFiltro.svc=opcoesServico(document.getElementById("an-svc"),anFiltro.svc,"Todos os serviços");
   document.getElementById("an-per").value=String(anFiltro.meses);
-  const lista=filtrarAudits(audits,{svc:anFiltro.svc,de:desdeMeses(anFiltro.meses,hojeISO())});
-  document.getElementById("an-conta").textContent=audits.length?
-    "Com base em "+lista.length+" de "+audits.length+" auditoria(s).":"Sem auditorias guardadas.";
+  const hoje=hojeISO(),de=desdeMeses(anFiltro.meses,hoje);
+  const lista=filtrarAudits(audits,{svc:anFiltro.svc,de});
+  /* v4.11.0: o período anterior do mesmo tamanho, para as variações. */
+  const pa=periodoAnterior(anFiltro.meses,hoje);
+  const listaAnt=pa?filtrarAudits(audits,{svc:anFiltro.svc,de:pa.de,ate:pa.ate}):null;
+  const datas=lista.map(a=>a.date).sort();
+  document.getElementById("an-conta").innerHTML=audits.length?
+    "Com base em <b>"+lista.length+"</b> de "+audits.length+" auditoria(s)"+
+    (lista.length?", de <b>"+new Set(lista.map(a=>a.service)).size+"</b> serviço(s) · "+esc(dataCurta(datas[0]))+" a "+esc(dataCurta(datas[datas.length-1])):"")+".":
+    "Sem auditorias guardadas.";
+  renderResumoAnalise(lista,listaAnt,de,hoje);
+  renderInternosExternos(lista,listaAnt);
   const series=seriesEvolucao(lista);
   /* v3.10.0: SVG em vez de <canvas>, como os outros gráficos. Imprime nítido,
      acompanha o modo escuro e o texto do gráfico existe para quem lê o ecrã. */
@@ -4242,9 +4395,84 @@ function renderStats(){
     .filter(d=>d.n>0);
   document.getElementById("rad-pilar").innerHTML=lista.length?radarSVG(medPilar,"#1f6f50"):"";
   document.getElementById("rad-resp").innerHTML=lista.length?radarSVG(medResp,"#e8500a"):"";
-  document.getElementById("cmp-pilar").innerHTML=lista.length?bars(medPilar.map(d=>[d.name,d.pct])):bars([]);
-  document.getElementById("cmp-resp").innerHTML=bars(medResp.map(d=>[d.name,d.pct]));
+  /* v4.11.0: agora, antes (o período anterior) e a variação, por pilar e por
+     responsável. Os responsáveis seguem a mesma ordem e o mesmo filtro (com
+     perguntas no período actual) nos dois períodos. */
+  const msAnt=listaAnt?listaAnt.map(metricas):null;
+  const antPilar=msAnt?PILLARS.map((p,i)=>{const e=mediaDoEixo(msAnt.map(m=>m.pilar),i);return{name:p,pct:e.pct,n:e.n};}):null;
+  const idxResp=Object.values(RESP).map((r,i)=>i).filter(i=>mediaDoEixo(ms.map(m=>m.resp),i).n>0);
+  const antResp=msAnt?idxResp.map(i=>{const e=mediaDoEixo(msAnt.map(m=>m.resp),i);return{name:Object.values(RESP)[i],pct:e.pct,n:e.n};}):null;
+  const notaVar=texto=>pa?texto+" · "+anFiltro.meses+(anFiltro.meses===1?" mês":" meses")+" face aos "+anFiltro.meses+" anteriores.":
+    texto+". Escolha um período (3, 6 ou 12 meses) para ver a variação.";
+  document.getElementById("an-nota-pilar").textContent=lista.length?notaVar("Percentagem obtida nas perguntas de cada pilar"):"";
+  document.getElementById("an-nota-resp").textContent=medResp.length?notaVar("Percentagem obtida nas perguntas de cada área"):"";
+  document.getElementById("cmp-pilar").innerHTML=lista.length?tabelaVariacao(variacaoEixos(medPilar,antPilar),!!pa,"Pilar"):bars([]);
+  document.getElementById("cmp-resp").innerHTML=medResp.length?tabelaVariacao(variacaoEixos(medResp,antResp),!!pa,"Área"):bars([]);
   renderKpis();
+}
+/* v4.11.0: ▲ ▼ ou ＝ (1 ponto ou menos) com o número; «—» sem comparação. */
+function setaVariacao(d,un){
+  if(d==null)return`<span class="v-eq">—</span>`;
+  const u=un||"",cls=d>1?"v-up":d<-1?"v-down":"v-eq",s=d>1?"▲":d<-1?"▼":"＝";
+  return`<span class="${cls}">${s} ${d>0?"+":d<0?"−":""}${Math.abs(d)}${u}</span>`;
+}
+function tabelaVariacao(linhas,comAnt,rot){
+  const cab=comAnt?`<th scope="col">Agora</th><th scope="col">Antes</th><th scope="col">Variação</th>`:`<th scope="col">Média</th>`;
+  const corpo=linhas.map(x=>`<tr${x.pior?' class="pior"':""}><td>${esc(x.name)}`+
+    `<div class="bar"><i class="${barCls(x.pct)}" style="width:${x.pct}%"></i>${comAnt&&x.ant!=null?`<u style="left:calc(${x.ant}% - 1px)"></u>`:""}</div></td>`+
+    `<td>${x.pct}%</td>`+(comAnt?`<td class="antes">${x.ant==null?"—":x.ant+"%"}</td><td class="seta">${setaVariacao(x.delta)}</td>`:"")+`</tr>`).join("");
+  const leg=comAnt?`<p class="vr-leg">A barra é o valor de agora; o traço <u></u> marca o período anterior.`+
+    (linhas.some(x=>x.pior)?" Em destaque, a maior descida.":"")+" Variações de 1 ponto ou menos contam como estáveis (＝).</p>":"";
+  return`<table class="vr"><thead><tr><th scope="col">${esc(rot)}</th>${cab}</tr></thead><tbody>${corpo}</tbody></table>${leg}`;
+}
+/* v4.11.0: os quatro números do topo da zona filtrada. */
+function renderResumoAnalise(lista,listaAnt,de,hoje){
+  const box=document.getElementById("an-resumo");if(!box)return;
+  if(!audits.length){box.innerHTML="";return;}
+  const doSvc=anFiltro.svc?audits.filter(a=>a.service===anFiltro.svc):audits;
+  const r=resumoAnalise(lista,listaAnt,doSvc,de,hoje);
+  const FAIXA={ok:["Excelente","var(--green)"],mid:["Com oportunidade","var(--amber-bg)"],bad:["Crítico","var(--red)"]};
+  const fx=r.media==null?null:faixaNota(r.media);
+  const ant=anFiltro.meses?(anFiltro.meses===1?"ao mês anterior":"aos "+anFiltro.meses+" meses anteriores"):"";
+  box.innerHTML=
+    `<div class="rs rs-nota ${fx||""}" id="rs-nota"><small>Nota média</small><b>${r.media==null?"—":r.media+"<sub>/100</sub>"}</b>`+
+      `<span>${fx?`<span class="pill" style="background:${FAIXA[fx][1]}">${FAIXA[fx][0]}</span>`:"Sem auditorias no período"}</span></div>`+
+    `<div class="rs" id="rs-variacao"><small>Variação</small><b>${setaVariacao(r.variacao)}</b>`+
+      `<span>${!anFiltro.meses?"Escolha um período para comparar":r.mediaAnt==null?"Sem auditorias no período anterior":"face "+ant+" ("+r.mediaAnt+")"}</span></div>`+
+    `<div class="rs" id="rs-auditorias"><small>Auditorias</small><b>${r.n}</b>`+
+      `<span>${r.servicos} serviço(s)${r.porSemana!=null?" · "+numPT(r.porSemana)+" por semana":""}</span></div>`+
+    `<div class="rs" id="rs-acoes"><small>Acções em aberto</small><b>${r.abertas}</b>`+
+      `<span>${r.atrasadas?`<span class="atraso">${r.atrasadas} em atraso</span> · `:""}${r.feitas} feita(s) no período</span></div>`;
+}
+/* v4.11.0: o cartão «Internos e externos». */
+function renderInternosExternos(lista,listaAnt){
+  const box=document.getElementById("an-ie"),card=document.getElementById("card-ie");if(!box||!card)return;
+  const r=internosExternos(lista,listaAnt,services,tipos,anFiltro.svc);
+  const tem=r.interno.total+r.externo.total;
+  card.classList.toggle("hidden",!tem);
+  if(!tem){box.innerHTML="";return;}
+  const comAnt=!!listaAnt;
+  const col=(rot,g)=>!g.total?"":`<div class="ie-col"><h4>${rot}</h4>`+
+    `<div class="grande">${g.media==null?"—":g.media+"<sub>/100</sub>"}${comAnt&&g.variacao!=null?`<span class="var">${setaVariacao(g.variacao)}</span>`:""}</div>`+
+    `<p class="lin">nota média · ${g.n} auditoria(s)</p>`+
+    `<div class="stat-row"><span>Auditados</span><span>${g.auditados} de ${g.total}</span></div>`+
+    `<div class="bar"><i class="${barCls(g.pct)}" style="width:${g.pct}%"></i></div>`+
+    `<p class="lin" style="margin:0"><b style="color:var(--ink)">${g.pct}%</b> dos serviços${comAnt&&g.variacaoPct!=null?` <span>${setaVariacao(g.variacaoPct," pp")}</span>`:""}</p></div>`;
+  const ambos=r.interno.total&&r.externo.total;
+  let dif="";
+  if(ambos&&r.diferenca!=null){
+    const d=r.diferenca,txt=d===0?"Internos e externos estão <b>iguais</b>":
+      "Os internos estão <b>"+Math.abs(d)+" ponto(s) "+(d>0?"acima":"abaixo")+"</b> dos externos";
+    dif=txt+(comAnt&&r.diferencaAnt!=null?" (no período anterior, "+(r.diferencaAnt>0?"+":r.diferencaAnt<0?"−":"")+Math.abs(r.diferencaAnt)+")":"")+".";
+  }
+  const por=[["internos",r.interno],["externos",r.externo]].filter(([,g])=>g.porAuditar.length&&!anFiltro.svc);
+  const porHtml=por.map(([n,g])=>`<details><summary>${g.porAuditar.length} serviço(s) ${n} por auditar no período</summary>`+
+    `<small style="color:var(--muted)">${g.porAuditar.map(esc).join(", ")}</small></details>`).join("");
+  box.innerHTML=`<p class="an-nota">${anFiltro.meses?"Últimos "+anFiltro.meses+" meses"+(comAnt?" · variação face aos "+anFiltro.meses+" anteriores":""):"Todo o histórico · escolha um período para ver a variação"}.</p>`+
+    `<div class="ie"${ambos?"":' style="grid-template-columns:1fr"'}>${col("Internos",r.interno)}${col("Externos",r.externo)}</div>`+
+    (dif||porHtml?`<div class="ie-dif">${dif}${porHtml}</div>`:"")+
+    (r.semTipo&&!anFiltro.svc?`<p class="an-nota" style="margin:8px 0 0">${r.semTipo} serviço(s) sem tipo não entram: escolha interno ou externo em Config → Serviços e objectivo.</p>`:"")+
+    (anFiltro.svc?`<p class="an-nota" style="margin:8px 0 0">Com um serviço escolhido, só o tipo dele.</p>`:"");
 }
 
 /* ---------- Indicadores do ano (v4.0.0) ---------- */
