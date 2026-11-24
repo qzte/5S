@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.20.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.21.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -475,6 +475,13 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 .kpi-topo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .kpi-topo select{margin:0;width:auto}
 .kpi-grelha{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+/* v4.21.0: o cartão Manutenção (M1, M3, M4). */
+.mt-sec{font-family:var(--f-sans);font-weight:900;font-size:.8rem;margin:14px 0 8px;padding-top:10px;border-top:1px solid var(--line)}
+.mt-pq{padding:6px 0;border-top:1px dashed var(--line)}.mt-pq:first-child{border-top:0}
+.mt-pq .stat-row small{font-weight:400;color:var(--muted)}
+.mt-pq .bar{margin:4px 0 0;height:7px}
+.kpi .mt-sobe,.mt-pq small.mt-sobe{color:var(--green-ink);font-weight:700}.kpi .mt-desce,.mt-pq small.mt-desce{color:var(--red-ink);font-weight:700}
+.kpi b.atraso{color:var(--red-ink)}
 .kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .kpi small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
 .kpi b{display:block;font-size:1.5rem;line-height:1.2;margin:2px 0}
@@ -920,6 +927,11 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
     <div class="cc">
       <div class="kpi-ano"><label for="an-ano" class="sr-only">Ano</label><select id="an-ano"></select></div>
       <div id="kpis"></div></div>
+  </details>
+  <!-- v4.21.0: o eixo Manutenção (M1, M3, M4), global e do ano escolhido acima. -->
+  <details class="cm" id="card-manut" open>
+    <summary><span class="ct"><h3>Manutenção</h3><span class="ct-res" id="res-card-manut"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc"><div id="an-manut"></div></div>
   </details>
   <details class="cm" id="card-svc-ano" open>
     <summary><span class="ct"><h3><span id="svc-ano-tit">Serviços no ano</span></h3><span class="ct-res" id="res-card-svc-ano"></span></span><span class="chev" aria-hidden="true"></span></summary>
@@ -1919,7 +1931,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.20.0";
+const APP_VERSION="4.21.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -3389,6 +3401,46 @@ function desempenhoAcoes(lista){
     pctPrazo:comPrazo?Math.round(noPrazo/comPrazo*100):null};
 }
 
+/* v4.21.0: a nota de uma auditoria só nas perguntas do responsável `rk`
+   (como byResp, mas de um só): {pct, n}; n = 0 se não tem perguntas dele. */
+function notaDoResp(a,rk){
+  const IT=itemsOf(a),sc=[];
+  (Array.isArray(a&&a.scores)?a.scores:[]).forEach((s,i)=>{if(s!=null&&IT[i]&&IT[i].r===rk)sc.push(s);});
+  return{pct:pctOf(sc),n:sc.length};
+}
+/* v4.21.0: os indicadores do eixo Manutenção, GLOBAIS (todos os serviços): a
+   equipa não tem capacidade para mais auditorias e há poucas por serviço.
+   `ano`: o dos Indicadores do ano; `rk`: a chave do responsável ("M").
+   - M1: a nota de Manutenção no ano e no anterior (só as auditorias com
+     perguntas dele).
+   - M3: cada pergunta do responsável no ano, da pior para a melhor, com as
+     respostas e a variação face ao ano anterior (juntam-se pelo número).
+   - M4: as acções do responsável: em aberto e em atraso agora (de todos os
+     anos), e o tempo de fecho e o prazo das concluídas no ano.
+   Cada número leva o n: com só 5 perguntas, uma pergunta mexe muito a nota. */
+function kpisManutencao(lista,ano,hoje,rk){
+  const ok=(lista||[]).filter(a=>a&&Array.isArray(a.scores)&&typeof a.date==="string");
+  const doAno=y=>ok.filter(a=>a.date.slice(0,4)===String(y));
+  const media=l=>{const v=l.map(a=>notaDoResp(a,rk)).filter(x=>x.n>0);
+    return{pct:v.length?avg(v.map(x=>x.pct)):null,auditorias:v.length,respostas:v.reduce((s,x)=>s+x.n,0)};};
+  const atual=doAno(ano),ant=doAno(ano-1),m=media(atual),ma=media(ant);
+  const porPergunta=l=>{const g=new Map();
+    [...l].sort(ordemCron).forEach(a=>{const IT=itemsOf(a);a.scores.forEach((s,i)=>{const it=IT[i];
+      if(!it||s==null||it.r!==rk)return;const k=String(it.n);
+      if(!g.has(k))g.set(k,{it,sc:[]});const x=g.get(k);x.it=it;x.sc.push(s);});});
+    return g;};
+  const gp=porPergunta(ant);
+  const perguntas=[...porPergunta(atual)].map(([k,x])=>{const pct=pctOf(x.sc),pa=gp.has(k)?pctOf(gp.get(k).sc):null;
+    return{n:x.it.n,t:x.it.t||"",c:x.it.c||"",pct,respostas:x.sc.length,ant:pa,delta:pa==null?null:pct-pa};})
+    .sort((x,y)=>x.pct-y.pct||(+x.n||0)-(+y.n||0));
+  const soDele=ok.map(a=>Object.assign({},a,{acoes:(Array.isArray(a.acoes)?a.acoes:[]).filter(ac=>ac&&ac.r===rk)}));
+  const ia=idadeAcoesAbertas(soDele,hoje);
+  const dp=desempenhoAcoes(soDele.map(a=>Object.assign({},a,{acoes:a.acoes.filter(ac=>typeof ac.feitaEm==="string"&&ac.feitaEm.slice(0,4)===String(ano))})));
+  return{ano,media:m.pct,auditorias:m.auditorias,respostas:m.respostas,mediaAnt:ma.pct,auditoriasAnt:ma.auditorias,
+    variacao:m.pct!=null&&ma.pct!=null?m.pct-ma.pct:null,perguntas,
+    acoes:{abertas:ia.abertas,atrasadas:ia.atrasadas,idadeMedia:ia.idadeMedia,atrasoMedio:ia.atrasoMedio,
+      fechadas:dp.fechadas,diasMedio:dp.diasMedio,comPrazo:dp.comPrazo,noPrazo:dp.noPrazo,pctPrazo:dp.pctPrazo}};
+}
 /* v4.5.0: as acções em aberto — a idade (desde a criação), o atraso das que
    passaram o prazo e a mais antiga. */
 function idadeAcoesAbertas(lista,hoje){
@@ -4977,6 +5029,34 @@ function renderInternosExternos(lista,listaAnt){
 /* ---------- Indicadores do ano (v4.0.0) ---------- */
 let anoKpis=0;
 const numPT=x=>String(x).replace(".",",");
+/* v4.21.0: o cartão Manutenção (kpisManutencao), no ano dos Indicadores do ano. */
+const RESP_MANUT="M";
+function renderManutencao(ano,hoje){
+  const box=document.getElementById("an-manut");
+  if(!box)return;
+  if(!isResp(RESP_MANUT)){box.innerHTML=`<p class="empty">Não há o responsável Manutenção na lista (Config → Perguntas).</p>`;resumoCartao("card-manut","—");return;}
+  const k=kpisManutencao(audits,ano,hoje,RESP_MANUT),ac=k.acoes;
+  const nomesPerg=(ITEMS||[]).filter(it=>it&&it.r===RESP_MANUT).map(it=>it.n);
+  const tile=(id,rot,val,sub,cls)=>`<div class="kpi" id="${id}"><small>${rot}</small><b${cls?` class="${cls}"`:""}>${val}</b><span>${sub}</span></div>`;
+  const varTxt=k.variacao==null?(k.auditoriasAnt?"":"sem dados de "+(ano-1)):
+    `<span class="${k.variacao>0?"mt-sobe":k.variacao<0?"mt-desce":""}">${k.variacao>0?"▲ +":k.variacao<0?"▼ −":"= "}${Math.abs(k.variacao)}</span> face a ${ano-1} (${k.mediaAnt}, n = ${k.auditoriasAnt})`;
+  const nota=tile("manut-nota","Nota de Manutenção · "+ano,k.media==null?"—":k.media+`<small style="display:inline;font-size:.9rem">/100</small>`,
+    k.media==null?"Sem auditorias em "+ano:"n = "+k.auditorias+" auditoria(s), "+k.respostas+" respostas"+(varTxt?"<br>"+varTxt:""));
+  const perg=k.perguntas.length?k.perguntas.map(x=>`<div class="mt-pq"><div class="stat-row"><span>${esc(x.n)}. ${esc(x.t||x.c)} <small>· n = ${x.respostas}</small></span>`+
+    `<span>${x.pct}%${x.delta?` <small class="${x.delta>0?"mt-sobe":"mt-desce"}">${x.delta>0?"▲":"▼"}${Math.abs(x.delta)}</small>`:""}</span></div>`+
+    `<div class="bar"><i class="${barCls(x.pct)}" style="width:${x.pct}%"></i></div></div>`).join(""):`<p class="empty" style="padding:8px">Sem respostas de Manutenção em ${ano}.</p>`;
+  const acoes=`<div class="kpi-grelha">`+
+    tile("manut-abertas","Em aberto",String(ac.abertas),ac.abertas?"há "+numPT(ac.idadeMedia)+" dias, em média":"nenhuma")+
+    tile("manut-atraso","Em atraso",String(ac.atrasadas),ac.atrasadas?"atraso médio "+numPT(ac.atrasoMedio)+" dias":"nenhuma",ac.atrasadas?"atraso":"")+
+    tile("manut-fecho","Tempo de fecho",ac.diasMedio==null?"—":numPT(ac.diasMedio)+`<small style="display:inline;font-size:.8rem"> dias</small>`,"média · n = "+ac.fechadas+" fechada(s) em "+ano)+
+    tile("manut-prazo","Dentro do prazo",ac.pctPrazo==null?"—":ac.pctPrazo+"%",ac.comPrazo?ac.noPrazo+" de "+ac.comPrazo+" com prazo":"sem acções fechadas com prazo")+`</div>`;
+  box.innerHTML=`<p class="an-nota">Só as ${nomesPerg.length} perguntas de Manutenção${nomesPerg.length?" ("+nomesPerg.join(", ")+")":""}, em todos os serviços. Com poucas perguntas, uma só mexe muito a nota: veja sempre o n.</p>`+
+    `<div class="kpi-grelha">${nota}</div>`+
+    `<div class="mt-sec">Perguntas de Manutenção que mais falham em ${ano}</div><div id="manut-perguntas">${perg}</div>`+
+    `<div class="mt-sec">Acções de Manutenção</div>${acoes}`;
+  resumoCartao("card-manut",[k.media==null?"Sem auditorias em "+ano:"Nota "+k.media+" (n = "+k.auditorias+")",
+    ac.atrasadas?ac.atrasadas+(ac.atrasadas===1?" acção em atraso":" acções em atraso"):ac.abertas+" em aberto"].join(" · "));
+}
 function renderKpis(){
   const box=document.getElementById("kpis"),sel=document.getElementById("an-ano");
   if(!box||!sel)return;
@@ -5068,6 +5148,7 @@ function renderKpis(){
     k.media+"/100 · "+(p.objetivo?k.n+" de "+p.objetivo+" auditorias":k.n+" auditoria(s)")+(p.objetivo?" · "+(p.desvio>0?"+":p.desvio<0?"−":"")+Math.abs(p.desvio)+" face ao plano":""));
   resumoCartao("card-svc-ano",[k.abaixo.length?k.abaixo.length+" abaixo da média":"",
     (services||[]).length?k.porAuditar.length+" não auditados":"",reinc.length?reinc.length+(reinc.length===1?" reincidência":" reincidências"):""].filter(Boolean).join(" · ")||"—");
+  renderManutencao(anoKpis,hoje);
   /* v4.18.0: os botões estão no cartão dos serviços (kpis-svc), já não em #kpis. */
   (boxSvc||box).querySelectorAll("[data-kpi-plano]").forEach(b=>b.onclick=()=>{
     const x=k.abaixo[+b.dataset.kpiPlano],a=x&&audits.find(y=>y.id===x.ultimaId);

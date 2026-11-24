@@ -91,12 +91,22 @@ for (const [nome, viewport] of [["pc", { width: 900, height: 1000 }], ["telemove
   const todos = await pg.evaluate(() => [...document.querySelectorAll("#kpi-todos .stat-row span:last-child")].map(e => +e.textContent));
   check(todos.length === 4 && todos.every((v, i) => !i || v >= todos[i - 1]), nome + ": todos os serviços do ano, do pior para o melhor: " + todos);
   check(/Serviços em \d{4}/.test(await pg.locator("#svc-ano-tit").textContent()), nome + ": o cartão dos serviços diz o ano");
+  /* 4.21.0: o cartão Manutenção, global, entre os indicadores e os serviços do ano. */
+  const ordemM = await pg.evaluate(() => ["card-kpis", "card-manut", "card-svc-ano"].map(id => document.getElementById(id).getBoundingClientRect().top));
+  check(ordemM[0] < ordemM[1] && ordemM[1] < ordemM[2], nome + ": o cartão Manutenção fica entre os indicadores e os serviços do ano");
+  check(/\d/.test(await pg.locator("#manut-nota b").textContent()), nome + ": a nota de Manutenção do ano");
+  check(/n = \d+ auditoria/.test(await pg.locator("#manut-nota").textContent()), nome + ": a nota de Manutenção mostra o n");
+  check(await pg.locator("#manut-perguntas .mt-pq").count() === 5, nome + ": as 5 perguntas de Manutenção");
+  check(await pg.locator("#manut-abertas, #manut-atraso, #manut-fecho, #manut-prazo").count() === 4, nome + ": os 4 números das acções de Manutenção");
+  await pg.locator("#an-per").selectOption("0");
+  check(await pg.locator("#manut-perguntas .mt-pq").count() === 5, nome + ": o cartão Manutenção não segue os filtros");
+  await pg.locator("#an-per").selectOption("3");
   /* Minimizar: cada cartão mostra o resumo; «Minimizar tudo» fecha todos e lembra-se. */
   check(await pg.locator("#card-mensal").evaluate(d => !d.open) && await pg.locator("#card-evo").evaluate(d => d.open), nome + ": por omissão, só o relatório mensal minimizado");
   await pg.locator("#an-min-tudo").click();
   check(await pg.evaluate(() => [...document.querySelectorAll("#view-stats details.cm")].every(d => !d.open)), nome + ": «Minimizar tudo» fecha todos");
   check((await pg.locator("#an-min-tudo").textContent()) === "Abrir tudo", nome + ": o botão passa a «Abrir tudo»");
-  for (const id of ["card-kpis", "card-svc-ano", "card-ie", "card-evo", "card-pf", "card-pilar", "card-resp"])
+  for (const id of ["card-kpis", "card-manut", "card-svc-ano", "card-ie", "card-evo", "card-pf", "card-pilar", "card-resp"])
     check((await pg.locator("#res-" + id).textContent()).trim().length > 0, nome + ": o resumo de " + id + " minimizado");
   await pg.reload(); await pg.locator("[data-v=stats]").click();
   check(await pg.evaluate(() => [...document.querySelectorAll("#view-stats details.cm")].every(d => !d.open)), nome + ": os minimizados ficam depois de recarregar");

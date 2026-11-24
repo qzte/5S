@@ -5,6 +5,20 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.21.0] — 2026-11-24
+
+### Acrescentado
+
+- **Análise → cartão Manutenção.** Os primeiros KPIs do eixo Manutenção (M1, M3 e M4 da proposta
+  `docs/resumo-kpis-equipa-auditorias.md`), globais: todos os serviços, no ano escolhido nos Indicadores do ano, sem
+  seguir os filtros. Fica entre os Indicadores do ano e os Serviços no ano, e minimiza-se como os outros.
+  - **M1, nota de Manutenção:** a média das perguntas de Manutenção no ano e a variação face ao anterior, com o n.
+  - **M3, perguntas de Manutenção que mais falham:** todas, da pior para a melhor, com o n de respostas e a variação.
+  - **M4, acções de Manutenção:** em aberto e em atraso (hoje), tempo médio de fecho e % no prazo (das fechadas no ano).
+  - Funções puras novas: `notaDoResp()` e `kpisManutencao()`.
+- **Testes:** `manutencao.test.js` e `smoke-analise` (o cartão, a ordem, o n e que não segue os filtros).
+- **Documentação:** `KPIS.md` (secção 4.1) e `GUIA.md`/`guia.html`.
+
 ## [4.20.0] — 2026-11-19
 
 ### Acrescentado
