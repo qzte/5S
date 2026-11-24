@@ -348,7 +348,19 @@ nem o período escolhidos mais abaixo. São só números. Por baixo, o cartão
 título), os serviços abaixo da média (com o botão *Plano de acção* de cada um),
 todos os serviços do pior para o melhor, as faixas, os serviços auditados, os há
 mais tempo sem auditoria e as perguntas reincidentes. O ano escolhe-se no
-primeiro cartão e vale para os dois.
+primeiro cartão e vale para os três (com o cartão Manutenção).
+
+Entre os dois, o cartão **Manutenção** mostra só as perguntas cujo responsável é
+a Manutenção, em todos os serviços (é global, como os indicadores do ano):
+
+- **Nota de Manutenção** — a média dessas perguntas no ano, a variação face ao
+  ano anterior e quantas auditorias e respostas contam (o n).
+- **Perguntas de Manutenção que mais falham** — todas as de Manutenção, da pior
+  para a melhor, com o n de respostas e a variação face ao ano anterior.
+- **Acções de Manutenção** — as em aberto e em atraso (hoje), o tempo médio de
+  fecho e a parte fechada dentro do prazo (das concluídas no ano).
+
+Com só 5 perguntas, uma pergunta mexe 10 a 20 pontos na nota: leia sempre o n.
 
 - **Média total** — a média de todas as auditorias do ano.
 - **Serviços abaixo da média — para o plano de acção** — os serviços cuja média

@@ -203,6 +203,23 @@ auditorias: esperadas 104, desvio −100 (*Atrás do plano*), 3 % do objectivo,
 média semanal 0,1 contra 2,3 do plano, projecção 5, ritmo necessário 16,9 por
 semana.
 
+### 4.1 Manutenção (4.21.0)
+
+`kpisManutencao()`. O eixo Manutenção (as perguntas com responsável `M`), de
+**todos os serviços**, no ano escolhido nos Indicadores do ano; não segue os
+filtros da Análise. A equipa não tem capacidade para mais auditorias e há poucas
+por serviço, por isso as tendências são globais. Cada número leva o n.
+
+| # | Indicador | Fórmula | Como se lê |
+| --- | --- | --- | --- |
+| M1 | **Nota de Manutenção** | média, nas auditorias do ano com perguntas de Manutenção, da nota dessas perguntas (`notaDoResp()`); variação face ao ano anterior | Resultado da Manutenção. n = auditorias e respostas |
+| M3 | **Perguntas que mais falham** | por pergunta de Manutenção (pelo número), `pctOf` das respostas do ano, da pior para a melhor; variação face ao ano anterior | Onde actuar. Mostra todas, também as a 100 |
+| M4 | **Acções de Manutenção** | acções com `r = "M"`: em aberto e em atraso hoje (`idadeAcoesAbertas()`), de todos os anos; tempo médio de fecho e % no prazo das concluídas no ano (`desempenhoAcoes()`) | Seguimento do que a auditoria pediu |
+
+Cuidados: só 5 perguntas, uma pergunta mexe 10–20 pontos; mudar no editor as
+perguntas da Manutenção muda a escala (as notas gravadas não são recalculadas);
+um responsável Manutenção removido da lista esconde o cartão.
+
 ## 5. Relatório mensal
 
 `resumoMensal()`. Um mês de todos os serviços; no mês em curso conta até hoje.
