@@ -1,6 +1,6 @@
 <!--
   Auditoria 5S · Supermercados Kaizen — README
-  Versão: 4.22.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.23.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Nota: este ficheiro é documentação. Não altera comportamento, formato de dados
         nem API, pelo que acompanha a versão do código em vez de a incrementar.
@@ -8,7 +8,7 @@
 
 # Auditoria 5S · Supermercados Kaizen
 
-**Versão 4.22.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
+**Versão 4.23.0** · [Changelog](CHANGELOG.md) · [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 Lista de verificação 5S para supermercados, em aplicação web de **ficheiro único**:
 auditoria, histórico, análise, relatório imprimível em PDF e editor de perguntas.
@@ -97,6 +97,7 @@ linha aponta para a secção que o explica; o pormenor de cada versão está no
 | **Consultar** | Histórico com filtros e variação; Análise por serviço e período; exportação para Excel | 3.9.0 |
 | | Histórico e Análise rápidos com milhares de auditorias | 3.15.0 |
 | | Página de KPIs no painel e-ink | 3.17.0 |
+| | O painel e-ink mostra quem gravou os dados (o nome deste computador) | 4.23.0 |
 | | [Relatório mensal](#relatório-mensal-3200) para a direcção | 3.20.0 |
 | | Separador **Acções**: o plano de acção de todos os serviços | 3.21.0 |
 | | PDF com o nome do serviço e da data | 3.22.0 |

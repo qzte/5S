@@ -496,7 +496,10 @@ O guia abre-se no fim, em **Abrir o guia**. O que há em cada grupo:
 - **Cópia de segurança na pasta partilhada** — a pasta onde a app grava a cópia sozinha (ver
   [cópias de segurança](#cópias-de-segurança)); pode desligar-se, e «Gravar agora» grava já.
 - **Painel e-ink** — escolha a pasta partilhada onde a app grava o
-  `5s.painel.json` (só no Chrome ou Edge de computador).
+  `5s.painel.json` (só no Chrome ou Edge de computador). Da primeira vez, a app pergunta o
+  **nome deste computador** (ou de quem o usa): o painel mostra-o como quem gravou os dados, para
+  se saber a quem perguntar quando estão errados ou antigos. Sem nome, fica um código (PC-…);
+  «Mudar nome» muda-o.
 
 O **código de acesso** é pedido para editar auditorias, alterar os responsáveis,
 abrir o editor de perguntas e substituir o histórico. Protege contra alterações

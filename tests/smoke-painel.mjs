@@ -16,9 +16,12 @@ const BENIGNO = /frame-ancestors/;
 pg.on("console", m => {
   if (m.type() === "error" && !BENIGNO.test(m.text())) erros.push(m.text());
 });
-pg.on("dialog", d => d.accept(""));
+let nativos = 0;
+pg.on("dialog", d => { nativos++; d.accept(""); });
 /* Avisos e confirmações vêm na caixa da app desde 3.13.0: aceita-os todos. */
-await ligarDialogos(pg, () => undefined);
+/* v4.23.0: `resposta` responde à próxima caixa (o nome deste computador); undefined = botão por omissão. */
+let resposta;
+await ligarDialogos(pg, () => resposta);
 await pg.addInitScript(() => {
   const ficheiros = {};
   window.__PASTA = { ficheiros, escritas: 0 };
@@ -60,6 +63,20 @@ check(f.dados.total === 0 && f.dados.pilares.length === 5, "sem auditorias, o re
 check(f.dados.kpis && /^\d{4}-\d{2}-\d{2}$/.test(f.dados.kpis.hoje) && f.dados.kpis.porMes.length === 12 &&
   f.dados.kpis.media30 === null, "o ficheiro devia levar os KPIs (vazios)");
 check((await pg.locator("#painel-estado").textContent()).includes("partilhada"), "o cartão devia dizer a pasta");
+
+/* ---- 2b. (4.23.0) Quem gravou: o nome deste computador, pedido na caixa da app ao escolher a pasta.
+   Sem nome (Guardar com o campo vazio), um código PC-XXXX; «Mudar nome» muda-o e regrava o ficheiro. ---- */
+check(/^PC-[A-Z0-9]{4}$/.test(f.autor || ""), "sem nome, o ficheiro devia levar um código PC-XXXX (tem " + f.autor + ")");
+check((await pg.locator("#painel-autor").textContent()).includes(f.autor || "?"), "o cartão devia mostrar o código");
+resposta = { campo: "PC Farmácia", botao: "Guardar" };
+await pg.locator("#btn-painel-autor").click();
+await pg.waitForFunction(() => (window.__PASTA.ficheiros["5s.painel.json"] || "").includes("PC Farmácia"), null, { timeout: 10000 }).catch(() => {});
+await semDialogo(pg);
+resposta = undefined;
+f = await feed();
+check(f.autor === "PC Farmácia", "«Mudar nome» devia gravar o nome novo (tem " + f.autor + ")");
+check((await pg.locator("#painel-autor").textContent()).includes("PC Farmácia"), "o cartão devia mostrar o nome novo");
+check(nativos === 0, "o nome devia ser pedido na caixa da app, não numa caixa nativa (" + nativos + ")");
 
 /* ---- 3. Gravar uma auditoria volta a gravar o ficheiro (~2 s depois). ---- */
 await pg.locator("[data-v=audit]").click();
