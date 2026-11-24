@@ -5,6 +5,28 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.22.0] — 2026-11-24
+
+### Acrescentado
+
+- **Tempo de auditoria (A9 e E6 da proposta `docs/resumo-kpis-equipa-auditorias.md`).**
+  - **No Auditar:** ao escolher o serviço, o tempo começa a contar (até *Guardar auditoria*) e a app pede logo a
+    **preparação** (listagens e responsáveis: 15 min, 30 min, 1 h, 2 h, não houve ou outro). Num serviço **externo**
+    pede também de onde veio (base ou outra auditoria) e o **trânsito** desde o ponto anterior, e antes de guardar se
+    segue para outra auditoria ou **volta à base**, com o tempo de regresso. Cada viagem conta uma só vez, mesmo com
+    várias externas seguidas.
+  - **Na auditoria:** o campo `tempo` (`inicio`, `fim`, `prep`, `origem`, `transito`, `depois`, `regresso`), validado
+    na importação (`sanitizeTempo()`). O tempo em curso fica à parte do rascunho (`tempoRasc`) e sai com ele.
+  - **No relatório:** uma linha com o terreno (início → fim e a duração), a preparação, o trânsito e o regresso.
+  - **Análise → cartão Tempo de auditoria**, global, no ano escolhido, com internas e externas em separado: terreno
+    (média, mediana, mais curta, mais longa, atípicas acima de 4 h, que ficam fora das médias), preparação, trânsito e
+    total por auditoria, trânsito por saída e por auditoria, e o tempo total da equipa em horas e em dias de trabalho.
+    A pós-auditoria (tempo gasto nas acções) fica para uma próxima fase.
+  - **Config → Serviços e objectivo → Dia de trabalho:** as horas de um dia (8 por omissão), para os dias de trabalho.
+  - Funções puras novas: `sanitizeTempo()`, `minutosTerreno()`, `fmtDur()` e `kpisTempo()`.
+- **Testes:** `tempo.test.js` e `smoke-tempo.mjs` (também na CI).
+- **Documentação:** `KPIS.md` (secção 4.2), `GUIA.md`/`guia.html` e README.
+
 ## [4.21.0] — 2026-11-24
 
 ### Acrescentado

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.21.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.22.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -483,6 +483,26 @@ details.grp[open]>summary{border-bottom:1px solid var(--line)}
 .kpi .mt-sobe,.mt-pq small.mt-sobe{color:var(--green-ink);font-weight:700}.kpi .mt-desce,.mt-pq small.mt-desce{color:var(--red-ink);font-weight:700}
 .kpi b.atraso{color:var(--red-ink)}
 .kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+/* v4.22.0: o tempo da auditoria — perguntas no formulário e o cartão. */
+.tempo-q{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:10px 12px;margin:0 0 12px;background:var(--panel)}
+.tempo-q .tq{margin:0 0 10px}.tempo-q .tq:last-child{margin-bottom:0}
+.tempo-q b{display:block;font-family:var(--f-sans);font-size:.85rem}
+.tempo-q small{display:block;color:var(--muted);font-size:.72rem;margin-bottom:6px}
+.tempo-q .ops{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tempo-q .ops button{font-family:var(--f-sans);font-size:.78rem;font-weight:700;border:0;border-radius:99px;padding:6px 12px;background:var(--chip);color:var(--ink);cursor:pointer;min-height:32px}
+.tempo-q .ops button[aria-pressed=true]{background:var(--green);color:#fff}
+.tempo-q .ops input{width:7.5em;margin:0;padding:5px 8px;font-size:.8rem}
+.tempo-q .ini{font-size:.72rem;color:var(--muted);margin-top:8px}
+.tp-t{display:grid;grid-template-columns:minmax(0,1fr) 4.6em 4.6em;gap:6px;align-items:baseline;padding:6px 0;border-top:1px dashed var(--line);font-size:.8rem}
+.tp-t.th{border-top:0;padding-bottom:0}
+.tp-t.th b{font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+.tp-t b{text-align:right;font-family:var(--f-sans);font-weight:900;white-space:nowrap}
+.tp-t.tot span,.tp-l.tot span{font-weight:700;font-family:var(--f-sans)}
+.tp-t b.pf,.tp-l b.pf{font-weight:400;font-size:.68rem;color:var(--muted)}
+.tp-l{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px dashed var(--line);font-size:.8rem}
+.tp-l b{font-family:var(--f-sans);font-weight:900;white-space:nowrap}
+.tp-l b.atip,.tp-t b.atip{color:var(--amber-ink)}
+.kpi.tempo-big{grid-column:1/-1;border-left:5px solid var(--amber)}
 .kpi small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
 .kpi b{display:block;font-size:1.5rem;line-height:1.2;margin:2px 0}
 .kpi span{font-size:.78rem;color:var(--muted)}
@@ -836,6 +856,9 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
     </div>
     <select id="f-service" class="hidden" aria-hidden="true" tabindex="-1"></select>
     <div id="f-svc-conta" class="hint" role="status" style="margin:-6px 0 10px;font-size:.75rem"></div>
+    <!-- v4.22.0: escolhido o serviço, o tempo começa a contar e pede-se a
+         preparação (e, num externo, o trânsito). Desenhado em renderTempoForm. -->
+    <div class="tempo-q hidden" id="tempo-pre" role="group" aria-label="Tempo antes da auditoria"></div>
     <!-- v4.15.0: a nota em directo passou para a barra de progresso. -->
     <label for="f-date">Data</label><input type="date" id="f-date">
     <!-- v4.8.0: quem está presente, um campo por responsável (desenhado em renderForm). -->
@@ -860,6 +883,8 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
        para serem verificadas no terreno e marcadas como feitas. -->
   <div class="card hidden" id="acoes-abertas"></div>
   <div id="items"></div>
+  <!-- v4.22.0: num externo, antes de guardar: segue para outra ou volta à base. -->
+  <div class="tempo-q hidden" id="tempo-pos" role="group" aria-label="Depois desta auditoria"></div>
   <button class="btn" id="btn-save">Guardar auditoria</button>
 </section>
 
@@ -932,6 +957,11 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
   <details class="cm" id="card-manut" open>
     <summary><span class="ct"><h3>Manutenção</h3><span class="ct-res" id="res-card-manut"></span></span><span class="chev" aria-hidden="true"></span></summary>
     <div class="cc"><div id="an-manut"></div></div>
+  </details>
+  <!-- v4.22.0: o tempo das auditorias (A9/E6), global e do ano escolhido acima. -->
+  <details class="cm" id="card-tempo" open>
+    <summary><span class="ct"><h3>Tempo de auditoria</h3><span class="ct-res" id="res-card-tempo"></span></span><span class="chev" aria-hidden="true"></span></summary>
+    <div class="cc"><div id="an-tempo"></div></div>
   </details>
   <details class="cm" id="card-svc-ano" open>
     <summary><span class="ct"><h3><span id="svc-ano-tit">Serviços no ano</span></h3><span class="ct-res" id="res-card-svc-ano"></span></span><span class="chev" aria-hidden="true"></span></summary>
@@ -1171,6 +1201,12 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
           <div><label for="obj-s">Objectivo superado</label><input id="obj-s" type="number" min="2" max="100000" step="1" inputmode="numeric" placeholder="Opcional"></div>
         </div>
         <p id="obj-info" class="txt" style="margin:0"></p>
+      </div>
+      <!-- v4.22.0: para mostrar o tempo da equipa em dias, na Análise. -->
+      <div class="sub" id="card-horas-dia">
+        <h3>Dia de trabalho</h3>
+        <p class="txt">Quantas horas tem um dia de trabalho. O cartão «Tempo de auditoria», na Análise, mostra o tempo da equipa também em dias. Fica guardado neste dispositivo.</p>
+        <div style="max-width:12em"><label for="horas-dia">Horas por dia</label><input id="horas-dia" type="number" min="1" max="24" step="0.5" inputmode="decimal"></div>
       </div>
     </div>
   </details>
@@ -1931,7 +1967,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.21.0";
+const APP_VERSION="4.22.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -2291,6 +2327,7 @@ function renderForm(){
    que ficou por resolver da vez anterior, enquanto está no sítio. Só numa
    auditoria nova: em edição, a "anterior" seria a própria auditoria. */
 function mostrarAnteriores(){
+  renderTempoForm();
   mostrarAcoesAbertas();
   const IT=fitems();
   const ult=editId==null?ultimaDe(document.getElementById("f-service").value,audits):null;
@@ -2600,6 +2637,103 @@ function aplicarEdicao(lista,id,dados){
   out[i]=Object.assign({},lista[i],dados,{id:lista[i].id});
   return out;
 }
+/* ---------- Tempo da auditoria: no formulário (v4.22.0) ----------
+   `tempoForm` é o tempo da auditoria nova em curso, gravado à parte do
+   rascunho (TEMPO_KEY): {service, inicio, prep, origem, transito, depois,
+   regresso}. O `inicio` marca-se quando se escolhe o serviço; ao Guardar
+   junta-se o `fim` e vai para a auditoria (ver tempoParaGravar). */
+const TEMPO_KEY="tempoRasc";
+/* Sem rascunho, um início com mais disto já não é desta auditoria. */
+const TEMPO_VELHO_MS=12*3600e3;
+function lerTempoForm(){
+  const t=load(TEMPO_KEY,null);
+  if(!t||typeof t!=="object"||Array.isArray(t))return null;
+  const o=sanitizeTempo(t);
+  return o&&o.inicio?Object.assign({service:clean(t.service,200)},o):null;
+}
+let tempoForm=lerTempoForm();
+function guardarTempoForm(){
+  try{if(tempoForm)localStorage.setItem(TEMPO_KEY,JSON.stringify(tempoForm));else localStorage.removeItem(TEMPO_KEY);}catch(e){}
+}
+function limparTempoForm(){tempoForm=null;guardarTempoForm();renderTempoForm();}
+/* O serviço foi escolhido (ou mudado) numa auditoria nova: o tempo começa a
+   contar. Mudar de serviço a meio não recomeça (corrige-se uma escolha errada),
+   a não ser que o início seja de outra auditoria que ficou por fazer. */
+function tempoServicoEscolhido(){
+  if(editId!=null)return;
+  const svc=document.getElementById("f-service").value;
+  if(svc){
+    const velho=!tempoForm||!tempoForm.inicio||
+      (!lerRascunhoGuardado()&&(tempoForm.service!==svc||Date.now()-Date.parse(tempoForm.inicio)>TEMPO_VELHO_MS));
+    if(velho)tempoForm={service:svc,inicio:new Date().toISOString()};
+    else tempoForm.service=svc;
+    if(tipoDe(tipos,svc)!=="e")["origem","transito","depois","regresso"].forEach(k=>delete tempoForm[k]);
+    guardarTempoForm();
+  }
+  renderTempoForm();
+}
+/* O tempo a gravar com a auditoria nova, com o fim agora; ou undefined. */
+function tempoParaGravar(service,agora){
+  if(!tempoForm||!tempoForm.inicio||tempoForm.service!==service)return undefined;
+  return sanitizeTempo(Object.assign({},tempoForm,{fim:agora}));
+}
+const TQ_OPCOES={prep:[[15,"15 min"],[30,"30 min"],[60,"1 h"],[120,"2 h"],[0,"Não houve"]],
+  transito:[[10,"10 min"],[20,"20 min"],[30,"30 min"],[45,"45 min"],[60,"1 h"]],
+  regresso:[[10,"10 min"],[20,"20 min"],[30,"30 min"],[45,"45 min"],[60,"1 h"]]};
+function tqMinutos(k,tit,sub){
+  const v=tempoForm&&tempoForm[k],conhecido=TQ_OPCOES[k].some(([m])=>m===v);
+  return`<div class="tq"><b id="tq-${k}">${tit}</b>${sub?`<small>${sub}</small>`:""}<div class="ops" role="group" aria-labelledby="tq-${k}">`+
+    TQ_OPCOES[k].map(([m,r])=>`<button type="button" data-tq="${k}" data-v="${m}" aria-pressed="${v===m}">${r}</button>`).join("")+
+    `<input type="number" min="1" max="${MIN_TEMPO_MAX}" step="1" inputmode="numeric" data-tq-outro="${k}" placeholder="outro (min)" aria-label="${tit}: outro, em minutos" value="${v!=null&&!conhecido?v:""}"></div></div>`;
+}
+function tqEscolha(k,tit,ops){
+  const v=tempoForm&&tempoForm[k];
+  return`<div class="tq"><b id="tq-${k}">${tit}</b><div class="ops" role="group" aria-labelledby="tq-${k}">`+
+    ops.map(([x,r])=>`<button type="button" data-tq="${k}" data-v="${x}" aria-pressed="${v===x}">${r}</button>`).join("")+`</div></div>`;
+}
+function renderTempoForm(){
+  const pre=document.getElementById("tempo-pre"),pos=document.getElementById("tempo-pos");
+  if(!pre||!pos)return;
+  const svc=document.getElementById("f-service").value;
+  const ativo=editId==null&&!!svc&&!!tempoForm&&!!tempoForm.inicio;
+  const ext=ativo&&tipoDe(tipos,svc)==="e";
+  pre.classList.toggle("hidden",!ativo);pos.classList.toggle("hidden",!ext);
+  if(!ativo){pre.innerHTML="";pos.innerHTML="";return;}
+  const hora=new Date(tempoForm.inicio).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
+  pre.innerHTML=tqMinutos("prep","Antes de começar: quanto tempo levou a preparação?","Listagens e responsáveis.")+
+    (ext?tqEscolha("origem","Serviço externo: de onde veio?",[["b","Vim da base"],["a","Vim de outra auditoria"]])+
+      tqMinutos("transito","Trânsito até aqui","Só a viagem desde o ponto anterior."):"")+
+    `<p class="ini" id="tempo-ini">O tempo no terreno conta desde as ${esc(hora)} e pára ao Guardar.</p>`;
+  pos.innerHTML=ext?tqEscolha("depois","Depois desta auditoria",[["a","Sigo para outra auditoria"],["b","Volto à base"]])+
+    (tempoForm.depois==="b"?tqMinutos("regresso","Tempo de regresso à base",""):""):"";
+  [pre,pos].forEach(box=>{
+    box.querySelectorAll("[data-tq]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.tq,v=k==="origem"||k==="depois"?b.dataset.v:parseInt(b.dataset.v,10);
+      if(tempoForm[k]===v)delete tempoForm[k];else tempoForm[k]=v;
+      if(tempoForm.depois!=="b")delete tempoForm.regresso;
+      guardarTempoForm();renderTempoForm();
+      const n=document.querySelector(`[data-tq="${k}"][data-v="${b.dataset.v}"]`);if(n)n.focus();
+    });
+    box.querySelectorAll("[data-tq-outro]").forEach(inp=>inp.onchange=()=>{
+      const k=inp.dataset.tqOutro,t=String(inp.value).trim(),n=Number(t);
+      if(!t)delete tempoForm[k];
+      else if(Number.isInteger(n)&&n>=1&&n<=MIN_TEMPO_MAX)tempoForm[k]=n;
+      else{aviso("Indique os minutos, um número inteiro de 1 a "+MIN_TEMPO_MAX+".","Tempo");}
+      guardarTempoForm();renderTempoForm();
+    });
+  });
+}
+/* No relatório: o terreno (início → fim), a preparação, o trânsito e o regresso. */
+function linhaTempo(a){
+  const t=a&&a.tempo;if(!t)return "";
+  const h=iso=>new Date(iso).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
+  const m=minutosTerreno(t),p=[];
+  if(m!=null)p.push("Terreno "+h(t.inicio)+" → "+h(t.fim)+" · "+fmtDur(m)+(m>TERRENO_ATIPICO_MIN?" (atípica)":""));
+  if(t.prep!=null)p.push(t.prep?"Preparação "+fmtDur(t.prep):"Sem preparação");
+  if(t.transito!=null)p.push("Trânsito "+fmtDur(t.transito)+(t.origem==="b"?" (da base)":t.origem==="a"?" (de outra auditoria)":""));
+  if(t.depois==="b"&&t.regresso!=null)p.push("Regresso "+fmtDur(t.regresso));
+  return p.length?`<div class="tempo-rel" style="font-size:.78rem;margin-top:6px;color:#9db8a9">⏱ ${esc(p.join(" · "))}</div>`:"";
+}
 /* ---------- Rascunho: ligação ao formulário (v3.8.0) ---------- */
 /* `editSujo`: a edição de uma auditoria gravada tem alterações por guardar.
    `rascunhoFalhou`: a última gravação do rascunho falhou (armazenamento cheio),
@@ -2626,6 +2760,8 @@ function guardarRascunho(){
 }
 function apagarRascunho(){
   try{localStorage.removeItem(RASCUNHO_KEY);}catch(e){}
+  /* v4.22.0: o tempo da auditoria em curso vai com o rascunho. */
+  limparTempoForm();
   limparFotosRascunho();
   rascunhoFalhou=false;mostrarRascunho(null);
 }
@@ -2725,7 +2861,9 @@ document.getElementById("btn-save").onclick=async()=>{
     return;
   }
   /* v3.25.0: gravada no terreno, fica por finalizar (ver enviarParaPC). */
-  const a=tocar(Object.assign({id:Date.now()},dados,{fase:"terreno"}));
+  /* v4.22.0: o tempo (do serviço escolhido até agora), com a preparação e o trânsito. */
+  const tempo=tempoParaGravar(dados.service,new Date().toISOString());
+  const a=tocar(Object.assign({id:Date.now()},dados,{fase:"terreno"},tempo?{tempo}:{}));
   audits.push(a);
   if(!save("audits",audits)){audits.pop();return;}
   /* O rascunho sai ANTES de resetForm(): de outro modo renderForm() voltava a
@@ -3441,6 +3579,83 @@ function kpisManutencao(lista,ano,hoje,rk){
     acoes:{abertas:ia.abertas,atrasadas:ia.atrasadas,idadeMedia:ia.idadeMedia,atrasoMedio:ia.atrasoMedio,
       fechadas:dp.fechadas,diasMedio:dp.diasMedio,comPrazo:dp.comPrazo,noPrazo:dp.noPrazo,pctPrazo:dp.pctPrazo}};
 }
+/* v4.22.0: o tempo de uma auditoria (A9/E6). `tempo` grava-se com a auditoria
+   nova, ao Guardar:
+     {inicio, fim}: instantes ISO — o serviço escolhido e o Guardar (o terreno);
+     prep: minutos de preparação (listagens, responsáveis), 0 = não houve;
+     origem: "b" (veio da base) ou "a" (de outra auditoria), só nas externas;
+     transito: minutos da viagem desde o ponto anterior, só nas externas;
+     depois: "a" (segue para outra auditoria) ou "b" (volta à base);
+     regresso: minutos da volta à base (só com depois "b").
+   Tudo opcional; sem nada, undefined (fica de fora do registo). */
+const MIN_TEMPO_MAX=24*60;
+function sanitizeTempo(x){
+  if(!x||typeof x!=="object"||Array.isArray(x))return undefined;
+  const iso=v=>typeof v==="string"&&v.length<=40&&Number.isFinite(Date.parse(v))?v:undefined;
+  const min=v=>Number.isInteger(v)&&v>=0&&v<=1440?v:undefined;
+  const ab=v=>v==="a"||v==="b"?v:undefined;
+  const o={inicio:iso(x.inicio),fim:iso(x.fim),prep:min(x.prep),origem:ab(x.origem),transito:min(x.transito),
+    depois:ab(x.depois),regresso:min(x.regresso)};
+  if(o.depois!=="b")delete o.regresso;
+  Object.keys(o).forEach(k=>{if(o[k]===undefined)delete o[k];});
+  return Object.keys(o).length?o:undefined;
+}
+/* Minutos no terreno (do serviço escolhido ao Guardar), ou null. */
+function minutosTerreno(t){
+  if(!t||!t.inicio||!t.fim)return null;
+  const m=Math.round((Date.parse(t.fim)-Date.parse(t.inicio))/6e4);
+  return Number.isFinite(m)&&m>=0?m:null;
+}
+/* «35 min», «1 h 25», «34 h». */
+function fmtDur(m){
+  if(m==null||!Number.isFinite(m))return "—";
+  m=Math.round(m);
+  if(m<60)return m+" min";
+  const h=Math.floor(m/60),r=m%60;
+  return r?h+" h "+String(r).padStart(2,"0"):h+" h";
+}
+/* Acima disto, uma auditoria no terreno é atípica (ficou aberta e esquecida):
+   conta-se à parte e fica fora das médias e dos totais. */
+const TERRENO_ATIPICO_MIN=240;
+/* v4.22.0: os indicadores do tempo das auditorias do ano `ano`, GLOBAIS, para
+   internas ("i") e externas ("e") em separado, e de todas juntas.
+   Por tipo: terreno (média, mediana, mais curta, mais longa, atípicas, total),
+   preparação e trânsito (média e total, com o n de cada um), o total médio por
+   auditoria (a soma das médias das fases) e o total do ano em minutos.
+   Trânsito (externas): saídas = auditorias com origem «base»; o total soma o
+   trânsito e os regressos. Só contam as auditorias com `tempo`. */
+function kpisTempo(lista,ano,tipos){
+  const doAno=(lista||[]).filter(a=>a&&typeof a.date==="string"&&a.date.slice(0,4)===String(ano)&&a.tempo&&typeof a.tempo==="object");
+  const mediana=v=>{if(!v.length)return null;const s=[...v].sort((x,y)=>x-y),k=s.length>>1;return s.length%2?s[k]:Math.round((s[k-1]+s[k])/2);};
+  const media=v=>v.length?Math.round(v.reduce((s,x)=>s+x,0)/v.length):null;
+  const soma=v=>v.reduce((s,x)=>s+x,0);
+  const grupo=l=>{
+    const ter=[],prep=[],trans=[];let atipicas=0,regressos=0,saidas=0;
+    l.forEach(a=>{const t=a.tempo,m=minutosTerreno(t);
+      if(m!=null){if(m>TERRENO_ATIPICO_MIN)atipicas++;else ter.push(m);}
+      if(t.prep!=null)prep.push(t.prep);
+      if(t.transito!=null)trans.push(t.transito);
+      if(t.depois==="b"&&t.regresso!=null)regressos+=t.regresso;
+      if(t.origem==="b")saidas++;});
+    const mt=media(ter),mp=media(prep),mtr=media(trans);
+    const fases=[mp,mt,mtr].filter(x=>x!=null);
+    const transitoTotal=soma(trans)+regressos;
+    return{auditorias:l.length,
+      terreno:{n:ter.length,media:mt,mediana:mediana(ter),min:ter.length?Math.min(...ter):null,max:ter.length?Math.max(...ter):null,atipicas,total:soma(ter)},
+      prep:{n:prep.length,media:mp,total:soma(prep)},
+      transito:{n:trans.length,media:mtr,total:transitoTotal,saidas,regressos},
+      porAuditoria:fases.length?soma(fases):null,
+      total:soma(ter)+soma(prep)+transitoTotal};
+  };
+  const i=grupo(doAno.filter(a=>tipoDe(tipos,a.service)==="i"));
+  const e=grupo(doAno.filter(a=>tipoDe(tipos,a.service)==="e"));
+  const todas=grupo(doAno);
+  const tr=e.transito,ext=doAno.filter(a=>tipoDe(tipos,a.service)==="e"&&a.tempo.transito!=null).length;
+  return{ano,interno:i,externo:e,todas,
+    saidas:{n:tr.saidas,porSaida:tr.saidas?umaCasa(ext/tr.saidas):null,
+      transitoPorSaida:tr.saidas?Math.round(tr.total/tr.saidas):null,
+      transitoPorAuditoria:ext?Math.round(tr.total/ext):null}};
+}
 /* v4.5.0: as acções em aberto — a idade (desde a criação), o atraso das que
    passaram o prazo e a mais antiga. */
 function idadeAcoesAbertas(lista,hoje){
@@ -3963,6 +4178,7 @@ function openReport(a){
     <span class="badge ${bc}">${bt}</span>
     <div style="font-size:.78rem;margin-top:10px;color:#9db8a9">${textoPresentes(a)?esc(textoPresentes(a))+" · ":""}Verificador: ${esc(a.verif||"—")}</div>
     ${a.note?`<div style="font-size:.78rem;margin-top:6px;color:#9db8a9">Nota: ${esc(a.note)}</div>`:""}
+    ${linhaTempo(a)}
   </div>
   <div class="card no-print" id="pos-aud"></div>
   <div class="page page-1">
@@ -5031,6 +5247,55 @@ let anoKpis=0;
 const numPT=x=>String(x).replace(".",",");
 /* v4.21.0: o cartão Manutenção (kpisManutencao), no ano dos Indicadores do ano. */
 const RESP_MANUT="M";
+/* v4.22.0: o cartão Tempo de auditoria (kpisTempo), no ano dos Indicadores do
+   ano. Um dia de trabalho tem HORAS_DIA_KEY horas (8 por omissão, em Config). */
+const HORAS_DIA_KEY="horasDia";
+function horasDia(){const h=Number(load(HORAS_DIA_KEY,8));return h>=1&&h<=24?h:8;}
+function renderTempo(ano){
+  const box=document.getElementById("an-tempo");
+  if(!box)return;
+  const k=kpisTempo(audits,ano,tipos),hd=horasDia(),I=k.interno,E=k.externo,T=k.todas;
+  if(!T.auditorias){
+    box.innerHTML=`<p class="empty">Sem auditorias com tempo registado em ${ano}. O tempo regista-se nas auditorias novas, desde a versão 4.22.0.</p>`;
+    resumoCartao("card-tempo","Sem dados em "+ano);return;}
+  const tile=(id,rot,val,sub,cls)=>`<div class="kpi${cls?" "+cls:""}" id="${id}"><small>${rot}</small><b>${val}</b><span>${sub}</span></div>`;
+  const pf=`<b class="pf">próx. fase</b>`;
+  const hd2=x=>x?numPT(umaCasa(x/60))+" h":"—";
+  const dias=x=>x?numPT(umaCasa(x/60/hd))+" dias":"—";
+  const th=`<div class="tp-t th"><span></span><b>Internas</b><b>Externas</b></div>`;
+  const ln=(rot,a,b,cls)=>`<div class="tp-t${cls?" "+cls:""}"><span>${rot}</span>${a}${b}</div>`;
+  const v=x=>`<b>${x}</b>`;
+  const atip=x=>`<b${x?' class="atip"':""}>${x}</b>`;
+  box.innerHTML=`<p class="an-nota">Da escolha do serviço até Guardar, em todos os serviços. Só as auditorias com tempo registado (desde a 4.22.0). Mais de ${TERRENO_ATIPICO_MIN/60} h no terreno é atípica: fica fora das médias e dos totais.</p>`+
+    `<div class="kpi-grelha">`+tile("tempo-media","Terreno, média · "+ano,fmtDur(T.terreno.media),
+      T.terreno.n?"n = "+T.terreno.n+" auditoria(s) · metade demora menos de "+fmtDur(T.terreno.mediana):"sem auditorias com terreno medido","tempo-big")+
+    tile("tempo-int","Internas",fmtDur(I.terreno.media),"n = "+I.terreno.n)+tile("tempo-ext","Externas",fmtDur(E.terreno.media),"n = "+E.terreno.n)+`</div>`+
+    `<div class="mt-sec">Mais curta e mais longa</div><div id="tempo-extremos">${th}`+
+    ln("Mais curta",v(fmtDur(I.terreno.min)),v(fmtDur(E.terreno.min)))+ln("Mais longa",v(fmtDur(I.terreno.max)),v(fmtDur(E.terreno.max)))+
+    ln("Atípicas (mais de "+TERRENO_ATIPICO_MIN/60+" h)",atip(I.terreno.atipicas),atip(E.terreno.atipicas))+`</div>`+
+    `<div class="mt-sec">Por auditoria, em média</div><div id="tempo-fases">${th}`+
+    ln("1. Preparação",v(fmtDur(I.prep.media)),v(fmtDur(E.prep.media)))+
+    ln("2. Trânsito",v("—"),v(fmtDur(E.transito.media)))+
+    ln("3. Terreno",v(fmtDur(I.terreno.media)),v(fmtDur(E.terreno.media)))+
+    ln("4. Pós-auditoria (acções)",pf,pf)+
+    ln("Total",v(fmtDur(I.porAuditoria)),v(fmtDur(E.porAuditoria)),"tot")+`</div>`+
+    `<div class="mt-sec">Trânsito nas externas · ${ano}</div><div id="tempo-transito">`+
+    `<div class="tp-l"><span>Saídas (viagens desde a base)</span><b>${k.saidas.n}</b></div>`+
+    `<div class="tp-l"><span>Auditorias externas por saída</span><b>${k.saidas.porSaida==null?"—":numPT(k.saidas.porSaida)}</b></div>`+
+    `<div class="tp-l"><span>Trânsito por saída (com o regresso)</span><b>${fmtDur(k.saidas.transitoPorSaida)}</b></div>`+
+    `<div class="tp-l"><span>Trânsito por auditoria</span><b>${fmtDur(k.saidas.transitoPorAuditoria)}</b></div></div>`+
+    `<p class="an-nota" style="margin-top:6px">Mais auditorias por saída = menos trânsito por auditoria.</p>`+
+    `<div class="mt-sec">Tempo total da equipa · ${ano}</div><div id="tempo-total">${th}`+
+    ln("Preparação",v(hd2(I.prep.total)),v(hd2(E.prep.total)))+
+    ln("Trânsito",v("—"),v(hd2(E.transito.total)))+
+    ln("Terreno",v(hd2(I.terreno.total)),v(hd2(E.terreno.total)))+
+    ln("Pós-auditoria",pf,pf)+
+    ln("Total",v(hd2(I.total)),v(hd2(E.total)),"tot")+
+    ln("Dias de trabalho",v(dias(I.total)),v(dias(E.total)),"tot")+`</div>`+
+    `<div class="tp-l tot"><span>Equipa, no total</span><b id="tempo-equipa">${hd2(T.total)} · ${dias(T.total)}</b></div>`+
+    `<p class="an-nota" style="margin-top:6px">1 dia de trabalho = ${numPT(hd)} h (muda-se em Config → Serviços e objectivo). Os totais da equipa juntam também os serviços sem tipo.</p>`;
+  resumoCartao("card-tempo",["Internas "+fmtDur(I.porAuditoria),"externas "+fmtDur(E.porAuditoria),dias(T.total)+" no ano"].join(" · "));
+}
 function renderManutencao(ano,hoje){
   const box=document.getElementById("an-manut");
   if(!box)return;
@@ -5149,6 +5414,7 @@ function renderKpis(){
   resumoCartao("card-svc-ano",[k.abaixo.length?k.abaixo.length+" abaixo da média":"",
     (services||[]).length?k.porAuditar.length+" não auditados":"",reinc.length?reinc.length+(reinc.length===1?" reincidência":" reincidências"):""].filter(Boolean).join(" · ")||"—");
   renderManutencao(anoKpis,hoje);
+  renderTempo(anoKpis);
   /* v4.18.0: os botões estão no cartão dos serviços (kpis-svc), já não em #kpis. */
   (boxSvc||box).querySelectorAll("[data-kpi-plano]").forEach(b=>b.onclick=()=>{
     const x=k.abaixo[+b.dataset.kpiPlano],a=x&&audits.find(y=>y.id===x.ultimaId);
@@ -5170,6 +5436,12 @@ function renderObjetivo(){
   const sem=x=>numPT(umaCasa(x/((diasEntre(anoObjetivo+"-01-01",anoObjetivo+"-12-31")+1)/7)));
   if(info)info.textContent=n?"Cerca de "+sem(n)+" auditorias por semana para atingir"+(sup?"; "+sem(sup)+" por semana para superar":"")+
     ". O superado é opcional e tem de ser maior que o atingido.":"Sem objectivo para "+anoObjetivo+".";
+}
+function renderHorasDia(){const el=document.getElementById("horas-dia");if(el)el.value=String(horasDia());}
+function gravarHorasDia(){
+  const el=document.getElementById("horas-dia"),t=String(el.value).trim().replace(",","."),h=Number(t);
+  if(!t||!(h>=1&&h<=24)){aviso("Indique as horas de um dia de trabalho, de 1 a 24.","Dia de trabalho");renderHorasDia();return;}
+  save(HORAS_DIA_KEY,h);renderHorasDia();
 }
 function gravarObjetivo(){
   const inp=document.getElementById("obj-n"),txt=String(inp.value).trim(),n=Number(txt);
@@ -5211,6 +5483,7 @@ function renderCfg(){
   pplBox.querySelectorAll("[data-rmppl]").forEach(b=>b.onclick=()=>rmPerson(+b.dataset.rmppl));
   renderResps();
   renderObjetivo();
+  renderHorasDia();
   mostrarPinCfg();
   const ds=document.getElementById("data-stats");
   if(ds){
@@ -6197,6 +6470,8 @@ function sanitizeAudit(x){
     /* v3.26.0: o dispositivo que a finalizou (ver idDispositivo). */
     finalizadaPor:typeof x.finalizadaPor==="string"&&/^[a-z0-9]{6,32}$/.test(x.finalizadaPor)?x.finalizadaPor:undefined,
     alterada:dataISO(x.alterada),
+    /* v4.22.0: o tempo (terreno, preparação, trânsito, regresso). */
+    tempo:sanitizeTempo(x.tempo),
     items:items||undefined
   };
 }
@@ -7575,9 +7850,12 @@ on("btn-mensal","click",()=>{const m=document.getElementById("an-mes").value;if(
 on("an-ano","change",e=>{anoKpis=parseInt(e.target.value,10)||0;renderKpis();});
 on("obj-ano","change",e=>{anoObjetivo=parseInt(e.target.value,10)||0;renderObjetivo();});
 on("obj-n","change",()=>gravarObjetivo());
+on("horas-dia","change",()=>gravarHorasDia());
 on("obj-s","change",()=>gravarObjetivo());
 on("an-per","change",e=>{anFiltro.meses=parseInt(e.target.value,10)||0;renderStats();});
 on("f-service","change",()=>mostrarAnteriores());
+/* v4.22.0: o tempo começa a contar quando se escolhe o serviço. */
+on("f-service","change",()=>tempoServicoEscolhido());
 ligarCaixaServico();
 on("btn-impjson","click",()=>document.getElementById("hist-file").click());
 on("btn-hist-importar","click",()=>document.getElementById("hist-file").click());

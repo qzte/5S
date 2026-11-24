@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
-  ["sanitizePresentes", "textoPresentes", "sanitizeAudit", "sanitizeEnvios", "sanitizeAcoes", "recsOf", "recTexto",
+  ["sanitizePresentes", "textoPresentes", "sanitizeAudit", "sanitizeEnvios", "sanitizeTempo", "sanitizeAcoes", "recsOf", "recTexto",
    "normItem", "classify", "fixedKey", "montarRascunho", "lerRascunho", "assinItem", "inteiroOuNull",
    "linhasExcel", "ordemCron", "byPillar", "byResp"],
   ["ITEMS", "itemsOf", "LBL", "badge"]);
