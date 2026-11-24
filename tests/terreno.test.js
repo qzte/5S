@@ -7,7 +7,7 @@ const { buildContext } = require("./harness.js");
 
 const ctx = buildContext(
   ["maisRecente", "acoesFeitasDe", "sanitizeFeitas", "aplicarAcoesFeitas", "tocar", "planoFusao",
-   "payloadTransferencia", "idDaChave", "sanitizeAudit", "sanitizeEnvios", "sanitizeAcoes", "recsOf", "recTexto",
+   "payloadTransferencia", "idDaChave", "sanitizeAudit", "sanitizeEnvios", "sanitizeTempo", "sanitizeAcoes", "recsOf", "recTexto",
    "normItem", "classify", "fixedKey", "textoEnviada", "dataLocal", "dataCurta"],
   ["MAX_FEITAS", "MAX_ACOES", "porFinalizar", "ITEMS", "LBL"]);
 const { maisRecente, acoesFeitasDe, sanitizeFeitas, aplicarAcoesFeitas, planoFusao, payloadTransferencia,

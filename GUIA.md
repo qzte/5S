@@ -85,6 +85,13 @@ fecha-o e leva às perguntas; para corrigir, toque no título.
    já feitas. Toque no serviço (ou use as setas e Enter). *Esc* fecha a lista
    sem mudar o serviço. A caixa começa vazia em cada auditoria nova: sem
    serviço escolhido, a app não grava.
+   **Ao escolher o serviço, o tempo começa a contar** (até *Guardar
+   auditoria*), e a app pergunta logo por baixo **quanto tempo levou a
+   preparação** (listagens e responsáveis): toque em 15 min, 30 min, 1 h, 2 h
+   ou *Não houve*, ou escreva os minutos em *outro*. Num serviço **externo**
+   pergunta também de onde veio (*Vim da base* ou *Vim de outra auditoria*) e o
+   **trânsito até aqui**, só a viagem desde o ponto anterior: assim, com várias
+   auditorias externas seguidas, cada viagem conta uma só vez.
 2. **Quem está presente.** Por baixo, um campo por responsável (Utilizadores,
    Manutenção, Reposição, Utilizador e Repositor, Picking): escreva o nome de
    quem acompanha a auditoria por cada um. Vão para o relatório e para o PDF.
@@ -106,7 +113,10 @@ fecha-o e leva às perguntas; para corrigir, toque no título.
    *Trocar foto* e *Remover foto* fazem o que dizem. A acção entra no plano de
    acção, com o responsável da pergunta. Numa pergunta Excelente não é preciso
    mais nada.
-6. Carregue em **Guardar auditoria**. Abre o relatório, e a auditoria fica
+6. Num serviço **externo**, antes de guardar, diga o que vem a seguir:
+   *Sigo para outra auditoria* ou *Volto à base* (e, neste caso, o tempo de
+   regresso).
+7. Carregue em **Guardar auditoria**. Abre o relatório, e a auditoria fica
    **por finalizar** (ver [Depois da auditoria](#depois-da-auditoria)). Gravar
    funciona sempre, mesmo que falte alguma acção, foto ou nota: o que falta só
    impede de finalizar. Se já houver uma
@@ -361,6 +371,28 @@ a Manutenção, em todos os serviços (é global, como os indicadores do ano):
   fecho e a parte fechada dentro do prazo (das concluídas no ano).
 
 Com só 5 perguntas, uma pergunta mexe 10 a 20 pontos na nota: leia sempre o n.
+
+A seguir, o cartão **Tempo de auditoria** mostra quanto tempo levam as
+auditorias do ano, em todos os serviços, com as **internas** e as **externas**
+lado a lado (os tempos são diferentes). Só contam as auditorias feitas desde a
+versão 4.22.0, que registam o tempo.
+
+- **Terreno, média** — da escolha do serviço até *Guardar auditoria*, com o n e
+  a mediana (metade demora menos que isto). Por baixo, internas e externas.
+- **Mais curta e mais longa** e as **atípicas**: mais de 4 h no terreno (uma
+  auditoria que ficou aberta e esquecida). As atípicas ficam fora das médias e
+  dos totais.
+- **Por auditoria, em média** — preparação, trânsito (só externas), terreno e o
+  total. A pós-auditoria (o tempo gasto nas acções) fica para uma próxima fase.
+- **Trânsito nas externas** — as saídas (viagens desde a base), as auditorias
+  externas por saída, o trânsito por saída (com o regresso) e por auditoria.
+  Mais auditorias por saída = menos trânsito por auditoria.
+- **Tempo total da equipa** — as horas do ano por fase e em **dias de
+  trabalho** (8 h por dia, ou o que estiver em *Config → Serviços e objectivo →
+  Dia de trabalho*).
+
+O relatório de cada auditoria mostra também uma linha com o terreno (hora de
+início e de fim, e a duração), a preparação, o trânsito e o regresso.
 
 - **Média total** — a média de todas as auditorias do ano.
 - **Serviços abaixo da média — para o plano de acção** — os serviços cuja média

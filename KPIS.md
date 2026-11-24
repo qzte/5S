@@ -220,6 +220,32 @@ Cuidados: só 5 perguntas, uma pergunta mexe 10–20 pontos; mudar no editor as
 perguntas da Manutenção muda a escala (as notas gravadas não são recalculadas);
 um responsável Manutenção removido da lista esconde o cartão.
 
+### 4.2 Tempo de auditoria (4.22.0)
+
+`kpisTempo()`. A9 e E6 da proposta (`docs/resumo-kpis-equipa-auditorias.md`).
+De **todos os serviços**, no ano escolhido nos Indicadores do ano, com as
+**internas** e as **externas** em separado (o tipo vem de *Config → Serviços*).
+Só contam as auditorias com `tempo` (gravadas desde 4.22.0).
+
+O registo (`tempo`, ver `sanitizeTempo()`): `inicio` (serviço escolhido), `fim`
+(Guardar), `prep` (minutos de preparação, 0 = não houve), e nos externos
+`origem` (`b` base, `a` outra auditoria), `transito` (desde o ponto anterior),
+`depois` (`a` segue, `b` volta à base) e `regresso`.
+
+| Indicador | Fórmula | Como se lê |
+| --- | --- | --- |
+| **Terreno** | `fim − inicio`, em minutos; média, mediana, mais curta e mais longa | Esforço no serviço |
+| **Atípicas** | terreno acima de 240 min; contam-se, ficam fora das médias e dos totais | Auditorias esquecidas abertas |
+| **Preparação** | média e total de `prep` | Esforço antes do terreno |
+| **Trânsito** (externas) | média de `transito`; total = `transito` + `regresso` | Custo das deslocações |
+| **Por auditoria** | soma das médias das fases (preparação, trânsito, terreno) | Esforço real por tipo (E6) |
+| **Saídas** | externas com `origem = b`; auditorias por saída; trânsito por saída e por auditoria | Ganho de juntar várias externas na mesma saída |
+| **Total da equipa** | soma das fases no ano, em horas e em dias (horas por dia em Config, 8 por omissão, guardado no dispositivo) | Capacidade gasta em auditorias |
+
+Cuidados: preparação, trânsito e regresso são indicados pelo auditor (podem
+faltar); o terreno inclui pausas; a pós-auditoria (tempo gasto nas acções) fica
+para uma próxima fase; os totais da equipa juntam os serviços sem tipo.
+
 ## 5. Relatório mensal
 
 `resumoMensal()`. Um mês de todos os serviços; no mês em curso conta até hoje.
@@ -389,6 +415,8 @@ Por ordem de impacto.
 ### O que não se mede
 
 - **Eficácia por serviço ou por responsável**: hoje é um só número global.
+- **Tempo da pós-auditoria** (o tempo gasto nas acções): previsto para uma
+  próxima fase, com as métricas das acções.
 - **Acções sem ligação a uma pergunta** não entram na eficácia, e só se avalia
   a auditoria seguinte (não se segue a pergunta mais adiante). Desde 4.8.0
   quase todas as acções novas têm pergunta, porque se escrevem nela.
