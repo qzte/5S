@@ -5,6 +5,19 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.23.0] — 2026-11-24
+
+### Acrescentado
+
+- **Painel e-ink: quem gravou os dados.** O `5s.painel.json` leva o campo `autor` (o nome deste computador ou de quem o
+  usa), que o painel (qzte/e-ink_panel v1.13.0) mostra na lista da pasta e no rodapé das páginas, para se saber a quem
+  perguntar quando os dados estão errados ou antigos. A app pergunta-o uma vez, na sua caixa de diálogo, ao escolher a
+  pasta (ou ao abrir esta versão com a pasta já escolhida); sem nome, fica um código `PC-XXXX`. Em Configuração →
+  Painel e-ink, «Mudar nome» muda-o e regrava o ficheiro.
+  - O escritor do painel é a cópia nova do de qzte/e-ink_panel (v1.13.1), com a opção `perguntar` (e `escrever(dados, true)`, que esta app não usa).
+  - A caixa de diálogo aceita um campo de texto (`campo:"texto"`), além do código de acesso.
+- **Testes:** `smoke-painel.mjs` verifica o código, a mudança de nome e que não abre nenhuma caixa nativa.
+
 ## [4.22.0] — 2026-11-24
 
 ### Acrescentado
