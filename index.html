@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.23.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.23.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1971,7 +1971,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.23.0";
+const APP_VERSION="4.23.1";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -7231,6 +7231,18 @@ function criarEscritorPainel({ app, titulo, versaoApp = '', perguntar: perguntar
     } catch (e) { return null; }
   };
 
+  // Funções soltas (e não métodos com `this`): `link.onclick = painel.pedirAutor` também funciona.
+  async function definirAutor(nome) {
+    await guardarAutor(nome);
+    if (!pendentes && ultimosPedidos) pendentes = ultimosPedidos;   // os últimos dados pedidos, com o nome novo
+    if (estado === 'ok') await despejar();
+  }
+  async function pedirAutor() {
+    const r = await perguntar(autor);
+    if (r !== null && r !== undefined) await definirAutor(r);
+    return autor;
+  }
+
   async function gravar(texto) {
     const fh = await handle.getFileHandle(FICHEIRO, { create: true });
     const w = await fh.createWritable();
@@ -7304,17 +7316,9 @@ function criarEscritorPainel({ app, titulo, versaoApp = '', perguntar: perguntar
       mudar(suportado ? 'sem' : 'indisponivel');
     },
     /** Pergunta o nome deste computador (de um clique: link «mudar» na app). Cancelar não muda nada. Devolve o autor. */
-    async pedirAutor() {
-      const r = await perguntar(autor);
-      if (r !== null && r !== undefined) await this.definirAutor(r);
-      return autor;
-    },
+    pedirAutor,
     /** Muda o nome deste computador (vazio → código «PC-XXXX») e regrava o ficheiro com os últimos dados. */
-    async definirAutor(nome) {
-      await guardarAutor(nome);
-      if (!pendentes && ultimosPedidos) pendentes = ultimosPedidos;   // os últimos dados pedidos, com o nome novo
-      if (estado === 'ok') await despejar();
-    },
+    definirAutor,
     /** Os dados mudaram (ou `forcar`): escreve-os (já, se houver pasta com licença; senão, quando houver). */
     async escrever(dados, forcar = false) {
       pendentes = dados; ultimosPedidos = dados;

@@ -5,6 +5,13 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.23.1] — 2026-11-24
+
+### Alterado
+
+- **Escritor do painel e-ink** actualizado para a cópia da v1.13.2 de qzte/e-ink_panel: `pedirAutor` e `definirAutor`
+  passam a funcionar também soltos (`botao.onclick = painel.pedirAutor`). Nada muda para quem usa a app.
+
 ## [4.23.0] — 2026-11-24
 
 ### Acrescentado
