@@ -48,6 +48,7 @@ de segurança. O PC fica para quando não dá para acabar no serviço. Ver
   - [Testar no PC](#testar-no-pc)
 - [Auditar no telemóvel, finalizar no PC](#auditar-no-telemóvel-finalizar-no-pc-3250) — hoje, a alternativa
 - [Relatório mensal](#relatório-mensal-3200)
+- [Painel e-ink](#painel-e-ink)
 - [Importação de Excel](#importação-de-excel)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Testes](#testes)
@@ -746,6 +747,27 @@ mais recente com auditorias) e *Gerar PDF* imprime-o em duas folhas
 
 No mês em curso, as acções contam até hoje, não até ao fim do mês. (Até 3.27.0
 tinha também os prazos das auditorias, que saíram com a frequência.)
+
+## Painel e-ink
+
+O painel e-ink de 7.5″ (a app `painel.html` do repositório [qzte/e-ink_panel](https://github.com/qzte/e-ink_panel))
+mostra a página **Auditorias 5S** (os KPIs e, desde a 4.0.0, os indicadores do ano), ao lado das páginas das outras apps
+(supermercados, ImpresKanban). Em **Configuração → Painel e-ink** escolhe-se uma **pasta partilhada** — a mesma das outras
+apps e do `painel.html` —, uma vez; a app grava lá `5s.painel.json` quando uma auditoria, um serviço, o tipo de um serviço
+ou o objectivo muda, e de hora a hora. Ao reabrir a app o browser pode pedir licença outra vez («Dar acesso à pasta»);
+«Deixar de gravar» larga a pasta. Só no Chrome ou no Edge de computador. O resumo é calculado aqui (`dadosPainel5s`).
+
+O ficheiro diz **quem o gravou** (`autor`, desde a 4.23.0): ao escolher a pasta, a app pergunta uma vez, na sua caixa de
+diálogo, o nome deste computador (ou de quem o usa); sem nome, fica um código `PC-XXXX`. «Mudar nome», no mesmo cartão,
+muda-o. O painel mostra-o na lista e no rodapé da página, para se saber a quem perguntar quando os dados estão errados ou
+antigos.
+
+O formato está em `docs/09-formato-feed.md` do qzte/e-ink_panel. O escritor (no `index.html`) é uma cópia do de lá
+(desde a 4.23.1, a da v1.13.2 do painel; ao mudar lá, copiar de novo e subir a versão), com a opção `perguntar` para
+usar a caixa de diálogo da app em vez de um `prompt()` nativo.
+Para o painel mostrar quem gravou, o `painel.html` tem de ser a v1.13.0 ou mais recente (hoje, a v1.13.2); com um
+`painel.html` mais antigo o campo é ignorado e o resto funciona igual. As versões das três apps e onde se muda o nome
+em cada uma estão no README do qzte/e-ink_panel («As apps»).
 
 ## Importação de Excel
 
