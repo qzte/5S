@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.23.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.24.0 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -810,6 +810,12 @@ details.ac-gr[open]>summary{border-bottom:1px solid var(--line)}
     <p class="aviso-txt" id="aviso-pasta-txt"></p>
     <button class="btn small" id="btn-pasta-abrir">Abrir a versão da pasta…</button>
     <button class="btn small ghost" id="btn-pasta-porcima">Gravar por cima…</button>
+  </div>
+  <!-- v4.24.0: o painel e-ink não recebe dados desta app (pasta sem licença, ou erro ao gravar). Só enquanto dura. -->
+  <div class="card aviso hidden" id="aviso-painel" role="status">
+    <div class="stat-row"><span>Painel e-ink sem dados novos</span></div>
+    <p class="aviso-txt" id="aviso-painel-txt"></p>
+    <button class="btn small" id="btn-aviso-painel">Dar acesso</button>
   </div>
   <div class="card aviso hidden" id="aviso-backup" role="status">
     <div class="stat-row"><span>Cópia de segurança</span></div>
@@ -1971,7 +1977,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.23.2";
+const APP_VERSION="4.24.0";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -7162,6 +7168,8 @@ async function edReset(){
 //   painel.escrever(dados, true);           // regrava mesmo sem mudanças (p. ex. uma vez por dia)
 //   link «mudar» → painel.pedirAutor()     // (opcional) o nome deste computador, que o painel mostra; ou definirAutor(nome)
 //   criarEscritorPainel({ …, perguntar: atual => … })   // (opcional) pedir o nome com a caixa da app, e não com prompt()
+//   info().aviso                            // texto pronto para mostrar quando a app NÃO consegue gravar na pasta ('' se está tudo bem)
+//   criarEscritorPainel({ …, reativarAoToque: false })  // (opcional) não reativar a licença no 1.º clique em qualquer sítio da app
 //
 // O feed diz quem o gravou («autor»): o nome deste computador ou de quem o usa, perguntado uma vez ao escolher a pasta
 // e guardado no browser. Sem nome, um código «PC-XXXX» — distingue os computadores até alguém escrever o nome.
@@ -7171,7 +7179,7 @@ async function edReset(){
 // Se a pasta ainda não tem licença, guarda os dados e escreve-os quando a licença for dada.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function criarEscritorPainel({ app, titulo, versaoApp = '', perguntar: perguntarApp = null }) {
+function criarEscritorPainel({ app, titulo, versaoApp = '', perguntar: perguntarApp = null, reativarAoToque = true }) {
   if (!/^[a-z0-9-]{1,40}$/.test(app)) throw new Error('criarEscritorPainel: «app» inválido');
   const FICHEIRO = `${app}.painel.json`;
   const IDB = `painel-feed:${app}`, LOJA = 'kv', CHAVE = 'pasta', CHAVE_AUTOR = 'autor';
@@ -7180,8 +7188,26 @@ function criarEscritorPainel({ app, titulo, versaoApp = '', perguntar: perguntar
   let pendentes = null, ultimoTexto = '', aEscrever = null, ultimosPedidos = null, autor = '';
   const ouvintes = new Set();
   const avisar = () => { for (const f of ouvintes) { try { f(info()); } catch (e) { /* um ouvinte não estraga os outros */ } } };
-  const mudar = (novo, msg = '') => { estado = novo; erro = msg; avisar(); };
-  const info = () => ({ estado, erro, pasta: handle?.name || '', ficheiro: FICHEIRO, escritoEm, autor });
+  const mudar = (novo, msg = '') => { estado = novo; erro = msg; novo === 'licenca' ? armar() : desarmar(); avisar(); };
+  // O aviso de que o painel NÃO está a receber dados desta app: só nos estados 'licenca' e 'erro' ('sem' e 'indisponivel' não são avarias).
+  const aviso = () => estado === 'licenca'
+    ? `Sem acesso de gravação à pasta «${handle?.name || ''}»: o painel não recebe dados desta app. ${reativarAoToque ? 'Clique em qualquer sítio da app para dar acesso.' : 'Dê acesso à pasta.'}`
+    : estado === 'erro' ? `Não foi possível gravar na pasta «${handle?.name || ''}»: ${erro || 'erro desconhecido'}` : '';
+  const info = () => ({ estado, erro, pasta: handle?.name || '', ficheiro: FICHEIRO, escritoEm, autor, aviso: aviso() });
+
+  // Sem licença (o browser volta a pedi-la ao reabrir a app), o 1.º clique em qualquer sítio da app pede-a de novo — um passo
+  // só, sem ir à procura do botão. Uma vez por vez: se for recusada, não insiste (o botão «Dar acesso» continua lá).
+  let aoToque = null;
+  function armar() {
+    if (!reativarAoToque || aoToque || typeof document === 'undefined') return;
+    aoToque = () => { desarmar(); darAcesso(); };
+    document.addEventListener('click', aoToque, true);
+  }
+  function desarmar() {
+    if (!aoToque) return;
+    document.removeEventListener('click', aoToque, true);
+    aoToque = null;
+  }
   const PERGUNTA = 'Nome deste computador ou de quem o usa (aparece no painel e-ink, para se saber a quem perguntar):';
 
   function idb(modo, fn) {
@@ -7241,6 +7267,21 @@ function criarEscritorPainel({ app, titulo, versaoApp = '', perguntar: perguntar
     const r = await perguntar(autor);
     if (r !== null && r !== undefined) await definirAutor(r);
     return autor;
+  }
+
+  // Um clique no botão e o clique ouvido pela app chegam juntos: um só pedido ao browser.
+  let aPedir = null;
+  function darAcesso() {
+    if (!handle) return Promise.resolve(false);
+    return aPedir || (aPedir = (async () => {
+      const ok = await permissao(true) === 'granted';
+      if (ok) {
+        // Esteve sem gravar: regrava mesmo com os dados iguais, para o «gerado» ficar de hoje (e o painel não a dar como parada).
+        ultimoTexto = ''; if (!pendentes && ultimosPedidos) pendentes = ultimosPedidos;
+        mudar('ok'); await despejar();
+      }
+      return ok;
+    })().finally(() => { aPedir = null; }));
   }
 
   async function gravar(texto) {
@@ -7303,12 +7344,7 @@ function criarEscritorPainel({ app, titulo, versaoApp = '', perguntar: perguntar
       return true;
     },
     /** Voltar a dar licença à pasta lembrada (de um clique). */
-    async darAcesso() {
-      if (!handle) return false;
-      const ok = await permissao(true) === 'granted';
-      if (ok) { mudar('ok'); await despejar(); }
-      return ok;
-    },
+    darAcesso,
     /** Deixar de escrever para o painel (esquece a pasta). */
     async esquecer() {
       handle = null; pendentes = null; ultimosPedidos = null; ultimoTexto = '';
@@ -7323,6 +7359,8 @@ function criarEscritorPainel({ app, titulo, versaoApp = '', perguntar: perguntar
     async escrever(dados, forcar = false) {
       pendentes = dados; ultimosPedidos = dados;
       if (forcar) ultimoTexto = '';      // regrava mesmo que os dados sejam iguais (p. ex. uma vez por dia: o «gerado» fica de hoje)
+      // Mesmo sem nada de novo para gravar, vê se a licença ainda vale: assim a perda dá-se a conhecer logo, e não só na próxima alteração.
+      if (estado === 'ok' && await permissao(false) !== 'granted') { mudar('licenca'); return; }
       if (estado === 'ok') await despejar();
     },
   };
@@ -7435,6 +7473,14 @@ function mostrarPainel(i){
   const hora=i.escritoEm?new Date(i.escritoEm).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"}):"";
   btn.dataset.estado=i.estado;
   btn.disabled=i.estado==="indisponivel";
+  /* v4.24.0: sem gravar (licença perdida, erro), o aviso vale para todas as vistas; um clique em qualquer sítio da app
+     volta a dar a licença (o escritor ouve-o) e o botão serve se esse pedido for recusado. */
+  const av=document.getElementById("aviso-painel");
+  if(av){
+    av.classList.toggle("hidden",!i.aviso);
+    document.getElementById("aviso-painel-txt").textContent=i.aviso||"";
+    document.getElementById("btn-aviso-painel").textContent=i.estado==="licenca"?"Dar acesso":"Escolher a pasta";
+  }
   btn.textContent=i.estado==="licenca"?"Dar acesso à pasta":i.estado==="ok"?"Escolher outra pasta":"Escolher pasta";
   /* v3.6.1: havia forma de escolher a pasta mas não de a largar — o esquecer()
      do escritor existia e não estava ligado a nada. */
@@ -7976,10 +8022,12 @@ on("btn-pasta-off","click",async()=>{
 on("chk-pasta-auto","change",e=>backupPasta.setAuto(e.target.checked));
 on("btn-pasta-abrir","click",()=>{backupPasta.abrirDaPasta();});
 on("btn-pasta-porcima","click",()=>{backupPasta.gravarAgora();});
-on("btn-painel","click",()=>{
+const acaoPainel=()=>{
   const e=painel.info().estado;
   (e==="licenca"?painel.darAcesso():painel.escolher()).then(()=>painel.escrever(dadosDoPainel()));
-});
+};
+on("btn-painel","click",acaoPainel);
+on("btn-aviso-painel","click",acaoPainel);
 
 /* ---------- Armazenamento persistente (v3.8.0) ----------
    Sem pedido, o localStorage é armazenamento de "melhor esforço": o browser
