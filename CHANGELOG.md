@@ -5,6 +5,15 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.23.2] — 2026-11-27
+
+### Corrigido
+
+- **«Deixar de gravar» (cópia na pasta partilhada) limpa o que era da pasta esquecida:** o último erro, a hora da última
+  gravação e a versão gravada por esta página. Antes, ao escolher outra pasta, podia ficar à vista um erro ou uma hora
+  de gravação da pasta antiga até à gravação seguinte. Igual ao supermercados (3.46.0).
+- **Testes:** `smoke-pasta.mjs` verifica que o estado fica limpo.
+
 ## [4.23.1] — 2026-11-24
 
 ### Alterado
