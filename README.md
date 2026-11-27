@@ -527,6 +527,13 @@ Antes de substituir o ficheiro, a versão que lá estava fica em `copias-backup/
 mais recentes; das gravações da própria app, uma por hora). A pasta é relida de 2 em 2 minutos e ao voltar ao separador. A mecânica é a da app
 *supermercados*; está aqui copiada e adaptada (`criarBackupAutomatico`, `criarPastaBackup`), porque a app é um único `index.html`.
 
+**Deixar de gravar** larga a pasta neste navegador, depois de perguntar; o ficheiro e as cópias que lá estão não são apagados. Desde a
+4.23.2 limpa também o que era dessa pasta (o último erro, a hora da última gravação e a versão gravada pela app), para não ficar à
+vista ao escolher outra.
+
+O supermercados (3.46.0) foi buscar daqui a gravação logo numa pasta sem cópia e o «Deixar de usar esta pasta»; a limpeza da 4.23.2
+veio de lá. Ao mudar uma regra (conflitos, cópias, prazos, vigia), ver se se repete no supermercados e no ImpresKanban.
+
 ### Partilhar a cópia (3.20.0)
 
 *Configuração → Dados → Partilhar cópia com fotos* faz a mesma cópia que
