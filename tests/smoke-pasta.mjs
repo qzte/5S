@@ -99,6 +99,9 @@ await abrirGruposCfg(pg);
 await pg.locator("#btn-pasta-off").click();
 await pg.waitForFunction(() => document.getElementById("pasta-estado").textContent.includes("Nenhuma pasta"), null, { timeout: 5000 }).catch(() => {});
 check((await pg.locator("#pasta-estado").textContent()).includes("Nenhuma pasta"), "depois de largar, o cartão devia dizer que não há pasta");
+/* v4.23.2: o estado da pasta esquecida não fica para a seguinte. */
+const depois = await pg.evaluate(() => { const e = backupPasta.estado(); return { gravadoEm: e.gravadoEm, erro: e.erro, mudou: e.mudou }; });
+check(depois.gravadoEm === null && depois.erro === "" && depois.mudou === null, "depois de largar, devia ficar sem hora de gravação, erro nem aviso: " + JSON.stringify(depois));
 
 await b.close();
 console.log(erros.length ? "ERROS JS:\n" + erros.join("\n") : "sem erros de JS");

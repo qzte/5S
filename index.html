@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Auditoria 5S · Supermercados Kaizen
-  Versão: 4.23.1 (Semantic Versioning — MAJOR.MINOR.PATCH)
+  Versão: 4.23.2 (Semantic Versioning — MAJOR.MINOR.PATCH)
   Repositório: https://github.com/qzte/5S
   Histórico de versões: ver CHANGELOG.md.
 -->
@@ -1971,7 +1971,7 @@ function avisoFotos(info,agora){
 }
 
 
-const APP_VERSION="4.23.1";
+const APP_VERSION="4.23.2";
 document.getElementById("app-ver").textContent="v"+APP_VERSION;
 /* v3.6.1: loadArr() garante que `audits` é uma lista, mas não que cada ELEMENTO
    é uma auditoria. Um `[{"service":"x"}]` escrito por outra página da origem
@@ -7630,7 +7630,7 @@ function criarPastaBackup() {
     },
     /** Deixar de usar a pasta (esquece-a neste browser). */
     async esquecer() {
-      handle = null;
+      handle = null; ultimaCopiaEm = null;
       try { await idb('readwrite', s => s.delete('pasta')); } catch (e) { /* nada a esquecer */ }
       mudar(suportado ? 'sem' : 'indisponivel');
     },
@@ -7817,7 +7817,12 @@ function criarBackupAutomatico(op) {
       if (ok) await verificar();
       return ok;
     },
-    esquecerPasta() { return pasta.esquecer().then(() => { mudou = null; emitir(); }); },
+    esquecerPasta() {
+      // Limpa também o erro, a hora da última gravação e a versão gravada por esta página: eram da pasta
+      // esquecida, e ficavam à vista (ou contavam) até à primeira gravação na pasta seguinte.
+      clearTimeout(timer);
+      return pasta.esquecer().then(() => { mudou = null; erro = ''; gravadoEm = null; propria = null; emitir(); });
+    },
     /** A pasta tem a versão destes dados (ou vai ter, na gravação automática que já está marcada)? */
     emDia() { return pasta.info().estado === 'ok' && auto && !mudou && !erro && !!base; },
     gravarAgora() { return gravar({ perguntar: true }); },
