@@ -5,6 +5,22 @@ Todas as alterações relevantes deste projeto são registadas neste ficheiro.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/)
 e o projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [4.24.0] — 2026-11-27
+
+### Acrescentado
+
+- **Painel e-ink: aviso quando a app não consegue gravar na pasta.** Se a pasta partilhada perdeu a licença (o browser
+  volta a pedi-la ao reabrir a app) ou a gravação falhou, aparece um aviso no topo, em todas as vistas, com a razão e o botão
+  «Dar acesso» / «Escolher a pasta». Antes, só mudava o texto do botão em Configuração → Painel e-ink.
+- **Um clique em qualquer sítio da app volta a dar a licença** e grava logo o que ficou por gravar — sem ir à Configuração
+  à procura do botão. Recusada, o aviso mantém o botão.
+
+### Alterado
+
+- **Escritor do painel e-ink** actualizado para a cópia da v1.27.0 de qzte/e-ink_panel: `info().aviso`, reativação ao clique
+  e `escrever()` a confirmar a licença mesmo sem dados novos. Dada a licença, regrava sempre (o `gerado` fica de hoje).
+- **Testes:** `smoke-painel.mjs` (aviso, clique que reativa, erro ao gravar).
+
 ## [4.23.2] — 2026-11-27
 
 ### Corrigido

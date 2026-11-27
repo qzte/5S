@@ -25,11 +25,15 @@ await ligarDialogos(pg, () => resposta);
 await pg.addInitScript(() => {
   const ficheiros = {};
   window.__PASTA = { ficheiros, escritas: 0 };
+  let licenca = "granted";
+  window.__PASTA.licenca = v => { licenca = v; };
+  window.__PASTA.pedidos = 0;
   const handle = {
     kind: "directory", name: "partilhada",
-    async queryPermission() { return "granted"; },
-    async requestPermission() { return "granted"; },
+    async queryPermission() { return licenca; },
+    async requestPermission() { window.__PASTA.pedidos++; licenca = "granted"; return "granted"; },
     async getFileHandle(nome) {
+      if (licenca !== "granted") throw new DOMException("Sem licença", "NotAllowedError");
       return { async createWritable() {
         let t = "";
         return { async write(x) { t += x; }, async close() { ficheiros[nome] = t; window.__PASTA.escritas++; }, async abort() {} };
@@ -90,6 +94,26 @@ await pg.waitForFunction(() => {
 f = await feed();
 check(f.dados.total === 1 && f.dados.servicos.length === 1, "a auditoria gravada devia chegar ao ficheiro do painel");
 check(f.dados.kpis && f.dados.kpis.porMes.reduce((t, m) => t + m.n, 0) === 1, "a auditoria gravada devia contar nos KPIs");
+
+/* ---- 3b. (4.24.0) Sem licença: o aviso do topo diz-o, em qualquer vista; um clique em qualquer sítio da app dá acesso e grava. ---- */
+await pg.locator("[data-v=audit]").click();
+check(!(await pg.locator("#aviso-painel").isVisible()), "com licença não devia haver aviso do painel");
+await pg.evaluate(() => window.__PASTA.licenca("prompt"));
+await pg.evaluate(() => { window.__antes = window.__PASTA.escritas; });
+await pg.locator("#f-verif").fill("Beltrano");
+await pg.locator("[data-v=cfg]").click(); await pg.locator("[data-v=audit]").click();
+for (const el of await pg.locator("[data-pick]").all()) await el.fill("0");
+await pg.locator("#f-date").fill("2026-01-03");
+await escolherServico(pg); await pg.locator("#btn-save").click();
+await pg.locator("#aviso-painel").waitFor({ state: "visible", timeout: 10000 }).catch(() => {});
+check(await pg.locator("#aviso-painel").isVisible(), "sem licença devia aparecer o aviso do painel");
+check((await pg.locator("#aviso-painel-txt").textContent()).includes("Sem acesso de gravação"), "o aviso devia dizer que falta o acesso");
+await pg.mouse.click(5, 5);   /* um clique em qualquer sítio da app */
+await pg.waitForFunction(() => document.getElementById("aviso-painel").classList.contains("hidden"), null, { timeout: 10000 }).catch(() => {});
+check(!(await pg.locator("#aviso-painel").isVisible()), "dada a licença, o aviso devia sair");
+check(await pg.evaluate(() => window.__PASTA.pedidos) === 1, "um só pedido de licença");
+f = await feed();
+check(f.dados.total === 2, "ao dar acesso devia gravar a auditoria que ficou por gravar (tem " + f.dados.total + ")");
 
 /* ---- 4. «Deixar de gravar» (3.6.1) larga a pasta: nada mais é gravado. ---- */
 await pg.locator("[data-v=cfg]").click();
