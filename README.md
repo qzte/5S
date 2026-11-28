@@ -754,8 +754,9 @@ O painel e-ink de 7.5″ (a app `painel.html` do repositório [qzte/e-ink_panel]
 mostra a página **Auditorias 5S** (os KPIs e, desde a 4.0.0, os indicadores do ano), ao lado das páginas das outras apps
 (supermercados, ImpresKanban). Em **Configuração → Painel e-ink** escolhe-se uma **pasta partilhada** — a mesma das outras
 apps e do `painel.html` —, uma vez; a app grava lá `5s.painel.json` quando uma auditoria, um serviço, o tipo de um serviço
-ou o objectivo muda, e de hora a hora. Ao reabrir a app o browser pode pedir licença outra vez («Dar acesso à pasta»);
-«Deixar de gravar» larga a pasta. Só no Chrome ou no Edge de computador. O resumo é calculado aqui (`dadosPainel5s`).
+ou o objectivo muda, e de hora a hora. Ao reabrir a app o browser pode pedir licença outra vez: **o primeiro clique em qualquer sítio da app volta a dá-la**
+e grava o que ficou por gravar. Se a app não conseguir gravar na pasta (licença perdida ou erro), um **aviso no topo**, em todas as
+vistas, diz porquê, com o botão «Dar acesso» / «Escolher a pasta» (desde a 4.24.0). «Deixar de gravar» larga a pasta. Só no Chrome ou no Edge de computador. O resumo é calculado aqui (`dadosPainel5s`).
 
 O ficheiro diz **quem o gravou** (`autor`, desde a 4.23.0): ao escolher a pasta, a app pergunta uma vez, na sua caixa de
 diálogo, o nome deste computador (ou de quem o usa); sem nome, fica um código `PC-XXXX`. «Mudar nome», no mesmo cartão,
@@ -763,9 +764,9 @@ muda-o. O painel mostra-o na lista e no rodapé da página, para se saber a quem
 antigos.
 
 O formato está em `docs/09-formato-feed.md` do qzte/e-ink_panel. O escritor (no `index.html`) é uma cópia do de lá
-(desde a 4.23.1, a da v1.13.2 do painel; ao mudar lá, copiar de novo e subir a versão), com a opção `perguntar` para
+(desde a 4.24.0, a da v1.27.0 do painel, com o `aviso` e a reativação ao clique; ao mudar lá, copiar de novo e subir a versão), com a opção `perguntar` para
 usar a caixa de diálogo da app em vez de um `prompt()` nativo.
-Para o painel mostrar quem gravou, o `painel.html` tem de ser a v1.13.0 ou mais recente (hoje, a v1.13.2); com um
+Para o painel mostrar quem gravou, o `painel.html` tem de ser a v1.13.0 ou mais recente (hoje, a v1.27.0); com um
 `painel.html` mais antigo o campo é ignorado e o resto funciona igual. As versões das três apps e onde se muda o nome
 em cada uma estão no README do qzte/e-ink_panel («As apps»).
 

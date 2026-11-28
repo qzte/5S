@@ -499,7 +499,8 @@ O guia abre-se no fim, em **Abrir o guia**. O que há em cada grupo:
   `5s.painel.json` (só no Chrome ou Edge de computador). Da primeira vez, a app pergunta o
   **nome deste computador** (ou de quem o usa): o painel mostra-o como quem gravou os dados, para
   se saber a quem perguntar quando estão errados ou antigos. Sem nome, fica um código (PC-…);
-  «Mudar nome» muda-o.
+  «Mudar nome» muda-o. Ao reabrir a app o browser pode pedir licença outra vez para a pasta: o primeiro clique em
+  qualquer sítio volta a dá-la. Se a app não conseguir gravar na pasta, aparece um aviso no topo («Dar acesso»).
 
 O **código de acesso** é pedido para editar auditorias, alterar os responsáveis,
 abrir o editor de perguntas e substituir o histórico. Protege contra alterações
