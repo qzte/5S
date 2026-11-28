@@ -2,6 +2,7 @@
 
 Revisões e notas, por ordem inversa:
 
+- **[Revisão de 4.24.0](#revisão-de-4240-2026-11-28)** — o código desde 4.8.0: tempo da auditoria, painel e-ink, análise e PDF do plano. Sem achados.
 - **[Revisão de 4.8.0](#revisão-de-480-2026-11-18)** — o código desde 4.2.7: pasta partilhada (4.6.0), PDF por responsável, nomes e acções no formulário, ficheiro de teste para o PC (4.8.0).
 - **[Revisão de 2026-11-15](#revisão-de-2026-11-15-o-que-o-github-pages-publica)** — o que o Pages publica de facto (ponto 29); CSP por hashes passa a ir para o ar.
 - **[Revisão de 4.2.6](#revisão-de-426-2026-11-11)** — o código desde 4.0.0 (listagem de serviços em Excel); tecto ao tamanho das importações em 4.2.7.
@@ -22,6 +23,35 @@ Revisões e notas, por ordem inversa:
 
 Âmbito das revisões: `index.html` (aplicação e SheetJS embutido), `sw.js`,
 `manifest.json`, `tests/`, a CI e a configuração do repositório.
+
+# Revisão de 4.24.0 (2026-11-28)
+
+Revisto o código acrescentado desde 4.8.0 — o tempo da auditoria (4.22.0), o
+escritor do painel e-ink (`5s.painel.json`), a análise, os indicadores e o PDF
+do plano de acção —, as bibliotecas de `vendor/` e as dependências de
+desenvolvimento.
+
+Sem achados de gravidade alta, média ou baixa. O que foi confirmado:
+
+- **XSS no código novo.** As interpolações novas em `innerHTML` passam por
+  `esc()` ou são números, classes e textos fixos. Os números das perguntas
+  (`it.n`) são inteiros (`sanitizeItems`).
+- **Portas de entrada.** O rascunho do tempo lido do `localStorage` passa por
+  `sanitizeTempo()` (datas que `Date.parse` lê, minutos inteiros de 0 a 1440,
+  `a`/`b`) e o serviço por `clean()`; as listas guardadas da análise só aceitam
+  textos.
+- **Painel e-ink.** A app só escreve o `5s.painel.json`; não lê nada da pasta do
+  painel.
+- **Bibliotecas.** SheetJS 0.20.3 (CVE-2023-30533 e CVE-2024-22363 corrigidos),
+  jsPDF 4.2.1 (CVE-2025-68428 corrigido em 4.0.0), html2canvas 1.4.1: sem CVE
+  conhecidos nestas versões. Carregadas com SRI. A consulta ao OSV não foi
+  possível nesta revisão; confirmar à mão na próxima.
+- **Dependências de desenvolvimento.** `npm audit` em `tools/lint`: 0
+  vulnerabilidades.
+- **CSP.** A publicada continua por hashes; o `guia.html` tem `script-src 'none'`.
+- **CI.** Actions fixadas por SHA, `permissions: contents: read`,
+  `persist-credentials: false`.
+- **Segredos.** Nenhuma chave ou token no repositório.
 
 # Revisão de 4.8.0 (2026-11-18)
 
